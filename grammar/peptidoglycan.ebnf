@@ -7,8 +7,8 @@ Multimer = Monomer , { ( "~" (* Glycosidic Bond *) | Crosslink ) , Monomer } ;
 
 Crosslink
   = "=" (* Ambiguous Crosslink *)
-  | ( "=" , digit , ( "<" | ">" ) , digit , "=" ,
-    { ":" , "=" , digit , ( "<" | ">" ) , digit , "=" } )
+  | ( "=" , position , ( "<" | ">" ) , position , "=" ,
+    { ":" , "=" , position , ( "<" | ">" ) , position , "=" } )
   ;
 
 Monomer = Glycan , [ "-" , Peptide ] ;
@@ -20,7 +20,8 @@ Peptide = AminoAcid , [ Modifications ] ,
   [ LateralChain ] , { AminoAcid , [ Modifications ] ,
   [ LateralChain ] } ;
 
-LateralChain = "[" , Peptide , "]" ;
+LateralChain = "[" , AminoAcid , [ Modifications ] ,
+  { AminoAcid , [ Modifications ] } , "]" ;
 
 Monosaccharide = lowercase ;
 
@@ -59,3 +60,5 @@ digit
   = "0" | "1" | "2" | "3" | "4" | "5" | "6"
   | "7" | "8" | "9"
   ;
+
+position = "1" | "2" | "3" | "4" | "5" ;

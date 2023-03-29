@@ -1,11 +1,11 @@
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, alphanumeric1, char, one_of, satisfy, space0},
+    character::complete::{alpha1, alphanumeric1, char, one_of, satisfy, space0, u8},
     combinator::{map, recognize},
     multi::{many0, separated_list1},
     sequence::{delimited, pair, terminated, tuple},
-    IResult,
+    IResult, Parser,
 };
 use serde::{Deserialize, Serialize};
 
@@ -18,13 +18,18 @@ type Moiety = String;
 type Peptide = ();
 type AminoAcid = char;
 type LateralChain = ();
-type Crosslink = ();
 
 // FIXME: Add missing derives!
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub enum Modification {
     Add(Moiety),
     Remove(Moiety),
+}
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
+pub enum Crosslink {
+    Ambiguous,
+    Between(u8, u8),
 }
 
 /// Multimer = Monomer , { ( "~" (* Glycosidic Bond *) | Crosslink ) , Monomer } ;
@@ -87,18 +92,35 @@ pub fn amino_acid(i: &str) -> IResult<&str, AminoAcid> {
     satisfy(|c| c.is_ascii_uppercase())(i)
 }
 
-/// LateralChain = "[" , Peptide , "]" ;
+/// LateralChain = "[" , AminoAcid , [ Modifications ] ,
+///   { AminoAcid , [ Modifications ] } , "]" ;
 pub fn lateral_chain(i: &str) -> IResult<&str, LateralChain> {
+    // delimited(char('['), peptide, char(']'))(i)
     todo!()
 }
 
 /// Crosslink
 ///   = "=" (* Ambiguous Crosslink *)
-///   | "=" , digit , ( "<" | ">" ) , digit , "=" ,
-///     { ":" , "=" , digit , ( "<" | ">" ) , digit , "=" }
+///   | "=" , position , ( "<" | ">" ) , position , "=" ,
+///     { ":" , "=" , position , ( "<" | ">" ) , position , "=" }
 ///   ;
 pub fn crosslink(i: &str) -> IResult<&str, Crosslink> {
-    todo!()
+    let ambiguous = char('=').map(|_| Crosslink::Ambiguous);
+    let between = delimited(
+        char('='),
+        tuple((one_of("12345"), one_of("<>"), one_of("12345"))),
+        char('='),
+    )
+    .map(|(a, dir, b)| {
+        let a = a.to_digit(10).unwrap() as u8;
+        let b = b.to_digit(10).unwrap() as u8;
+        match dir {
+            '<' => Crosslink::Between(b, a),
+            '>' => Crosslink::Between(a, b),
+            _ => unreachable!(),
+        }
+    });
+    alt((ambiguous, between))(i)
 }
 
 #[cfg(test)]
@@ -117,6 +139,55 @@ mod tests {
     }
 
     #[test]
+    fn test_modifications() -> Result<(), Box<dyn Error>> {
+        assert_eq!(
+            modifications("(+Ac)")?,
+            ("", vec![Modification::Add("Ac".to_string())])
+        );
+        assert_eq!(
+            modifications("(-Ac)")?,
+            ("", vec![Modification::Remove("Ac".to_string())])
+        );
+        assert_eq!(
+            modifications("(+Ac,+Am)")?,
+            (
+                "",
+                vec![
+                    Modification::Add("Ac".to_string()),
+                    Modification::Add("Am".to_string())
+                ]
+            )
+        );
+        assert_eq!(
+            modifications("(+Ac, +Am)")?,
+            (
+                "",
+                vec![
+                    Modification::Add("Ac".to_string()),
+                    Modification::Add("Am".to_string())
+                ]
+            )
+        );
+        assert_eq!(
+            modifications("(+Ac, -Am)")?,
+            (
+                "",
+                vec![
+                    Modification::Add("Ac".to_string()),
+                    Modification::Remove("Am".to_string())
+                ]
+            )
+        );
+        Ok(())
+    }
+
+    // TODO: Finish filling in these tests!
+    #[test]
+    fn test_moiety() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    #[test]
     fn test_amino_acid() -> Result<(), Box<dyn Error>> {
         // Ensure the complete uppercase ASCII alphabet is present
         for c in 'A'..='Z' {
@@ -125,5 +196,8 @@ mod tests {
         Ok(())
     }
 
-    // TODO: Write tests for `moiety` and `modifications`!
+    #[test]
+    fn test_crosslink() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
 }
