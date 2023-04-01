@@ -1,12 +1,13 @@
 // FIXME: This should probably be made private at some point!
-pub mod parsers;
+pub mod parser;
 
-// FIXME: Need a new module for types that are universal! Like `Modification`!
-use parsers::peptidoglycan::{Modification, Modifications};
+use std::iter::repeat;
+
 use petgraph::Graph;
 use phf::phf_map;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
+use serde::{Deserialize, Serialize};
 
 // FIXME: These masses need to be checked against the mass_calc databases Steph has vetted!
 // Masses computed using https://mstools.epfl.ch/info/
@@ -36,7 +37,7 @@ static RESIDUES: phf::Map<char, Moiety> = phf_map! {
     'W' => Moiety::new("W", "Tryptophan", dec!(186.079313)),
     'Y' => Moiety::new("Y", "Tyrosine", dec!(163.063329)),
     'g' => Moiety::new("g", "GlcNAc", dec!(203.079373)),
-    'm' => Moiety::new("m", "MurNAc Alditol", dec!(277.116152)),
+    'm' => Moiety::new("m", "MurNAc", dec!(275.100502)),
     // These are placeholder residues, allowing modifications to entirely determine the residue mass
     'X' => Moiety::new("X", "Unknown Amino Acid", dec!(0.0)),
     'x' => Moiety::new("x", "Unknown Monosaccharide", dec!(0.0)),
@@ -48,18 +49,125 @@ static MODIFICATIONS: phf::Map<&str, Moiety> = phf_map! {
     "OH" => Moiety::new("OH", "Hydroxy", dec!(17.002740)),
 };
 
-// pub struct Molecule {
-//     name: String,
-//     graph: Graph,
-// }
-
-pub struct Residue {
-    id: usize,
-    moiety: Moiety,
-    mods: Modifications,
+// FIXME: Cache or memoise calculations of things like mass
+#[derive(Clone, Debug)]
+pub struct Peptidoglycan {
+    name: String,
+    graph: Graph<Residue, ()>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+impl Peptidoglycan {
+    // FIXME: Replace `String` with a proper error type!
+    // FIXME: Sopping code... Needs some DRYing!
+    pub fn new(structure: &str) -> Result<Self, String> {
+        // FIXME: Handle this error properly!
+        let (_, (monomers, crosslinks)) = parser::multimer(structure).unwrap();
+        // FIXME: Get rid of this explicit type
+        let mut graph: Graph<Residue, ()> = Graph::new();
+        for (glycan, peptide) in monomers {
+            let glycan: Vec<_> = glycan
+                .into_iter()
+                .map(|monosaccharide| graph.add_node(monosaccharide.into()))
+                .collect();
+            // FIXME: This will crash with single nodes
+            for w in glycan.windows(2) {
+                graph.add_edge(w[0], w[1], ());
+            }
+            // Add H to the "N-terminal"
+            graph[glycan[0]]
+                .modifications
+                .push(Modification::Add(MODIFICATIONS["H"]));
+
+            // Add H2 to the reduced end of the glycan chain
+            // FIXME: Can GlcNAc be reduced too? Or only MurNAc?
+            graph[glycan[glycan.len() - 1]]
+                .modifications
+                .extend(repeat(Modification::Add(MODIFICATIONS["H"])).take(2));
+
+            if let Some(peptide) = peptide {
+                let peptide: Vec<_> = peptide
+                    .into_iter()
+                    // FIXME: Actually do something with the lateral chain!
+                    .map(|(abbr, modifcations, _lateral_chain)| {
+                        graph.add_node((abbr, modifcations).into())
+                    })
+                    .collect();
+
+                // FIXME: Needs to validate that this is a MurNAc
+                graph.add_edge(glycan[glycan.len()-1], peptide[0], ());
+                // FIXME: This will crash with single nodes
+                for w in peptide.windows(2) {
+                    graph.add_edge(w[0], w[1], ());
+                }
+                // Add OH to the "C-terminal"
+                graph[peptide[peptide.len() - 1]]
+                    .modifications
+                    .push(Modification::Add(MODIFICATIONS["OH"]));
+            } else {
+                // Add OH to the "C-terminal"
+                graph[glycan[glycan.len() - 1]]
+                    .modifications
+                    .push(Modification::Add(MODIFICATIONS["OH"]));
+            }
+        }
+        Ok(Self {
+            name: structure.to_string(),
+            graph,
+        })
+    }
+
+    pub fn monoisotopic_mass(&self) -> Decimal {
+        self.graph
+            .raw_nodes()
+            .iter()
+            .map(|residue| residue.weight.monoisotopic_mass())
+            .sum()
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub enum Modification {
+    Add(Moiety),
+    Remove(Moiety),
+}
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub struct Residue {
+    moiety: Moiety,
+    modifications: Vec<Modification>,
+}
+
+impl Residue {
+    pub fn monoisotopic_mass(&self) -> Decimal {
+        self.modifications
+            .iter()
+            .fold(self.moiety.mass, |mass, modification| match modification {
+                Modification::Add(m) => mass + m.mass,
+                Modification::Remove(m) => mass - m.mass,
+            })
+    }
+}
+
+impl From<(char, Option<parser::Modifications>)> for Residue {
+    fn from((abbr, modifications): (char, Option<parser::Modifications>)) -> Self {
+        let moiety = RESIDUES[&abbr];
+        let modifications = modifications
+            .iter()
+            .flatten()
+            // FIXME: This Modification conversion could be improved using `strum`?
+            .map(|modification| match modification {
+                parser::Modification::Add(abbr) => Modification::Add(MODIFICATIONS[abbr]),
+                parser::Modification::Remove(abbr) => Modification::Remove(MODIFICATIONS[abbr]),
+            })
+            .collect();
+        Self {
+            moiety,
+            modifications,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct Moiety {
     abbr: &'static str,
     name: &'static str,
@@ -67,7 +175,6 @@ pub struct Moiety {
 }
 
 impl Moiety {
-    // FIXME: Replace this with a real implementation
     pub const fn new(abbr: &'static str, name: &'static str, mass: Decimal) -> Self {
         Self { abbr, name, mass }
     }
@@ -77,10 +184,16 @@ impl Moiety {
 mod tests {
     use std::error::Error;
 
+    use petgraph::dot::{Config, Dot};
+
     use super::*;
 
     #[test]
     fn it_works() -> Result<(), Box<dyn Error>> {
+        let pg = dbg!(Peptidoglycan::new("gm-AEJYW")?);
+        println!("{:?}", Dot::with_config(&pg.graph, &[Config::EdgeNoLabel]));
+        dbg!(dbg!(pg.monoisotopic_mass()).round_dp(4));
+        panic!();
         Ok(())
     }
 }
