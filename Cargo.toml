@@ -12,5 +12,5 @@ phf = { version = "0.11.1", features = ["macros"] }
 rust_decimal = "1.29.1"
 rust_decimal_macros = "1.29.1"
 crepe = "0.1.8"
-polars = "0.27.2"
-serde = { version = "1.0.158", features = ["derive"] }
+polars = "0.28.0"
+serde = { version = "1.0.159", features = ["derive"] }

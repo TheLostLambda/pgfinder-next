@@ -3,12 +3,13 @@
   ==========================
 *)
 
-Multimer = Monomer , { ( "~" (* Glycosidic Bond *) | Crosslink ) , Monomer } ;
+Multimer = Monomer , { Crosslink , Monomer } ;
 
 Crosslink
-  = "=" (* Ambiguous Crosslink *)
-  | ( "=" , position , ( "<" | ">" ) , position , "=" ,
+  = ( "=" , position , ( "<" | ">" ) , position , "=" ,
     { ":" , "=" , position , ( "<" | ">" ) , position , "=" } )
+  | "=" (* Ambiguous Crosslink *)
+  | "~" (* Glycosidic Bond *)
   ;
 
 Monomer = Glycan , [ "-" , Peptide ] ;
@@ -28,7 +29,7 @@ Monosaccharide = lowercase ;
 AminoAcid = uppercase ;
 
 Modifications = "(" , ( "+" | "-" ) , Moiety ,
-  { "," , { space } , ( "+" | "-" ) , Moiety } , ")" ;
+  { "," , ( "+" | "-" ) , Moiety } , ")" ;
 
 Moiety = letter , { letter | digit | "_" } ;
 
@@ -37,8 +38,6 @@ Moiety = letter , { letter | digit | "_" } ;
   ----------------
   These are low level components, the small building blocks.
 *)
-
-space = " " | "\t" ;
 
 letter = uppercase | lowercase ;
 
