@@ -1,4 +1,4 @@
-# Fraph
+# Smithereens
 
 ## EBNF Notation for PG Structures (https://github.com/matthijsgroen/ebnf2railroad)
 ```
@@ -7,12 +7,13 @@
   ==========================
 *)
 
-Multimer = Monomer , { ( "~" (* Glycosidic Bond *) | Crosslink ) , Monomer } ;
+Multimer = Monomer , { Crosslink , Monomer } ;
 
 Crosslink
-  = "=" (* Ambiguous Crosslink *)
-  | ( "=" , digit , ( "<" | ">" ) , digit , "=" ,
-    { ":" , "=" , digit , ( "<" | ">" ) , digit , "=" } )
+  = ( "=" , position , ( "<" | ">" ) , position , "=" ,
+    { ":" , "=" , position , ( "<" | ">" ) , position , "=" } )
+  | "=" (* Ambiguous Crosslink *)
+  | "~" (* Glycosidic Bond *)
   ;
 
 Monomer = Glycan , [ "-" , Peptide ] ;
@@ -24,14 +25,15 @@ Peptide = AminoAcid , [ Modifications ] ,
   [ LateralChain ] , { AminoAcid , [ Modifications ] ,
   [ LateralChain ] } ;
 
-LateralChain = "[" , Peptide , "]" ;
+LateralChain = "[" , AminoAcid , [ Modifications ] ,
+  { AminoAcid , [ Modifications ] } , "]" ;
 
 Monosaccharide = lowercase ;
 
 AminoAcid = uppercase ;
 
 Modifications = "(" , ( "+" | "-" ) , Moiety ,
-  { "," , { space } , ( "+" | "-" ) , Moiety } , ")" ;
+  { "," , ( "+" | "-" ) , Moiety } , ")" ;
 
 Moiety = letter , { letter | digit | "_" } ;
 
@@ -40,8 +42,6 @@ Moiety = letter , { letter | digit | "_" } ;
   ----------------
   These are low level components, the small building blocks.
 *)
-
-space = " " | "\t" ;
 
 letter = uppercase | lowercase ;
 
@@ -63,4 +63,6 @@ digit
   = "0" | "1" | "2" | "3" | "4" | "5" | "6"
   | "7" | "8" | "9"
   ;
+
+position = "1" | "2" | "3" | "4" | "5" ;
 ```
