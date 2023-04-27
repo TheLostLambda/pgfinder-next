@@ -3,7 +3,8 @@ pub mod parser;
 
 use std::iter::repeat;
 
-use petgraph::Graph;
+use parser::{LateralChain, Modifications};
+use petgraph::{stable_graph::NodeIndex, Graph};
 use phf::phf_map;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -47,6 +48,7 @@ static MODIFICATIONS: phf::Map<&str, Moiety> = phf_map! {
     "+" => Moiety::new("+", "Proton", dec!(1.007276)),
     "H" => Moiety::new("H", "Hydrogen", dec!(1.007825)),
     "OH" => Moiety::new("OH", "Hydroxy", dec!(17.002740)),
+    "Ac" => Moiety::new("Ac", "Acetyl", dec!(42.010565)),
 };
 
 // FIXME: Cache or memoise calculations of things like mass
@@ -62,54 +64,87 @@ impl Peptidoglycan {
     pub fn new(structure: &str) -> Result<Self, String> {
         // FIXME: Handle this error properly!
         let (_, (monomers, crosslinks)) = parser::multimer(structure).unwrap();
-        // FIXME: Get rid of this explicit type
-        let mut graph: Graph<Residue, ()> = Graph::new();
+        let mut graph = Graph::new();
         for (glycan, peptide) in monomers {
-            let glycan: Vec<_> = glycan
-                .into_iter()
-                .map(|monosaccharide| graph.add_node(monosaccharide.into()))
-                .collect();
-            // FIXME: This will crash with single nodes
-            for w in glycan.windows(2) {
-                graph.add_edge(w[0], w[1], ());
-            }
+            // Build the glycan chain
+            let mut last_monosaccharide = graph.add_node(Residue::from(&glycan[0]));
+
             // Add H to the "N-terminal"
-            graph[glycan[0]]
+            graph[last_monosaccharide]
                 .modifications
                 .push(Modification::Add(MODIFICATIONS["H"]));
 
+            // Add edges
+            for monosaccharide in &glycan[1..] {
+                let monosaccharide = graph.add_node(Residue::from(monosaccharide));
+                graph.add_edge(last_monosaccharide, monosaccharide, ());
+                last_monosaccharide = monosaccharide;
+            }
+
             // Add H2 to the reduced end of the glycan chain
             // FIXME: Can GlcNAc be reduced too? Or only MurNAc?
-            graph[glycan[glycan.len() - 1]]
+            graph[last_monosaccharide]
                 .modifications
                 .extend(repeat(Modification::Add(MODIFICATIONS["H"])).take(2));
 
             if let Some(peptide) = peptide {
-                let peptide: Vec<_> = peptide
-                    .into_iter()
-                    // FIXME: Actually do something with the lateral chain!
-                    .map(|(abbr, modifcations, _lateral_chain)| {
-                        graph.add_node((abbr, modifcations).into())
-                    })
-                    .collect();
+                let (abbr, modifications, lateral_chain) = &peptide[0];
+                let mut last_amino_acid = graph.add_node(Residue::from((abbr, modifications)));
 
+                build_lateral_chain(&mut graph, last_amino_acid, lateral_chain);
+
+                // Join the glycan chain and peptide stem
                 // FIXME: Needs to validate that this is a MurNAc
-                graph.add_edge(glycan[glycan.len()-1], peptide[0], ());
-                // FIXME: This will crash with single nodes
-                for w in peptide.windows(2) {
-                    graph.add_edge(w[0], w[1], ());
+                graph.add_edge(last_monosaccharide, last_amino_acid, ());
+
+                for (abbr, modifications, lateral_chain) in &peptide[1..] {
+                    let amino_acid = graph.add_node(Residue::from((abbr, modifications)));
+                    graph.add_edge(last_amino_acid, amino_acid, ());
+                    last_amino_acid = amino_acid;
+                    build_lateral_chain(&mut graph, last_amino_acid, lateral_chain);
                 }
+
                 // Add OH to the "C-terminal"
-                graph[peptide[peptide.len() - 1]]
+                graph[last_amino_acid]
                     .modifications
                     .push(Modification::Add(MODIFICATIONS["OH"]));
             } else {
                 // Add OH to the "C-terminal"
-                graph[glycan[glycan.len() - 1]]
+                graph[last_monosaccharide]
                     .modifications
                     .push(Modification::Add(MODIFICATIONS["OH"]));
             }
         }
+
+        // FIXME: Still very wet, needs breaking into more subfunctions!
+        fn build_lateral_chain(
+            graph: &mut Graph<Residue, ()>,
+            last_amino_acid: NodeIndex,
+            lateral_chain: &Option<LateralChain>,
+        ) {
+            if let Some(lateral_chain) = lateral_chain {
+                let mut last_lateral_amino_acid = graph.add_node(Residue::from(&lateral_chain[0]));
+
+                graph.add_edge(last_lateral_amino_acid, last_amino_acid, ());
+
+                // Remove H from the branch-point residue
+                graph[last_amino_acid]
+                    .modifications
+                    .push(Modification::Remove(MODIFICATIONS["H"]));
+
+                for lateral_amino_acid in &lateral_chain[1..] {
+                    let lateral_amino_acid = graph.add_node(Residue::from(lateral_amino_acid));
+                    graph.add_edge(lateral_amino_acid, last_lateral_amino_acid, ());
+                    last_lateral_amino_acid = lateral_amino_acid;
+                }
+
+                // Add H to the "N-terminal"
+                graph[last_lateral_amino_acid]
+                    .modifications
+                    .push(Modification::Add(MODIFICATIONS["H"]));
+            }
+        }
+
         Ok(Self {
             name: structure.to_string(),
             graph,
@@ -148,9 +183,15 @@ impl Residue {
     }
 }
 
-impl From<(char, Option<parser::Modifications>)> for Residue {
-    fn from((abbr, modifications): (char, Option<parser::Modifications>)) -> Self {
-        let moiety = RESIDUES[&abbr];
+impl From<&(char, Option<Modifications>)> for Residue {
+    fn from((abbr, modifications): &(char, Option<Modifications>)) -> Self {
+        Residue::from((abbr, modifications))
+    }
+}
+
+impl From<(&char, &Option<Modifications>)> for Residue {
+    fn from((abbr, modifications): (&char, &Option<Modifications>)) -> Self {
+        let moiety = RESIDUES[abbr];
         let modifications = modifications
             .iter()
             .flatten()
@@ -191,7 +232,7 @@ mod tests {
 
     #[test]
     fn it_works() -> Result<(), Box<dyn Error>> {
-        let pg = dbg!(Peptidoglycan::new("gm-AEJYW")?);
+        let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[G]K[AKEAG]AA")?);
         println!("{:?}", Dot::with_config(&pg.graph, &[Config::EdgeNoLabel]));
         dbg!(dbg!(pg.monoisotopic_mass()).round_dp(4));
         panic!();
