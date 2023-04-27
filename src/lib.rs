@@ -180,6 +180,7 @@ impl Moiety {
     }
 }
 
+// FIXME: Keep writing messy code, then write tests, then refactor
 #[cfg(test)]
 mod tests {
     use std::error::Error;
