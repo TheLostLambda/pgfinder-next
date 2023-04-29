@@ -9,6 +9,7 @@ use nom::{
 };
 use serde::{Deserialize, Serialize};
 
+// TODO: Write a "reverse-parser" Display impl that goes from AST to string
 // TODO: Should all of these tuples be structs with named fields?
 // FIXME: Make as much private as possible!
 // FIXME: Check that all EBNF is up to date!

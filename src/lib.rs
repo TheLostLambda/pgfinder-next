@@ -10,6 +10,10 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
+// OPEN QUESTIONS =============================================================
+// 1) Which direction do lateral chains run off from mDAP?
+
+
 // FIXME: These masses need to be checked against the mass_calc databases Steph has vetted!
 // Masses computed using https://mstools.epfl.ch/info/
 // Checked against http://www.matrixscience.com/help/aa_help.html
@@ -40,15 +44,22 @@ static RESIDUES: phf::Map<char, Moiety> = phf_map! {
     'g' => Moiety::new("g", "GlcNAc", dec!(203.079373)),
     'm' => Moiety::new("m", "MurNAc", dec!(275.100502)),
     // These are placeholder residues, allowing modifications to entirely determine the residue mass
-    'X' => Moiety::new("X", "Unknown Amino Acid", dec!(0.0)),
-    'x' => Moiety::new("x", "Unknown Monosaccharide", dec!(0.0)),
+    'X' => Moiety::new("X", "Unknown Amino Acid", dec!(0.000000)),
+    'x' => Moiety::new("x", "Unknown Monosaccharide", dec!(0.000000)),
 };
 // Used to update https://github.com/Mesnage-Org/rhizobium-pg-pipeline/blob/7f3a322624c027f5c42b796c6a1c0a1d7d81dbb0/Data/Constants/mods_table.csv
 static MODIFICATIONS: phf::Map<&str, Moiety> = phf_map! {
     "+" => Moiety::new("+", "Proton", dec!(1.007276)),
+    "-" => Moiety::new("-", "Electron", dec!(0.000549)),
     "H" => Moiety::new("H", "Hydrogen", dec!(1.007825)),
     "OH" => Moiety::new("OH", "Hydroxy", dec!(17.002740)),
     "Ac" => Moiety::new("Ac", "Acetyl", dec!(42.010565)),
+};
+// FIXME: Consider merging this with the rest of the RESIDUES table!
+static BRANCH_RESIDUES: phf::Map<&str, SidechainGroup> = phf_map! {
+    "E" => SidechainGroup::Carboxyl,
+    "J" => SidechainGroup::Amine, // FIXME: Is actually `Both`!
+    "K" => SidechainGroup::Amine,
 };
 
 // FIXME: Cache or memoise calculations of things like mass
@@ -64,10 +75,11 @@ impl Peptidoglycan {
     pub fn new(structure: &str) -> Result<Self, String> {
         // FIXME: Handle this error properly!
         let (_, (monomers, crosslinks)) = parser::multimer(structure).unwrap();
+        let mut residue_id = 0;
         let mut graph = Graph::new();
         for (glycan, peptide) in monomers {
             // Build the glycan chain
-            let mut last_monosaccharide = graph.add_node(Residue::from(&glycan[0]));
+            let mut last_monosaccharide = graph.add_node(Residue::new(&mut residue_id, &glycan[0]));
 
             // Add H to the "N-terminal"
             graph[last_monosaccharide]
@@ -76,7 +88,7 @@ impl Peptidoglycan {
 
             // Add edges
             for monosaccharide in &glycan[1..] {
-                let monosaccharide = graph.add_node(Residue::from(monosaccharide));
+                let monosaccharide = graph.add_node(Residue::new(&mut residue_id, monosaccharide));
                 graph.add_edge(last_monosaccharide, monosaccharide, ());
                 last_monosaccharide = monosaccharide;
             }
@@ -89,19 +101,26 @@ impl Peptidoglycan {
 
             if let Some(peptide) = peptide {
                 let (abbr, modifications, lateral_chain) = &peptide[0];
-                let mut last_amino_acid = graph.add_node(Residue::from((abbr, modifications)));
+                let mut last_amino_acid =
+                    graph.add_node(Residue::new(&mut residue_id, (abbr, modifications)));
 
-                build_lateral_chain(&mut graph, last_amino_acid, lateral_chain);
+                build_lateral_chain(&mut graph, &mut residue_id, last_amino_acid, lateral_chain);
 
                 // Join the glycan chain and peptide stem
                 // FIXME: Needs to validate that this is a MurNAc
                 graph.add_edge(last_monosaccharide, last_amino_acid, ());
 
                 for (abbr, modifications, lateral_chain) in &peptide[1..] {
-                    let amino_acid = graph.add_node(Residue::from((abbr, modifications)));
+                    let amino_acid =
+                        graph.add_node(Residue::new(&mut residue_id, (abbr, modifications)));
                     graph.add_edge(last_amino_acid, amino_acid, ());
                     last_amino_acid = amino_acid;
-                    build_lateral_chain(&mut graph, last_amino_acid, lateral_chain);
+                    build_lateral_chain(
+                        &mut graph,
+                        &mut residue_id,
+                        last_amino_acid,
+                        lateral_chain,
+                    );
                 }
 
                 // Add OH to the "C-terminal"
@@ -119,29 +138,56 @@ impl Peptidoglycan {
         // FIXME: Still very wet, needs breaking into more subfunctions!
         fn build_lateral_chain(
             graph: &mut Graph<Residue, ()>,
+            residue_id: &mut usize,
             last_amino_acid: NodeIndex,
             lateral_chain: &Option<LateralChain>,
         ) {
-            if let Some(lateral_chain) = lateral_chain {
-                let mut last_lateral_amino_acid = graph.add_node(Residue::from(&lateral_chain[0]));
+            let sidechain_group = BRANCH_RESIDUES.get(graph[last_amino_acid].moiety.abbr);
+            if let (Some(sidechain_group), Some(lateral_chain)) = (sidechain_group, lateral_chain) {
+                let mut last_lateral_amino_acid =
+                    graph.add_node(Residue::new(residue_id, &lateral_chain[0]));
 
-                graph.add_edge(last_lateral_amino_acid, last_amino_acid, ());
+                // FIXME: Dripping wet...
+                match sidechain_group {
+                    SidechainGroup::Amine => {
+                        graph.add_edge(last_lateral_amino_acid, last_amino_acid, ());
+                        // Remove H from the branch-point residue
+                        graph[last_amino_acid]
+                            .modifications
+                            .push(Modification::Remove(MODIFICATIONS["H"]));
 
-                // Remove H from the branch-point residue
-                graph[last_amino_acid]
-                    .modifications
-                    .push(Modification::Remove(MODIFICATIONS["H"]));
+                        for lateral_amino_acid in &lateral_chain[1..] {
+                            let lateral_amino_acid =
+                                graph.add_node(Residue::new(residue_id, lateral_amino_acid));
+                            graph.add_edge(lateral_amino_acid, last_lateral_amino_acid, ());
+                            last_lateral_amino_acid = lateral_amino_acid;
+                        }
 
-                for lateral_amino_acid in &lateral_chain[1..] {
-                    let lateral_amino_acid = graph.add_node(Residue::from(lateral_amino_acid));
-                    graph.add_edge(lateral_amino_acid, last_lateral_amino_acid, ());
-                    last_lateral_amino_acid = lateral_amino_acid;
+                        // Add H to the "N-terminal"
+                        graph[last_lateral_amino_acid]
+                            .modifications
+                            .push(Modification::Add(MODIFICATIONS["H"]));
+                    }
+                    SidechainGroup::Carboxyl => {
+                        graph.add_edge(last_amino_acid, last_lateral_amino_acid, ());
+                        // Remove OH from the branch-point residue
+                        graph[last_amino_acid]
+                            .modifications
+                            .push(Modification::Remove(MODIFICATIONS["OH"]));
+
+                        for lateral_amino_acid in &lateral_chain[1..] {
+                            let lateral_amino_acid =
+                                graph.add_node(Residue::new(residue_id, lateral_amino_acid));
+                            graph.add_edge(last_lateral_amino_acid, lateral_amino_acid, ());
+                            last_lateral_amino_acid = lateral_amino_acid;
+                        }
+
+                        // Add OH to the "C-terminal"
+                        graph[last_lateral_amino_acid]
+                            .modifications
+                            .push(Modification::Add(MODIFICATIONS["OH"]));
+                    }
                 }
-
-                // Add H to the "N-terminal"
-                graph[last_lateral_amino_acid]
-                    .modifications
-                    .push(Modification::Add(MODIFICATIONS["H"]));
             }
         }
 
@@ -167,12 +213,27 @@ pub enum Modification {
 }
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub enum SidechainGroup {
+    Amine,
+    Carboxyl,
+    // Both, // FIXME: Out of action until I know how mDAP lateral chains work!
+}
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Residue {
+    id: usize,
     moiety: Moiety,
     modifications: Vec<Modification>,
 }
 
 impl Residue {
+    pub fn new(id: &mut usize, residue: impl Into<Residue>) -> Self {
+        *id += 1;
+        Self {
+            id: *id,
+            ..residue.into()
+        }
+    }
     pub fn monoisotopic_mass(&self) -> Decimal {
         self.modifications
             .iter()
@@ -202,6 +263,7 @@ impl From<(&char, &Option<Modifications>)> for Residue {
             })
             .collect();
         Self {
+            id: 0,
             moiety,
             modifications,
         }
@@ -232,7 +294,8 @@ mod tests {
 
     #[test]
     fn it_works() -> Result<(), Box<dyn Error>> {
-        let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[G]K[AKEAG]AA")?);
+        let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[GA]K[AKEAG]AA")?);
+        // let pg = dbg!(Peptidoglycan::new("gm-AEJ")?);
         println!("{:?}", Dot::with_config(&pg.graph, &[Config::EdgeNoLabel]));
         dbg!(dbg!(pg.monoisotopic_mass()).round_dp(4));
         panic!();
