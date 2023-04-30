@@ -1,10 +1,14 @@
 // FIXME: This should probably be made private at some point!
 pub mod parser;
 
-use std::iter::repeat;
+use std::{
+    collections::{HashMap, HashSet},
+    hash::Hash,
+    iter::repeat,
+};
 
 use parser::{LateralChain, Modifications};
-use petgraph::{stable_graph::NodeIndex, Graph};
+use petgraph::{graph::Edge, stable_graph::NodeIndex, Graph};
 use phf::phf_map;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
@@ -12,7 +16,10 @@ use serde::{Deserialize, Serialize};
 
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP?
+// 2) What should I do when I have several B-ion (O+) termini?
 
+// Findings ===================================================================
+// 1) B-ions were off by an electron mass — they are slighly lighter now!
 
 // FIXME: These masses need to be checked against the mass_calc databases Steph has vetted!
 // Masses computed using https://mstools.epfl.ch/info/
@@ -206,6 +213,81 @@ impl Peptidoglycan {
     }
 }
 
+fn fragment(Fragment { structure, termini }: Fragment) -> HashSet<Fragment> {
+    if structure.raw_nodes().is_empty() {
+        return HashSet::new();
+    }
+    let mut fragments = HashSet::new();
+    for edge in structure.raw_edges() {
+        let from = edge.source();
+        let to = edge.target();
+        let (b, y) = expand_from(&structure, from, to);
+        let mut b_graph = structure.clone();
+        b_graph.retain_nodes(|_, n| b.contains(&n));
+        let mut b_termini = termini.clone();
+        b_termini.retain(|(k, _)| {
+            b.iter()
+                .map(|&i| structure[i].id)
+                .collect::<Vec<_>>()
+                .contains(k)
+        });
+        b_termini.insert((structure[from].id, TerminalIon::B));
+        fragments.insert(Fragment {
+            structure: b_graph,
+            termini: b_termini,
+        });
+        let mut y_graph = structure.clone();
+        y_graph.retain_nodes(|_, n| y.contains(&n));
+        let mut termini = termini.clone();
+        termini.retain(|(k, _)| {
+            y.iter()
+                .map(|&i| structure[i].id)
+                .collect::<Vec<_>>()
+                .contains(k)
+        });
+        termini.insert((structure[to].id, TerminalIon::Y));
+        fragments.insert(Fragment {
+            structure: y_graph,
+            termini,
+        });
+    }
+    let internal: Vec<_> = fragments.iter().flat_map(|f| fragment(f.clone())).collect();
+    fragments.extend(internal);
+    return fragments;
+    fn expand_from(
+        graph: &Graph<Residue, ()>,
+        from: NodeIndex,
+        to: NodeIndex,
+    ) -> (Vec<NodeIndex>, Vec<NodeIndex>) {
+        let mut visited = vec![to];
+        let mut unexplored = vec![from];
+        while let Some(node) = unexplored.pop() {
+            visited.push(node);
+            unexplored.extend(
+                graph
+                    .neighbors_undirected(node)
+                    .filter(|n| !visited.contains(n)),
+            );
+        }
+        visited.remove(0);
+        let mut left = visited;
+        // Just swap from and to?
+        let mut visited = vec![from];
+        let mut unexplored = vec![to];
+        while let Some(node) = unexplored.pop() {
+            visited.push(node);
+            unexplored.extend(
+                graph
+                    .neighbors_undirected(node)
+                    .filter(|n| !visited.contains(n)),
+            );
+        }
+        visited.remove(0);
+        (left, visited)
+    }
+    todo!()
+}
+
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum Modification {
     Add(Moiety),
@@ -217,6 +299,58 @@ pub enum SidechainGroup {
     Amine,
     Carboxyl,
     // Both, // FIXME: Out of action until I know how mDAP lateral chains work!
+}
+
+// TODO: Add support for more ion types!
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub enum TerminalIon {
+    B,
+    Y,
+}
+
+#[derive(Clone, Debug)]
+pub struct Fragment {
+    structure: Graph<Residue, ()>,
+    termini: HashSet<(usize, TerminalIon)>,
+}
+
+impl Hash for Fragment {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        let mut nodes = self.structure.raw_nodes().to_vec();
+        nodes.sort_by_key(|n| n.weight.id);
+        for node in nodes {
+            node.weight.id.hash(state);
+        }
+    }
+}
+
+impl PartialEq for Fragment {
+    fn eq(&self, other: &Self) -> bool {
+        let mut self_nodes = self
+            .structure
+            .raw_nodes()
+            .iter()
+            .map(|n| n.weight.id)
+            .collect::<Vec<_>>();
+        let mut other_nodes = other
+            .structure
+            .raw_nodes()
+            .iter()
+            .map(|n| n.weight.id)
+            .collect::<Vec<_>>();
+        self_nodes.sort();
+        other_nodes.sort();
+        self_nodes == other_nodes
+    }
+}
+
+impl Eq for Fragment {}
+
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub struct Ion {
+    structure: String,
+    mass: Decimal,
+    charge: usize, // FIXME: Is this the right type?
 }
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -288,16 +422,104 @@ impl Moiety {
 mod tests {
     use std::error::Error;
 
-    use petgraph::dot::{Config, Dot};
+    use petgraph::{
+        dot::{Config, Dot},
+        graph::Node,
+    };
 
     use super::*;
 
     #[test]
     fn it_works() -> Result<(), Box<dyn Error>> {
-        let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[GA]K[AKEAG]AA")?);
-        // let pg = dbg!(Peptidoglycan::new("gm-AEJ")?);
+        // let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[GA]K[AKEAG]AA")?);
+        let pg = dbg!(Peptidoglycan::new("gm-AE[G]K[AAA]AAA")?);
         println!("{:?}", Dot::with_config(&pg.graph, &[Config::EdgeNoLabel]));
         dbg!(dbg!(pg.monoisotopic_mass()).round_dp(4));
+        let frag = Fragment {
+            structure: pg.graph.clone(),
+            termini: Default::default(),
+        };
+        let frags = fragment(frag);
+        let mut named_frags = Vec::new();
+        for frag in &frags {
+            let mut b_ion_name = String::new();
+            // let mut b_ion_mass = -MODIFICATIONS["-"].mass;
+            let mut nodes = frag.structure.raw_nodes().to_vec();
+            nodes.sort_by_key(|n| n.weight.id);
+            for Node {
+                weight: residue, ..
+            } in nodes
+            {
+                if !b_ion_name.is_empty() {
+                    b_ion_name.push('-');
+                }
+                b_ion_name.push_str(residue.moiety.abbr);
+                b_ion_name.push_str(&residue.id.to_string());
+            }
+            dbg!(&b_ion_name);
+            let mut termini: Vec<_> = frag.termini.clone().into_iter().collect();
+            termini.sort_by_key(|&(_, ty)| ty);
+            match &termini[..] {
+                [(_, TerminalIon::B)] => println!(
+                    "B: {}",
+                    (frag
+                        .structure
+                        .raw_nodes()
+                        .iter()
+                        .map(|n| n.weight.monoisotopic_mass())
+                        .sum::<Decimal>()
+                        - MODIFICATIONS["-"].mass)
+                        .round_dp(4)
+                ),
+                [(_, TerminalIon::Y)] => println!(
+                    "Y: {}",
+                    (frag
+                        .structure
+                        .raw_nodes()
+                        .iter()
+                        .map(|n| n.weight.monoisotopic_mass())
+                        .sum::<Decimal>()
+                        + MODIFICATIONS["H"].mass
+                        + MODIFICATIONS["+"].mass)
+                        .round_dp(4)
+                ),
+                [(_, TerminalIon::B), (_, TerminalIon::Y)] => println!(
+                    "BY: {}",
+                    (frag
+                        .structure
+                        .raw_nodes()
+                        .iter()
+                        .map(|n| n.weight.monoisotopic_mass())
+                        .sum::<Decimal>()
+                        + MODIFICATIONS["H"].mass
+                        - MODIFICATIONS["-"].mass)
+                        .round_dp(4)
+                ),
+
+                ts => {
+                    println!("Wat? {ts:?}");
+                }
+            };
+            named_frags.push((b_ion_name, frag))
+            // dbg!(&frag.termini);
+            // println!();
+            //     b_ion_mass += residue.monoisotopic_mass();
+            // }
+            // dbg!(b_ion_name, b_ion_mass.round_dp(4));
+            // let mut y_ion_name = String::new();
+            // let mut y_ion_mass = MODIFICATIONS["H"].mass + MODIFICATIONS["+"].mass;
+            // for &id in &visited {
+            //     if !y_ion_name.is_empty() {
+            //         y_ion_name.push('-');
+            //     }
+            //     let residue = &graph[id];
+            //     y_ion_name.push_str(residue.moiety.abbr);
+            //     y_ion_name.push_str(&residue.id.to_string());
+            //     y_ion_mass += residue.monoisotopic_mass();
+            // }
+            // dbg!(y_ion_name, y_ion_mass.round_dp(4));
+        }
+        dbg!(frags.len());
         panic!();
         Ok(())
     }
