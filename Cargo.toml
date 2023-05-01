@@ -14,3 +14,4 @@ rust_decimal_macros = "1.29.1"
 crepe = "0.1.8"
 polars = "0.28.0"
 serde = { version = "1.0.160", features = ["derive"] }
+memoize = "0.4.0"

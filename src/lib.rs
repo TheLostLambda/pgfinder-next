@@ -7,9 +7,11 @@ use std::{
     iter::repeat,
 };
 
+use memoize::memoize;
 use parser::{LateralChain, Modifications};
 use petgraph::{graph::Edge, stable_graph::NodeIndex, Graph};
 use phf::phf_map;
+use polars::prelude::*;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
@@ -213,7 +215,9 @@ impl Peptidoglycan {
     }
 }
 
-fn fragment(Fragment { structure, termini }: Fragment) -> HashSet<Fragment> {
+#[memoize]
+fn fragment(f: Fragment) -> HashSet<Fragment> {
+    let Fragment { structure, termini } = f;
     if structure.raw_nodes().is_empty() {
         return HashSet::new();
     }
@@ -417,10 +421,71 @@ impl Moiety {
     }
 }
 
+// FIXME: Should this be a `From` impl?
+fn fragments_to_df(fragments: &[Fragment]) -> DataFrame {
+    let mut ion_types = Vec::new();
+    let mut structures = Vec::new();
+    let mut ion_masses = Vec::new();
+    for Fragment { structure, termini } in fragments {
+        let mut residues: Vec<_> = structure
+            .raw_nodes()
+            .iter()
+            .cloned()
+            .map(|n| n.weight)
+            .collect();
+        residues.sort_by_key(|n| n.id);
+        let mut name = String::new();
+        let mut mass = Decimal::default();
+        for residue in residues {
+            // Build up structure name
+            if !name.is_empty() {
+                name.push('-');
+            }
+            name.push_str(residue.moiety.abbr);
+            name.push_str(&residue.id.to_string());
+            // Build up fragment mass
+            mass += residue.monoisotopic_mass();
+        }
+        let mut termini: Vec<_> = termini.clone().into_iter().collect();
+        termini.sort_by_key(|&(_, ty)| ty);
+        let ion_type = match &termini[..] {
+            [(_, TerminalIon::B)] => {
+                mass -= MODIFICATIONS["-"].mass;
+                "B"
+            }
+            [(_, TerminalIon::Y)] => {
+                mass += MODIFICATIONS["H"].mass + MODIFICATIONS["+"].mass;
+                "Y"
+            }
+            [(_, TerminalIon::B), (_, TerminalIon::Y)] => {
+                mass += MODIFICATIONS["H"].mass - MODIFICATIONS["-"].mass;
+                "BY"
+            }
+            ts => {
+                panic!("Wat? {ts:?}");
+            }
+        };
+        ion_types.push(ion_type);
+        let ion_mass = mass.round_dp(4).to_string();
+        ion_masses.push(ion_mass);
+        structures.push(name);
+    }
+    let terminal_count: Vec<_> = ion_types.iter().map(|s| s.len() as i32).collect();
+    let float_masses: Vec<f64> = ion_masses.iter().map(|s| s.parse().unwrap()).collect();
+    // FIXME: Should actually think about handling errors here...
+    let mut df =
+        df!("Termini" => terminal_count, "Float Mass" => float_masses, "Ion Type" => ion_types, "Ion Mass" => ion_masses, "Structure" => structures).unwrap();
+    // FIXME: Is there any performance gained by doing this in-place?
+    df.sort_in_place(&["Termini", "Ion Type", "Float Mass", "Structure"], false);
+    df.drop_in_place("Termini");
+    df.drop_in_place("Float Mass");
+    df
+}
+
 // FIXME: Keep writing messy code, then write tests, then refactor
 #[cfg(test)]
 mod tests {
-    use std::error::Error;
+    use std::{error::Error, fs::File};
 
     use petgraph::{
         dot::{Config, Dot},
@@ -432,7 +497,7 @@ mod tests {
     #[test]
     fn it_works() -> Result<(), Box<dyn Error>> {
         // let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[GA]K[AKEAG]AA")?);
-        let pg = dbg!(Peptidoglycan::new("gm-AE[G]K[AAA]AAA")?);
+        let pg = dbg!(Peptidoglycan::new("gm-AEJA")?);
         println!("{:?}", Dot::with_config(&pg.graph, &[Config::EdgeNoLabel]));
         dbg!(dbg!(pg.monoisotopic_mass()).round_dp(4));
         let frag = Fragment {
@@ -440,86 +505,89 @@ mod tests {
             termini: Default::default(),
         };
         let frags = fragment(frag);
-        let mut named_frags = Vec::new();
-        for frag in &frags {
-            let mut b_ion_name = String::new();
-            // let mut b_ion_mass = -MODIFICATIONS["-"].mass;
-            let mut nodes = frag.structure.raw_nodes().to_vec();
-            nodes.sort_by_key(|n| n.weight.id);
-            for Node {
-                weight: residue, ..
-            } in nodes
-            {
-                if !b_ion_name.is_empty() {
-                    b_ion_name.push('-');
-                }
-                b_ion_name.push_str(residue.moiety.abbr);
-                b_ion_name.push_str(&residue.id.to_string());
-            }
-            dbg!(&b_ion_name);
-            let mut termini: Vec<_> = frag.termini.clone().into_iter().collect();
-            termini.sort_by_key(|&(_, ty)| ty);
-            match &termini[..] {
-                [(_, TerminalIon::B)] => println!(
-                    "B: {}",
-                    (frag
-                        .structure
-                        .raw_nodes()
-                        .iter()
-                        .map(|n| n.weight.monoisotopic_mass())
-                        .sum::<Decimal>()
-                        - MODIFICATIONS["-"].mass)
-                        .round_dp(4)
-                ),
-                [(_, TerminalIon::Y)] => println!(
-                    "Y: {}",
-                    (frag
-                        .structure
-                        .raw_nodes()
-                        .iter()
-                        .map(|n| n.weight.monoisotopic_mass())
-                        .sum::<Decimal>()
-                        + MODIFICATIONS["H"].mass
-                        + MODIFICATIONS["+"].mass)
-                        .round_dp(4)
-                ),
-                [(_, TerminalIon::B), (_, TerminalIon::Y)] => println!(
-                    "BY: {}",
-                    (frag
-                        .structure
-                        .raw_nodes()
-                        .iter()
-                        .map(|n| n.weight.monoisotopic_mass())
-                        .sum::<Decimal>()
-                        + MODIFICATIONS["H"].mass
-                        - MODIFICATIONS["-"].mass)
-                        .round_dp(4)
-                ),
-
-                ts => {
-                    println!("Wat? {ts:?}");
-                }
-            };
-            named_frags.push((b_ion_name, frag))
-            // dbg!(&frag.termini);
-            // println!();
-            //     b_ion_mass += residue.monoisotopic_mass();
-            // }
-            // dbg!(b_ion_name, b_ion_mass.round_dp(4));
-            // let mut y_ion_name = String::new();
-            // let mut y_ion_mass = MODIFICATIONS["H"].mass + MODIFICATIONS["+"].mass;
-            // for &id in &visited {
-            //     if !y_ion_name.is_empty() {
-            //         y_ion_name.push('-');
-            //     }
-            //     let residue = &graph[id];
-            //     y_ion_name.push_str(residue.moiety.abbr);
-            //     y_ion_name.push_str(&residue.id.to_string());
-            //     y_ion_mass += residue.monoisotopic_mass();
-            // }
-            // dbg!(y_ion_name, y_ion_mass.round_dp(4));
-        }
+        // let mut named_frags = Vec::new();
+        // for frag in &frags {
+        //     let mut b_ion_name = String::new();
+        //     // let mut b_ion_mass = -MODIFICATIONS["-"].mass;
+        //     let mut nodes = frag.structure.raw_nodes().to_vec();
+        //     nodes.sort_by_key(|n| n.weight.id);
+        //     for Node {
+        //         weight: residue, ..
+        //     } in nodes
+        //     {
+        //         if !b_ion_name.is_empty() {
+        //             b_ion_name.push('-');
+        //         }
+        //         b_ion_name.push_str(residue.moiety.abbr);
+        //         b_ion_name.push_str(&residue.id.to_string());
+        //     }
+        //     dbg!(&b_ion_name);
+        //     let mut termini: Vec<_> = frag.termini.clone().into_iter().collect();
+        //     termini.sort_by_key(|&(_, ty)| ty);
+        //     match &termini[..] {
+        //         [(_, TerminalIon::B)] => println!(
+        //             "B: {}",
+        //             (frag
+        //                 .structure
+        //                 .raw_nodes()
+        //                 .iter()
+        //                 .map(|n| n.weight.monoisotopic_mass())
+        //                 .sum::<Decimal>()
+        //                 - MODIFICATIONS["-"].mass)
+        //                 .round_dp(4)
+        //         ),
+        //         [(_, TerminalIon::Y)] => println!(
+        //             "Y: {}",
+        //             (frag
+        //                 .structure
+        //                 .raw_nodes()
+        //                 .iter()
+        //                 .map(|n| n.weight.monoisotopic_mass())
+        //                 .sum::<Decimal>()
+        //                 + MODIFICATIONS["H"].mass
+        //                 + MODIFICATIONS["+"].mass)
+        //                 .round_dp(4)
+        //         ),
+        //         [(_, TerminalIon::B), (_, TerminalIon::Y)] => println!(
+        //             "BY: {}",
+        //             (frag
+        //                 .structure
+        //                 .raw_nodes()
+        //                 .iter()
+        //                 .map(|n| n.weight.monoisotopic_mass())
+        //                 .sum::<Decimal>()
+        //                 + MODIFICATIONS["H"].mass
+        //                 - MODIFICATIONS["-"].mass)
+        //                 .round_dp(4)
+        //         ),
+        //
+        //         ts => {
+        //             println!("Wat? {ts:?}");
+        //         }
+        //     };
+        //     named_frags.push((b_ion_name, frag))
+        //     // dbg!(&frag.termini);
+        //     // println!();
+        //     //     b_ion_mass += residue.monoisotopic_mass();
+        //     // }
+        //     // dbg!(b_ion_name, b_ion_mass.round_dp(4));
+        //     // let mut y_ion_name = String::new();
+        //     // let mut y_ion_mass = MODIFICATIONS["H"].mass + MODIFICATIONS["+"].mass;
+        //     // for &id in &visited {
+        //     //     if !y_ion_name.is_empty() {
+        //     //         y_ion_name.push('-');
+        //     //     }
+        //     //     let residue = &graph[id];
+        //     //     y_ion_name.push_str(residue.moiety.abbr);
+        //     //     y_ion_name.push_str(&residue.id.to_string());
+        //     //     y_ion_mass += residue.monoisotopic_mass();
+        //     // }
+        //     // dbg!(y_ion_name, y_ion_mass.round_dp(4));
+        // }
+        let mut df = dbg!(fragments_to_df(&frags.iter().cloned().collect::<Vec<_>>()));
         dbg!(frags.len());
+        let mut file = File::create(format!("/home/tll/Downloads/{}.csv", pg.name)).unwrap();
+        CsvWriter::new(&mut file).finish(&mut df);
         panic!();
         Ok(())
     }
