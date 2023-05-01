@@ -37,6 +37,7 @@ static RESIDUES: phf::Map<char, Moiety> = phf_map! {
     'L' => Moiety::new("L", "Leucine", dec!(113.084064)),
     'M' => Moiety::new("M", "Methionine", dec!(131.040485)),
     'N' => Moiety::new("N", "Asparagine", dec!(114.042927)),
+    'O' => Moiety::new("O", "Ornithine", dec!(114.079313)),
     'P' => Moiety::new("P", "Proline", dec!(97.052764)),
     'Q' => Moiety::new("Q", "Glutamine", dec!(128.058578)),
     'R' => Moiety::new("R", "Arginine", dec!(156.101111)),
@@ -71,8 +72,9 @@ static BRANCH_RESIDUES: phf::Map<&str, SidechainGroup> = phf_map! {
 // FIXME: Cache or memoise calculations of things like mass
 #[derive(Clone, Debug)]
 pub struct Peptidoglycan {
-    name: String,
-    graph: Graph<Residue, ()>,
+    // FIXME: Replace the `pub`s with accessor methods?
+    pub name: String,
+    pub graph: Graph<Residue, ()>,
 }
 
 impl Peptidoglycan {
@@ -212,8 +214,9 @@ impl Peptidoglycan {
     }
 }
 
+// FIXME: Make the cache shared between threads (and speed up fragment hash functions!)
 #[memoize]
-fn fragment(f: Fragment) -> HashSet<Fragment> {
+pub fn fragment(f: Fragment) -> HashSet<Fragment> {
     let Fragment { structure, termini } = f;
     if structure.raw_nodes().is_empty() {
         return HashSet::new();
@@ -254,39 +257,39 @@ fn fragment(f: Fragment) -> HashSet<Fragment> {
     }
     let internal: Vec<_> = fragments.iter().flat_map(|f| fragment(f.clone())).collect();
     fragments.extend(internal);
-    return fragments;
-    fn expand_from(
-        graph: &Graph<Residue, ()>,
-        from: NodeIndex,
-        to: NodeIndex,
-    ) -> (Vec<NodeIndex>, Vec<NodeIndex>) {
-        let mut visited = vec![to];
-        let mut unexplored = vec![from];
-        while let Some(node) = unexplored.pop() {
-            visited.push(node);
-            unexplored.extend(
-                graph
-                    .neighbors_undirected(node)
-                    .filter(|n| !visited.contains(n)),
-            );
-        }
-        visited.remove(0);
-        let left = visited;
-        // Just swap from and to?
-        let mut visited = vec![from];
-        let mut unexplored = vec![to];
-        while let Some(node) = unexplored.pop() {
-            visited.push(node);
-            unexplored.extend(
-                graph
-                    .neighbors_undirected(node)
-                    .filter(|n| !visited.contains(n)),
-            );
-        }
-        visited.remove(0);
-        (left, visited)
+    fragments
+}
+
+fn expand_from(
+    graph: &Graph<Residue, ()>,
+    from: NodeIndex,
+    to: NodeIndex,
+) -> (Vec<NodeIndex>, Vec<NodeIndex>) {
+    let mut visited = vec![to];
+    let mut unexplored = vec![from];
+    while let Some(node) = unexplored.pop() {
+        visited.push(node);
+        unexplored.extend(
+            graph
+                .neighbors_undirected(node)
+                .filter(|n| !visited.contains(n)),
+        );
     }
-    todo!()
+    visited.remove(0);
+    let left = visited;
+    // Just swap from and to?
+    let mut visited = vec![from];
+    let mut unexplored = vec![to];
+    while let Some(node) = unexplored.pop() {
+        visited.push(node);
+        unexplored.extend(
+            graph
+                .neighbors_undirected(node)
+                .filter(|n| !visited.contains(n)),
+        );
+    }
+    visited.remove(0);
+    (left, visited)
 }
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -320,7 +323,7 @@ impl Hash for Fragment {
         let mut nodes = self.structure.raw_nodes().to_vec();
         nodes.sort_by_key(|n| n.weight.id);
         for node in nodes {
-            node.weight.id.hash(state);
+            node.weight.hash(state);
         }
     }
 }
@@ -331,16 +334,16 @@ impl PartialEq for Fragment {
             .structure
             .raw_nodes()
             .iter()
-            .map(|n| n.weight.id)
+            .map(|n| n.weight.clone())
             .collect::<Vec<_>>();
         let mut other_nodes = other
             .structure
             .raw_nodes()
             .iter()
-            .map(|n| n.weight.id)
+            .map(|n| n.weight.clone())
             .collect::<Vec<_>>();
-        self_nodes.sort();
-        other_nodes.sort();
+        self_nodes.sort_by_key(|n| n.id);
+        other_nodes.sort_by_key(|n| n.id);
         self_nodes == other_nodes
     }
 }
@@ -419,7 +422,7 @@ impl Moiety {
 }
 
 // FIXME: Should this be a `From` impl?
-fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
+pub fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
     let mut ion_types = Vec::new();
     let mut structures = Vec::new();
     let mut ion_masses = Vec::new();
@@ -443,29 +446,41 @@ fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
             // Build up fragment mass
             mass += residue.monoisotopic_mass();
         }
-        let mut termini: Vec<_> = termini.clone().into_iter().collect();
-        termini.sort_by_key(|&(_, ty)| ty);
-        let ion_type = match &termini[..] {
-            [(_, TerminalIon::B)] => {
-                mass -= MODIFICATIONS["-"].mass;
-                "B"
-            }
-            [(_, TerminalIon::Y)] => {
-                mass += MODIFICATIONS["H"].mass + MODIFICATIONS["+"].mass;
-                "Y"
-            }
-            [(_, TerminalIon::B), (_, TerminalIon::Y)] => {
-                mass += MODIFICATIONS["H"].mass - MODIFICATIONS["-"].mass;
-                "BY"
-            }
-            ts => {
-                panic!("Wat? {ts:?}");
-            }
-        };
-        ion_types.push(ion_type);
-        let ion_mass = mass.round_dp(4).to_string();
-        ion_masses.push(ion_mass);
-        structures.push(name);
+        let mut termini: Vec<_> = termini.iter().map(|(_, t)| t).collect();
+        // FIXME: Would all of the sorting be faster with sort_unstable?
+        termini.sort();
+        if termini
+            .iter()
+            .all(|&t| [TerminalIon::B, TerminalIon::Y].contains(t))
+        {
+            // FIXME: Should termini be HashMap<TerminalIon, Vec<usize>>? So the length of the
+            // vector is the number of termini of that type? And the val is a list of ids?
+            let b = termini.iter().filter(|&&&t| t == TerminalIon::B).count();
+            let y = termini.iter().filter(|&&&t| t == TerminalIon::Y).count();
+            let ion_type = match b {
+                0 => {
+                    mass += MODIFICATIONS["+"].mass;
+                    "Y".repeat(y)
+                }
+                1 => {
+                    mass -= MODIFICATIONS["-"].mass;
+                    ["B", &"Y".repeat(y)].concat()
+                }
+                n => {
+                    // "???".to_string()
+                    panic!(
+                        "Sorry mate, no clue how to handle multple ({n}) B termini... {termini:?}"
+                    )
+                }
+            };
+            mass += MODIFICATIONS["H"].mass * Decimal::from(y);
+            ion_types.push(ion_type);
+            let ion_mass = mass.round_dp(4).to_string();
+            ion_masses.push(ion_mass);
+            structures.push(name);
+        } else {
+            panic!("Wat? {termini:?}");
+        }
     }
     let terminal_count: Vec<_> = ion_types.iter().map(|s| s.len() as i32).collect();
     let float_masses: Vec<f64> = ion_masses.iter().map(|s| s.parse().unwrap()).collect();
@@ -500,9 +515,6 @@ mod tests {
 
     #[test]
     fn linear_monomer_graph() -> Result<(), Box<dyn Error>> {
-        // let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[GA]K[AKEAG]AA")?);
-        // let mut file = File::create(format!("/home/tll/Downloads/{}.csv", pg.name)).unwrap();
-        // CsvWriter::new(&mut file).finish(&mut df);
         let pg = Peptidoglycan::new("gm-AEJA")?;
         assert_eq!(pg.monoisotopic_mass().round_dp(4), dec!(941.4077));
         assert_debug_snapshot!(Dot::new(&pg.graph));
