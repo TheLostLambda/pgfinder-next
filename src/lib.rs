@@ -2,14 +2,14 @@
 pub mod parser;
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{HashSet},
     hash::Hash,
     iter::repeat,
 };
 
 use memoize::memoize;
 use parser::{LateralChain, Modifications};
-use petgraph::{graph::Edge, stable_graph::NodeIndex, Graph};
+use petgraph::{stable_graph::NodeIndex, Graph};
 use phf::phf_map;
 use polars::prelude::*;
 use rust_decimal::Decimal;
@@ -274,7 +274,7 @@ fn fragment(f: Fragment) -> HashSet<Fragment> {
             );
         }
         visited.remove(0);
-        let mut left = visited;
+        let left = visited;
         // Just swap from and to?
         let mut visited = vec![from];
         let mut unexplored = vec![to];
@@ -476,7 +476,7 @@ fn fragments_to_df(fragments: &[Fragment]) -> DataFrame {
     let mut df =
         df!("Termini" => terminal_count, "Float Mass" => float_masses, "Ion Type" => ion_types, "Ion Mass" => ion_masses, "Structure" => structures).unwrap();
     // FIXME: Is there any performance gained by doing this in-place?
-    df.sort_in_place(&["Termini", "Ion Type", "Float Mass", "Structure"], false);
+    df.sort_in_place(["Termini", "Ion Type", "Float Mass", "Structure"], false);
     df.drop_in_place("Termini");
     df.drop_in_place("Float Mass");
     df
@@ -489,7 +489,6 @@ mod tests {
 
     use petgraph::{
         dot::{Config, Dot},
-        graph::Node,
     };
 
     use super::*;
