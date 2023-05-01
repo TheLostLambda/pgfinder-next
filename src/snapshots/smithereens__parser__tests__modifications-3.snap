@@ -1,0 +1,16 @@
+---
+source: src/parser.rs
+assertion_line: 229
+expression: "modifications(\"(+Ac,+Am)\")?"
+---
+(
+    "",
+    [
+        Add(
+            "Ac",
+        ),
+        Add(
+            "Am",
+        ),
+    ],
+)

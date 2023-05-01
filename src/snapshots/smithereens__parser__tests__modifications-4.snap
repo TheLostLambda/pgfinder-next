@@ -1,0 +1,19 @@
+---
+source: src/parser.rs
+assertion_line: 240
+expression: "modifications(\"(+Ac,-Am,+OH)\")?"
+---
+(
+    "",
+    [
+        Add(
+            "Ac",
+        ),
+        Remove(
+            "Am",
+        ),
+        Add(
+            "OH",
+        ),
+    ],
+)

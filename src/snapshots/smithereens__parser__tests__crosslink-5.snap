@@ -1,0 +1,22 @@
+---
+source: src/parser.rs
+assertion_line: 292
+expression: "crosslink(\"=3<3:3>3=\")?"
+---
+(
+    "",
+    Explicit(
+        [
+            (
+                3,
+                AcceptsFrom,
+                3,
+            ),
+            (
+                3,
+                DonatesTo,
+                3,
+            ),
+        ],
+    ),
+)

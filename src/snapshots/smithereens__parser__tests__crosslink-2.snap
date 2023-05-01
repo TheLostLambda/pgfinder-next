@@ -1,0 +1,9 @@
+---
+source: src/parser.rs
+assertion_line: 274
+expression: "crosslink(\"=\")?"
+---
+(
+    "",
+    Ambiguous,
+)

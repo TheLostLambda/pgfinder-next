@@ -1,0 +1,30 @@
+---
+source: src/parser.rs
+assertion_line: 244
+expression: "peptide(\"AEJA\")?"
+---
+(
+    "",
+    [
+        (
+            'A',
+            None,
+            None,
+        ),
+        (
+            'E',
+            None,
+            None,
+        ),
+        (
+            'J',
+            None,
+            None,
+        ),
+        (
+            'A',
+            None,
+            None,
+        ),
+    ],
+)

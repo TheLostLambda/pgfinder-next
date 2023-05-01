@@ -1,0 +1,18 @@
+---
+source: src/parser.rs
+assertion_line: 265
+expression: "lateral_chain(\"[AG]\")?"
+---
+(
+    "",
+    [
+        (
+            'A',
+            None,
+        ),
+        (
+            'G',
+            None,
+        ),
+    ],
+)

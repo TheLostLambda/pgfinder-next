@@ -1,0 +1,15 @@
+---
+source: src/parser.rs
+assertion_line: 242
+expression: "peptide(\"E\")?"
+---
+(
+    "",
+    [
+        (
+            'E',
+            None,
+            None,
+        ),
+    ],
+)

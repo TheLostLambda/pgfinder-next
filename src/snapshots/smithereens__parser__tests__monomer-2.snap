@@ -1,0 +1,44 @@
+---
+source: src/parser.rs
+assertion_line: 190
+expression: "monomer(\"gm-AEJA\")?"
+---
+(
+    "",
+    (
+        [
+            (
+                'g',
+                None,
+            ),
+            (
+                'm',
+                None,
+            ),
+        ],
+        Some(
+            [
+                (
+                    'A',
+                    None,
+                    None,
+                ),
+                (
+                    'E',
+                    None,
+                    None,
+                ),
+                (
+                    'J',
+                    None,
+                    None,
+                ),
+                (
+                    'A',
+                    None,
+                    None,
+                ),
+            ],
+        ),
+    ),
+)

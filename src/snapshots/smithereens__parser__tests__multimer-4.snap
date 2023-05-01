@@ -1,0 +1,50 @@
+---
+source: src/parser.rs
+assertion_line: 250
+expression: "multimer(\"gm(+An,-Ac)~gm\")?"
+---
+(
+    "",
+    (
+        [
+            (
+                [
+                    (
+                        'g',
+                        None,
+                    ),
+                    (
+                        'm',
+                        Some(
+                            [
+                                Add(
+                                    "An",
+                                ),
+                                Remove(
+                                    "Ac",
+                                ),
+                            ],
+                        ),
+                    ),
+                ],
+                None,
+            ),
+            (
+                [
+                    (
+                        'g',
+                        None,
+                    ),
+                    (
+                        'm',
+                        None,
+                    ),
+                ],
+                None,
+            ),
+        ],
+        [
+            Glycosidic,
+        ],
+    ),
+)

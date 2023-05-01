@@ -1,0 +1,14 @@
+---
+source: src/parser.rs
+assertion_line: 199
+expression: "glycan(\"g\")?"
+---
+(
+    "",
+    [
+        (
+            'g',
+            None,
+        ),
+    ],
+)

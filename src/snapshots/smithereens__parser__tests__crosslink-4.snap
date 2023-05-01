@@ -1,0 +1,17 @@
+---
+source: src/parser.rs
+assertion_line: 284
+expression: "crosslink(\"=3<4=\")?"
+---
+(
+    "",
+    Explicit(
+        [
+            (
+                3,
+                AcceptsFrom,
+                4,
+            ),
+        ],
+    ),
+)

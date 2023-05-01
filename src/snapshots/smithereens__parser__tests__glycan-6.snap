@@ -1,0 +1,27 @@
+---
+source: src/parser.rs
+assertion_line: 227
+expression: "glycan(\"gm(-Ac,+Am)\")?"
+---
+(
+    "",
+    [
+        (
+            'g',
+            None,
+        ),
+        (
+            'm',
+            Some(
+                [
+                    Remove(
+                        "Ac",
+                    ),
+                    Add(
+                        "Am",
+                    ),
+                ],
+            ),
+        ),
+    ],
+)

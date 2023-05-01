@@ -1,0 +1,30 @@
+---
+source: src/parser.rs
+assertion_line: 278
+expression: "lateral_chain(\"[A(+Am)G(-Ac)]\")?"
+---
+(
+    "",
+    [
+        (
+            'A',
+            Some(
+                [
+                    Add(
+                        "Am",
+                    ),
+                ],
+            ),
+        ),
+        (
+            'G',
+            Some(
+                [
+                    Remove(
+                        "Ac",
+                    ),
+                ],
+            ),
+        ),
+    ],
+)

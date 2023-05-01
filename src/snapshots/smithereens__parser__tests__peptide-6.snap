@@ -1,0 +1,29 @@
+---
+source: src/parser.rs
+assertion_line: 284
+expression: "peptide(\"AE(-Ac,+Am)\")?"
+---
+(
+    "",
+    [
+        (
+            'A',
+            None,
+            None,
+        ),
+        (
+            'E',
+            Some(
+                [
+                    Remove(
+                        "Ac",
+                    ),
+                    Add(
+                        "Am",
+                    ),
+                ],
+            ),
+            None,
+        ),
+    ],
+)
