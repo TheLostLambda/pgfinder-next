@@ -1,0 +1,19 @@
+---
+source: src/lib.rs
+assertion_line: 508
+expression: "Dot::new(&pg.graph)"
+---
+digraph {
+    0 [ label = "Residue {\l    id: 1,\l    moiety: Moiety {\l        abbr: \"g\",\l        name: \"GlcNAc\",\l        mass: 203.079373,\l    },\l    modifications: [\l        Add(\l            Moiety {\l                abbr: \"H\",\l                name: \"Hydrogen\",\l                mass: 1.007825,\l            },\l        ),\l    ],\l}\l" ]
+    1 [ label = "Residue {\l    id: 2,\l    moiety: Moiety {\l        abbr: \"m\",\l        name: \"MurNAc\",\l        mass: 275.100502,\l    },\l    modifications: [\l        Add(\l            Moiety {\l                abbr: \"H\",\l                name: \"Hydrogen\",\l                mass: 1.007825,\l            },\l        ),\l        Add(\l            Moiety {\l                abbr: \"H\",\l                name: \"Hydrogen\",\l                mass: 1.007825,\l            },\l        ),\l    ],\l}\l" ]
+    2 [ label = "Residue {\l    id: 3,\l    moiety: Moiety {\l        abbr: \"A\",\l        name: \"Alanine\",\l        mass: 71.037114,\l    },\l    modifications: [],\l}\l" ]
+    3 [ label = "Residue {\l    id: 4,\l    moiety: Moiety {\l        abbr: \"E\",\l        name: \"Glutamic Acid\",\l        mass: 129.042593,\l    },\l    modifications: [],\l}\l" ]
+    4 [ label = "Residue {\l    id: 5,\l    moiety: Moiety {\l        abbr: \"J\",\l        name: \"Diaminopimelic Acid\",\l        mass: 172.084792,\l    },\l    modifications: [],\l}\l" ]
+    5 [ label = "Residue {\l    id: 6,\l    moiety: Moiety {\l        abbr: \"A\",\l        name: \"Alanine\",\l        mass: 71.037114,\l    },\l    modifications: [\l        Add(\l            Moiety {\l                abbr: \"OH\",\l                name: \"Hydroxy\",\l                mass: 17.002740,\l            },\l        ),\l    ],\l}\l" ]
+    0 -> 1 [ label = "()\l" ]
+    1 -> 2 [ label = "()\l" ]
+    2 -> 3 [ label = "()\l" ]
+    3 -> 4 [ label = "()\l" ]
+    4 -> 5 [ label = "()\l" ]
+}
+

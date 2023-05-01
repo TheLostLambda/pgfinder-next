@@ -1,11 +1,7 @@
 // FIXME: This should probably be made private at some point!
 pub mod parser;
 
-use std::{
-    collections::{HashSet},
-    hash::Hash,
-    iter::repeat,
-};
+use std::{collections::HashSet, hash::Hash, iter::repeat};
 
 use memoize::memoize;
 use parser::{LateralChain, Modifications};
@@ -423,7 +419,7 @@ impl Moiety {
 }
 
 // FIXME: Should this be a `From` impl?
-fn fragments_to_df(fragments: &[Fragment]) -> DataFrame {
+fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
     let mut ion_types = Vec::new();
     let mut structures = Vec::new();
     let mut ion_masses = Vec::new();
@@ -483,112 +479,44 @@ fn fragments_to_df(fragments: &[Fragment]) -> DataFrame {
     df
 }
 
+impl From<Peptidoglycan> for Fragment {
+    fn from(value: Peptidoglycan) -> Self {
+        Self {
+            structure: value.graph,
+            termini: Default::default(),
+        }
+    }
+}
+
 // FIXME: Keep writing messy code, then write tests, then refactor
 #[cfg(test)]
 mod tests {
-    use std::{error::Error, fs::File};
+    use insta::{assert_debug_snapshot, assert_snapshot};
+    use std::error::Error;
 
-    use petgraph::{
-        dot::{Config, Dot},
-    };
+    use petgraph::dot::Dot;
 
     use super::*;
-    //
-    // #[test]
-    // fn it_works() -> Result<(), Box<dyn Error>> {
-    //     // let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[GA]K[AKEAG]AA")?);
-    //     let pg = dbg!(Peptidoglycan::new("gm-AEJA")?);
-    //     println!("{:?}", Dot::with_config(&pg.graph, &[Config::EdgeNoLabel]));
-    //     dbg!(dbg!(pg.monoisotopic_mass()).round_dp(4));
-    //     let frag = Fragment {
-    //         structure: pg.graph.clone(),
-    //         termini: Default::default(),
-    //     };
-    //     let frags = fragment(frag);
-    //     // let mut named_frags = Vec::new();
-    //     // for frag in &frags {
-    //     //     let mut b_ion_name = String::new();
-    //     //     // let mut b_ion_mass = -MODIFICATIONS["-"].mass;
-    //     //     let mut nodes = frag.structure.raw_nodes().to_vec();
-    //     //     nodes.sort_by_key(|n| n.weight.id);
-    //     //     for Node {
-    //     //         weight: residue, ..
-    //     //     } in nodes
-    //     //     {
-    //     //         if !b_ion_name.is_empty() {
-    //     //             b_ion_name.push('-');
-    //     //         }
-    //     //         b_ion_name.push_str(residue.moiety.abbr);
-    //     //         b_ion_name.push_str(&residue.id.to_string());
-    //     //     }
-    //     //     dbg!(&b_ion_name);
-    //     //     let mut termini: Vec<_> = frag.termini.clone().into_iter().collect();
-    //     //     termini.sort_by_key(|&(_, ty)| ty);
-    //     //     match &termini[..] {
-    //     //         [(_, TerminalIon::B)] => println!(
-    //     //             "B: {}",
-    //     //             (frag
-    //     //                 .structure
-    //     //                 .raw_nodes()
-    //     //                 .iter()
-    //     //                 .map(|n| n.weight.monoisotopic_mass())
-    //     //                 .sum::<Decimal>()
-    //     //                 - MODIFICATIONS["-"].mass)
-    //     //                 .round_dp(4)
-    //     //         ),
-    //     //         [(_, TerminalIon::Y)] => println!(
-    //     //             "Y: {}",
-    //     //             (frag
-    //     //                 .structure
-    //     //                 .raw_nodes()
-    //     //                 .iter()
-    //     //                 .map(|n| n.weight.monoisotopic_mass())
-    //     //                 .sum::<Decimal>()
-    //     //                 + MODIFICATIONS["H"].mass
-    //     //                 + MODIFICATIONS["+"].mass)
-    //     //                 .round_dp(4)
-    //     //         ),
-    //     //         [(_, TerminalIon::B), (_, TerminalIon::Y)] => println!(
-    //     //             "BY: {}",
-    //     //             (frag
-    //     //                 .structure
-    //     //                 .raw_nodes()
-    //     //                 .iter()
-    //     //                 .map(|n| n.weight.monoisotopic_mass())
-    //     //                 .sum::<Decimal>()
-    //     //                 + MODIFICATIONS["H"].mass
-    //     //                 - MODIFICATIONS["-"].mass)
-    //     //                 .round_dp(4)
-    //     //         ),
-    //     //
-    //     //         ts => {
-    //     //             println!("Wat? {ts:?}");
-    //     //         }
-    //     //     };
-    //     //     named_frags.push((b_ion_name, frag))
-    //     //     // dbg!(&frag.termini);
-    //     //     // println!();
-    //     //     //     b_ion_mass += residue.monoisotopic_mass();
-    //     //     // }
-    //     //     // dbg!(b_ion_name, b_ion_mass.round_dp(4));
-    //     //     // let mut y_ion_name = String::new();
-    //     //     // let mut y_ion_mass = MODIFICATIONS["H"].mass + MODIFICATIONS["+"].mass;
-    //     //     // for &id in &visited {
-    //     //     //     if !y_ion_name.is_empty() {
-    //     //     //         y_ion_name.push('-');
-    //     //     //     }
-    //     //     //     let residue = &graph[id];
-    //     //     //     y_ion_name.push_str(residue.moiety.abbr);
-    //     //     //     y_ion_name.push_str(&residue.id.to_string());
-    //     //     //     y_ion_mass += residue.monoisotopic_mass();
-    //     //     // }
-    //     //     // dbg!(y_ion_name, y_ion_mass.round_dp(4));
-    //     // }
-    //     let mut df = dbg!(fragments_to_df(&frags.iter().cloned().collect::<Vec<_>>()));
-    //     dbg!(frags.len());
-    //     let mut file = File::create(format!("/home/tll/Downloads/{}.csv", pg.name)).unwrap();
-    //     CsvWriter::new(&mut file).finish(&mut df);
-    //     panic!();
-    //     Ok(())
-    // }
+
+    #[test]
+    fn linear_monomer_graph() -> Result<(), Box<dyn Error>> {
+        // let pg = dbg!(Peptidoglycan::new("g(-Ac)m-AE[GA]K[AKEAG]AA")?);
+        // let mut file = File::create(format!("/home/tll/Downloads/{}.csv", pg.name)).unwrap();
+        // CsvWriter::new(&mut file).finish(&mut df);
+        let pg = Peptidoglycan::new("gm-AEJA")?;
+        assert_eq!(pg.monoisotopic_mass().round_dp(4), dec!(941.4077));
+        assert_debug_snapshot!(Dot::new(&pg.graph));
+        Ok(())
+    }
+
+    #[test]
+    fn linear_monomer_fragments() -> Result<(), Box<dyn Error>> {
+        let fragments = fragment(Peptidoglycan::new("gm-AEJA")?.into());
+        assert_eq!(fragments.len(), 20);
+
+        let mut csv = Vec::new();
+        CsvWriter::new(&mut csv).finish(&mut fragments_to_df(&fragments))?;
+        assert_snapshot!(String::from_utf8(csv)?);
+        Ok(())
+    }
 }
