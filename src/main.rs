@@ -8,7 +8,8 @@ use std::{
 use petgraph::dot::Dot;
 use polars::prelude::*;
 use rayon::prelude::*;
-use smithereens::{fragment, fragments_to_df, Peptidoglycan};
+use rust_decimal_macros::dec;
+use smithereens::{fragment, fragments_to_df, Peptidoglycan, MODIFICATIONS};
 
 fn main() -> Result<(), Box<dyn Error>> {
     // let args: Vec<String> = env::args().collect();
@@ -26,9 +27,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let structure = "g(-Ac)m-AE[GA]K[AKEAG]AA";
     // let structure = "m-AK[AA]AA";
     // let structure = "g(+Ac)m-AQK[GGGGSSG]AA";
-    let structure = "gm-AE[G]K[AKEGA]AA.csv";
+    // let structure = "gm-AE[G]K[AKEGA]AA";
+    // let structure = "gm-AQK[GGGGG]A";
+    // let structure = "g(-Ac)m-AEJA";
+    // let structure = "gm(-Ac)-AEJA";
+    let structure = "gm-AEJA";
     let pg = dbg!(Peptidoglycan::new(structure)?);
-    dbg!(pg.monoisotopic_mass().round_dp(4));
+    dbg!((pg.monoisotopic_mass()).round_dp(4));
+    dbg!((pg.monoisotopic_mass() + MODIFICATIONS["+"].mass).round_dp(4));
+    dbg!(((pg.monoisotopic_mass() + dec!(2) * MODIFICATIONS["+"].mass) / dec!(2)).round_dp(4));
     dbg!(Dot::new(&pg.graph));
 
     let fragments = fragment(pg.into());

@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 // Masses computed using https://mstools.epfl.ch/info/
 // Checked against http://www.matrixscience.com/help/aa_help.html
 // Used to update https://github.com/Mesnage-Org/rhizobium-pg-pipeline/blob/7f3a322624c027f5c42b796c6a1c0a1d7d81dbb0/Data/Constants/masses_table.csv
-static RESIDUES: phf::Map<char, Moiety> = phf_map! {
+pub static RESIDUES: phf::Map<char, Moiety> = phf_map! {
     'A' => Moiety::new("A", "Alanine", dec!(71.037114)),
     'C' => Moiety::new("C", "Cysteine", dec!(103.009185)),
     'D' => Moiety::new("D", "Aspartic Acid", dec!(115.026943)),
@@ -54,15 +54,21 @@ static RESIDUES: phf::Map<char, Moiety> = phf_map! {
     'x' => Moiety::new("x", "Unknown Monosaccharide", dec!(0.000000)),
 };
 // Used to update https://github.com/Mesnage-Org/rhizobium-pg-pipeline/blob/7f3a322624c027f5c42b796c6a1c0a1d7d81dbb0/Data/Constants/mods_table.csv
-static MODIFICATIONS: phf::Map<&str, Moiety> = phf_map! {
+pub static MODIFICATIONS: phf::Map<&str, Moiety> = phf_map! {
     "+" => Moiety::new("+", "Proton", dec!(1.007276)),
     "-" => Moiety::new("-", "Electron", dec!(0.000549)),
     "H" => Moiety::new("H", "Hydrogen", dec!(1.007825)),
     "OH" => Moiety::new("OH", "Hydroxy", dec!(17.002740)),
     "Ac" => Moiety::new("Ac", "Acetyl", dec!(42.010565)),
+    // "Anh" => Moiety::new("Anh", "Anhydro", dec!()),
+    // FIXME: Should this be -H2O, -Anh? +Anh? Mutally exclusive with the +2H
+    // from MurNAc reduction! -20.026215
+    // FIXME: Need to deal with modifications that can only apply to certain
+    // residues! Most of them involved adding *and* removing groups! -0.984016
+    // Lac: OCH3COCH -> 72.021129 (Needed to find A3)
 };
 // FIXME: Consider merging this with the rest of the RESIDUES table!
-static BRANCH_RESIDUES: phf::Map<&str, SidechainGroup> = phf_map! {
+pub static BRANCH_RESIDUES: phf::Map<&str, SidechainGroup> = phf_map! {
     "E" => SidechainGroup::Carboxyl,
     "J" => SidechainGroup::Amine, // FIXME: Is actually `Both`!
     "K" => SidechainGroup::Amine,
@@ -103,6 +109,7 @@ impl Peptidoglycan {
 
             // Add H2 to the reduced end of the glycan chain
             // FIXME: Can GlcNAc be reduced too? Or only MurNAc?
+            // FIXME: This doesn't work for Anhydro!
             graph[last_monosaccharide]
                 .modifications
                 .extend(repeat(Modification::Add(MODIFICATIONS["H"])).take(2));
@@ -410,9 +417,9 @@ impl From<(&char, &Option<Modifications>)> for Residue {
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize, Deserialize)]
 pub struct Moiety {
-    abbr: &'static str,
-    name: &'static str,
-    mass: Decimal,
+    pub abbr: &'static str,
+    pub name: &'static str,
+    pub mass: Decimal,
 }
 
 impl Moiety {
