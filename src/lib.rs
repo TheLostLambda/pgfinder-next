@@ -13,13 +13,24 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
 // OPEN QUESTIONS =============================================================
-// 1) Which direction do lateral chains run off from mDAP?
+// 1) Which direction do lateral chains run off from mDAP? (from the amine!)
 // 2) What should I do when I have several B-ion (O+) termini?
 
 // Findings ===================================================================
 // 1) B-ions were off by an electron mass — they are slighly lighter now!
 
+// Things To Do ===============================================================
+// 1) Add support for ambiguous modifications: `gm-AEJA (-Ac)`
+// 2) Add a converter for generating Windows-legal filenames!
+// 3) Add in rules for checking legal crosslinks and modifications!
+// 4) Allow lateral chains to be nested (for M. luteus, ffs...)
+// 5) Add lactyl ions for residues attached to the MurNAc
+// 6) Check for immonium ions!
+
 // FIXME: These masses need to be checked against the mass_calc databases Steph has vetted!
+// FIXME: These moieties need to store a list of side-chain functional groups (for checking
+// which crosslinks are legal and which modifications are allowed where!)
+// FIXME: Replace these hard-coded maps with CSV(?) files!
 // Masses computed using https://mstools.epfl.ch/info/
 // Checked against http://www.matrixscience.com/help/aa_help.html
 // Used to update https://github.com/Mesnage-Org/rhizobium-pg-pipeline/blob/7f3a322624c027f5c42b796c6a1c0a1d7d81dbb0/Data/Constants/masses_table.csv
