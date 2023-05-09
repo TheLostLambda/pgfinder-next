@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 // 1) B-ions were off by an electron mass — they are slighly lighter now!
 
 // Things To Do ===============================================================
-// 1) Add support for ambiguous modifications: `gm-AEJA (-Ac)`
+// 1) Add support for ambiguous modifications: `gm-AEJA (-Ac)` — maybe (-2Ac)
 // 2) Add a converter for generating Windows-legal filenames!
 // 3) Add in rules for checking legal crosslinks and modifications!
 // 4) Allow lateral chains to be nested (for M. luteus, ffs...)
