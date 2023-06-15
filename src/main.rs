@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let structure = "g(-Ac)m-AEJA";
     // let structure = "gm(-Ac)-AEJA";
     // let structure = "gm-AEJA";
-    let structure = "gmgm-AEJA";
+    let structure = "gm-AEJN";
     let pg = dbg!(Peptidoglycan::new(structure)?);
     dbg!((pg.monoisotopic_mass()).round_dp(4));
     dbg!((pg.monoisotopic_mass() + MODIFICATIONS["+"].mass).round_dp(4));

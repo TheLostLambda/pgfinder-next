@@ -26,6 +26,18 @@ use serde::{Deserialize, Serialize};
 // 4) Allow lateral chains to be nested (for M. luteus, ffs...)
 // 5) Add lactyl ions for residues attached to the MurNAc
 // 6) Check for immonium ions!
+// 7) Generate ions with charges greater than 1 (up to 3)! Output m/z values!
+
+// Some Rules? ================================================================
+// Could fill this tool with rules like that to apply, saying how each
+// returned structure was validated (MS2 or a biochemical rule) so that you get
+// a result of confirmed structures and a set of explicitly listed assumptions
+// for each search!
+//
+// 1) Structures like `gm-AEJH-gm-AEJ` must be 3-3 crosslinks because the `H`
+// in position four has been exchanged (need the concept of a parent stem) and
+// that means there was no `gm-AEJHX` parent to form a 4-3 crosslink with! This
+// could also rule out structures like `gm-AEJDP`!
 
 // FIXME: These masses need to be checked against the mass_calc databases Steph has vetted!
 // FIXME: These moieties need to store a list of side-chain functional groups (for checking
@@ -504,7 +516,7 @@ pub fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
     let float_masses: Vec<f64> = ion_masses.iter().map(|s| s.parse().unwrap()).collect();
     // FIXME: Should actually think about handling errors here...
     let mut df =
-        df!("Termini" => terminal_count, "Float Mass" => float_masses, "Ion Type" => ion_types, "Ion Mass" => ion_masses, "Structure" => structures).unwrap();
+        df!("Termini" => terminal_count, "Float Mass" => float_masses, "Type" => ion_types, "Ion (1+)" => ion_masses, "Structure" => structures).unwrap();
     // FIXME: Is there any performance gained by doing this in-place?
     df.sort_in_place(["Termini", "Ion Type", "Float Mass", "Structure"], false);
     df.drop_in_place("Termini");
