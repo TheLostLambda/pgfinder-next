@@ -1,9 +1,9 @@
 ---
 source: src/lib.rs
-assertion_line: 519
+assertion_line: 561
 expression: "String::from_utf8(csv)?"
 ---
-Ion Type,Ion Mass,Structure
+Type,Ion (1+),Structure
 B,204.0866,g1
 B,481.2028,g1-m2
 B,552.2399,g1-m2-A3
