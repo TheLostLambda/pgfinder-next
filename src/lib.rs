@@ -516,9 +516,9 @@ pub fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
     let float_masses: Vec<f64> = ion_masses.iter().map(|s| s.parse().unwrap()).collect();
     // FIXME: Should actually think about handling errors here...
     let mut df =
-        df!("Termini" => terminal_count, "Float Mass" => float_masses, "Type" => ion_types, "Ion (1+)" => ion_masses, "Structure" => structures).unwrap();
+        df!("Termini" => terminal_count, "Float Mass" => float_masses, "Type" => ion_types, "Ion" => ion_masses, "Structure" => structures).unwrap();
     // FIXME: Is there any performance gained by doing this in-place?
-    df.sort_in_place(["Termini", "Type", "Float Mass", "Ion (1+)"], false);
+    df.sort_in_place(["Termini", "Type", "Float Mass", "Ion"], false);
     df.drop_in_place("Termini");
     df.drop_in_place("Float Mass");
     df

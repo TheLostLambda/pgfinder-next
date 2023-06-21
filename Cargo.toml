@@ -16,6 +16,7 @@ polars = "0.28.0"
 serde = { version = "1.0.160", features = ["derive"] }
 memoize = "0.4.0"
 rayon = "1.7.0"
+filenamify = "*"
 
 [dev-dependencies]
 insta = "1.29.0"
