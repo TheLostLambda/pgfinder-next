@@ -85,7 +85,8 @@ pub static MODIFICATIONS: phf::Map<&str, Moiety> = phf_map! {
     "Ac" => Moiety::new("Ac", "Acetyl", dec!(42.010565)),
     // "Anh" => Moiety::new("Anh", "Anhydro", dec!()),
     // FIXME: Should this be -H2O, -Anh? +Anh? Mutally exclusive with the +2H
-    // from MurNAc reduction! -20.026215
+    // from MurNAc reduction! -20.026215. I should extend the language to not
+    // require a + or - before every modification!
     // FIXME: Need to deal with modifications that can only apply to certain
     // residues! Most of them involved adding *and* removing groups! -0.984016
     // Lac: OCH3COCH -> 72.021129 (Needed to find A3)
