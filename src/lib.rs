@@ -28,6 +28,19 @@ use serde::{Deserialize, Serialize};
 // 6) Check for immonium ions!
 // 7) Generate ions with charges greater than 1 (up to 3)! Output m/z values!
 
+// Other Thoughts / Notes =====================================================
+// I'm going to need to either revisit the use of `~` for glycosidic bonds, or
+// (and this is probably preferable) add a converter to output escaped `~`
+// characters that are compatable with Excel!
+//
+// I should add the lactyl-group to my list of sugar moieties as `l`. This will
+// let me build graphs for and search for lactyl peptides. I can probably
+// insert a lactyl-group linker automatically whenever I'm attaching a glycan
+// to a peptide. That way the user doesn't need to include an implied `l` every
+// time, but the graph can still be fragmented properly and the outputted
+// structures can explicitly include the lactyl group if the rest of the glycan
+// is lost from the peptide.
+
 // Some Rules? ================================================================
 // Could fill this tool with rules like that to apply, saying how each
 // returned structure was validated (MS2 or a biochemical rule) so that you get
