@@ -40,6 +40,9 @@ use serde::{Deserialize, Serialize};
 // time, but the graph can still be fragmented properly and the outputted
 // structures can explicitly include the lactyl group if the rest of the glycan
 // is lost from the peptide.
+//
+// Better yet, I could have the `-` represent the lactyl? So things like `gm-`
+// or `-AEJA` could indicate where the lactyl ends up?
 
 // Some Rules? ================================================================
 // Could fill this tool with rules like that to apply, saying how each
