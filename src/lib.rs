@@ -11,6 +11,7 @@ use polars::prelude::*;
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
+use wasm_bindgen::prelude::*;
 
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)
@@ -117,16 +118,20 @@ pub static BRANCH_RESIDUES: phf::Map<&str, SidechainGroup> = phf_map! {
 // FIXME: Add a parsed data validation step! Use Crepe to enforce some rules!
 // FIXME: Cache or memoise calculations of things like mass
 #[derive(Clone, Debug)]
+#[wasm_bindgen]
 pub struct Peptidoglycan {
     // FIXME: Replace the `pub`s with accessor methods?
-    pub name: String,
-    pub graph: Graph<Residue, ()>,
+    name: String,
+    graph: Graph<Residue, ()>,
 }
 
+#[wasm_bindgen]
 impl Peptidoglycan {
     // FIXME: Replace `String` with a proper error type!
     // FIXME: Sopping code... Needs some DRYing!
-    pub fn new(structure: &str) -> Result<Self, String> {
+    #[wasm_bindgen(constructor)]
+    pub fn new(structure: &str) -> Result<Peptidoglycan, String> {
+        console_error_panic_hook::set_once();
         // FIXME: Handle this error properly!
         let (_, (monomers, crosslinks)) = parser::multimer(structure).unwrap();
         let mut residue_id = 0;
@@ -252,12 +257,13 @@ impl Peptidoglycan {
         })
     }
 
-    pub fn monoisotopic_mass(&self) -> Decimal {
+    pub fn monoisotopic_mass(&self) -> String {
         self.graph
             .raw_nodes()
             .iter()
             .map(|residue| residue.weight.monoisotopic_mass())
-            .sum()
+            .sum::<Decimal>()
+            .to_string()
     }
 }
 
@@ -535,10 +541,24 @@ pub fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
     let mut df =
         df!("Termini" => terminal_count, "Float Mass" => float_masses, "Type" => ion_types, "Ion (1+)" => ion_masses, "Structure" => structures).unwrap();
     // FIXME: Is there any performance gained by doing this in-place?
-    df.sort_in_place(["Termini", "Type", "Float Mass", "Ion (1+)"], false);
-    df.drop_in_place("Termini");
-    df.drop_in_place("Float Mass");
+    df.sort_in_place(
+        ["Termini", "Type", "Float Mass", "Ion (1+)"],
+        vec![true, true, true, true],
+        false,
+    )
+    .unwrap();
+    df.drop_in_place("Termini").unwrap();
+    df.drop_in_place("Float Mass").unwrap();
     df
+}
+
+#[wasm_bindgen]
+pub fn pg_to_fragments(precursor: &Peptidoglycan) -> String {
+    let mut csv = Vec::new();
+    CsvWriter::new(&mut csv)
+        .finish(&mut fragments_to_df(&fragment(precursor.clone().into())))
+        .unwrap();
+    String::from_utf8(csv).unwrap()
 }
 
 impl From<Peptidoglycan> for Fragment {
