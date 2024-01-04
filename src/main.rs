@@ -1,48 +1,63 @@
+use polars::io::{csv::CsvWriter, SerWriter};
+// use rayon::prelude::*;
+use smithereens::{fragment, fragments_to_df, Peptidoglycan};
 use std::{
-    env,
-    error::Error,
     fs::{self, File},
-    path::Path,
+    path::PathBuf,
 };
 
-use petgraph::dot::Dot;
-use polars::prelude::*;
-use rayon::prelude::*;
-use rust_decimal_macros::dec;
-use smithereens::{fragment, fragments_to_df, Peptidoglycan, MODIFICATIONS};
+// NOTE: To use a crate like `clap`, you just need to run `cargo add clap` to
+// automatically add and install the dependency!
+use anyhow::Result;
+use clap::Parser;
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // let args: Vec<String> = env::args().collect();
-    // let input = &args[1];
-    // let output = Path::new(&args[2]);
-    // let structures = fs::read_to_string(input)?;
-    // structures.par_lines().for_each(|structure| {
-    //     let fragments = fragment(Peptidoglycan::new(structure).unwrap().into());
-    //     let mut file = File::create(output.join(format!("{}.csv", structure))).unwrap();
-    //     CsvWriter::new(&mut file)
-    //         .finish(&mut fragments_to_df(&fragments))
-    //         .unwrap();
-    // });
+// NOTE: I'm stealing at lot of the `clap` example here!
+/// This is a docstring that gets included in the CLI about text!
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+    /// A file of newline-separated PG structures
+    #[arg(short, long)]
+    input_structures: PathBuf,
+    /// A directory for outputing fragments / masses
+    #[arg(short, long)]
+    output_dir: PathBuf,
+    /// Whether or not to perform fragmentation
+    #[arg(long, default_value_t = false)]
+    fragment: bool,
+}
 
-    // let structure = "g(-Ac)m-AE[GA]K[AKEAG]AA";
-    // let structure = "m-AK[AA]AA";
-    // let structure = "g(+Ac)m-AQK[GGGGSSG]AA";
-    // let structure = "gm-AE[G]K[AKEGA]AA";
-    // let structure = "gm-AQK[GGGGG]A";
-    // let structure = "g(-Ac)m-AEJA";
-    // let structure = "gm(-Ac)-AEJA";
-    // let structure = "gm-AEJA";
-    let structure = "gmgm(-Ac)-AEJA";
-    let pg = dbg!(Peptidoglycan::new(structure)?);
-    dbg!((pg.monoisotopic_mass()).round_dp(4));
-    dbg!((pg.monoisotopic_mass() + MODIFICATIONS["+"].mass).round_dp(4));
-    dbg!(((pg.monoisotopic_mass() + dec!(2) * MODIFICATIONS["+"].mass) / dec!(2)).round_dp(4));
-    dbg!(Dot::new(&pg.graph));
+// NOTE: For flamegraph profiling, compile with:
+// `CARGO_PROFILE_RELEASE_DEBUG=true cargo build --release`
+// Then run:
+// `flamegraph -- ./target/release/smithereens ...`
+// This flamegraph profiling can be performed automatically for benchmarks
+// using `cargo-flamegraph` — this is just a toy example!
+fn main() -> Result<()> {
+    // NOTE: Try adding `dbg!()` around the parsing here!
+    let args = Args::parse();
 
-    let fragments = fragment(pg.into());
-    dbg!(fragments.len());
+    let structures = fs::read_to_string(args.input_structures)?;
+    // NOTE: Change `.lines()` to `.lines_par()` for free data-parallelism
+    // Or at least when it doesn't overflow the stack ;-;
+    let monoisotopic_masses: Vec<_> = structures
+        .lines()
+        .map(|structure| {
+            let pg = Peptidoglycan::new(structure);
+            if args.fragment {
+                let fragments = fragment(pg.clone().into());
+                let output_file = args.output_dir.join(format!("{}.csv", structure));
+                let mut file = File::create(output_file).unwrap();
+                CsvWriter::new(&mut file)
+                    .finish(&mut fragments_to_df(&fragments))
+                    .unwrap();
+            }
+            format!("{},{}", structure, pg.monoisotopic_mass())
+        })
+        .collect();
 
-    let mut file = File::create(format!("/home/tll/Downloads/{}.csv", structure)).unwrap();
-    CsvWriter::new(&mut file).finish(&mut dbg!(fragments_to_df(&fragments)))?;
+    let massfile_path = args.output_dir.join("masses.txt");
+    fs::write(massfile_path, monoisotopic_masses.join("\n"))?;
+
     Ok(())
 }

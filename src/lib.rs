@@ -124,11 +124,11 @@ pub struct Peptidoglycan {
 }
 
 impl Peptidoglycan {
-    // FIXME: Replace `String` with a proper error type!
+    // FIXME: This should return an error type (like `Result`)!
     // FIXME: Sopping code... Needs some DRYing!
-    pub fn new(structure: &str) -> Result<Self, String> {
+    pub fn new(structure: &str) -> Self {
         // FIXME: Handle this error properly!
-        let (_, (monomers, crosslinks)) = parser::multimer(structure).unwrap();
+        let (_, (monomers, _crosslinks)) = parser::multimer(structure).unwrap();
         let mut residue_id = 0;
         let mut graph = Graph::new();
         for (glycan, peptide) in monomers {
@@ -246,10 +246,10 @@ impl Peptidoglycan {
             }
         }
 
-        Ok(Self {
+        Self {
             name: structure.to_string(),
             graph,
-        })
+        }
     }
 
     pub fn monoisotopic_mass(&self) -> Decimal {
@@ -535,9 +535,13 @@ pub fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
     let mut df =
         df!("Termini" => terminal_count, "Float Mass" => float_masses, "Type" => ion_types, "Ion (1+)" => ion_masses, "Structure" => structures).unwrap();
     // FIXME: Is there any performance gained by doing this in-place?
-    df.sort_in_place(["Termini", "Type", "Float Mass", "Ion (1+)"], false);
-    df.drop_in_place("Termini");
-    df.drop_in_place("Float Mass");
+    let _ = df.sort_in_place(
+        ["Termini", "Type", "Float Mass", "Ion (1+)"],
+        vec![true, true, true, true],
+        false,
+    );
+    let _ = df.drop_in_place("Termini");
+    let _ = df.drop_in_place("Float Mass");
     df
 }
 
