@@ -13,6 +13,38 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
+// NOTE: I'm certainly not setting up a C++ build system, so these comments are
+// the build system now...
+// cargo build --release
+// cxxbridge src/lib.rs --header > include/smithereens.rs.h
+// cxxbridge src/lib.rs > smithereens.rs.cc
+// g++ -I include/ -L ./target/release/ -o demo smithereens.rs.cc demo.cc -lsmithereens
+#[cxx::bridge]
+mod ffi {
+    extern "Rust" {
+        type Peptidoglycan;
+
+        // NOTE: A contrived constructor for the point of the demo!
+        fn build_pg(structure: String) -> Box<Peptidoglycan>;
+        fn monoisotopic_mass(&self) -> String;
+        fn pg_to_fragments(precursor: Box<Peptidoglycan>) -> String;
+    }
+
+    // NOTE: This is how you'd expose C++ functions to rust
+    // unsafe extern "C++" {
+    //     include!("include/cxx_pg.h");
+    //     fn get_pg_structure() -> CxxString;
+    // }
+}
+
+pub fn build_pg(structure: String) -> Box<Peptidoglycan> {
+    Box::new(Peptidoglycan::new(&structure).unwrap())
+}
+
+// pub fn build_cxx_pg() -> Box<Peptidoglycan> {
+//     Box::new(Peptidoglycan::new(&ffi::get_pg_structure()).unwrap())
+// }
+
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)
 // 2) What should I do when I have several B-ion (O+) termini?
@@ -552,11 +584,10 @@ pub fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
     df
 }
 
-#[wasm_bindgen]
-pub fn pg_to_fragments(precursor: &Peptidoglycan) -> String {
+pub fn pg_to_fragments(precursor: Box<Peptidoglycan>) -> String {
     let mut csv = Vec::new();
     CsvWriter::new(&mut csv)
-        .finish(&mut fragments_to_df(&fragment(precursor.clone().into())))
+        .finish(&mut fragments_to_df(&fragment((*precursor).clone().into())))
         .unwrap();
     String::from_utf8(csv).unwrap()
 }

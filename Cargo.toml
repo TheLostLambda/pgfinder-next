@@ -18,9 +18,10 @@ memoize = "0.4.1"
 rayon = "1.8.0"
 wasm-bindgen = "0.2.89"
 console_error_panic_hook = "0.1.7"
+cxx = "1.0.114"
 
 [dev-dependencies]
 insta = "1.34.0"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["staticlib"]
