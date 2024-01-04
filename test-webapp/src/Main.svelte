@@ -5,7 +5,7 @@
   import Input from "./Main/Input.svelte";
   import Output from "./Main/Output.svelte";
 
-  let input = "gm-AEJA";
+  let input = "gm-AQK[GGGGG]A";
   let pipeline = writable((s) => s.to_string());
   let output = "";
   let error = false;
