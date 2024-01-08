@@ -12,7 +12,7 @@ Crosslink
   | "~" (* Glycosidic Bond *)
   ;
 
-Monomer = Glycan , [ "-" , Peptide ] ;
+Monomer = Glycan | Peptide | Glycan , "-" , Peptide ;
 
 Glycan = Monosaccharide , [ Modifications ] ,
   { Monosaccharide , [ Modifications ] } ;
