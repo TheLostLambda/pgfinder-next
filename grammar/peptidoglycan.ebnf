@@ -6,30 +6,29 @@
 Multimer = Monomer , { Crosslink , Monomer } ;
 
 Crosslink
-  = ( "=" , position , ( "<" | ">" ) , position , "=" ,
-    { ":" , "=" , position , ( "<" | ">" ) , position , "=" } )
+  = "=" , position , ( "<" | ">" ) , position , "=" , { ":" , "=" , position , ( "<" | ">" ) , position , "=" }
   | "=" (* Ambiguous Crosslink *)
   | "~" (* Glycosidic Bond *)
   ;
 
-Monomer = Glycan | Peptide | Glycan , "-" , Peptide ;
+Monomer
+  = Glycan
+  | Peptide
+  | Glycan , "-" , Peptide
+  ;
 
-Glycan = Monosaccharide , [ Modifications ] ,
-  { Monosaccharide , [ Modifications ] } ;
+Glycan = { Monosaccharide , [ Modifications ] }- ;
 
-Peptide = AminoAcid , [ Modifications ] ,
-  [ LateralChain ] , { AminoAcid , [ Modifications ] ,
-  [ LateralChain ] } ;
+Peptide = { AminoAcid , [ Modifications ] ,
+  [ LateralChain ] }- ;
 
-LateralChain = "[" , AminoAcid , [ Modifications ] ,
-  { AminoAcid , [ Modifications ] } , "]" ;
+LateralChain = "[" , { AminoAcid , [ Modifications ] }- , "]" ;
 
 Monosaccharide = lowercase ;
 
 AminoAcid = uppercase ;
 
-Modifications = "(" , ( "+" | "-" ) , Moiety ,
-  { "," , ( "+" | "-" ) , Moiety } , ")" ;
+Modifications = "(" , ( "+" | "-" ) , Moiety , { "," , ( "+" | "-" ) , Moiety } , ")" ;
 
 Moiety = letter , { letter | digit | "_" } ;
 
