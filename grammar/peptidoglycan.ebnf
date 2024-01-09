@@ -4,8 +4,8 @@
 *)
 
 Muropeptide = Monomer , { Connector , Monomer } , [ { " " }- ,
-  ( Modifications , [ { " " }- , Crosslink Descriptors ]
-  | Crosslink Descriptors , [ { " " }- , Modifications ]
+  ( Modifications , [ { " " }- , Crosslinks ]
+  | Crosslinks , [ { " " }- , Modifications ]
   ) ] ;
 
 Connector
@@ -34,19 +34,22 @@ Amino Acid = uppercase ;
 Modifications = "(" ,
   ( Predefined Modification
   | Chemical Offset
-  ) , { "," , { " " } ,
+  ) , { { " " } , "," , { " " } ,
   ( Predefined Modification
   | Chemical Offset
   ) } , ")" ;
 
-Predefined Modification = Multiplier , letter ,
+Predefined Modification = [ Multiplier ] , letter ,
   { letter | digit | "_" } ;
 
-Chemical Offset = ( "+" | "-" ) , Multiplier ,
+Chemical Offset = ( "+" | "-" ) , [ Multiplier ] ,
   { Element , [ Integer ] }- ;
 
-Crosslink Descriptors = "(" , Crosslink Descriptor ,
-  { "," , { " " } , Crosslink Descriptor } , ")" ;
+Crosslinks = "(" , Crosslink Descriptors ,
+  { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
+
+Crosslink Descriptors = Crosslink Descriptor ,
+  { { " " } , "&" , { " " } , Crosslink Descriptor } ;
 
 Crosslink Descriptor = position ,
   ( "-" (* Donor-Acceptor *)
