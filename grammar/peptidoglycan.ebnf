@@ -3,12 +3,15 @@
   ==========================
 *)
 
-Multimer = Monomer , { Crosslink , Monomer } ;
+Muropeptide = Monomer , { Connector , Monomer } , [ { " " }- ,
+  ( Modifications , [ { " " }- , Crosslink Descriptors ]
+  | Crosslink Descriptors , [ { " " }- , Modifications ]
+  ) ] ;
 
-Crosslink
-  = "=" , position , ( "<" | ">" ) , position , "=" , { ":" , "=" , position , ( "<" | ">" ) , position , "=" }
-  | "=" (* Ambiguous Crosslink *)
+Connector
+  = "=" (* Crosslink *)
   | "~" (* Glycosidic Bond *)
+  | ( "~=" | "=~" ) (* Both *)
   ;
 
 Monomer
@@ -19,24 +22,42 @@ Monomer
 
 Glycan = { Monosaccharide , [ Modifications ] }- ;
 
-Peptide = { AminoAcid , [ Modifications ] ,
-  [ LateralChain ] }- ;
+Peptide = { Amino Acid , [ Modifications ] ,
+  [ Lateral Chain ] }- ;
 
-LateralChain = "[" , { AminoAcid , [ Modifications ] }- , "]" ;
+Lateral Chain = "[" , { Amino Acid , [ Modifications ] }- , "]" ;
 
 Monosaccharide = lowercase ;
 
-AminoAcid = uppercase ;
+Amino Acid = uppercase ;
 
-Modifications = "(" , ( "+" | "-" ) , Moiety , { "," , ( "+" | "-" ) , Moiety } , ")" ;
+Modifications = "(" ,
+  ( Predefined Modification
+  | Chemical Offset
+  ) , { "," , { " " } ,
+  ( Predefined Modification
+  | Chemical Offset
+  ) } , ")" ;
 
-Moiety = letter , { letter | digit | "_" } ;
+Predefined Modification = Multiplier , letter ,
+  { letter | digit | "_" } ;
 
-(*
-  Basic components
-  ----------------
-  These are low level components, the small building blocks.
-*)
+Chemical Offset = ( "+" | "-" ) , Multiplier ,
+  { Element , [ Integer ] }- ;
+
+Crosslink Descriptors = "(" , Crosslink Descriptor ,
+  { "," , { " " } , Crosslink Descriptor } , ")" ;
+
+Crosslink Descriptor = position ,
+  ( "-" (* Donor-Acceptor *)
+  | "=" (* Acceptor=Donor *)
+  ) , position ;
+
+Multiplier = Integer , "x" ;
+
+Element = uppercase , [ lowercase ] ;
+
+Integer = { digit }- ;
 
 letter = uppercase | lowercase ;
 
