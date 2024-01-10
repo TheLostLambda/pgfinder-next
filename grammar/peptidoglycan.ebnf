@@ -3,29 +3,17 @@ Muropeptide = Monomer , { Connection , Monomer } , [ Connection ] , [ { " " }- ,
   | Crosslinks , [ { " " }- , Modifications ]
   ) ] ;
 
-Connection
-  = "=" (* Crosslink *)
-  | "~" (* Glycosidic Bond *)
-  | ( "~=" | "=~" ) (* Both *)
-  ;
-
 Monomer
   = Glycan
   | Peptide
   | Glycan , "-" , Peptide
   ;
 
-Glycan = { Monosaccharide , [ Modifications ] }- ;
-
-Peptide = { Amino Acid , [ Modifications ] ,
-  [ Lateral Chain ] }- ;
-
-Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
-  { Amino Acid , [ Modifications ] }- , "]" ;
-
-Monosaccharide = lowercase ;
-
-Amino Acid = uppercase ;
+Connection
+  = "=" (* Crosslink *)
+  | "~" (* Glycosidic Bond *)
+  | ( "~=" | "=~" ) (* Both *)
+  ;
 
 Modifications = "(" ,
   ( Predefined Modification
@@ -35,32 +23,46 @@ Modifications = "(" ,
   | Chemical Offset
   ) } , ")" ;
 
-Predefined Modification = [ Multiplier , "x" ] ,
-  letter , { letter | digit | "_" } ;
-
-Chemical Offset = ( "+" | "-" ) ,
-  ( [ Multiplier , "x" ] , { Element , [ Integer ] }-
-  | [ Multiplier ] , Charged Particle
-  ) ;
-
 Crosslinks = "(" , Crosslink Descriptors ,
   { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
 
+Glycan = { Monosaccharide , [ Modifications ] }- ;
+
+Peptide = { Amino Acid , [ Modifications ] ,
+  [ Lateral Chain ] }- ;
+
+Predefined Modification = [ Multiplier ] , letter ,
+  { letter | digit | "_" } ;
+
+Chemical Offset = ( "+" | "-" ) , [ Multiplier ] ,
+  Chemical Composition ;
+
 Crosslink Descriptors = Crosslink Descriptor ,
   { { " " } , "&" , { " " } , Crosslink Descriptor } ;
+
+Monosaccharide = lowercase ;
+
+Amino Acid = uppercase ;
+
+Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
+  { Amino Acid , [ Modifications ] }- , "]" ;
+
+Multiplier = Integer , "x" ;
+
+Chemical Composition = { Element , [ Integer ] }- ,
+  { Particle Offset } ;
 
 Crosslink Descriptor = position ,
   ( "-" (* Donor-Acceptor *)
   | "=" (* Acceptor=Donor *)
   ) , position ;
 
-Multiplier = Integer ;
+Integer = { digit }- ;
 
 Element = uppercase , [ lowercase ] ;
 
-Charged Particle = lowercase ;
-
-Integer = { digit }- ;
+Particle Offset = ( "+" | "-" ) , [ Integer ] ,
+  lowercase ;
 
 letter = uppercase | lowercase ;
 
