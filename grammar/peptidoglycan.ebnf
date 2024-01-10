@@ -1,9 +1,9 @@
-Muropeptide = Monomer , { Connector , Monomer } , [ Connector ] , [ { " " }- ,
+Muropeptide = Monomer , { Connection , Monomer } , [ Connection ] , [ { " " }- ,
   ( Modifications , [ { " " }- , Crosslinks ]
   | Crosslinks , [ { " " }- , Modifications ]
   ) ] ;
 
-Connector
+Connection
   = "=" (* Crosslink *)
   | "~" (* Glycosidic Bond *)
   | ( "~=" | "=~" ) (* Both *)
