@@ -3,7 +3,7 @@
   ==========================
 *)
 
-Muropeptide = Monomer , { Connector , Monomer } , [ { " " }- ,
+Muropeptide = Monomer , { Connector , Monomer } , [ Connector ] , [ { " " }- ,
   ( Modifications , [ { " " }- , Crosslinks ]
   | Crosslinks , [ { " " }- , Modifications ]
   ) ] ;
@@ -25,7 +25,8 @@ Glycan = { Monosaccharide , [ Modifications ] }- ;
 Peptide = { Amino Acid , [ Modifications ] ,
   [ Lateral Chain ] }- ;
 
-Lateral Chain = "[" , { Amino Acid , [ Modifications ] }- , "]" ;
+Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
+  { Amino Acid , [ Modifications ] }- , "]" ;
 
 Monosaccharide = lowercase ;
 
@@ -42,8 +43,8 @@ Modifications = "(" ,
 Predefined Modification = [ Multiplier ] , letter ,
   { letter | digit | "_" } ;
 
-Chemical Offset = ( "+" | "-" ) , [ Multiplier ] ,
-  { Element , [ Integer ] }- ;
+Chemical Offset = { ( "+" | "-" ) , [ Multiplier ] ,
+  { Element , [ Integer ] }- }- ;
 
 Crosslinks = "(" , Crosslink Descriptors ,
   { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
