@@ -1,13 +1,7 @@
-use std::{
-    env,
-    error::Error,
-    fs::{self, File},
-    path::Path,
-};
+use std::{error::Error, fs::File};
 
 use petgraph::dot::Dot;
 use polars::prelude::*;
-use rayon::prelude::*;
 use rust_decimal_macros::dec;
 use smithereens::{fragment, fragments_to_df, Peptidoglycan, MODIFICATIONS};
 
