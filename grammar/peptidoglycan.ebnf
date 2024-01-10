@@ -35,11 +35,13 @@ Modifications = "(" ,
   | Chemical Offset
   ) } , ")" ;
 
-Predefined Modification = [ Multiplier ] , letter ,
-  { letter | digit | "_" } ;
+Predefined Modification = [ Multiplier , "x" ] ,
+  letter , { letter | digit | "_" } ;
 
-Chemical Offset = ( "+" | "-" ) , [ Multiplier ] ,
-  { Element , [ Integer ] }- ;
+Chemical Offset = ( "+" | "-" ) ,
+  ( [ Multiplier , "x" ] , { Element , [ Integer ] }-
+  | [ Multiplier ] , Charged Particle
+  ) ;
 
 Crosslinks = "(" , Crosslink Descriptors ,
   { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
@@ -52,9 +54,11 @@ Crosslink Descriptor = position ,
   | "=" (* Acceptor=Donor *)
   ) , position ;
 
-Multiplier = Integer , "x" ;
+Multiplier = Integer ;
 
 Element = uppercase , [ lowercase ] ;
+
+Charged Particle = lowercase ;
 
 Integer = { digit }- ;
 
