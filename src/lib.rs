@@ -1,5 +1,7 @@
 // FIXME: This should probably be made private at some point!
 pub mod parser;
+mod residue;
+use residue::*;
 
 use std::{collections::HashSet, hash::Hash, iter::repeat};
 

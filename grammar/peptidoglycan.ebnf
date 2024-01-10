@@ -38,8 +38,8 @@ Modifications = "(" ,
 Predefined Modification = [ Multiplier ] , letter ,
   { letter | digit | "_" } ;
 
-Chemical Offset = { ( "+" | "-" ) , [ Multiplier ] ,
-  { Element , [ Integer ] }- }- ;
+Chemical Offset = ( "+" | "-" ) , [ Multiplier ] ,
+  { Element , [ Integer ] }- ;
 
 Crosslinks = "(" , Crosslink Descriptors ,
   { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
