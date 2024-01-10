@@ -128,7 +128,7 @@ impl Peptidoglycan {
     // FIXME: Sopping code... Needs some DRYing!
     pub fn new(structure: &str) -> Result<Self, String> {
         // FIXME: Handle this error properly!
-        let (_, (monomers, crosslinks)) = parser::multimer(structure).unwrap();
+        let (_, (monomers, _crosslinks)) = parser::multimer(structure).unwrap();
         let mut residue_id = 0;
         let mut graph = Graph::new();
         for (glycan, peptide) in monomers {
@@ -535,9 +535,15 @@ pub fn fragments_to_df(fragments: &HashSet<Fragment>) -> DataFrame {
     let mut df =
         df!("Termini" => terminal_count, "Float Mass" => float_masses, "Type" => ion_types, "Ion (1+)" => ion_masses, "Structure" => structures).unwrap();
     // FIXME: Is there any performance gained by doing this in-place?
-    df.sort_in_place(["Termini", "Type", "Float Mass", "Ion (1+)"], false);
-    df.drop_in_place("Termini");
-    df.drop_in_place("Float Mass");
+    df.sort_in_place(
+        ["Termini", "Type", "Float Mass", "Ion (1+)"],
+        vec![true, true, true, true],
+        false,
+    )
+    .unwrap();
+    // FIXME: I'm probably *should* be using that `Series`?
+    let _ = df.drop_in_place("Termini").unwrap();
+    let _ = df.drop_in_place("Float Mass").unwrap();
     df
 }
 
