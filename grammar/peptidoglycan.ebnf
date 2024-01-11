@@ -49,7 +49,8 @@ Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
 
 Multiplier = Integer , "x" ;
 
-Chemical Composition = { Element , [ Integer ] }- ,
+Chemical Composition = { ( Element | Isotope ) ,
+  [ Integer ] }- ,
   { Particle Offset } ;
 
 Crosslink Descriptor = position ,
@@ -60,6 +61,8 @@ Crosslink Descriptor = position ,
 Integer = { digit }- ;
 
 Element = uppercase , [ lowercase ] ;
+
+Isotope = "[" , Integer , Element , "]" ;
 
 Particle Offset = ( "+" | "-" ) , [ Integer ] ,
   lowercase ;
