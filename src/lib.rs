@@ -1,6 +1,6 @@
 // FIXME: This should probably be made private at some point!
-mod polymers;
-use polymers::*;
+mod polychem;
+use polychem::*;
 mod muropeptide;
 use muropeptide::*;
 

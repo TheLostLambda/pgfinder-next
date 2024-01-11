@@ -2,7 +2,7 @@
 
 pub mod parser;
 
-use crate::polymers::{Modification, Residue};
+use crate::polychem::{Modification, Residue};
 
 pub struct Muropeptide {
     monomers: Vec<Monomer>,
