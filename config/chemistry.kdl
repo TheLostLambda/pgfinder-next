@@ -1,5 +1,17 @@
+// Proton and electron masses have been taken from NIST:
+// https://physics.nist.gov/cuu/Constants/Table/allascii.txt
+particles {
+  p "Proton" {
+    mass 1.007276466621
+    charge +1
+  }
+  e "Electron" {
+    mass .000548579909065
+    charge -1
+  }
+}
 
-// This table of elements and isotope abundances was created using data downloaded from NIST:
+// This table of elements and common isotope abundances was created using data downloaded from NIST:
 // https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
 elements {
   H "Hydrogen" {
