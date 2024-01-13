@@ -1,0 +1,22 @@
+---
+source: src/polychem/chemical_database.rs
+expression: "&res.unwrap_err().related().unwrap().next().unwrap()"
+---
+TypeName {
+    span: Span(
+        9,
+        13,
+    ),
+    found: Some(
+        TypeName(
+            Custom(
+                "pi",
+            ),
+        ),
+    ),
+    expected: ExpectedType {
+        types: [],
+        no_type: true,
+    },
+    rust_type: "Decimal",
+}

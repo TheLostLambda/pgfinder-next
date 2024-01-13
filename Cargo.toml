@@ -18,7 +18,9 @@ memoize = "0.4.2"
 rayon = "1.8.0"
 rkyv = "0.7.43"
 thiserror = "1.0.56"
-miette = "5.10.0"
+miette = { version = "5.10.0", features = ["fancy"] }
+knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
 
 [dev-dependencies]
+indoc = "2.0.4"
 insta = "1.34.0"

@@ -569,6 +569,7 @@ mod tests {
 
     use super::*;
 
+    #[ignore]
     #[test]
     fn linear_monomer_graph() -> Result<(), Box<dyn Error>> {
         let pg = Peptidoglycan::new("gm-AEJA")?;

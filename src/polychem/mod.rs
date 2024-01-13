@@ -1,4 +1,6 @@
 //! An abstraction for building chemically validated polymers
+pub mod chemical_database;
+pub use chemical_database::*;
 
 use rust_decimal::Decimal;
 use std::collections::HashMap;

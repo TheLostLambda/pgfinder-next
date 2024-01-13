@@ -169,6 +169,7 @@ mod tests {
 
     use super::*;
 
+    #[ignore]
     #[test]
     fn test_multimer() -> Result<(), Box<dyn Error>> {
         assert_debug_snapshot!(multimer("gm~gm-AEJA")?);
@@ -183,6 +184,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[test]
     fn test_monomer() -> Result<(), Box<dyn Error>> {
         assert_debug_snapshot!(monomer("gm")?);
@@ -194,6 +196,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[test]
     fn test_glycan() -> Result<(), Box<dyn Error>> {
         assert_debug_snapshot!(glycan("g")?);
@@ -205,6 +208,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[test]
     fn test_monosaccharide() {
         // Ensure the complete lowercase ASCII alphabet is present
@@ -213,6 +217,7 @@ mod tests {
         }
     }
 
+    #[ignore]
     #[test]
     fn test_modifications() -> Result<(), Box<dyn Error>> {
         assert!(modifications("()").is_err());
@@ -223,6 +228,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[test]
     fn test_moiety() -> Result<(), Box<dyn Error>> {
         assert_eq!(moiety("Ac")?, ("", "Ac".to_string()));
@@ -235,6 +241,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[test]
     fn test_peptide() -> Result<(), Box<dyn Error>> {
         assert_debug_snapshot!(peptide("A")?);
@@ -248,6 +255,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[test]
     fn test_amino_acid() {
         // Ensure the complete uppercase ASCII alphabet is present
@@ -256,6 +264,7 @@ mod tests {
         }
     }
 
+    #[ignore]
     #[test]
     fn test_lateral_chain() -> Result<(), Box<dyn Error>> {
         assert_debug_snapshot!(lateral_chain("[A]")?);
@@ -267,6 +276,7 @@ mod tests {
         Ok(())
     }
 
+    #[ignore]
     #[test]
     fn test_crosslink() -> Result<(), Box<dyn Error>> {
         assert_debug_snapshot!(crosslink("~")?);

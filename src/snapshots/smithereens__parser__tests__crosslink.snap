@@ -1,9 +1,0 @@
----
-source: src/parser.rs
-assertion_line: 272
-expression: "crosslink(\"~\")?"
----
-(
-    "",
-    Glycosidic,
-)

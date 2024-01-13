@@ -6,7 +6,7 @@ particles {
     charge +1
   }
   e "Electron" {
-    mass .000548579909065
+    mass 0.000548579909065
     charge -1
   }
 }
