@@ -1,7 +1,5 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 
-pub mod parser;
-
 use crate::polychem::{Modification, Residue};
 
 pub struct Muropeptide {
