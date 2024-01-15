@@ -1,4 +1,4 @@
-use super::{Element, MassNumber, Particle};
+use super::{Element, Isotope, MassNumber, Particle};
 use knuffel::{
     ast::{self, Integer, Literal, Radix, TypeName},
     decode::{Context, Kind},
@@ -9,19 +9,85 @@ use knuffel::{
 };
 use miette::{Diagnostic, Result};
 use rust_decimal::Decimal;
-use std::{borrow::BorrowMut, collections::HashMap, ops::Deref, str::FromStr};
+use std::{collections::HashMap, ops::Deref, str::FromStr};
 use thiserror::Error;
 
-// pub struct ChemicalDatabase {
-//     elements: HashMap<String, Element>,
-//     particles: HashMap<String, Particle>,
-// }
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct ChemicalDatabase {
+    elements: HashMap<String, Element>,
+    particles: HashMap<String, Particle>,
+}
 
-// impl ChemicalDatabase {
-//     pub fn from_kdl(kdl: impl AsRef<str>) -> miette::Result<Self> {
-//         todo!()
-//     }
-// }
+impl ChemicalDatabase {
+    pub fn from_kdl(file_name: impl AsRef<str>, text: impl AsRef<str>) -> Result<Self> {
+        let parsed_db: ChemicalDatabaseKdl = knuffel::parse(file_name.as_ref(), text.as_ref())?;
+        let elements = parsed_db
+            .elements
+            .into_iter()
+            .map(
+                |ElementKdl {
+                     symbol,
+                     name,
+                     isotopes,
+                 }| {
+                    let isotopes = isotopes
+                        .into_iter()
+                        .map(
+                            |IsotopeKdl {
+                                 mass_number,
+                                 relative_mass,
+                                 abundance,
+                             }| {
+                                (
+                                    mass_number,
+                                    Isotope {
+                                        relative_mass: relative_mass.0,
+                                        abundance: abundance.map(|a| a.0),
+                                    },
+                                )
+                            },
+                        )
+                        .collect();
+                    (
+                        symbol.0.clone(),
+                        Element {
+                            symbol: symbol.0,
+                            name,
+                            mass_number: None,
+                            isotopes,
+                        },
+                    )
+                },
+            )
+            .collect();
+        let particles = parsed_db
+            .particles
+            .into_iter()
+            .map(
+                |ParticleKdl {
+                     symbol,
+                     name,
+                     mass,
+                     charge,
+                 }| {
+                    (
+                        symbol.0.clone(),
+                        Particle {
+                            symbol: symbol.0,
+                            name,
+                            mass: mass.0,
+                            charge,
+                        },
+                    )
+                },
+            )
+            .collect();
+        Ok(Self {
+            elements,
+            particles,
+        })
+    }
+}
 
 #[derive(Decode, Debug)]
 struct ChemicalDatabaseKdl {
@@ -167,6 +233,8 @@ mod tests {
     use miette::{Diagnostic, Result};
     use rust_decimal_macros::dec;
 
+    use crate::polychem::ChemicalDatabase;
+
     use super::{
         ChemicalDatabaseKdl, DecimalKdl, ElementKdl, InvalidChemicalSymbolError, ParticleKdl,
     };
@@ -182,6 +250,19 @@ mod tests {
         assert_eq!(db.elements.iter().flat_map(|e| &e.isotopes).count(), 356);
         // Full snapshot test
         assert_debug_snapshot!(db);
+        Ok(())
+    }
+
+    #[test]
+    fn build_default_chemical_database() -> Result<()> {
+        let db = ChemicalDatabase::from_kdl("chemistry.kdl", KDL)?;
+        // Basic property checking
+        assert_eq!(db.elements.len(), 120); // 118 + 2 for deuterium and tritium
+        assert_eq!(db.particles.len(), 2);
+        assert_eq!(
+            db.elements.iter().flat_map(|(_, e)| &e.isotopes).count(),
+            356
+        );
         Ok(())
     }
 
