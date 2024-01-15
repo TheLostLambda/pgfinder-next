@@ -24,63 +24,12 @@ impl ChemicalDatabase {
         let elements = parsed_db
             .elements
             .into_iter()
-            .map(
-                |ElementKdl {
-                     symbol,
-                     name,
-                     isotopes,
-                 }| {
-                    let isotopes = isotopes
-                        .into_iter()
-                        .map(
-                            |IsotopeKdl {
-                                 mass_number,
-                                 relative_mass,
-                                 abundance,
-                             }| {
-                                (
-                                    mass_number,
-                                    Isotope {
-                                        relative_mass: relative_mass.0,
-                                        abundance: abundance.map(|a| a.0),
-                                    },
-                                )
-                            },
-                        )
-                        .collect();
-                    (
-                        symbol.0.clone(),
-                        Element {
-                            symbol: symbol.0,
-                            name,
-                            mass_number: None,
-                            isotopes,
-                        },
-                    )
-                },
-            )
+            .map(ElementEntry::from)
             .collect();
         let particles = parsed_db
             .particles
             .into_iter()
-            .map(
-                |ParticleKdl {
-                     symbol,
-                     name,
-                     mass,
-                     charge,
-                 }| {
-                    (
-                        symbol.0.clone(),
-                        Particle {
-                            symbol: symbol.0,
-                            name,
-                            mass: mass.0,
-                            charge,
-                        },
-                    )
-                },
-            )
+            .map(ParticleEntry::from)
             .collect();
         Ok(Self {
             elements,
@@ -127,6 +76,72 @@ struct IsotopeKdl {
     relative_mass: DecimalKdl,
     #[knuffel(argument)]
     abundance: Option<DecimalKdl>,
+}
+
+type ParticleEntry = (String, Particle);
+
+impl From<ParticleKdl> for ParticleEntry {
+    fn from(
+        ParticleKdl {
+            symbol,
+            name,
+            mass,
+            charge,
+        }: ParticleKdl,
+    ) -> Self {
+        (
+            symbol.0.clone(),
+            Particle {
+                symbol: symbol.0,
+                name,
+                mass: mass.0,
+                charge,
+            },
+        )
+    }
+}
+
+type IsotopeEntry = (MassNumber, Isotope);
+
+impl From<IsotopeKdl> for IsotopeEntry {
+    fn from(
+        IsotopeKdl {
+            mass_number,
+            relative_mass,
+            abundance,
+        }: IsotopeKdl,
+    ) -> Self {
+        (
+            mass_number,
+            Isotope {
+                relative_mass: relative_mass.0,
+                abundance: abundance.map(|a| a.0),
+            },
+        )
+    }
+}
+
+type ElementEntry = (String, Element);
+
+impl From<ElementKdl> for ElementEntry {
+    fn from(
+        ElementKdl {
+            symbol,
+            name,
+            isotopes,
+        }: ElementKdl,
+    ) -> Self {
+        let isotopes = isotopes.into_iter().map(IsotopeEntry::from).collect();
+        (
+            symbol.0.clone(),
+            Element {
+                symbol: symbol.0,
+                name,
+                mass_number: None,
+                isotopes,
+            },
+        )
+    }
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
