@@ -1,4 +1,7 @@
-use super::{Element, Isotope, MassNumber, Particle};
+// Standard Library Imports
+use std::{collections::HashMap, ops::Deref, str::FromStr};
+
+// External Crate Imports
 use knuffel::{
     ast::{self, Integer, Literal, Radix, TypeName},
     decode::{Context, Kind},
@@ -9,8 +12,10 @@ use knuffel::{
 };
 use miette::{Diagnostic, Result};
 use rust_decimal::Decimal;
-use std::{collections::HashMap, ops::Deref, str::FromStr};
 use thiserror::Error;
+
+// Local Module Imports
+use super::{Element, Isotope, MassNumber, Particle};
 
 // Public API ==========================================================================================================
 
@@ -82,71 +87,7 @@ struct IsotopeKdl {
     abundance: Option<DecimalKdl>,
 }
 
-type ParticleEntry = (String, Particle);
-
-impl From<ParticleKdl> for ParticleEntry {
-    fn from(
-        ParticleKdl {
-            symbol,
-            name,
-            mass,
-            charge,
-        }: ParticleKdl,
-    ) -> Self {
-        (
-            symbol.0.clone(),
-            Particle {
-                symbol: symbol.0,
-                name,
-                mass: mass.0,
-                charge,
-            },
-        )
-    }
-}
-
-type IsotopeEntry = (MassNumber, Isotope);
-
-impl From<IsotopeKdl> for IsotopeEntry {
-    fn from(
-        IsotopeKdl {
-            mass_number,
-            relative_mass,
-            abundance,
-        }: IsotopeKdl,
-    ) -> Self {
-        (
-            mass_number,
-            Isotope {
-                relative_mass: relative_mass.0,
-                abundance: abundance.map(|a| a.0),
-            },
-        )
-    }
-}
-
-type ElementEntry = (String, Element);
-
-impl From<ElementKdl> for ElementEntry {
-    fn from(
-        ElementKdl {
-            symbol,
-            name,
-            isotopes,
-        }: ElementKdl,
-    ) -> Self {
-        let isotopes = isotopes.into_iter().map(IsotopeEntry::from).collect();
-        (
-            symbol.0.clone(),
-            Element {
-                symbol: symbol.0,
-                name,
-                mass_number: None,
-                isotopes,
-            },
-        )
-    }
-}
+// Lossless Parsing of KDL Numbers to Decimal ==========================================================================
 
 #[derive(Debug, Default, PartialEq, Eq)]
 struct DecimalKdl(Decimal);
@@ -199,15 +140,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
     }
 }
 
-#[derive(Error, Diagnostic, PartialEq, Eq, Debug)]
-enum InvalidChemicalSymbolError {
-    #[error(
-        "expected a single uppercase ASCII letter optionally followed by a lowercase ASCII letter, got {0:?}"
-    )]
-    Element(String),
-    #[error("expected a single lowercase ASCII letter, got {0:?}")]
-    Particle(String),
-}
+// Element and Particle Symbol Validation ==============================================================================
 
 #[derive(Debug)]
 struct ElementSymbol(String);
@@ -241,6 +174,86 @@ impl FromStr for ParticleSymbol {
         }
     }
 }
+
+#[derive(Error, Diagnostic, PartialEq, Eq, Debug)]
+enum InvalidChemicalSymbolError {
+    #[error(
+        "expected a single uppercase ASCII letter optionally followed by a lowercase ASCII letter, got {0:?}"
+    )]
+    Element(String),
+    #[error("expected a single lowercase ASCII letter, got {0:?}")]
+    Particle(String),
+}
+
+// Conversion From Parsed KDL to Internal Representation ===============================================================
+
+type ElementEntry = (String, Element);
+
+impl From<ElementKdl> for ElementEntry {
+    fn from(
+        ElementKdl {
+            symbol,
+            name,
+            isotopes,
+        }: ElementKdl,
+    ) -> Self {
+        let isotopes = isotopes.into_iter().map(IsotopeEntry::from).collect();
+        (
+            symbol.0.clone(),
+            Element {
+                symbol: symbol.0,
+                name,
+                mass_number: None,
+                isotopes,
+            },
+        )
+    }
+}
+
+type IsotopeEntry = (MassNumber, Isotope);
+
+impl From<IsotopeKdl> for IsotopeEntry {
+    fn from(
+        IsotopeKdl {
+            mass_number,
+            relative_mass,
+            abundance,
+        }: IsotopeKdl,
+    ) -> Self {
+        (
+            mass_number,
+            Isotope {
+                relative_mass: relative_mass.0,
+                abundance: abundance.map(|a| a.0),
+            },
+        )
+    }
+}
+
+type ParticleEntry = (String, Particle);
+
+impl From<ParticleKdl> for ParticleEntry {
+    fn from(
+        ParticleKdl {
+            symbol,
+            name,
+            mass,
+            charge,
+        }: ParticleKdl,
+    ) -> Self {
+        (
+            symbol.0.clone(),
+            Particle {
+                symbol: symbol.0,
+                name,
+                mass: mass.0,
+                charge,
+            },
+        )
+    }
+}
+
+// Module Tests ========================================================================================================
 
 #[cfg(test)]
 mod tests {
