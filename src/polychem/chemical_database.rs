@@ -163,7 +163,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
         value: &Spanned<Literal, S>,
         ctx: &mut Context<S>,
     ) -> Result<Self, DecodeError<S>> {
-        match value.deref() {
+        match &**value {
             Literal::Decimal(ast::Decimal(s)) | Literal::Int(Integer(Radix::Dec, s)) => {
                 let res = if s.contains(['e', 'E']) {
                     Decimal::from_scientific(s)
@@ -177,7 +177,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
                             span: value.span().clone(),
                             source: Box::new(e),
                         });
-                        Ok(Default::default())
+                        Ok(Self::default())
                     }
                 }
             }
@@ -189,7 +189,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
                         Kind::from(unsupported)
                     ),
                 ));
-                Ok(Default::default())
+                Ok(Self::default())
             }
         }
     }

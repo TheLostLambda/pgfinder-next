@@ -1,3 +1,6 @@
+bully:
+  cargo clippy --workspace -- -W clippy::pedantic -W clippy::nursery -W clippy::cargo
+
 cov:
   cargo llvm-cov --open
 
