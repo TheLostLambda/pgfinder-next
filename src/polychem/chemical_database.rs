@@ -12,6 +12,8 @@ use rust_decimal::Decimal;
 use std::{collections::HashMap, ops::Deref, str::FromStr};
 use thiserror::Error;
 
+// Public API ==========================================================================================================
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ChemicalDatabase {
     elements: HashMap<String, Element>,
@@ -37,6 +39,8 @@ impl ChemicalDatabase {
         })
     }
 }
+
+// Chemistry.kdl File Schema ===========================================================================================
 
 #[derive(Decode, Debug)]
 struct ChemicalDatabaseKdl {
