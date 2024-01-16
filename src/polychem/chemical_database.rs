@@ -379,6 +379,19 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn element_without_isotopes() -> Result<()> {
+        let kdl = indoc! {r#"
+            D "Deuterium" {
+              // isotope 2 2.01410177812 1
+            }
+        "#};
+        let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
+        assert!(res.is_err());
+        assert_debug_snapshot!(&res.unwrap_err().related().unwrap().next().unwrap());
+        Ok(())
+    }
+
     #[derive(Decode, Debug)]
     struct Lossless(#[knuffel(argument)] DecimalKdl);
 

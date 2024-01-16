@@ -1,0 +1,11 @@
+---
+source: src/polychem/chemical_database.rs
+expression: "&res.unwrap_err().related().unwrap().next().unwrap()"
+---
+Missing {
+    span: Span(
+        0,
+        49,
+    ),
+    message: "at least one child node `isotope` is required",
+}
