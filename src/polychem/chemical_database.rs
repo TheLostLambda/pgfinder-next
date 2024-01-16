@@ -21,8 +21,8 @@ use super::{Element, Isotope, MassNumber, Particle};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ChemicalDatabase {
-    elements: HashMap<String, Element>,
-    particles: HashMap<String, Particle>,
+    pub(super) elements: HashMap<String, Element>,
+    pub(super) particles: HashMap<String, Particle>,
 }
 
 impl ChemicalDatabase {
@@ -61,7 +61,7 @@ struct ElementKdl {
     symbol: ElementSymbol,
     #[knuffel(argument)]
     name: String,
-    #[knuffel(children(name = "isotope"))]
+    #[knuffel(children(name = "isotope", non_empty))]
     isotopes: Vec<IsotopeKdl>,
 }
 
@@ -89,7 +89,7 @@ struct IsotopeKdl {
 
 // Lossless Parsing of KDL Numbers to Decimal ==========================================================================
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Debug, Default)]
 struct DecimalKdl(Decimal);
 
 impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
@@ -265,10 +265,9 @@ mod tests {
     use miette::{Diagnostic, Result};
     use rust_decimal_macros::dec;
 
-    use crate::polychem::ChemicalDatabase;
-
     use super::{
-        ChemicalDatabaseKdl, DecimalKdl, ElementKdl, InvalidChemicalSymbolError, ParticleKdl,
+        ChemicalDatabase, ChemicalDatabaseKdl, DecimalKdl, ElementKdl, InvalidChemicalSymbolError,
+        ParticleKdl,
     };
 
     const KDL: &str = include_str!("chemistry.kdl");
@@ -380,7 +379,7 @@ mod tests {
         Ok(())
     }
 
-    #[derive(Decode, Debug, PartialEq, Eq)]
+    #[derive(Decode, Debug)]
     struct Lossless(#[knuffel(argument)] DecimalKdl);
 
     #[test]

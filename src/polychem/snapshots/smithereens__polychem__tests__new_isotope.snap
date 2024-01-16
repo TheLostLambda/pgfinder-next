@@ -1,0 +1,31 @@
+---
+source: src/polychem/mod.rs
+expression: isotopes
+---
+[
+    (
+        12,
+        Isotope {
+            relative_mass: 12.0000000,
+            abundance: Some(
+                0.9893,
+            ),
+        },
+    ),
+    (
+        13,
+        Isotope {
+            relative_mass: 13.00335483507,
+            abundance: Some(
+                0.0107,
+            ),
+        },
+    ),
+    (
+        14,
+        Isotope {
+            relative_mass: 14.0032419884,
+            abundance: None,
+        },
+    ),
+]

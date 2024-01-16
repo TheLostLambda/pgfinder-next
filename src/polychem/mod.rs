@@ -1,9 +1,15 @@
 //! An abstraction for building chemically validated polymers
+
 pub mod chemical_database;
 pub use chemical_database::*;
+use thiserror::Error;
 
-use rust_decimal::Decimal;
+// Standard Library Imports
 use std::collections::HashMap;
+
+// External Crate Imports
+use miette::{Diagnostic, Result};
+use rust_decimal::Decimal;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Residue {
@@ -101,4 +107,159 @@ struct Bond {
 struct BondTarget {
     residue: Id,
     group_location: Location,
+}
+
+#[derive(Error, Diagnostic, PartialEq, Eq, Debug)]
+enum ChemicalLookupError {
+    #[error("the element {0:?} could not found in the supplied chemical database")]
+    Element(String),
+    #[error("the isotope \"{0}-{1}\" could not found in the supplied chemical database")]
+    Isotope(String, MassNumber),
+    #[error("the particle {0:?} could not found in the supplied chemical database")]
+    Particle(String),
+}
+
+impl Element {
+    pub fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self> {
+        let symbol = symbol.as_ref();
+        db.elements
+            .get(symbol)
+            .map(|p| p.clone())
+            .ok_or_else(|| ChemicalLookupError::Element(symbol.to_owned()).into())
+    }
+
+    pub fn new_isotope(
+        db: &ChemicalDatabase,
+        symbol: impl AsRef<str>,
+        mass_number: MassNumber,
+    ) -> Result<Self> {
+        let symbol = symbol.as_ref();
+        let element = Self::new(db, symbol)?;
+        if element.isotopes.contains_key(&mass_number) {
+            Ok(Self {
+                mass_number: Some(mass_number),
+                ..element
+            })
+        } else {
+            Err(ChemicalLookupError::Isotope(symbol.to_owned(), mass_number).into())
+        }
+    }
+
+    pub fn monoisotopic_mass(&self) -> Decimal {
+        // TODO: For dealing with explicit isotopes here, just filter the iterator to select only that isotope
+        if let Some((_, i)) = self.isotopes.iter().max_by_key(|(_, i)| i.abundance) {
+            i.relative_mass
+        } else {
+            unreachable!("validation of the chemical database ensures that all elements contain at least one isotope")
+        }
+    }
+}
+
+impl Particle {
+    pub fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self> {
+        let symbol = symbol.as_ref();
+        db.particles
+            .get(symbol)
+            .map(|p| p.clone())
+            .ok_or_else(|| ChemicalLookupError::Particle(symbol.to_owned()).into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use insta::assert_debug_snapshot;
+    use miette::Result;
+    use once_cell::sync::Lazy;
+    use rust_decimal_macros::dec;
+
+    use crate::polychem::ChemicalLookupError;
+
+    use super::{ChemicalDatabase, Element, Particle};
+
+    static DB: Lazy<ChemicalDatabase> = Lazy::new(|| {
+        ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("chemistry.kdl")).unwrap()
+    });
+
+    #[test]
+    fn new_particle() -> Result<()> {
+        // Sucessfully lookup particles that exist
+        assert_debug_snapshot!(Particle::new(&DB, "p")?);
+        assert_debug_snapshot!(Particle::new(&DB, "e")?);
+        // Fail to lookup particles that don't exist
+        let m = Particle::new(&DB, "m");
+        assert_eq!(
+            m.unwrap_err()
+                .downcast_ref::<ChemicalLookupError>()
+                .unwrap(),
+            &ChemicalLookupError::Particle("m".to_string())
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn new_element() -> Result<()> {
+        // Sucessfully lookup elements that exist
+        let Element {
+            symbol,
+            name,
+            mass_number,
+            isotopes,
+        } = Element::new(&DB, "C")?;
+        assert_eq!(symbol, "C");
+        assert_eq!(name, "Carbon");
+        assert_eq!(mass_number, None);
+        let mut isotopes: Vec<_> = isotopes.into_iter().collect();
+        isotopes.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
+        assert_debug_snapshot!(isotopes);
+        // Fail to lookup elements that don't exist
+        let m = Element::new(&DB, "R");
+        assert_eq!(
+            m.unwrap_err()
+                .downcast_ref::<ChemicalLookupError>()
+                .unwrap(),
+            &ChemicalLookupError::Element("R".to_string())
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn new_isotope() -> Result<()> {
+        // Sucessfully lookup isotopes that exist
+        let Element {
+            symbol,
+            name,
+            mass_number,
+            isotopes,
+        } = Element::new_isotope(&DB, "C", 13)?;
+        assert_eq!(symbol, "C");
+        assert_eq!(name, "Carbon");
+        assert_eq!(mass_number, Some(13));
+        let mut isotopes: Vec<_> = isotopes.into_iter().collect();
+        isotopes.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
+        assert_debug_snapshot!(isotopes);
+        // Fail to lookup isotopes for elements that don't exist
+        let m = Element::new_isotope(&DB, "R", 42);
+        assert_eq!(
+            m.unwrap_err()
+                .downcast_ref::<ChemicalLookupError>()
+                .unwrap(),
+            &ChemicalLookupError::Element("R".to_string())
+        );
+        // Fail to lookup isotopes that don't exist
+        let m = Element::new_isotope(&DB, "C", 15);
+        assert_eq!(
+            m.unwrap_err()
+                .downcast_ref::<ChemicalLookupError>()
+                .unwrap(),
+            &ChemicalLookupError::Isotope("C".to_string(), 15)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn element_monoisotopic_mass() -> Result<()> {
+        let c = Element::new(&DB, "C")?;
+        assert_eq!(c.monoisotopic_mass(), dec!(12));
+        Ok(())
+    }
 }
