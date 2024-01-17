@@ -1,5 +1,4 @@
 lint:
-  cargo check
   cargo clippy
 
 cov:

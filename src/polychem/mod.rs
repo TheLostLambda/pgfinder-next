@@ -8,7 +8,8 @@ use thiserror::Error;
 use std::collections::HashMap;
 
 // External Crate Imports
-use miette::{Diagnostic, Result};
+use itertools::Itertools;
+use miette::{Context, Diagnostic, Result};
 use rust_decimal::Decimal;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -117,6 +118,8 @@ enum ChemicalLookupError {
     Isotope(String, MassNumber),
     #[error("the particle {0:?} could not found in the supplied chemical database")]
     Particle(String),
+    #[error("no natural abundance data could be found for {0} ({1}), though the following isotopes were found: {2:?}")]
+    Abundance(String, String, Vec<MassNumber>),
 }
 
 impl Element {
@@ -124,7 +127,7 @@ impl Element {
         let symbol = symbol.as_ref();
         db.elements
             .get(symbol)
-            .map(|p| p.clone())
+            .cloned()
             .ok_or_else(|| ChemicalLookupError::Element(symbol.to_owned()).into())
     }
 
@@ -145,12 +148,56 @@ impl Element {
         }
     }
 
-    pub fn monoisotopic_mass(&self) -> Decimal {
-        // TODO: For dealing with explicit isotopes here, just filter the iterator to select only that isotope
-        if let Some((_, i)) = self.isotopes.iter().max_by_key(|(_, i)| i.abundance) {
-            i.relative_mass
+    pub fn monoisotopic_mass(&self) -> Result<Decimal> {
+        if let Some(mass) = self.isotope_mass() {
+            Ok(mass)
         } else {
-            unreachable!("validation of the chemical database ensures that all elements contain at least one isotope")
+            // SAFETY: The call to `.unwrap()` is safe here since `.isotope_abundances()` is guaranteed to yield at
+            // least one isotope
+            Ok(self
+                .isotope_abundances()
+                .wrap_err("failed to fetch isotope abundances for monoisotopic mass calculation")?
+                .max_by_key(|i| i.abundance)
+                .unwrap()
+                .relative_mass)
+        }
+    }
+
+    pub fn average_mass(&self) -> Result<Decimal> {
+        if let Some(mass) = self.isotope_mass() {
+            Ok(mass)
+        } else {
+            // SAFETY: The call to `.unwrap()` is safe here since `.isotope_abundances()` is guaranteed to yield at
+            // only isotopes containing natural abundance data
+            Ok(self
+                .isotope_abundances()
+                .wrap_err("failed to fetch isotope abundances for average mass calculation")?
+                .map(|i| i.relative_mass * i.abundance.unwrap())
+                .sum())
+        }
+    }
+
+    fn isotope_mass(&self) -> Option<Decimal> {
+        self.mass_number
+            .and_then(|a| self.isotopes.get(&a))
+            .map(|i| i.relative_mass)
+    }
+
+    fn isotope_abundances(&self) -> Result<impl Iterator<Item = &Isotope>> {
+        let mut isotopes_with_abundances = self
+            .isotopes
+            .values()
+            .filter(|i| i.abundance.is_some())
+            .peekable();
+        if isotopes_with_abundances.peek().is_some() {
+            Ok(isotopes_with_abundances)
+        } else {
+            Err(ChemicalLookupError::Abundance(
+                self.name.clone(),
+                self.symbol.clone(),
+                self.isotopes.keys().copied().sorted().collect(),
+            )
+            .into())
         }
     }
 }
@@ -160,7 +207,7 @@ impl Particle {
         let symbol = symbol.as_ref();
         db.particles
             .get(symbol)
-            .map(|p| p.clone())
+            .cloned()
             .ok_or_else(|| ChemicalLookupError::Particle(symbol.to_owned()).into())
     }
 }
@@ -258,8 +305,58 @@ mod tests {
 
     #[test]
     fn element_monoisotopic_mass() -> Result<()> {
-        let c = Element::new(&DB, "C")?;
-        assert_eq!(c.monoisotopic_mass(), dec!(12));
+        // Successfully calculate the monoisotopic mass of elements with natural abundances
+        let c = Element::new(&DB, "C")?.monoisotopic_mass();
+        assert!(c.is_ok());
+        assert_eq!(c.unwrap(), dec!(12));
+        let mg = Element::new(&DB, "Mg")?.monoisotopic_mass();
+        assert!(mg.is_ok());
+        assert_eq!(mg.unwrap(), dec!(23.985041697));
+        let mo = Element::new(&DB, "Mo")?.monoisotopic_mass();
+        assert!(mo.is_ok());
+        assert_eq!(mo.unwrap(), dec!(97.90540482));
+        // Fail to calculate the monoisotopic mass of elements without natural abundances
+        let tc = Element::new(&DB, "Tc")?.monoisotopic_mass();
+        assert!(tc.is_err());
+        assert_debug_snapshot!(tc.unwrap_err());
+        Ok(())
+    }
+
+    #[test]
+    fn element_average_mass() -> Result<()> {
+        // Successfully calculate the average mass of elements with natural abundances
+        let c = Element::new(&DB, "C")?.average_mass();
+        assert!(c.is_ok());
+        assert_eq!(c.unwrap(), dec!(12.010735896735249));
+        let mg = Element::new(&DB, "Mg")?.average_mass();
+        assert!(mg.is_ok());
+        assert_eq!(mg.unwrap(), dec!(24.3050516198371));
+        let mo = Element::new(&DB, "Mo")?.average_mass();
+        assert!(mo.is_ok());
+        assert_eq!(mo.unwrap(), dec!(95.959788541188));
+        // Fail to calculate the monoisotopic mass of elements without natural abundances
+        let po = Element::new(&DB, "Po")?.average_mass();
+        assert!(po.is_err());
+        assert_debug_snapshot!(po.unwrap_err());
+        Ok(())
+    }
+
+    #[test]
+    fn isotope_masses() -> Result<()> {
+        // Get masses for an element with natural abundances
+        let c13_mono = Element::new_isotope(&DB, "C", 13)?.monoisotopic_mass();
+        assert!(c13_mono.is_ok());
+        assert_eq!(c13_mono.unwrap(), dec!(13.00335483507));
+        let c13_avg = Element::new_isotope(&DB, "C", 13)?.average_mass();
+        assert!(c13_avg.is_ok());
+        assert_eq!(c13_avg.unwrap(), dec!(13.00335483507));
+        // Get masses for an element without natural abundances
+        let tc99_mono = Element::new_isotope(&DB, "Tc", 99)?.monoisotopic_mass();
+        assert!(tc99_mono.is_ok());
+        assert_eq!(tc99_mono.unwrap(), dec!(98.9062508));
+        let tc99_avg = Element::new_isotope(&DB, "Tc", 99)?.average_mass();
+        assert!(tc99_avg.is_ok());
+        assert_eq!(tc99_avg.unwrap(), dec!(98.9062508));
         Ok(())
     }
 }
