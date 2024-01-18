@@ -2,7 +2,8 @@
 
 pub mod chemical_database;
 pub use chemical_database::*;
-use thiserror::Error;
+pub mod composition_parser;
+pub use composition_parser::*;
 
 // Standard Library Imports
 use std::collections::HashMap;
@@ -11,6 +12,7 @@ use std::collections::HashMap;
 use itertools::Itertools;
 use miette::{Context, Diagnostic, Result};
 use rust_decimal::Decimal;
+use thiserror::Error;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Residue {

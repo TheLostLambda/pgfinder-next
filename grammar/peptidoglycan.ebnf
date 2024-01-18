@@ -65,7 +65,9 @@ Element = uppercase , [ lowercase ] ;
 Isotope = "[" , Integer , Element , "]" ;
 
 Particle Offset = ( "+" | "-" ) , [ Integer ] ,
-  lowercase ;
+  Particle ;
+
+Particle = lowercase ;
 
 letter = uppercase | lowercase ;
 
