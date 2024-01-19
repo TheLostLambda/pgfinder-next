@@ -47,10 +47,9 @@ Amino Acid = uppercase ;
 Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
   { Amino Acid , [ Modifications ] }- , "]" ;
 
-Multiplier = Integer , "x" ;
+Multiplier = Count , "x" ;
 
-Chemical Composition = { ( Element | Isotope ) ,
-  [ Integer ] }- ,
+Chemical Composition = { Atomic Offset }- ,
   { Particle Offset } ;
 
 Crosslink Descriptor = position ,
@@ -58,14 +57,16 @@ Crosslink Descriptor = position ,
   | "=" (* Acceptor=Donor *)
   ) , position ;
 
-Integer = { digit }- ;
+Count = digit - "0" , { digit } ;
+
+Atomic Offset = ( Element | Isotope ) , [ Count ] ;
+
+Particle Offset = ( "+" | "-" ) , [ Count ] ,
+  Particle ;
 
 Element = uppercase , [ lowercase ] ;
 
-Isotope = "[" , Integer , Element , "]" ;
-
-Particle Offset = ( "+" | "-" ) , [ Integer ] ,
-  Particle ;
+Isotope = "[" , Count , Element , "]" ;
 
 Particle = lowercase ;
 

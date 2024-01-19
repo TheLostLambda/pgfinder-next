@@ -1,0 +1,19 @@
+---
+source: src/polychem/composition_parser.rs
+expression: "(chemical_formula, charged_particles)"
+---
+(
+    [
+        (
+            "Sodium",
+            1,
+        ),
+    ],
+    [
+        (
+            Remove,
+            1,
+            "Electron",
+        ),
+    ],
+)

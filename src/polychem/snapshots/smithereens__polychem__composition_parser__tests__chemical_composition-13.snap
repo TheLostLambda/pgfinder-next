@@ -1,0 +1,17 @@
+---
+source: src/polychem/composition_parser.rs
+expression: "(chemical_formula, charged_particles)"
+---
+(
+    [
+        (
+            "Hydrogen-2",
+            2,
+        ),
+        (
+            "Oxygen",
+            1,
+        ),
+    ],
+    [],
+)
