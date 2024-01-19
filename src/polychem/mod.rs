@@ -1,17 +1,20 @@
 //! An abstraction for building chemically validated polymers
 
-pub mod chemical_database;
-pub use chemical_database::*;
-pub mod composition_parser;
-pub use composition_parser::*;
+mod chemical_database;
+mod composition_parser;
+
+use chemical_database::ChemicalDatabase;
+use composition_parser::chemical_composition;
+use nom::combinator::all_consuming;
+use rust_decimal_macros::dec;
 
 // Standard Library Imports
 use std::collections::HashMap;
 
 // External Crate Imports
 use itertools::Itertools;
-use miette::{Context, Diagnostic, Result};
-use rust_decimal::Decimal;
+use miette::{Context, Diagnostic, IntoDiagnostic, Result};
+use rust_decimal::{prelude::FromPrimitive, Decimal};
 use thiserror::Error;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -126,8 +129,49 @@ enum ChemicalLookupError {
     Abundance(String, String, Vec<MassNumber>),
 }
 
+impl ChemicalComposition {
+    fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self> {
+        let formula = formula.as_ref();
+        match all_consuming(chemical_composition(db))(formula) {
+            Ok((_, c)) => Ok(c),
+            Err(_) => todo!(),
+        }
+    }
+
+    fn monoisotopic_mass(&self) -> Result<Decimal> {
+        self.mass(Element::monoisotopic_mass)
+    }
+
+    fn average_mass(&self) -> Result<Decimal> {
+        self.mass(Element::average_mass)
+    }
+
+    // FIXME: No no no no! Need to properly handle errors here! No `.unwrap()`!
+    fn mass(&self, accessor: impl Fn(&Element) -> Result<Decimal>) -> Result<Decimal> {
+        let atom_masses: Decimal = self
+            .chemical_formula
+            .iter()
+            .map(|(e, c)| Decimal::from_u32(*c).unwrap() * accessor(e).unwrap())
+            .sum();
+        let particle_masses: Decimal = self
+            .charged_particles
+            .iter()
+            .map(|(k, c, p)| {
+                // FIXME: Probably refactor this out...
+                let sign = match k {
+                    OffsetKind::Add => dec!(1),
+                    OffsetKind::Remove => dec!(-1),
+                };
+                let c = Decimal::from_u32(*c).unwrap();
+                sign * c * p.mass
+            })
+            .sum();
+        Ok(atom_masses + particle_masses)
+    }
+}
+
 impl Element {
-    pub fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self> {
+    fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self> {
         let symbol = symbol.as_ref();
         db.elements
             .get(symbol)
@@ -135,7 +179,7 @@ impl Element {
             .ok_or_else(|| ChemicalLookupError::Element(symbol.to_owned()).into())
     }
 
-    pub fn new_isotope(
+    fn new_isotope(
         db: &ChemicalDatabase,
         symbol: impl AsRef<str>,
         mass_number: MassNumber,
@@ -152,7 +196,7 @@ impl Element {
         }
     }
 
-    pub fn monoisotopic_mass(&self) -> Result<Decimal> {
+    fn monoisotopic_mass(&self) -> Result<Decimal> {
         if let Some(mass) = self.isotope_mass() {
             Ok(mass)
         } else {
@@ -167,7 +211,7 @@ impl Element {
         }
     }
 
-    pub fn average_mass(&self) -> Result<Decimal> {
+    fn average_mass(&self) -> Result<Decimal> {
         if let Some(mass) = self.isotope_mass() {
             Ok(mass)
         } else {
@@ -207,7 +251,7 @@ impl Element {
 }
 
 impl Particle {
-    pub fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self> {
+    fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self> {
         let symbol = symbol.as_ref();
         db.particles
             .get(symbol)
@@ -225,7 +269,7 @@ mod tests {
 
     use crate::polychem::ChemicalLookupError;
 
-    use super::{ChemicalDatabase, Element, Particle};
+    use super::{ChemicalComposition, ChemicalDatabase, Element, Particle};
 
     static DB: Lazy<ChemicalDatabase> = Lazy::new(|| {
         ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("chemistry.kdl")).unwrap()
@@ -361,6 +405,19 @@ mod tests {
         let tc99_avg = Element::new_isotope(&DB, "Tc", 99)?.average_mass();
         assert!(tc99_avg.is_ok());
         assert_eq!(tc99_avg.unwrap(), dec!(98.9062508));
+        Ok(())
+    }
+
+    // FIXME: Messy! Give this a good second pass! Needs isotopes and particles tested!
+    #[test]
+    fn compound_masses() -> Result<()> {
+        // The masses here have been checked against https://mstools.epfl.ch/info/
+        let water = ChemicalComposition::new(&DB, "H2O")?;
+        assert_eq!(water.monoisotopic_mass()?, dec!(18.01056468403));
+        assert_eq!(water.average_mass()?, dec!(18.01528643242983260));
+        let trp_residue = ChemicalComposition::new(&DB, "C11H10ON2")?;
+        assert_eq!(trp_residue.monoisotopic_mass()?, dec!(186.07931295073));
+        assert_eq!(trp_residue.average_mass()?, dec!(186.21031375185538640));
         Ok(())
     }
 }

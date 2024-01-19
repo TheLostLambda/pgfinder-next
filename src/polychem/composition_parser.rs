@@ -78,7 +78,7 @@ fn atomic_offset<'a>(
 
 /// Chemical Composition = { Atomic Offset }- ,
 ///   { Particle Offset } ;
-fn chemical_composition<'a>(
+pub fn chemical_composition<'a>(
     db: &'a ChemicalDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<ChemicalComposition> {
     let parts = pair(many1(atomic_offset(db)), many0(particle_offset(db)));

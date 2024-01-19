@@ -1,8 +1,6 @@
 // FIXME: This should probably be made private at some point!
-pub mod polychem;
-pub use polychem::*;
 mod muropeptide;
-pub use muropeptide::*;
+mod polychem;
 
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)
