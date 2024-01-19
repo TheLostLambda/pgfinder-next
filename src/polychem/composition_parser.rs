@@ -12,8 +12,8 @@ use nom::{
 };
 
 use super::{
-    chemical_database::ChemicalDatabase, ChemicalComposition, Element, MassNumber, OffsetKind,
-    Particle,
+    chemical_database::ChemicalDatabase, ChemicalComposition, Count, Element, MassNumber,
+    OffsetKind, Particle,
 };
 
 type ParseResult<'a, O> = IResult<&'a str, O>;
@@ -54,9 +54,8 @@ fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
     })(i)
 }
 
-// FIXME: Turn these u32's into `Count` types?
 /// Count = digit - "0" , { digit } ;
-fn count(i: &str) -> ParseResult<u32> {
+fn count(i: &str) -> ParseResult<Count> {
     preceded(not(char('0')), u32)(i)
 }
 
@@ -64,7 +63,7 @@ fn count(i: &str) -> ParseResult<u32> {
 ///   Particle ;
 fn particle_offset<'a>(
     db: &'a ChemicalDatabase,
-) -> impl FnMut(&'a str) -> ParseResult<(OffsetKind, u32, Particle)> {
+) -> impl FnMut(&'a str) -> ParseResult<(OffsetKind, Count, Particle)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     tuple((offset_kind, optional_count, particle(db)))
 }
@@ -72,7 +71,7 @@ fn particle_offset<'a>(
 /// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
 fn atomic_offset<'a>(
     db: &'a ChemicalDatabase,
-) -> impl FnMut(&'a str) -> ParseResult<(Element, u32)> {
+) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     pair(alt((element(db), isotope(db))), optional_count)
 }

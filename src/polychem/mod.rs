@@ -28,8 +28,8 @@ type Id = usize;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 struct ChemicalComposition {
-    chemical_formula: Vec<(Element, u32)>,
-    charged_particles: Vec<(OffsetKind, u32, Particle)>,
+    chemical_formula: Vec<(Element, Count)>,
+    charged_particles: Vec<(OffsetKind, Count, Particle)>,
 }
 
 type Location = String;
@@ -42,9 +42,11 @@ struct FunctionalGroup {
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Modification {
-    multiplier: u32,
+    multiplier: Count,
     kind: ModificationKind,
 }
+
+type Count = u32;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 struct Element {
