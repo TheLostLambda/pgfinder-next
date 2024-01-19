@@ -476,6 +476,7 @@ mod tests {
         check_composition_snapshot!("[37Cl]5-2p", "");
         check_composition_snapshot!("NH2[99Tc]", "");
         // Invalid Chemical Compositions
+        assert!(chemical_composition(" ").is_err());
         assert!(chemical_composition("-2p").is_err());
         assert!(chemical_composition("+H").is_err());
         assert!(chemical_composition("2[2H]").is_err());
