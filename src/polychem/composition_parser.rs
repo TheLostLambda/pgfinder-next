@@ -26,8 +26,13 @@ struct ParserError<'a> {
     kind: CompositionParseError,
 }
 
+impl ParserError<'_> {
+    // append_error / kind
+}
+
 impl ParseError<&str> for ParserError<'_> {
     fn from_error_kind(input: &str, kind: nom::error::ErrorKind) -> Self {
+        // Take just the first char of input for `source` (slice)
         todo!()
     }
 
@@ -39,11 +44,14 @@ impl ParseError<&str> for ParserError<'_> {
 // FIXME: API guidelines, check word ordering
 enum CompositionParseError {
     // ... #[help] [#error] etc
+    // LookupError(mod.rs::LookupError)
+    // Nom(ErrorKind) => for `from_error_kind` and as a catch-all?
 }
 
 // In the mod.rs, in the ChemicalComposition::new(), convert this ParserError to something with a pretty span for
 // miette! Here all we're concerned about is the offending string and the error it produces.
 // That code in mod.rs is also where the &str can be gotten rid of so that there isn't a lifetime in the error type
+// NOTE: I can use the `consumed` combinator to get a nice &str source for things like element lookup errors
 
 type ParseResult<'a, O> = IResult<&'a str, O>;
 
