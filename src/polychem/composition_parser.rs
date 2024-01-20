@@ -37,6 +37,7 @@ impl ParseError<&str> for ParserError<'_> {
     }
 
     fn append(input: &str, kind: nom::error::ErrorKind, other: Self) -> Self {
+        // What does this actually do?
         todo!()
     }
 }
@@ -44,6 +45,9 @@ impl ParseError<&str> for ParserError<'_> {
 // FIXME: API guidelines, check word ordering
 enum CompositionParseError {
     // ... #[help] [#error] etc
+    // ExpectedLowercase
+    // ExpectedOffsetKind
+    // etc...
     // LookupError(mod.rs::LookupError)
     // Nom(ErrorKind) => for `from_error_kind` and as a catch-all?
 }
