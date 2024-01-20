@@ -5,7 +5,7 @@ mod composition_parser;
 
 use chemical_database::ChemicalDatabase;
 use composition_parser::chemical_composition;
-use nom::combinator::all_consuming;
+use nom::{combinator::all_consuming, Finish};
 use rust_decimal_macros::dec;
 
 // Standard Library Imports
@@ -132,7 +132,7 @@ enum ChemicalLookupError {
 impl ChemicalComposition {
     fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self> {
         let formula = formula.as_ref();
-        match all_consuming(chemical_composition(db))(formula) {
+        match all_consuming(chemical_composition(db))(formula).finish() {
             Ok((_, c)) => Ok(c),
             Err(_) => todo!(),
         }

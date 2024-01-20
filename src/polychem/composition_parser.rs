@@ -6,6 +6,7 @@ use nom::{
     branch::alt,
     character::complete::{char, one_of, satisfy, u32},
     combinator::{map, map_res, not, opt, recognize},
+    error::ParseError,
     multi::{many0, many1},
     sequence::{delimited, pair, preceded, tuple},
     IResult, Parser,
@@ -15,6 +16,34 @@ use super::{
     chemical_database::ChemicalDatabase, ChemicalComposition, Count, Element, MassNumber,
     OffsetKind, Particle,
 };
+
+// FIXME: Check this over, just jotting down ideas — names are awful...
+struct ParserError<'a> {
+    source: &'a str,
+    // Append these!
+    related: Vec<CompositionParseError>,
+    // #[transparent] or something?
+    kind: CompositionParseError,
+}
+
+impl ParseError<&str> for ParserError<'_> {
+    fn from_error_kind(input: &str, kind: nom::error::ErrorKind) -> Self {
+        todo!()
+    }
+
+    fn append(input: &str, kind: nom::error::ErrorKind, other: Self) -> Self {
+        todo!()
+    }
+}
+
+// FIXME: API guidelines, check word ordering
+enum CompositionParseError {
+    // ... #[help] [#error] etc
+}
+
+// In the mod.rs, in the ChemicalComposition::new(), convert this ParserError to something with a pretty span for
+// miette! Here all we're concerned about is the offending string and the error it produces.
+// That code in mod.rs is also where the &str can be gotten rid of so that there isn't a lifetime in the error type
 
 type ParseResult<'a, O> = IResult<&'a str, O>;
 
