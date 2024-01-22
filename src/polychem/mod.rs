@@ -13,7 +13,7 @@ use std::collections::HashMap;
 
 // External Crate Imports
 use itertools::Itertools;
-use miette::{Context, Diagnostic, IntoDiagnostic, Result};
+use miette::{Context, Diagnostic, Result};
 use rust_decimal::{prelude::FromPrimitive, Decimal};
 use thiserror::Error;
 
@@ -171,19 +171,19 @@ impl ChemicalComposition {
 }
 
 impl Element {
-    fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self> {
+    fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self, ChemicalLookupError> {
         let symbol = symbol.as_ref();
         db.elements
             .get(symbol)
             .cloned()
-            .ok_or_else(|| ChemicalLookupError::Element(symbol.to_owned()).into())
+            .ok_or_else(|| ChemicalLookupError::Element(symbol.to_owned()))
     }
 
     fn new_isotope(
         db: &ChemicalDatabase,
         symbol: impl AsRef<str>,
         mass_number: MassNumber,
-    ) -> Result<Self> {
+    ) -> Result<Self, ChemicalLookupError> {
         let symbol = symbol.as_ref();
         let element = Self::new(db, symbol)?;
         if element.isotopes.contains_key(&mass_number) {
@@ -251,12 +251,12 @@ impl Element {
 }
 
 impl Particle {
-    fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self> {
+    fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self, ChemicalLookupError> {
         let symbol = symbol.as_ref();
         db.particles
             .get(symbol)
             .cloned()
-            .ok_or_else(|| ChemicalLookupError::Particle(symbol.to_owned()).into())
+            .ok_or_else(|| ChemicalLookupError::Particle(symbol.to_owned()))
     }
 }
 
@@ -283,10 +283,8 @@ mod tests {
         // Fail to lookup particles that don't exist
         let m = Particle::new(&DB, "m");
         assert_eq!(
-            m.unwrap_err()
-                .downcast_ref::<ChemicalLookupError>()
-                .unwrap(),
-            &ChemicalLookupError::Particle("m".to_string())
+            m.unwrap_err(),
+            ChemicalLookupError::Particle("m".to_string())
         );
         Ok(())
     }
@@ -309,10 +307,8 @@ mod tests {
         // Fail to lookup elements that don't exist
         let m = Element::new(&DB, "R");
         assert_eq!(
-            m.unwrap_err()
-                .downcast_ref::<ChemicalLookupError>()
-                .unwrap(),
-            &ChemicalLookupError::Element("R".to_string())
+            m.unwrap_err(),
+            ChemicalLookupError::Element("R".to_string())
         );
         Ok(())
     }
@@ -335,18 +331,14 @@ mod tests {
         // Fail to lookup isotopes for elements that don't exist
         let m = Element::new_isotope(&DB, "R", 42);
         assert_eq!(
-            m.unwrap_err()
-                .downcast_ref::<ChemicalLookupError>()
-                .unwrap(),
-            &ChemicalLookupError::Element("R".to_string())
+            m.unwrap_err(),
+            ChemicalLookupError::Element("R".to_string())
         );
         // Fail to lookup isotopes that don't exist
         let m = Element::new_isotope(&DB, "C", 15);
         assert_eq!(
-            m.unwrap_err()
-                .downcast_ref::<ChemicalLookupError>()
-                .unwrap(),
-            &ChemicalLookupError::Isotope("C".to_string(), 15)
+            m.unwrap_err(),
+            ChemicalLookupError::Isotope("C".to_string(), 15)
         );
         Ok(())
     }
@@ -418,6 +410,13 @@ mod tests {
         let trp_residue = ChemicalComposition::new(&DB, "C11H10ON2")?;
         assert_eq!(trp_residue.monoisotopic_mass()?, dec!(186.07931295073));
         assert_eq!(trp_residue.average_mass()?, dec!(186.21031375185538640));
+        // Testing with proton offsets for adducts
+        let ca = ChemicalComposition::new(&DB, "Ca-2p")?;
+        assert_eq!(ca.monoisotopic_mass()?, dec!(37.948037929758));
+        assert_eq!(ca.average_mass()?, dec!(38.06346957777573));
+        let k = ChemicalComposition::new(&DB, "K-p")?;
+        assert_eq!(k.monoisotopic_mass()?, dec!(37.956430019779));
+        assert_eq!(k.average_mass()?, dec!(38.0910244434650062));
         Ok(())
     }
 }

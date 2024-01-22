@@ -2,54 +2,86 @@
 // FIXME: Make sure to update all of the `is_err()` tests to check that the error contains the correct, rich info...
 // FIXME: Order functions in the same way as the EBNF
 
+use miette::Report;
 use nom::{
     branch::alt,
     character::complete::{char, one_of, satisfy, u32},
     combinator::{map, map_res, not, opt, recognize},
-    error::ParseError,
+    error::{ErrorKind, FromExternalError, ParseError},
     multi::{many0, many1},
     sequence::{delimited, pair, preceded, tuple},
     IResult, Parser,
 };
+use thiserror::Error;
 
 use super::{
-    chemical_database::ChemicalDatabase, ChemicalComposition, Count, Element, MassNumber,
-    OffsetKind, Particle,
+    chemical_database::ChemicalDatabase, ChemicalComposition, ChemicalLookupError, Count, Element,
+    MassNumber, OffsetKind, Particle,
 };
 
 // FIXME: Check this over, just jotting down ideas — names are awful...
-struct ParserError<'a> {
+#[derive(Debug, PartialEq)]
+pub struct ParserError<'a> {
     source: &'a str,
-    // Append these!
-    related: Vec<CompositionParseError>,
     // #[transparent] or something?
     kind: CompositionParseError,
+    // Append these!
+    related: Vec<CompositionParseError>,
 }
 
+// FIXME: Maybe make this into a combinator like `map_res`?
+// FIXME: Oh lord, what a mess...
 impl ParserError<'_> {
     // append_error / kind
+    fn set_kind(mut error: nom::Err<Self>, kind: CompositionParseError) -> nom::Err<Self> {
+        match &mut error {
+            nom::Err::Error(e) | nom::Err::Failure(e) => e.kind = kind,
+            nom::Err::Incomplete(_) => unreachable!(),
+        }
+        error
+    }
 }
 
-impl ParseError<&str> for ParserError<'_> {
-    fn from_error_kind(input: &str, kind: nom::error::ErrorKind) -> Self {
+impl<'a> ParseError<&'a str> for ParserError<'a> {
+    fn from_error_kind(input: &'a str, kind: nom::error::ErrorKind) -> Self {
         // Take just the first char of input for `source` (slice)
-        todo!()
+        Self {
+            source: &input,
+            kind: CompositionParseError::Nom(kind),
+            related: Vec::new(),
+        }
     }
 
     fn append(input: &str, kind: nom::error::ErrorKind, other: Self) -> Self {
-        // What does this actually do?
-        todo!()
+        // FIXME: What does this actually do?
+        other
+    }
+}
+
+impl<'a> FromExternalError<&'a str, ChemicalLookupError> for ParserError<'a> {
+    fn from_external_error(input: &'a str, _kind: ErrorKind, e: ChemicalLookupError) -> Self {
+        Self {
+            source: input,
+            kind: CompositionParseError::LookupError(e),
+            related: Vec::new(),
+        }
     }
 }
 
 // FIXME: API guidelines, check word ordering
+#[derive(Debug, Error, PartialEq)]
 enum CompositionParseError {
     // ... #[help] [#error] etc
-    // ExpectedLowercase
+    #[error("Should be lowercase, yo")]
+    ExpectedLowercase,
+    #[error("Should be uppercase, yo")]
+    ExpectedUppercase,
     // ExpectedOffsetKind
     // etc...
-    // LookupError(mod.rs::LookupError)
-    // Nom(ErrorKind) => for `from_error_kind` and as a catch-all?
+    #[error(transparent)]
+    LookupError(ChemicalLookupError),
+    #[error("Nommy mommy wet itself: {0:?}")]
+    Nom(ErrorKind),
 }
 
 // In the mod.rs, in the ChemicalComposition::new(), convert this ParserError to something with a pretty span for
@@ -57,7 +89,7 @@ enum CompositionParseError {
 // That code in mod.rs is also where the &str can be gotten rid of so that there isn't a lifetime in the error type
 // NOTE: I can use the `consumed` combinator to get a nice &str source for things like element lookup errors
 
-type ParseResult<'a, O> = IResult<&'a str, O>;
+type ParseResult<'a, O> = IResult<&'a str, O, ParserError<'a>>;
 
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {
@@ -137,8 +169,9 @@ pub fn chemical_composition<'a>(
 ///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
 ///   | "V" | "W" | "X" | "Y" | "Z"
 ///   ;
-fn uppercase(i: &str) -> IResult<&str, char> {
+fn uppercase(i: &str) -> ParseResult<char> {
     satisfy(|c| c.is_ascii_uppercase())(i)
+        .map_err(|e| ParserError::set_kind(e, CompositionParseError::ExpectedUppercase))
 }
 
 /// lowercase
@@ -147,7 +180,7 @@ fn uppercase(i: &str) -> IResult<&str, char> {
 ///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
 ///   | "v" | "w" | "x" | "y" | "z"
 ///   ;
-fn lowercase(i: &str) -> IResult<&str, char> {
+fn lowercase(i: &str) -> ParseResult<char> {
     satisfy(|c| c.is_ascii_lowercase())(i)
 }
 
@@ -155,6 +188,7 @@ fn lowercase(i: &str) -> IResult<&str, char> {
 mod tests {
     use insta::assert_debug_snapshot;
     use miette::Result;
+    use nom::Finish;
     use once_cell::sync::Lazy;
 
     use super::*;
