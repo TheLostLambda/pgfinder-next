@@ -2,6 +2,8 @@
 
 mod chemical_database;
 mod composition_parser;
+#[cfg(test)]
+mod testing_tools;
 
 use chemical_database::ChemicalDatabase;
 use composition_parser::chemical_composition;

@@ -1,11 +1,13 @@
 ---
 source: src/polychem/chemical_database.rs
-expression: "&res.unwrap_err().related().unwrap().next().unwrap()"
+expression: out
 ---
-Unsupported {
-    span: Span(
-        9,
-        13,
-    ),
-    message: "expected a decimal number, found boolean",
-}
+  × error parsing KDL
+
+Error:   × expected a decimal number, found boolean
+   ╭─[test:1:1]
+ 1 │ lossless true
+   ·          ──┬─
+   ·            ╰── unsupported value
+   ╰────
+

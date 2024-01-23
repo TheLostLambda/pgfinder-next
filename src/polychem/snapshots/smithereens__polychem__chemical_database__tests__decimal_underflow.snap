@@ -1,0 +1,14 @@
+---
+source: src/polychem/chemical_database.rs
+expression: out
+---
+  × error parsing KDL
+
+Error:   × Number has a high precision that can not be represented.
+  ╰─▶ Number has a high precision that can not be represented.
+   ╭─[test:1:1]
+ 1 │ lossless 0.00000_00000_00000_00000_00000_0001
+   ·          ──────────────────┬─────────────────
+   ·                            ╰── invalid value
+   ╰────
+

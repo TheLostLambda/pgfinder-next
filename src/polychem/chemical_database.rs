@@ -270,6 +270,8 @@ mod tests {
         ParticleKdl,
     };
 
+    use crate::polychem::testing_tools::assert_miette_snapshot;
+
     const KDL: &str = include_str!("chemistry.kdl");
 
     #[test]
@@ -307,10 +309,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ParticleKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_eq!(
-            extract_err::<InvalidChemicalSymbolError>(&res.unwrap_err()),
-            &InvalidChemicalSymbolError::Particle("P".to_string())
-        );
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -324,10 +323,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ParticleKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_eq!(
-            extract_err::<InvalidChemicalSymbolError>(&res.unwrap_err()),
-            &InvalidChemicalSymbolError::Particle("pr".to_string())
-        );
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -340,10 +336,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_eq!(
-            extract_err::<InvalidChemicalSymbolError>(&res.unwrap_err()),
-            &InvalidChemicalSymbolError::Element("d".to_string())
-        );
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -356,10 +349,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_eq!(
-            extract_err::<InvalidChemicalSymbolError>(&res.unwrap_err()),
-            &InvalidChemicalSymbolError::Element("DT".to_string())
-        );
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -372,10 +362,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_eq!(
-            extract_err::<InvalidChemicalSymbolError>(&res.unwrap_err()),
-            &InvalidChemicalSymbolError::Element("Deu".to_string())
-        );
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -388,7 +375,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_debug_snapshot!(&res.unwrap_err().related().unwrap().next().unwrap());
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -400,10 +387,7 @@ mod tests {
         let kdl = "lossless 0.00000_00000_00000_00000_00000_0001";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
-        assert_eq!(
-            extract_err::<rust_decimal::Error>(&res.unwrap_err()),
-            &rust_decimal::Error::Underflow
-        );
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -430,10 +414,7 @@ mod tests {
         let kdl = "lossless 1e-42";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
-        assert_eq!(
-            extract_err::<rust_decimal::Error>(&res.unwrap_err()),
-            &rust_decimal::Error::ScaleExceedsMaximumPrecision(42)
-        );
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -442,7 +423,7 @@ mod tests {
         let kdl = "lossless (pi)3.14";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
-        assert_debug_snapshot!(&res.unwrap_err().related().unwrap().next().unwrap());
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
     }
 
@@ -451,18 +432,7 @@ mod tests {
         let kdl = "lossless true";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
-        assert_debug_snapshot!(&res.unwrap_err().related().unwrap().next().unwrap());
+        assert_miette_snapshot!(&res.unwrap_err());
         Ok(())
-    }
-
-    fn extract_err<T: Error + 'static>(e: &knuffel::Error) -> &T {
-        e.related()
-            .unwrap()
-            .next()
-            .unwrap()
-            .source()
-            .unwrap()
-            .downcast_ref::<T>()
-            .unwrap()
     }
 }

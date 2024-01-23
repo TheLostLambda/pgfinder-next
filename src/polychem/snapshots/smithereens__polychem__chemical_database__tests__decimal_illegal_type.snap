@@ -1,22 +1,13 @@
 ---
 source: src/polychem/chemical_database.rs
-expression: "&res.unwrap_err().related().unwrap().next().unwrap()"
+expression: out
 ---
-TypeName {
-    span: Span(
-        9,
-        13,
-    ),
-    found: Some(
-        TypeName(
-            Custom(
-                "pi",
-            ),
-        ),
-    ),
-    expected: ExpectedType {
-        types: [],
-        no_type: true,
-    },
-    rust_type: "Decimal",
-}
+  × error parsing KDL
+
+Error:   × no type for Decimal, found pi
+   ╭─[test:1:1]
+ 1 │ lossless (pi)3.14
+   ·          ──┬─
+   ·            ╰── unexpected type name
+   ╰────
+

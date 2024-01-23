@@ -1,0 +1,14 @@
+---
+source: src/polychem/chemical_database.rs
+expression: out
+---
+  × error parsing KDL
+
+Error:   × Scale exceeds the maximum precision allowed: 42 > 28
+  ╰─▶ Scale exceeds the maximum precision allowed: 42 > 28
+   ╭─[test:1:1]
+ 1 │ lossless 1e-42
+   ·          ──┬──
+   ·            ╰── invalid value
+   ╰────
+

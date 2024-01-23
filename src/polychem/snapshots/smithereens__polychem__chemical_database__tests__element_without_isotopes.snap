@@ -1,11 +1,14 @@
 ---
 source: src/polychem/chemical_database.rs
-expression: "&res.unwrap_err().related().unwrap().next().unwrap()"
+expression: out
 ---
-Missing {
-    span: Span(
-        0,
-        49,
-    ),
-    message: "at least one child node `isotope` is required",
-}
+  × error parsing KDL
+
+Error:   × at least one child node `isotope` is required
+   ╭─[test:1:1]
+ 1 │ ╭─▶ D "Deuterium" {
+ 2 │ │     // isotope 2 2.01410177812 1
+ 3 │ ├─▶ }
+   · ╰──── node starts here
+   ╰────
+
