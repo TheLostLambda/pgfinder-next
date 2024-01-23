@@ -2,6 +2,7 @@
 // FIXME: Make sure to update all of the `is_err()` tests to check that the error contains the correct, rich info...
 // FIXME: Order functions in the same way as the EBNF
 
+use miette::{Diagnostic, SourceSpan};
 use nom::{
     branch::alt,
     character::complete::{char, one_of, satisfy, u32},
@@ -19,20 +20,38 @@ use super::{
 };
 
 // FIXME: Check this over, just jotting down ideas — names are awful...
-#[derive(Debug, PartialEq)]
-pub struct ParserError<'a> {
-    source: &'a str,
+// FIXME: Move all of this error handling and context wrapping to another crate to be shared
+#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
+#[error("{kind}")]
+pub struct CompositionError {
+    #[source_code]
+    input: String,
+    // FIXME: Think about making that label dynamic?
+    #[label("here")]
+    span: SourceSpan,
     // #[transparent] or something?
-    kind: CompositionParseError,
+    // FIXME: Hopefully `help` gets passed through this, otherwise it's a manual impl for me...
+    #[source]
+    #[diagnostic_source]
+    kind: CompositionErrorKind,
     // Append these!
-    related: Vec<CompositionParseError>,
+    #[related]
+    related: Vec<CompositionErrorKind>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct CompositionParseError<'a> {
+    input: &'a str,
+    length: usize,
+    kind: CompositionErrorKind,
+    related: Vec<CompositionErrorKind>,
 }
 
 // FIXME: Maybe make this into a combinator like `map_res`?
 // FIXME: Oh lord, what a mess...
-impl ParserError<'_> {
+impl CompositionParseError<'_> {
     // append_error / kind
-    fn set_kind(mut error: nom::Err<Self>, kind: CompositionParseError) -> nom::Err<Self> {
+    fn set_kind(mut error: nom::Err<Self>, kind: CompositionErrorKind) -> nom::Err<Self> {
         match &mut error {
             nom::Err::Error(e) | nom::Err::Failure(e) => e.kind = kind,
             nom::Err::Incomplete(_) => unreachable!(),
@@ -41,14 +60,15 @@ impl ParserError<'_> {
     }
 }
 
-impl<'a> ParseError<&'a str> for Box<ParserError<'a>> {
+impl<'a> ParseError<&'a str> for CompositionParseError<'a> {
     fn from_error_kind(input: &'a str, kind: nom::error::ErrorKind) -> Self {
         // Take just the first char of input for `source` (slice)
-        Box::new(ParserError {
-            source: input,
-            kind: CompositionParseError::Nom(kind),
+        Self {
+            input,
+            length: 0,
+            kind: CompositionErrorKind::Nom(kind),
             related: Vec::new(),
-        })
+        }
     }
 
     fn append(_input: &str, _kind: nom::error::ErrorKind, other: Self) -> Self {
@@ -57,19 +77,20 @@ impl<'a> ParseError<&'a str> for Box<ParserError<'a>> {
     }
 }
 
-impl<'a> FromExternalError<&'a str, ChemicalLookupError> for Box<ParserError<'a>> {
+impl<'a> FromExternalError<&'a str, ChemicalLookupError> for CompositionParseError<'a> {
     fn from_external_error(input: &'a str, _kind: ErrorKind, e: ChemicalLookupError) -> Self {
-        Box::new(ParserError {
-            source: input,
-            kind: CompositionParseError::LookupError(e),
+        Self {
+            input,
+            length: 0,
+            kind: CompositionErrorKind::LookupError(e),
             related: Vec::new(),
-        })
+        }
     }
 }
 
 // FIXME: API guidelines, check word ordering
-#[derive(Debug, Error, PartialEq)]
-enum CompositionParseError {
+#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
+enum CompositionErrorKind {
     // ... #[help] [#error] etc
     #[error("Should be lowercase, yo")]
     ExpectedLowercase,
@@ -88,7 +109,7 @@ enum CompositionParseError {
 // That code in mod.rs is also where the &str can be gotten rid of so that there isn't a lifetime in the error type
 // NOTE: I can use the `consumed` combinator to get a nice &str source for things like element lookup errors
 
-type ParseResult<'a, O> = IResult<&'a str, O, Box<ParserError<'a>>>;
+type ParseResult<'a, O> = IResult<&'a str, O, CompositionParseError<'a>>;
 
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {

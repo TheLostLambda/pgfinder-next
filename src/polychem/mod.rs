@@ -119,7 +119,7 @@ struct BondTarget {
     group_location: Location,
 }
 
-#[derive(Error, Diagnostic, PartialEq, Eq, Debug)]
+#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 enum ChemicalLookupError {
     #[error("the element {0:?} could not found in the supplied chemical database")]
     Element(String),
