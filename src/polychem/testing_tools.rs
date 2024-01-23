@@ -1,7 +1,7 @@
 macro_rules! assert_miette_snapshot {
     ($diag:expr) => {{
         use insta::assert_snapshot;
-        use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
+        use miette::{GraphicalReportHandler, GraphicalTheme};
 
         let mut out = String::new();
         GraphicalReportHandler::new_themed(GraphicalTheme::unicode_nocolor())

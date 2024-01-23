@@ -194,7 +194,7 @@ impl Element {
                 ..element
             })
         } else {
-            Err(ChemicalLookupError::Isotope(symbol.to_owned(), mass_number).into())
+            Err(ChemicalLookupError::Isotope(symbol.to_owned(), mass_number))
         }
     }
 

@@ -257,18 +257,13 @@ impl From<ParticleKdl> for ParticleEntry {
 
 #[cfg(test)]
 mod tests {
-    use std::error::Error;
-
     use indoc::indoc;
     use insta::assert_debug_snapshot;
     use knuffel::{self, Decode};
-    use miette::{Diagnostic, Result};
+    use miette::Result;
     use rust_decimal_macros::dec;
 
-    use super::{
-        ChemicalDatabase, ChemicalDatabaseKdl, DecimalKdl, ElementKdl, InvalidChemicalSymbolError,
-        ParticleKdl,
-    };
+    use super::{ChemicalDatabase, ChemicalDatabaseKdl, DecimalKdl, ElementKdl, ParticleKdl};
 
     use crate::polychem::testing_tools::assert_miette_snapshot;
 

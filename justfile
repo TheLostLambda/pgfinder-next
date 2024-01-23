@@ -1,5 +1,5 @@
 lint:
-  cargo clippy
+  cargo clippy --tests
 
 cov:
   cargo llvm-cov --open

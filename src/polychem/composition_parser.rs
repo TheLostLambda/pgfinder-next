@@ -2,7 +2,6 @@
 // FIXME: Make sure to update all of the `is_err()` tests to check that the error contains the correct, rich info...
 // FIXME: Order functions in the same way as the EBNF
 
-use miette::Report;
 use nom::{
     branch::alt,
     character::complete::{char, one_of, satisfy, u32},
@@ -46,7 +45,7 @@ impl<'a> ParseError<&'a str> for ParserError<'a> {
     fn from_error_kind(input: &'a str, kind: nom::error::ErrorKind) -> Self {
         // Take just the first char of input for `source` (slice)
         Self {
-            source: &input,
+            source: input,
             kind: CompositionParseError::Nom(kind),
             related: Vec::new(),
         }
