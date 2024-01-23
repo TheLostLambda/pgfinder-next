@@ -295,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    fn uppercase_particle_symbol() -> Result<()> {
+    fn uppercase_particle_symbol() {
         let kdl = indoc! {r#"
             P "Proton" {
               mass 1.007276466621
@@ -305,11 +305,10 @@ mod tests {
         let res = knuffel::parse::<Vec<ParticleKdl>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[test]
-    fn multiple_char_particle_symbol() -> Result<()> {
+    fn multiple_char_particle_symbol() {
         let kdl = indoc! {r#"
             pr "Proton" {
               mass 1.007276466621
@@ -319,11 +318,10 @@ mod tests {
         let res = knuffel::parse::<Vec<ParticleKdl>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[test]
-    fn lowercase_element_symbol() -> Result<()> {
+    fn lowercase_element_symbol() {
         let kdl = indoc! {r#"
             d "Deuterium" {
               isotope 2 2.01410177812 1
@@ -332,11 +330,10 @@ mod tests {
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[test]
-    fn double_uppercase_element_symbol() -> Result<()> {
+    fn double_uppercase_element_symbol() {
         let kdl = indoc! {r#"
             DT "Deuterium" {
               isotope 2 2.01410177812 1
@@ -345,11 +342,10 @@ mod tests {
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[test]
-    fn three_char_element_symbol() -> Result<()> {
+    fn three_char_element_symbol() {
         let kdl = indoc! {r#"
             Deu "Deuterium" {
               isotope 2 2.01410177812 1
@@ -358,11 +354,10 @@ mod tests {
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[test]
-    fn element_without_isotopes() -> Result<()> {
+    fn element_without_isotopes() {
         let kdl = indoc! {r#"
             D "Deuterium" {
               // isotope 2 2.01410177812 1
@@ -371,63 +366,56 @@ mod tests {
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[derive(Decode, Debug)]
     struct Lossless(#[knuffel(argument)] DecimalKdl);
 
     #[test]
-    fn decimal_underflow() -> Result<()> {
+    fn decimal_underflow() {
         let kdl = "lossless 0.00000_00000_00000_00000_00000_0001";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[test]
-    fn decimal_scientific() -> Result<()> {
+    fn decimal_scientific() {
         let kdl = "lossless 5.485_799_090_65e-4";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(&res.is_ok());
         assert_eq!(res.unwrap()[0].0 .0, dec!(0.000548579909065));
-        Ok(())
     }
 
     #[test]
-    fn decimal_from_integer() -> Result<()> {
+    fn decimal_from_integer() {
         let kdl = "lossless 1";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(&res.is_ok());
         assert_eq!(res.unwrap()[0].0 .0, dec!(1));
-        Ok(())
     }
 
     #[test]
-    fn decimal_lack_of_precision() -> Result<()> {
+    fn decimal_lack_of_precision() {
         let kdl = "lossless 1e-42";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[test]
-    fn decimal_illegal_type() -> Result<()> {
+    fn decimal_illegal_type() {
         let kdl = "lossless (pi)3.14";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 
     #[test]
-    fn decimal_from_bool() -> Result<()> {
+    fn decimal_from_bool() {
         let kdl = "lossless true";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(&res.unwrap_err());
-        Ok(())
     }
 }

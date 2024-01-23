@@ -41,29 +41,29 @@ impl ParserError<'_> {
     }
 }
 
-impl<'a> ParseError<&'a str> for ParserError<'a> {
+impl<'a> ParseError<&'a str> for Box<ParserError<'a>> {
     fn from_error_kind(input: &'a str, kind: nom::error::ErrorKind) -> Self {
         // Take just the first char of input for `source` (slice)
-        Self {
+        Box::new(ParserError {
             source: input,
             kind: CompositionParseError::Nom(kind),
             related: Vec::new(),
-        }
+        })
     }
 
-    fn append(input: &str, kind: nom::error::ErrorKind, other: Self) -> Self {
+    fn append(_input: &str, _kind: nom::error::ErrorKind, other: Self) -> Self {
         // FIXME: What does this actually do?
         other
     }
 }
 
-impl<'a> FromExternalError<&'a str, ChemicalLookupError> for ParserError<'a> {
+impl<'a> FromExternalError<&'a str, ChemicalLookupError> for Box<ParserError<'a>> {
     fn from_external_error(input: &'a str, _kind: ErrorKind, e: ChemicalLookupError) -> Self {
-        Self {
+        Box::new(ParserError {
             source: input,
             kind: CompositionParseError::LookupError(e),
             related: Vec::new(),
-        }
+        })
     }
 }
 
@@ -88,7 +88,7 @@ enum CompositionParseError {
 // That code in mod.rs is also where the &str can be gotten rid of so that there isn't a lifetime in the error type
 // NOTE: I can use the `consumed` combinator to get a nice &str source for things like element lookup errors
 
-type ParseResult<'a, O> = IResult<&'a str, O, ParserError<'a>>;
+type ParseResult<'a, O> = IResult<&'a str, O, Box<ParserError<'a>>>;
 
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {
@@ -170,7 +170,6 @@ pub fn chemical_composition<'a>(
 ///   ;
 fn uppercase(i: &str) -> ParseResult<char> {
     satisfy(|c| c.is_ascii_uppercase())(i)
-        .map_err(|e| ParserError::set_kind(e, CompositionParseError::ExpectedUppercase))
 }
 
 /// lowercase
@@ -186,8 +185,6 @@ fn lowercase(i: &str) -> ParseResult<char> {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use miette::Result;
-    use nom::Finish;
     use once_cell::sync::Lazy;
 
     use super::*;
@@ -197,41 +194,39 @@ mod tests {
     });
 
     #[test]
-    fn test_uppercase() -> Result<()> {
+    fn test_uppercase() {
         // Ensure the complete uppercase ASCII alphabet is present
         for c in 'A'..='Z' {
-            assert_eq!(uppercase(&c.to_string()), Ok(("", c)))
+            assert_eq!(uppercase(&c.to_string()), Ok(("", c)));
         }
         // Ensure the complete lowercase ASCII alphabet is absent
         for c in 'a'..='z' {
-            assert!(uppercase(&c.to_string()).is_err())
+            assert!(uppercase(&c.to_string()).is_err());
         }
         // Ensure only one character is parsed
         assert_eq!(uppercase("Hg"), Ok(("g", 'H')));
         assert_eq!(uppercase("HG"), Ok(("G", 'H')));
         // FIXME: Add a check for a richer error message when parsing fails
-        Ok(())
     }
 
     #[test]
-    fn test_lowercase() -> Result<()> {
+    fn test_lowercase() {
         // Ensure the complete lowercase ASCII alphabet is present
         for c in 'a'..='z' {
-            assert_eq!(lowercase(&c.to_string()), Ok(("", c)))
+            assert_eq!(lowercase(&c.to_string()), Ok(("", c)));
         }
         // Ensure the complete uppercase ASCII alphabet is absent
         for c in 'A'..='Z' {
-            assert!(lowercase(&c.to_string()).is_err())
+            assert!(lowercase(&c.to_string()).is_err());
         }
         // Ensure only one character is parsed
         assert_eq!(lowercase("hg"), Ok(("g", 'h')));
         assert_eq!(lowercase("hG"), Ok(("G", 'h')));
         // FIXME: Add a check for a richer error message when parsing fails
-        Ok(())
     }
 
     #[test]
-    fn test_count() -> Result<()> {
+    fn test_count() {
         // Valid Counts
         assert_eq!(count("1"), Ok(("", 1)));
         assert_eq!(count("10"), Ok(("", 10)));
@@ -248,11 +243,10 @@ mod tests {
         // Multiple Counts
         assert_eq!(count("1OH"), Ok(("OH", 1)));
         assert_eq!(count("42HeH"), Ok(("HeH", 42)));
-        Ok(())
     }
 
     #[test]
-    fn test_element_symbol() -> Result<()> {
+    fn test_element_symbol() {
         // Valid Element Symbols
         assert_eq!(element_symbol("H"), Ok(("", "H")));
         assert_eq!(element_symbol("He"), Ok(("", "He")));
@@ -265,11 +259,10 @@ mod tests {
         // Multiple Element Symbols
         assert_eq!(element_symbol("OH"), Ok(("H", "O")));
         assert_eq!(element_symbol("HeH"), Ok(("H", "He")));
-        Ok(())
     }
 
     #[test]
-    fn test_element() -> Result<()> {
+    fn test_element() {
         let mut element = element(&DB);
         macro_rules! assert_element_name {
             ($input:literal, $output:literal, $name:literal) => {
@@ -294,11 +287,10 @@ mod tests {
         // Multiple Elements
         assert_element_name!("OH", "H", "Oxygen");
         assert_element_name!("HeH", "H", "Helium");
-        Ok(())
     }
 
     #[test]
-    fn test_isotope_expr() -> Result<()> {
+    fn test_isotope_expr() {
         // Valid Isotope Expressions
         assert_eq!(isotope_expr("[1H]"), Ok(("", (1, "H"))));
         assert_eq!(isotope_expr("[18O]"), Ok(("", (18, "O"))));
@@ -315,11 +307,10 @@ mod tests {
         // Multiple Isotope Expressions
         assert_eq!(isotope_expr("[13C]O2"), Ok(("O2", (13, "C"))));
         assert_eq!(isotope_expr("[3He]H"), Ok(("H", (3, "He"))));
-        Ok(())
     }
 
     #[test]
-    fn test_isotope() -> Result<()> {
+    fn test_isotope() {
         let mut isotope = isotope(&DB);
         macro_rules! assert_isotope_name {
             ($input:literal, $output:literal, $name:literal) => {
@@ -351,11 +342,10 @@ mod tests {
         // Multiple Isotopes
         assert_isotope_name!("[13C]O2", "O2", "Carbon-13");
         assert_isotope_name!("[3He]H", "H", "Helium-3");
-        Ok(())
     }
 
     #[test]
-    fn test_particle() -> Result<()> {
+    fn test_particle() {
         let mut particle = particle(&DB);
         macro_rules! assert_particle_name {
             ($input:literal, $output:literal, $name:literal) => {
@@ -380,11 +370,10 @@ mod tests {
         // Multiple Particles
         assert_particle_name!("ep", "p", "Electron");
         assert_particle_name!("pe", "e", "Proton");
-        Ok(())
     }
 
     #[test]
-    fn test_offset_kind() -> Result<()> {
+    fn test_offset_kind() {
         // Valid Offset Kinds
         assert_eq!(offset_kind("+"), Ok(("", OffsetKind::Add)));
         assert_eq!(offset_kind("-"), Ok(("", OffsetKind::Remove)));
@@ -397,11 +386,10 @@ mod tests {
         // Multiple Offset Kinds
         assert_eq!(offset_kind("+-"), Ok(("-", OffsetKind::Add)));
         assert_eq!(offset_kind("--"), Ok(("-", OffsetKind::Remove)));
-        Ok(())
     }
 
     #[test]
-    fn test_particle_offset() -> Result<()> {
+    fn test_particle_offset() {
         let mut particle_offset = particle_offset(&DB);
         macro_rules! assert_particle_offset {
             ($input:literal, $output:literal, $kind:expr, $count:literal, $name:literal ) => {
@@ -443,11 +431,10 @@ mod tests {
         // Multiple Particle Offsets
         assert_particle_offset!("+3ep", "p", OffsetKind::Add, 3, "Electron");
         assert_particle_offset!("-pe", "e", OffsetKind::Remove, 1, "Proton");
-        Ok(())
     }
 
     #[test]
-    fn test_atomic_offset() -> Result<()> {
+    fn test_atomic_offset() {
         let mut atomic_offset = atomic_offset(&DB);
         macro_rules! assert_atomic_offset {
             ($input:literal, $output:literal, $name:literal, $count:literal) => {
@@ -503,11 +490,10 @@ mod tests {
         assert_atomic_offset!("CO2", "O2", "Carbon", 1);
         assert_atomic_offset!("[13C]6O2", "O2", "Carbon-13", 6);
         assert_atomic_offset!("[3He]1H", "H", "Helium-3", 1);
-        Ok(())
     }
 
     #[test]
-    fn test_chemical_composition() -> Result<()> {
+    fn test_chemical_composition() {
         let mut chemical_composition = chemical_composition(&DB);
         macro_rules! check_composition_snapshot {
             ($input:literal, $output:literal) => {
@@ -560,6 +546,5 @@ mod tests {
         check_composition_snapshot!("[2H]2O+H2O", "+H2O");
         check_composition_snapshot!("NH2[100Tc]", "[100Tc]");
         check_composition_snapshot!("C11H12N2O2 H2O", " H2O");
-        Ok(())
     }
 }
