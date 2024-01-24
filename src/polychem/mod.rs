@@ -6,7 +6,6 @@ mod composition_parser;
 mod testing_tools;
 
 use chemical_database::ChemicalDatabase;
-use composition_parser::chemical_composition;
 use nom::{combinator::all_consuming, Finish};
 use rust_decimal_macros::dec;
 
@@ -18,6 +17,8 @@ use itertools::Itertools;
 use miette::{Context, Diagnostic, Result};
 use rust_decimal::{prelude::FromPrimitive, Decimal};
 use thiserror::Error;
+
+use self::composition_parser::{chemical_composition, CompositionError};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Residue {
@@ -31,8 +32,9 @@ pub struct Residue {
 
 type Id = usize;
 
+// FIXME: Keep this public so that people can build mass calculators
 #[derive(Clone, PartialEq, Eq, Debug)]
-struct ChemicalComposition {
+pub struct ChemicalComposition {
     chemical_formula: Vec<(Element, Count)>,
     charged_particles: Vec<(OffsetKind, Count, Particle)>,
 }
@@ -132,12 +134,13 @@ enum ChemicalLookupError {
 }
 
 impl ChemicalComposition {
-    fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self> {
+    // FIXME: If this isn't public API, drop the AsRef — if it is, then add it for `db`
+    fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self, CompositionError> {
         let formula = formula.as_ref();
-        match all_consuming(chemical_composition(db))(formula).finish() {
-            Ok((_, c)) => Ok(c),
-            Err(_) => todo!(),
-        }
+        all_consuming(chemical_composition(db))(formula)
+            .finish()
+            .map(|(_, c)| c)
+            .map_err(|_| todo!())
     }
 
     fn monoisotopic_mass(&self) -> Result<Decimal> {

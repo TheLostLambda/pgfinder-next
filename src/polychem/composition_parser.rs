@@ -39,41 +39,66 @@ pub struct CompositionError {
     related: Vec<CompositionErrorKind>,
 }
 
+// FIXME: Abstract this out into it's own module (or nom-supreme?)
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct CompositionParseError<'a> {
     input: &'a str,
     length: usize,
-    kind: CompositionErrorKind,
+    failures: Vec<CompositionErrorKind>,
+    // FIXME: Maybe don't even both with this... If I do, I might want to add the location info?
     related: Vec<CompositionErrorKind>,
 }
 
-// FIXME: Maybe make this into a combinator like `map_res`?
+// FIXME: Maybe make this into a combinator like `map_res`? Or maybe an extension trait...
 // FIXME: Oh lord, what a mess...
-impl CompositionParseError<'_> {
-    // append_error / kind
-    fn set_kind(mut error: nom::Err<Self>, kind: CompositionErrorKind) -> nom::Err<Self> {
-        match &mut error {
-            nom::Err::Error(e) | nom::Err::Failure(e) => e.kind = kind,
-            nom::Err::Incomplete(_) => unreachable!(),
-        }
-        error
-    }
+// FIXME: also write append_error / kind
+// FIXME: I might need to create my own version of `all_consuming` that's capable of reporting all of the `alt`
+// branches that failed there! Otherwise I just get a pretty unhelpful Eof error
+// FIXME: I should do that extension trait, so I can chain methods on nom::Err<CompositionParseError>
+// FIXME: Not needed! The combinator and do the wrapping and unwrapping; impl CompositionParseError will do!
+fn set_kind(
+    error: nom::Err<CompositionParseError>,
+    kind: CompositionErrorKind,
+) -> nom::Err<CompositionParseError> {
+    error.map(|e| CompositionParseError {
+        failures: vec![kind],
+        ..e
+    })
 }
 
 impl<'a> ParseError<&'a str> for CompositionParseError<'a> {
     fn from_error_kind(input: &'a str, kind: nom::error::ErrorKind) -> Self {
-        // Take just the first char of input for `source` (slice)
         Self {
             input,
             length: 0,
-            kind: CompositionErrorKind::Nom(kind),
+            failures: vec![CompositionErrorKind::Nom(kind)],
             related: Vec::new(),
         }
     }
 
     fn append(_input: &str, _kind: nom::error::ErrorKind, other: Self) -> Self {
         // FIXME: What does this actually do?
+        // This seems to just add stack context, but I don't think I actually care about which higher-level errors
+        // accumulate, I think I'm only interest in the base cause and the other paths that also failed. If I want to
+        // wrap an error at a higher level, I'll do that manually!
+        dbg!(_input, _kind, &other);
         other
+    }
+
+    fn from_char(input: &'a str, c: char) -> Self {
+        Self {
+            input,
+            length: 0,
+            failures: vec![CompositionErrorKind::Expected(c)],
+            related: Vec::new(),
+        }
+    }
+
+    fn or(self, other: Self) -> Self {
+        dbg!(&self, &other);
+        let failures = [self.failures, other.failures].concat();
+        // FIXME: This logic is probably wrong
+        Self { failures, ..other }
     }
 }
 
@@ -82,7 +107,7 @@ impl<'a> FromExternalError<&'a str, ChemicalLookupError> for CompositionParseErr
         Self {
             input,
             length: 0,
-            kind: CompositionErrorKind::LookupError(e),
+            failures: vec![CompositionErrorKind::LookupError(e)],
             related: Vec::new(),
         }
     }
@@ -96,6 +121,8 @@ enum CompositionErrorKind {
     ExpectedLowercase,
     #[error("Should be uppercase, yo")]
     ExpectedUppercase,
+    #[error("Should be {0:?}, yo")]
+    Expected(char),
     // ExpectedOffsetKind
     // etc...
     #[error(transparent)]
@@ -191,6 +218,7 @@ pub fn chemical_composition<'a>(
 ///   ;
 fn uppercase(i: &str) -> ParseResult<char> {
     satisfy(|c| c.is_ascii_uppercase())(i)
+        .map_err(|e| set_kind(e, CompositionErrorKind::ExpectedUppercase))
 }
 
 /// lowercase
@@ -201,11 +229,13 @@ fn uppercase(i: &str) -> ParseResult<char> {
 ///   ;
 fn lowercase(i: &str) -> ParseResult<char> {
     satisfy(|c| c.is_ascii_lowercase())(i)
+        .map_err(|e| set_kind(e, CompositionErrorKind::ExpectedLowercase))
 }
 
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
+    use nom::combinator::all_consuming;
     use once_cell::sync::Lazy;
 
     use super::*;
@@ -515,7 +545,7 @@ mod tests {
 
     #[test]
     fn test_chemical_composition() {
-        let mut chemical_composition = chemical_composition(&DB);
+        let mut chemical_composition = all_consuming(chemical_composition(&DB));
         macro_rules! check_composition_snapshot {
             ($input:literal, $output:literal) => {
                 let (
@@ -562,6 +592,9 @@ mod tests {
         assert!(chemical_composition("+H").is_err());
         assert!(chemical_composition("2[2H]").is_err());
         assert!(chemical_composition("[H+p]O").is_err());
+        eprintln!("What is up, my dude?\n\n\n");
+        dbg!(chemical_composition("Au-2p"));
+        panic!();
         // Multiple Chemical Compositions
         check_composition_snapshot!("[37Cl]5-2p+10", "+10");
         check_composition_snapshot!("[2H]2O+H2O", "+H2O");
