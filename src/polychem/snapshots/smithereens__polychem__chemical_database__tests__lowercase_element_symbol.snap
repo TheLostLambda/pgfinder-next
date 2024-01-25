@@ -6,8 +6,6 @@ expression: out
 
 Error:   × expected a single uppercase ASCII letter optionally followed by a
   │ lowercase ASCII letter, got "d"
-  ╰─▶ expected a single uppercase ASCII letter optionally followed by a
-      lowercase ASCII letter, got "d"
    ╭─[test:1:1]
  1 │ d "Deuterium" {
    · ┬

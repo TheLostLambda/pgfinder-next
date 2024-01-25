@@ -5,7 +5,6 @@ expression: out
   × error parsing KDL
 
 Error:   × expected a single lowercase ASCII letter, got "P"
-  ╰─▶ expected a single lowercase ASCII letter, got "P"
    ╭─[test:1:1]
  1 │ P "Proton" {
    · ┬

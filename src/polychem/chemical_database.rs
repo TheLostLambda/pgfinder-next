@@ -120,7 +120,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
                     Err(e) => {
                         ctx.emit_error(DecodeError::Conversion {
                             span: value.span().clone(),
-                            source: Box::new(e),
+                            error: Box::new(e),
                         });
                         Ok(Self::default())
                     }
