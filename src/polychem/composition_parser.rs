@@ -2,15 +2,15 @@
 // FIXME: Make sure to update all of the `is_err()` tests to check that the error contains the correct, rich info...
 // FIXME: Order functions in the same way as the EBNF
 
-use miette::{Diagnostic, SourceSpan};
+use miette::{Diagnostic, LabeledSpan, SourceSpan};
 use nom::{
     branch::alt,
     character::complete::{char, one_of, satisfy, u32},
-    combinator::{map, map_res, not, opt, recognize},
+    combinator::{all_consuming, complete, map, map_res, not, opt, recognize},
     error::{ErrorKind, FromExternalError, ParseError},
     multi::{many0, many1},
     sequence::{delimited, pair, preceded, tuple},
-    IResult, Parser,
+    Finish, IResult, Parser,
 };
 use thiserror::Error;
 
@@ -21,22 +21,39 @@ use super::{
 
 // FIXME: Check this over, just jotting down ideas — names are awful...
 // FIXME: Move all of this error handling and context wrapping to another crate to be shared
-#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
+#[derive(Debug, Clone, Eq, PartialEq, Error)]
 #[error("{kind}")]
 pub struct CompositionError {
-    #[source_code]
     input: String,
     // FIXME: Think about making that label dynamic?
-    #[label("here")]
     span: SourceSpan,
     // #[transparent] or something?
     // FIXME: Hopefully `help` gets passed through this, otherwise it's a manual impl for me...
-    #[source]
-    #[diagnostic_source]
     kind: CompositionErrorKind,
     // Append these!
-    #[related]
+    // Should failed alt paths be collected here?
     related: Vec<CompositionErrorKind>,
+}
+
+impl Diagnostic for CompositionError {
+    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+        Some(&self.input)
+    }
+
+    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+        Some(Box::new(
+            [LabeledSpan::new_with_span(
+                Some("here".to_string()),
+                self.span,
+            )]
+            .into_iter(),
+        ))
+    }
+
+    fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
+        // Some(&self.kind)
+        None
+    }
 }
 
 // FIXME: Abstract this out into it's own module (or nom-supreme?)
@@ -45,6 +62,7 @@ pub struct CompositionParseError<'a> {
     input: &'a str,
     length: usize,
     failures: Vec<CompositionErrorKind>,
+    finalized: bool,
     // FIXME: Maybe don't even both with this... If I do, I might want to add the location info?
     related: Vec<CompositionErrorKind>,
 }
@@ -56,22 +74,75 @@ pub struct CompositionParseError<'a> {
 // branches that failed there! Otherwise I just get a pretty unhelpful Eof error
 // FIXME: I should do that extension trait, so I can chain methods on nom::Err<CompositionParseError>
 // FIXME: Not needed! The combinator and do the wrapping and unwrapping; impl CompositionParseError will do!
-fn set_kind(
-    error: nom::Err<CompositionParseError>,
-    kind: CompositionErrorKind,
-) -> nom::Err<CompositionParseError> {
-    error.map(|e| CompositionParseError {
-        failures: vec![kind],
-        ..e
-    })
+impl CompositionParseError<'_> {
+    fn kind(self, kind: CompositionErrorKind) -> Self {
+        Self {
+            failures: vec![kind],
+            related: self.failures,
+            ..self
+        }
+    }
+
+    fn finalize(self) -> Self {
+        Self {
+            finalized: true,
+            ..self
+        }
+    }
+}
+
+// FIXME: OMG refactor... Also, can I do better than stealing here?
+fn span_from_input(full_input: &str, input: &str, length: usize) -> SourceSpan {
+    let base_addr = full_input.as_ptr() as usize;
+    let substr_addr = input.as_ptr() as usize;
+    // FIXME: Keep this?
+    assert!(
+        substr_addr >= base_addr,
+        "tried to get the span of a non-substring!"
+    );
+    let start = substr_addr - base_addr;
+    let end = start + length;
+    SourceSpan::from(start..end)
+}
+
+fn final_parser<'a, O, P>(parser: P) -> impl FnMut(&'a str) -> Result<O, CompositionError>
+where
+    P: Parser<&'a str, O, CompositionParseError<'a>>,
+{
+    // FIXME: I can't inline this because of some borrow-checker closure witchcraft...
+    let mut parser = all_consuming(complete(parser));
+    move |input| {
+        parser
+            .parse(input)
+            .finish()
+            .map(|(_, c)| c)
+            .map_err(|mut e| CompositionError {
+                input: input.to_owned(),
+                span: span_from_input(input, e.input, e.length),
+                kind: e.failures.pop().unwrap(),
+                related: e.related,
+            })
+    }
+}
+
+// FIXME: Check if I'm being consistent about using `impl` or generics...
+// FIXME: See if this signature can be simplified (elide lifetimes?)
+fn report_err<'a, O, P, F>(mut parser: P, f: F) -> impl FnMut(&'a str) -> ParseResult<O>
+where
+    P: Parser<&'a str, O, CompositionParseError<'a>>,
+    F: Copy + FnOnce(CompositionParseError<'a>) -> CompositionParseError<'a>,
+{
+    move |i| parser.parse(i).map_err(|e| e.map(|e| f(e).finalize()))
 }
 
 impl<'a> ParseError<&'a str> for CompositionParseError<'a> {
     fn from_error_kind(input: &'a str, kind: nom::error::ErrorKind) -> Self {
+        // FIXME: Trying implementing Default and doing ..Self::default()
         Self {
             input,
             length: 0,
             failures: vec![CompositionErrorKind::Nom(kind)],
+            finalized: false,
             related: Vec::new(),
         }
     }
@@ -90,15 +161,19 @@ impl<'a> ParseError<&'a str> for CompositionParseError<'a> {
             input,
             length: 0,
             failures: vec![CompositionErrorKind::Expected(c)],
+            finalized: false,
             related: Vec::new(),
         }
     }
 
     fn or(self, other: Self) -> Self {
-        dbg!(&self, &other);
-        let failures = [self.failures, other.failures].concat();
-        // FIXME: This logic is probably wrong
-        Self { failures, ..other }
+        if self.finalized {
+            self
+        } else {
+            let failures = [self.failures, other.failures].concat();
+            // FIXME: This logic is probably wrong
+            Self { failures, ..other }
+        }
     }
 }
 
@@ -108,6 +183,7 @@ impl<'a> FromExternalError<&'a str, ChemicalLookupError> for CompositionParseErr
             input,
             length: 0,
             failures: vec![CompositionErrorKind::LookupError(e)],
+            finalized: true,
             related: Vec::new(),
         }
     }
@@ -123,8 +199,12 @@ enum CompositionErrorKind {
     ExpectedUppercase,
     #[error("Should be {0:?}, yo")]
     Expected(char),
+    #[diagnostic(help("Have you tried..."))]
+    #[error("Should be an element (Au) or and isotope [15N]")]
+    ExpectedElementOrIsotope,
     // ExpectedOffsetKind
     // etc...
+    #[help("Try this...")]
     #[error(transparent)]
     LookupError(ChemicalLookupError),
     #[error("Nommy mommy wet itself: {0:?}")]
@@ -193,7 +273,10 @@ fn atomic_offset<'a>(
     db: &'a ChemicalDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
-    pair(alt((element(db), isotope(db))), optional_count)
+    let element_or_isotope = report_err(alt((element(db), isotope(db))), |e| {
+        e.kind(CompositionErrorKind::ExpectedElementOrIsotope)
+    });
+    pair(element_or_isotope, optional_count)
 }
 
 /// Chemical Composition = { Atomic Offset }- ,
@@ -218,7 +301,6 @@ pub fn chemical_composition<'a>(
 ///   ;
 fn uppercase(i: &str) -> ParseResult<char> {
     satisfy(|c| c.is_ascii_uppercase())(i)
-        .map_err(|e| set_kind(e, CompositionErrorKind::ExpectedUppercase))
 }
 
 /// lowercase
@@ -229,13 +311,11 @@ fn uppercase(i: &str) -> ParseResult<char> {
 ///   ;
 fn lowercase(i: &str) -> ParseResult<char> {
     satisfy(|c| c.is_ascii_lowercase())(i)
-        .map_err(|e| set_kind(e, CompositionErrorKind::ExpectedLowercase))
 }
 
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use nom::combinator::all_consuming;
     use once_cell::sync::Lazy;
 
     use super::*;
@@ -545,7 +625,7 @@ mod tests {
 
     #[test]
     fn test_chemical_composition() {
-        let mut chemical_composition = all_consuming(chemical_composition(&DB));
+        let mut chemical_composition = chemical_composition(&DB);
         macro_rules! check_composition_snapshot {
             ($input:literal, $output:literal) => {
                 let (
@@ -592,13 +672,20 @@ mod tests {
         assert!(chemical_composition("+H").is_err());
         assert!(chemical_composition("2[2H]").is_err());
         assert!(chemical_composition("[H+p]O").is_err());
-        eprintln!("What is up, my dude?\n\n\n");
-        dbg!(chemical_composition("Au-2p"));
-        panic!();
         // Multiple Chemical Compositions
         check_composition_snapshot!("[37Cl]5-2p+10", "+10");
         check_composition_snapshot!("[2H]2O+H2O", "+H2O");
         check_composition_snapshot!("NH2[100Tc]", "[100Tc]");
         check_composition_snapshot!("C11H12N2O2 H2O", " H2O");
+    }
+
+    // FIXME: Dirty! Rename and refactor
+    #[ignore]
+    #[test]
+    fn test_errors() -> miette::Result<()> {
+        let mut chemical_composition = final_parser(chemical_composition(&DB));
+        // FIXME: Don't forget to uncomment or delete!
+        chemical_composition("Af")?;
+        Ok(())
     }
 }
