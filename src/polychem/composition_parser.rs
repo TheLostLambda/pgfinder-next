@@ -190,6 +190,7 @@ impl<'a> FromExternalError<&'a str, ChemicalLookupError> for CompositionParseErr
 }
 
 // FIXME: API guidelines, check word ordering
+// FIXME: Keep this in this file when moving all of the other parser error stuff elsewhere!
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 enum CompositionErrorKind {
     // ... #[help] [#error] etc
@@ -680,7 +681,6 @@ mod tests {
     }
 
     // FIXME: Dirty! Rename and refactor
-    #[ignore]
     #[test]
     fn test_errors() -> miette::Result<()> {
         let mut chemical_composition = final_parser(chemical_composition(&DB));
