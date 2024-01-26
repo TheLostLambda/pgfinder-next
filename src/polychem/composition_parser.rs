@@ -136,7 +136,11 @@ impl<'a> CompositionParseError<'a> {
     }
 
     fn fatal_if(self, condition: impl Fn(&Self) -> bool) -> Self {
-        let fatal = condition(&self);
+        let is_fatal = condition(&self);
+        self.fatal(is_fatal)
+    }
+
+    fn fatal(self, fatal: bool) -> Self {
         Self { fatal, ..self }
     }
 
@@ -272,16 +276,12 @@ impl<'a> ParseError<&'a str> for CompositionParseError<'a> {
     }
 }
 
+// FIXME: Keep this in this file as well, since it's specific to ChemicalLookupError
 impl<'a> FromExternalError<&'a str, ChemicalLookupError> for CompositionParseError<'a> {
-    fn from_external_error(input: &'a str, _kind: ErrorKind, e: ChemicalLookupError) -> Self {
-        Self {
-            input,
-            length: 0,
-            kind: CompositionErrorKind::LookupError(e),
-            reported: true,
-            fatal: true,
-            source: None,
-        }
+    fn from_external_error(input: &'a str, kind: ErrorKind, e: ChemicalLookupError) -> Self {
+        Self::from_error_kind(input, kind)
+            .kind(CompositionErrorKind::LookupError(e))
+            .fatal(true)
     }
 }
 
