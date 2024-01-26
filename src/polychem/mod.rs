@@ -6,7 +6,6 @@ mod composition_parser;
 mod testing_tools;
 
 use chemical_database::ChemicalDatabase;
-use nom::{combinator::all_consuming, Finish};
 use rust_decimal_macros::dec;
 
 // Standard Library Imports
@@ -18,7 +17,7 @@ use miette::{Context, Diagnostic, Result};
 use rust_decimal::{prelude::FromPrimitive, Decimal};
 use thiserror::Error;
 
-use self::composition_parser::{chemical_composition, CompositionError};
+use self::composition_parser::{chemical_composition, final_parser, CompositionError};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Residue {
@@ -129,6 +128,8 @@ enum ChemicalLookupError {
     Isotope(String, MassNumber),
     #[error("the particle {0:?} could not found in the supplied chemical database")]
     Particle(String),
+    // FIXME: Unforuntately, this error probably doesn't belong here... All of the other errors can be
+    // encountered at parse time, but this one is only triggered by a mass calculation...
     #[error("no natural abundance data could be found for {0} ({1}), though the following isotopes were found: {2:?}")]
     Abundance(String, String, Vec<MassNumber>),
 }
@@ -137,10 +138,7 @@ impl ChemicalComposition {
     // FIXME: If this isn't public API, drop the AsRef — if it is, then add it for `db`
     fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self, CompositionError> {
         let formula = formula.as_ref();
-        all_consuming(chemical_composition(db))(formula)
-            .finish()
-            .map(|(_, c)| c)
-            .map_err(|_| todo!())
+        final_parser(chemical_composition(db))(formula)
     }
 
     fn monoisotopic_mass(&self) -> Result<Decimal> {

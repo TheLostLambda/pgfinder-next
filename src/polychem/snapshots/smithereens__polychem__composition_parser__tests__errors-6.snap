@@ -1,0 +1,11 @@
+---
+source: src/polychem/composition_parser.rs
+expression: out
+---
+  × Unexpectedly ran into gibberish!
+   ╭────
+ 1 │ NH2[99Tc]O,4-2e+3p 
+   ·           ▲
+   ·           ╰── input was valid up until this point
+   ╰────
+

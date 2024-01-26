@@ -304,7 +304,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ParticleKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -317,7 +317,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ParticleKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -329,7 +329,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -341,7 +341,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -353,7 +353,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -365,7 +365,7 @@ mod tests {
         "#};
         let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[derive(Decode, Debug)]
@@ -376,7 +376,7 @@ mod tests {
         let kdl = "lossless 0.00000_00000_00000_00000_00000_0001";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -400,7 +400,7 @@ mod tests {
         let kdl = "lossless 1e-42";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -408,7 +408,7 @@ mod tests {
         let kdl = "lossless (pi)3.14";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -416,6 +416,6 @@ mod tests {
         let kdl = "lossless true";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
-        assert_miette_snapshot!(&res.unwrap_err());
+        assert_miette_snapshot!(res);
     }
 }

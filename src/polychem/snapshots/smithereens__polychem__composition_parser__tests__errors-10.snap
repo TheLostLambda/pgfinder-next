@@ -1,0 +1,14 @@
+---
+source: src/polychem/composition_parser.rs
+expression: out
+---
+  × Should a ± number and particle
+  ╰─▶   × Should be lowercase, yo
+      
+   ╭────
+ 1 │ [37Cl]5-2p+10 
+   ·              ┬
+   ·              ╰── expected lowercase
+   ╰────
+  help: Have you tried being better?
+

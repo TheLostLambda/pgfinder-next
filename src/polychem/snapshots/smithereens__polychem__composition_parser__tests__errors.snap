@@ -1,0 +1,17 @@
+---
+source: src/polychem/composition_parser.rs
+expression: out
+---
+  × Should be an element (Au) or and isotope [15N] optionally followed by
+  │ a number
+  ╰─▶   × the isotope "Tc-100" could not found in the supplied chemical
+      database
+        help: Uh, trying using something that actually exists, dumbo...
+      
+   ╭────
+ 1 │ NH2[100Tc]O4 
+   ·    ───┬───
+   ·       ╰── isotope not found
+   ╰────
+  help: Have you tried...
+

@@ -1,0 +1,15 @@
+---
+source: src/polychem/composition_parser.rs
+expression: out
+---
+  × Should a ± number and particle
+  ╰─▶   × the particle "m" could not found in the supplied chemical database
+        help: Uh, trying using something that actually exists, dumbo...
+      
+   ╭────
+ 1 │ NH2[99Tc]O4-8m+2p 
+   ·              ┬
+   ·              ╰── particle not found
+   ╰────
+  help: Have you tried being better?
+

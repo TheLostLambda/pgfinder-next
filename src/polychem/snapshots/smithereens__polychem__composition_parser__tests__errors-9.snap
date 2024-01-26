@@ -1,0 +1,14 @@
+---
+source: src/polychem/composition_parser.rs
+expression: out
+---
+  × Should a ± number and particle
+  ╰─▶   × Should be lowercase, yo
+      
+   ╭────
+ 1 │ H2O+P 
+   ·     ┬
+   ·     ╰── expected lowercase
+   ╰────
+  help: Have you tried being better?
+
