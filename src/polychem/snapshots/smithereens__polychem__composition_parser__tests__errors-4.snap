@@ -4,12 +4,12 @@ expression: out
 ---
   × Should be an element (Au) or and isotope [15N] optionally followed by
   │ a number
-  ╰─▶   × Should be uppercase, yo
+  ╰─▶   × Should be uppercase, yo or expected '[' to open isotope brackets
       
    ╭────
  1 │ xH2O 
    · ┬
-   · ╰── expected uppercase
+   · ╰── expected uppercase or '['
    ╰────
   help: Have you tried...
 

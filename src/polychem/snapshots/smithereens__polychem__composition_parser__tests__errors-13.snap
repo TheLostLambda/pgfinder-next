@@ -8,9 +8,9 @@ expression: out
         help: Just type a number...
       
    ╭────
- 1 │ C3H06N4 
-   ·    ▲
-   ·    ╰── expected non-zero
+ 1 │ [0H2O 
+   ·  ▲
+   ·  ╰── expected non-zero
    ╰────
   help: Have you tried...
 

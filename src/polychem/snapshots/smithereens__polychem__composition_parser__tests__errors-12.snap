@@ -4,13 +4,12 @@ expression: out
 ---
   × Should be an element (Au) or and isotope [15N] optionally followed by
   │ a number
-  ╰─▶   × Should be a count (can't start with a zero!)
-        help: Just type a number...
+  ╰─▶   × Mass number?
       
    ╭────
- 1 │ C3H06N4 
-   ·    ▲
-   ·    ╰── expected non-zero
+ 1 │ [H2O 
+   ·  ▲
+   ·  ╰── a number?
    ╰────
   help: Have you tried...
 

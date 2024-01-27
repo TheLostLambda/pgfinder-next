@@ -3,9 +3,11 @@
 // FIXME: Order functions in the same way as the EBNF
 
 use std::fmt;
-use std::{cmp::max, iter};
+use std::iter;
+use std::ops::Deref;
 
 use miette::{Diagnostic, LabeledSpan, SourceSpan};
+use nom::combinator::cut;
 use nom::{
     branch::alt,
     character::complete::{char, one_of, satisfy, u32},
@@ -24,44 +26,91 @@ use super::{
 
 // FIXME: Check this over, just jotting down ideas — names are awful...
 // FIXME: Move all of this error handling and context wrapping to another crate to be shared
-#[derive(Debug, Clone, Eq, PartialEq, Error)]
-#[error("{kind}")]
-pub struct CompositionError {
-    input: String,
-    // FIXME: Think about making that label dynamic?
-    span: SourceSpan,
-    // #[transparent] or something?
-    // FIXME: Hopefully `help` gets passed through this, otherwise it's a manual impl for me...
-    kind: CompositionErrorKind,
-    // Append these!
-    // Should failed alt paths be collected here?
-    #[source]
-    source: Option<Box<CompositionError>>,
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum CompositionError {
+    Node {
+        input: String,
+        // FIXME: Think about making that label dynamic?
+        span: SourceSpan,
+        // #[transparent] or something?
+        // FIXME: Hopefully `help` gets passed through this, otherwise it's a manual impl for me...
+        kind: CompositionErrorKind,
+        // Should failed alt paths be collected here?
+        source: Option<Box<CompositionError>>,
+    },
+    Branch(Vec<CompositionError>),
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Error)]
-#[error(transparent)]
-struct SubError<E>(E);
+impl fmt::Display for CompositionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CompositionError::Node { kind, .. } => write!(f, "{kind}"),
+            CompositionError::Branch(errs) => write!(f, "There were {} sub-errors", errs.len()),
+        }
+    }
+}
+
+// FIXME: Add a `use` for this?
+impl std::error::Error for CompositionError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        if let CompositionError::Node { source, .. } = self {
+            source.as_ref().map(|s| s as &dyn std::error::Error)
+        } else {
+            None
+        }
+    }
+}
+
+impl CompositionError {
+    // FIXME: Be sure to add on the "expected " prefix automatically here?
+    // FIXME: Build the whole labelled span here?
+    fn label(&self) -> Option<String> {
+        if let CompositionError::Node { kind, .. } = self {
+            kind.label().map(|l| l.to_owned())
+        } else {
+            None
+        }
+        // let label = iter::once(self.kind.label().map(|l| l.to_owned()))
+        //     .chain(self.alternatives.iter().map(Self::label))
+        //     .flatten()
+        //     .join(" or ");
+        // if !label.is_empty() {
+        //     Some(label)
+        // } else {
+        //     self.source.as_ref()?.label()
+        // }
+    }
+}
 
 impl Diagnostic for CompositionError {
     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
-        Some(&self.input)
+        // FIXME: Haha, abstract this into a function that takes a closure? Leaving None in the else branch
+        if let CompositionError::Node { input, .. } = self {
+            Some(input)
+        } else {
+            None
+        }
     }
 
     fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
         // FIXME: This should probably only print the label of the error the lowest down the stack that has a non-None
         // label — higher labels should be ignored? But float it up to the top?
         // FIXME: Unsafe indexing again, maybe drop the whole Vec<> again...
-        let label = if let Some(l) = self.kind.label() {
-            l
+
+        // FIXME: Need to find a better way to communicate that no labels should be shown than clearing
+        // the input... I should probably just have an internal flag for that... Actually, even better, have that all
+        // handled by the CompositionParseError...
+        if let CompositionError::Node { input, span, .. } = self {
+            if input.is_empty() {
+                return None;
+            }
+            Some(Box::new(iter::once(LabeledSpan::new_with_span(
+                self.label().map(|s| s.to_owned()),
+                *span,
+            ))))
         } else {
-            // FIXME: This needs to work for an arbitrary depth!
-            self.source.as_ref()?.kind.label()?
-        };
-        Some(Box::new(iter::once(LabeledSpan::new_with_span(
-            Some(label.to_string()),
-            self.span,
-        ))))
+            None
+        }
     }
 
     fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
@@ -71,18 +120,66 @@ impl Diagnostic for CompositionError {
         // FIXME: Need to actually merge errors!
         // FIXME: Shouldn't be indexing, can panic!
         // self.sources.get(0).map(|e| &e.errors[0] as &dyn Diagnostic)
-        self.source.as_ref().map(|s| s as &dyn Diagnostic)
+        match self {
+            // FIXME: I need some sort of method that maps over either branch, returning none for the other...
+            CompositionError::Node {
+                input,
+                span,
+                kind,
+                source,
+            } => {
+                dbg!("Asking for the source of ", kind);
+                source.as_ref().map(|s| s as &dyn Diagnostic)
+            }
+            CompositionError::Branch(errs) => {
+                if let CompositionError::Node { source, .. } = &errs[0] {
+                    source.as_ref().map(|s| s as &dyn Diagnostic)
+                } else {
+                    None
+                }
+            }
+        }
     }
 
     fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
-        // FIXME: Need to also merge help strings!
-        self.kind.help()
+        if let CompositionError::Node { kind, .. } = self {
+            kind.help()
+        } else {
+            None
+        }
+    }
+
+    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
+        if let CompositionError::Branch(alternatives) = self {
+            Some(Box::new(alternatives.iter().map(|e| e as &dyn Diagnostic)))
+        } else {
+            None
+        }
     }
 }
 
+// FIXME: Copy-paste hell
+// FIXME: Find out how to get rid of this whole impl
 impl Diagnostic for Box<CompositionError> {
+    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+        self.deref().source_code()
+    }
+
+    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+        self.deref().labels()
+    }
+
     fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
-        self.kind.help()
+        self.deref().help()
+    }
+
+    // FIXME: Absolutely do not copy-paste this!
+    fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
+        self.deref().diagnostic_source()
+    }
+
+    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
+        self.deref().related()
     }
 }
 
@@ -94,16 +191,9 @@ pub struct CompositionParseError<'a> {
     length: usize,
     reported: bool,
     fatal: bool,
-    // FIXME: Add a field for a label string!
     kind: CompositionErrorKind,
+    alternatives: Vec<CompositionParseError<'a>>,
     source: Option<Box<CompositionParseError<'a>>>,
-}
-
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
-enum ErrorStatus {
-    Unhandled,
-    Reported,
-    Fatal,
 }
 
 trait LabelledError {
@@ -120,6 +210,8 @@ trait LabelledError {
 // FIXME: I should do that extension trait, so I can chain methods on nom::Err<CompositionParseError>
 // FIXME: Not needed! The combinator and do the wrapping and unwrapping; impl CompositionParseError will do!
 impl<'a> CompositionParseError<'a> {
+    // FIXME: Add a version that doesn't keep the source?
+    // FIXME: Instead of all of this rebuilding with .., just take `mut self` like miette's GraphicalReportHandler
     fn kind(self, kind: CompositionErrorKind) -> Self {
         // FIXME: This erases any non-final kinds... Is that okay?
         let source = if self.reported {
@@ -131,7 +223,17 @@ impl<'a> CompositionParseError<'a> {
             kind,
             reported: true,
             source,
+            // FIXME: Boy, we really need a default constructor...
+            alternatives: Vec::new(),
             ..self
+        }
+    }
+
+    fn map_kind(self, from: CompositionErrorKind, to: CompositionErrorKind) -> Self {
+        if self.kind == from {
+            self.kind(to)
+        } else {
+            self
         }
     }
 
@@ -156,13 +258,37 @@ impl<'a> CompositionParseError<'a> {
     fn into_final_error(self, full_input: &str) -> CompositionError {
         let source = self
             .source
+            .clone()
             .map(|e| Box::new(e.into_final_error(full_input)));
-        CompositionError {
-            // Extra space allows for labels at the end of an input
-            input: format!("{full_input} "),
-            span: span_from_input(full_input, self.input, self.length),
-            kind: self.kind,
-            source,
+        let alternatives: Vec<_> = self
+            .alternatives
+            .iter()
+            .cloned()
+            .map(|e| e.into_final_error(full_input))
+            .collect();
+        if alternatives.is_empty() {
+            CompositionError::Node {
+                // Extra space allows for labels at the end of an input
+                input: format!("{full_input} "),
+                span: span_from_input(full_input, self.input, self.length),
+                kind: self.kind,
+                source,
+            }
+        } else {
+            let mut other_self = self;
+            other_self.alternatives.clear();
+            CompositionError::Branch(
+                [vec![other_self.into_final_error(full_input)], alternatives]
+                    .concat()
+                    .into_iter()
+                    .map(|mut e| {
+                        if let CompositionError::Node { ref mut input, .. } = e {
+                            input.clear()
+                        }
+                        e
+                    })
+                    .collect(),
+            )
         }
     }
 }
@@ -238,6 +364,7 @@ impl<'a> ParseError<&'a str> for CompositionParseError<'a> {
             kind: kind.into(),
             reported: false,
             fatal: false,
+            alternatives: Vec::new(),
             source: None,
         }
     }
@@ -250,6 +377,10 @@ impl<'a> ParseError<&'a str> for CompositionParseError<'a> {
         other
     }
 
+    // FIXME: Probably delete this!
+    // FIXME: Just kidding... This probably needs to the part of the trait that the sub ErrorKind implements, along
+    // with the labels, I suppose. And the from Nom error, and the from external?
+    // FIXME: But, can I just replace this function with that ErrorKind -> MyError from impl?
     fn from_char(input: &'a str, c: char) -> Self {
         Self {
             input,
@@ -257,21 +388,24 @@ impl<'a> ParseError<&'a str> for CompositionParseError<'a> {
             kind: CompositionErrorKind::Expected(c),
             reported: false,
             fatal: false,
+            alternatives: Vec::new(),
             source: None,
         }
     }
 
     // FIXME: I still need to filter out the rubbish (keep final errors) but I can just return one of the final ones
+    // FIXME: Need to finally fix this logic here...
     fn or(self, other: Self) -> Self {
-        let kind = if self.reported { self.kind } else { other.kind };
-        // FIXME: This logic is probably wrong — merging locations? Asserting they are the same?
-        let status = max(self.reported, other.reported);
-        let length = max(self.length, other.length);
+        // FIXME: Oh god...
+        let (new_self, alternative) = match (self.reported, other.reported) {
+            (true, true) => (self.clone(), vec![other.clone()]),
+            (true, false) => (self.clone(), Vec::new()),
+            _ => (other.clone(), Vec::new()),
+        };
+        let alternatives = [self.alternatives, alternative].concat();
         Self {
-            kind,
-            length,
-            reported: status,
-            ..other
+            alternatives,
+            ..new_self
         }
     }
 }
@@ -295,8 +429,10 @@ enum CompositionErrorKind {
     ExpectedLowercase,
     #[error("Should be uppercase, yo")]
     ExpectedUppercase,
+    #[diagnostic(help("Just type a number..."))]
     #[error("Should be a count (can't start with a zero!)")]
-    ExpectedCount,
+    ExpectedNoLeadingZero,
+    // FIXME: Can I get rid of this?
     #[error("Should be {0:?}, yo")]
     Expected(char),
     #[diagnostic(help("Have you tried..."))]
@@ -305,6 +441,14 @@ enum CompositionErrorKind {
     #[diagnostic(help("Have you tried being better?"))]
     #[error("Should a ± number and particle")]
     ExpectedParticleOffset,
+    #[error("expected ']' to close isotope brackets")]
+    ExpectedIsotopeEnd,
+    #[error("expected '[' to open isotope brackets")]
+    ExpectedIsotopeStart,
+    #[error("Mass number?")]
+    ExpectedMassNumber,
+    #[error("expected an element symbol")]
+    ExpectedElementSymbol,
     // ExpectedOffsetKind
     // etc...
     #[diagnostic(help("Uh, trying using something that actually exists, dumbo..."))]
@@ -336,7 +480,10 @@ impl LabelledError for CompositionErrorKind {
             Self::LookupError(ChemicalLookupError::Particle(_)) => Some("particle not found"),
             Self::ExpectedUppercase => Some("expected uppercase"),
             Self::ExpectedLowercase => Some("expected lowercase"),
-            Self::ExpectedCount => Some("expected non-zero"),
+            Self::ExpectedIsotopeStart => Some("'['"),
+            Self::ExpectedIsotopeEnd => Some("']'"),
+            Self::ExpectedMassNumber => Some("a number?"),
+            Self::ExpectedNoLeadingZero => Some("expected non-zero"),
             Self::IncompleteParse => Some("input was valid up until this point"),
             Self::Nom(_) => Some("here"),
             _ => None,
@@ -353,7 +500,10 @@ type ParseResult<'a, O> = IResult<&'a str, O, CompositionParseError<'a>>;
 
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {
-    recognize(pair(uppercase, opt(lowercase)))(i)
+    // FIXME: This should have it's own error, so it's not just uppercase...
+    report_err(recognize(pair(uppercase, opt(lowercase))), |e| {
+        e.kind(CompositionErrorKind::ExpectedElementSymbol)
+    })(i)
 }
 
 fn particle_symbol(i: &str) -> ParseResult<&str> {
@@ -362,7 +512,20 @@ fn particle_symbol(i: &str) -> ParseResult<&str> {
 
 /// Isotope = "[" , Integer , Element , "]" ;
 fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
-    delimited(char('['), pair(count, element_symbol), char(']'))(i)
+    report_err(
+        delimited(char('['), cut(pair(count, element_symbol)), cut(char(']'))),
+        |e| match e.kind {
+            // FIXME: Replace match with map_kind?
+            CompositionErrorKind::Expected('[') => {
+                e.kind(CompositionErrorKind::ExpectedIsotopeStart)
+            }
+            CompositionErrorKind::Expected(']') => e.kind(CompositionErrorKind::ExpectedIsotopeEnd),
+            CompositionErrorKind::Nom(ErrorKind::Digit) => {
+                e.kind(CompositionErrorKind::ExpectedMassNumber)
+            }
+            _ => e,
+        },
+    )(i)
 }
 
 /// Element = uppercase , [ lowercase ] ;
@@ -393,10 +556,12 @@ fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
 
 /// Count = digit - "0" , { digit } ;
 fn count(i: &str) -> ParseResult<Count> {
-    report_err(preceded(not(char('0')), u32), |e| {
+    report_err(preceded(cut(not(char('0'))), u32), |e| {
         // FIXME: Maybe change `fatal_if` just to take a nom ErrorKind? Then it does the checking itself
-        e.fatal_if(|e| e.kind == CompositionErrorKind::Nom(ErrorKind::Not))
-            .kind(CompositionErrorKind::ExpectedCount)
+        e.map_kind(
+            CompositionErrorKind::Nom(ErrorKind::Not),
+            CompositionErrorKind::ExpectedNoLeadingZero,
+        )
     })(i)
 }
 
@@ -465,6 +630,7 @@ fn lowercase(i: &str) -> ParseResult<char> {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
+    use miette::GraphicalReportHandler;
     use once_cell::sync::Lazy;
 
     use crate::polychem::testing_tools::assert_miette_snapshot;
@@ -827,7 +993,7 @@ mod tests {
         // Multiple Chemical Compositions
         check_composition_snapshot!("[37Cl]5-2p10", "10");
         check_composition_snapshot!("[2H]2O*H2O", "*H2O");
-        check_composition_snapshot!("NH2[100Tc", "[100Tc");
+        check_composition_snapshot!("NH2{100Tc", "{100Tc");
         check_composition_snapshot!("C11H12N2O2 H2O", " H2O");
     }
 
@@ -835,19 +1001,29 @@ mod tests {
     #[test]
     fn test_errors() -> miette::Result<()> {
         let mut chemical_composition = final_parser(chemical_composition(&DB));
-        // FIXME: Don't forget to uncomment or delete!
+        // Looking up non-existant isotopes, elements, and particles
         assert_miette_snapshot!(chemical_composition("NH2[100Tc]O4"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]YhO4"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]O4-8m+2p"));
-        assert_miette_snapshot!(chemical_composition("xH2O"));
+        // Starting a composition without an element or isotope
+        assert_miette_snapshot!(chemical_composition("eH2O"));
         assert_miette_snapshot!(chemical_composition("-H2O"));
-        assert_miette_snapshot!(chemical_composition("NH2[99Tc]O,4-2e+3p"));
-        // Check counts are non-zero (no leading zeroes either!)
-        assert_miette_snapshot!(chemical_composition("C3H0N4"));
-        assert_miette_snapshot!(chemical_composition("C3H06N4"));
-        assert_miette_snapshot!(chemical_composition("H2O+P"));
-        // Check labels at the end of an input
-        assert_miette_snapshot!(chemical_composition("[37Cl]5-2p+10"));
+        assert_miette_snapshot!(chemical_composition("]H2O"));
+        dbg!(chemical_composition("]H20"))?;
+
+        // assert_miette_snapshot!(chemical_composition("NH2[99Tc]O,4-2e+3p"));
+        // // Check counts are non-zero (no leading zeroes either!)
+        // assert_miette_snapshot!(chemical_composition("C3H0N4"));
+        // assert_miette_snapshot!(chemical_composition("C3H06N4"));
+        // assert_miette_snapshot!(chemical_composition("H2O+P"));
+        // // Check labels at the end of an input
+        // assert_miette_snapshot!(chemical_composition("[37Cl]5-2p+10"));
+
+        // assert_miette_snapshot!(chemical_composition("[37Cl"));
+        // assert_miette_snapshot!(chemical_composition("[H2O"));
+        // assert_miette_snapshot!(chemical_composition("[0H2O"));
+        // assert_miette_snapshot!(chemical_composition("[10H2O"));
+        // assert_miette_snapshot!(chemical_composition("[10]H2O"));
         Ok(())
     }
 }

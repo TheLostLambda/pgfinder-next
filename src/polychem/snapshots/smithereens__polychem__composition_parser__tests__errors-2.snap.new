@@ -1,0 +1,21 @@
+---
+source: src/polychem/composition_parser.rs
+assertion_line: 1006
+expression: out
+---
+  × Should be an element (Au) or and isotope [15N] optionally followed by
+  │ a number
+  ╰─▶   × the element "Yh" could not found in the supplied chemical database
+         ╭────
+       1 │ NH2[99Tc]YhO4
+         ·          ─┬
+         ·           ╰── element not found
+         ╰────
+        help: Uh, trying using something that actually exists, dumbo...
+      
+   ╭────
+ 1 │ NH2[99Tc]YhO4 
+   ·          ──
+   ╰────
+  help: Have you tried...
+
