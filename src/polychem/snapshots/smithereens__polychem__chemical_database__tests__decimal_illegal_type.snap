@@ -5,7 +5,7 @@ expression: out
   × error parsing KDL
 
 Error:   × no type for Decimal, found pi
-   ╭─[test:1:1]
+   ╭─[test:1:10]
  1 │ lossless (pi)3.14
    ·          ──┬─
    ·            ╰── unexpected type name

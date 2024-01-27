@@ -28,6 +28,8 @@ use super::{
 // FIXME: Move all of this error handling and context wrapping to another crate to be shared
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum CompositionError {
+    // FIXME: Convert to Node(CompositionError) and change top-level to ErrorTree?
+    // FIXME: Maybe diagnostic / error transparent?
     Node {
         input: String,
         // FIXME: Think about making that label dynamic?
@@ -38,6 +40,7 @@ pub enum CompositionError {
         // Should failed alt paths be collected here?
         source: Option<Box<CompositionError>>,
     },
+    // FIXME: Maybe diagnostic #[related]?
     Branch(Vec<CompositionError>),
 }
 
@@ -45,7 +48,9 @@ impl fmt::Display for CompositionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CompositionError::Node { kind, .. } => write!(f, "{kind}"),
-            CompositionError::Branch(errs) => write!(f, "There were {} sub-errors", errs.len()),
+            CompositionError::Branch(errs) => {
+                write!(f, "attemped {} parse branches unsuccessfully", errs.len())
+            }
         }
     }
 }
@@ -105,7 +110,12 @@ impl Diagnostic for CompositionError {
                 return None;
             }
             Some(Box::new(iter::once(LabeledSpan::new_with_span(
-                self.label().map(|s| s.to_owned()),
+                Some(
+                    self.label()
+                        .map(|s| s.to_owned())
+                        .unwrap_or("here".to_string()),
+                ),
+                // Some(self.label()?.to_owned()),
                 *span,
             ))))
         } else {
@@ -120,24 +130,11 @@ impl Diagnostic for CompositionError {
         // FIXME: Need to actually merge errors!
         // FIXME: Shouldn't be indexing, can panic!
         // self.sources.get(0).map(|e| &e.errors[0] as &dyn Diagnostic)
+        // FIXME: Replace with if-let
         match self {
             // FIXME: I need some sort of method that maps over either branch, returning none for the other...
-            CompositionError::Node {
-                input,
-                span,
-                kind,
-                source,
-            } => {
-                dbg!("Asking for the source of ", kind);
-                source.as_ref().map(|s| s as &dyn Diagnostic)
-            }
-            CompositionError::Branch(errs) => {
-                if let CompositionError::Node { source, .. } = &errs[0] {
-                    source.as_ref().map(|s| s as &dyn Diagnostic)
-                } else {
-                    None
-                }
-            }
+            CompositionError::Node { source, .. } => source.as_ref().map(|s| s as &dyn Diagnostic),
+            CompositionError::Branch(_) => None,
         }
     }
 
@@ -165,9 +162,9 @@ impl Diagnostic for Box<CompositionError> {
         self.deref().source_code()
     }
 
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        self.deref().labels()
-    }
+    // fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+    //     self.deref().labels()
+    // }
 
     fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
         self.deref().help()
@@ -427,7 +424,8 @@ enum CompositionErrorKind {
     // ... #[help] [#error] etc
     #[error("Should be lowercase, yo")]
     ExpectedLowercase,
-    #[error("Should be uppercase, yo")]
+    // #[diagnostic(help("Try CAPSLOCK?"))]
+    #[error("expected an uppercase ASCII letter")]
     ExpectedUppercase,
     #[diagnostic(help("Just type a number..."))]
     #[error("Should be a count (can't start with a zero!)")]
@@ -435,8 +433,8 @@ enum CompositionErrorKind {
     // FIXME: Can I get rid of this?
     #[error("Should be {0:?}, yo")]
     Expected(char),
-    #[diagnostic(help("Have you tried..."))]
-    #[error("Should be an element (Au) or and isotope [15N] optionally followed by a number")]
+    #[diagnostic(help("perhaps consider being better?"))]
+    #[error("expected an element `Au` or an isotope `[15N]` optionally followed by a number")]
     ExpectedAtomicOffset,
     #[diagnostic(help("Have you tried being better?"))]
     #[error("Should a ± number and particle")]
@@ -447,6 +445,7 @@ enum CompositionErrorKind {
     ExpectedIsotopeStart,
     #[error("Mass number?")]
     ExpectedMassNumber,
+    // #[diagnostic(help("Take a look at a periodic table, maybe?"))]
     #[error("expected an element symbol")]
     ExpectedElementSymbol,
     // ExpectedOffsetKind
@@ -478,7 +477,7 @@ impl LabelledError for CompositionErrorKind {
             Self::LookupError(ChemicalLookupError::Element(_)) => Some("element not found"),
             Self::LookupError(ChemicalLookupError::Isotope(_, _)) => Some("isotope not found"),
             Self::LookupError(ChemicalLookupError::Particle(_)) => Some("particle not found"),
-            Self::ExpectedUppercase => Some("expected uppercase"),
+            // Self::ExpectedUppercase => Some("expected uppercase"),
             Self::ExpectedLowercase => Some("expected lowercase"),
             Self::ExpectedIsotopeStart => Some("'['"),
             Self::ExpectedIsotopeEnd => Some("']'"),
@@ -1001,6 +1000,7 @@ mod tests {
     #[test]
     fn test_errors() -> miette::Result<()> {
         let mut chemical_composition = final_parser(chemical_composition(&DB));
+        chemical_composition("]H2O")?;
         // Looking up non-existant isotopes, elements, and particles
         assert_miette_snapshot!(chemical_composition("NH2[100Tc]O4"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]YhO4"));
@@ -1009,7 +1009,6 @@ mod tests {
         assert_miette_snapshot!(chemical_composition("eH2O"));
         assert_miette_snapshot!(chemical_composition("-H2O"));
         assert_miette_snapshot!(chemical_composition("]H2O"));
-        dbg!(chemical_composition("]H20"))?;
 
         // assert_miette_snapshot!(chemical_composition("NH2[99Tc]O,4-2e+3p"));
         // // Check counts are non-zero (no leading zeroes either!)
