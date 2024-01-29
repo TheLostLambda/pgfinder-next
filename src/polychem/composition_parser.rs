@@ -69,6 +69,9 @@ impl std::error::Error for CompositionError {
 impl CompositionError {
     // FIXME: Be sure to add on the "expected " prefix automatically here?
     // FIXME: Build the whole labelled span here?
+    // NOTE: I cannot (with miette) seem to attach two different labels to the same position, and they can't overlap
+    // either. If I want to retain any nested information, I'll either need to print the whole source blocks nested,
+    // or merge the strings into one label. I think I'll merge them for Branches and Nest for the others?
     fn label(&self) -> Option<String> {
         if let CompositionError::Node { kind, .. } = self {
             kind.label().map(|l| l.to_owned())
@@ -162,9 +165,9 @@ impl Diagnostic for Box<CompositionError> {
         self.deref().source_code()
     }
 
-    // fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-    //     self.deref().labels()
-    // }
+    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+        self.deref().labels()
+    }
 
     fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
         self.deref().help()
@@ -275,16 +278,14 @@ impl<'a> CompositionParseError<'a> {
             let mut other_self = self;
             other_self.alternatives.clear();
             CompositionError::Branch(
-                [vec![other_self.into_final_error(full_input)], alternatives]
-                    .concat()
-                    .into_iter()
-                    .map(|mut e| {
-                        if let CompositionError::Node { ref mut input, .. } = e {
-                            input.clear()
-                        }
-                        e
-                    })
-                    .collect(),
+                [vec![other_self.into_final_error(full_input)], alternatives].concat(), // .into_iter()
+                                                                                        // .map(|mut e| {
+                                                                                        //     if let CompositionError::Node { ref mut input, .. } = e {
+                                                                                        //         input.clear()
+                                                                                        //     }
+                                                                                        //     e
+                                                                                        // })
+                                                                                        // .collect(),
             )
         }
     }
@@ -477,7 +478,7 @@ impl LabelledError for CompositionErrorKind {
             Self::LookupError(ChemicalLookupError::Element(_)) => Some("element not found"),
             Self::LookupError(ChemicalLookupError::Isotope(_, _)) => Some("isotope not found"),
             Self::LookupError(ChemicalLookupError::Particle(_)) => Some("particle not found"),
-            // Self::ExpectedUppercase => Some("expected uppercase"),
+            Self::ExpectedUppercase => Some("expected uppercase"),
             Self::ExpectedLowercase => Some("expected lowercase"),
             Self::ExpectedIsotopeStart => Some("'['"),
             Self::ExpectedIsotopeEnd => Some("']'"),
