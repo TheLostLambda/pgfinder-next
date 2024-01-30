@@ -120,8 +120,9 @@ struct BondTarget {
     group_location: Location,
 }
 
+// FIXME: Should this really be public?
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-enum ChemicalLookupError {
+pub enum ChemicalLookupError {
     #[error("the element {0:?} could not found in the supplied chemical database")]
     Element(String),
     #[error("the isotope \"{0}-{1}\" could not found in the supplied chemical database")]

@@ -2,9 +2,7 @@
 // FIXME: Make sure to update all of the `is_err()` tests to check that the error contains the correct, rich info...
 // FIXME: Order functions in the same way as the EBNF
 
-use std::fmt;
-use std::iter;
-use std::ops::Deref;
+use std::{fmt, iter};
 
 use miette::{Diagnostic, LabeledSpan, SourceSpan};
 use nom::combinator::cut;
@@ -26,40 +24,62 @@ use super::{
 
 // FIXME: Check this over, just jotting down ideas — names are awful...
 // FIXME: Move all of this error handling and context wrapping to another crate to be shared
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum CompositionError {
-    // FIXME: Convert to Node(CompositionError) and change top-level to ErrorTree?
-    // FIXME: Maybe diagnostic / error transparent?
+#[derive(Debug, Clone, Eq, PartialEq, Error)]
+#[error("{error}")]
+pub struct CompositionError {
+    input: String,
+    // FIXME: Merge these into Option<LabeledSpan>
+    span: SourceSpan,
+    label: Option<String>,
+    error: ErrorNode,
+}
+
+// FIXME: Bleh, naming!
+#[derive(Debug, Clone, Eq, PartialEq, Error)]
+pub enum ErrorNode {
+    #[error("{kind}")]
     Node {
-        input: String,
-        // FIXME: Think about making that label dynamic?
-        span: SourceSpan,
-        // #[transparent] or something?
-        // FIXME: Hopefully `help` gets passed through this, otherwise it's a manual impl for me...
         kind: CompositionErrorKind,
-        // Should failed alt paths be collected here?
+        #[source]
         source: Option<Box<CompositionError>>,
     },
-    // FIXME: Maybe diagnostic #[related]?
+    #[error("attempted {} parse branches unsuccessfully", .0.len())]
     Branch(Vec<CompositionError>),
 }
 
-impl fmt::Display for CompositionError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            CompositionError::Node { kind, .. } => write!(f, "{kind}"),
-            CompositionError::Branch(errs) => {
-                write!(f, "attemped {} parse branches unsuccessfully", errs.len())
-            }
+impl Diagnostic for CompositionError {
+    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+        Some(&self.input)
+    }
+
+    fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
+        if let ErrorNode::Node { kind, .. } = &self.error {
+            kind.help()
+        } else {
+            None
         }
     }
-}
 
-// FIXME: Add a `use` for this?
-impl std::error::Error for CompositionError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        if let CompositionError::Node { source, .. } = self {
-            source.as_ref().map(|s| s as &dyn std::error::Error)
+    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+        // FIXME: Needing this clone?
+        Some(Box::new(iter::once(LabeledSpan::new_with_span(
+            Some(self.label.clone()?),
+            self.span,
+        ))))
+    }
+
+    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
+        if let ErrorNode::Branch(related) = &self.error {
+            Some(Box::new(related.iter().map(|e| e as &dyn Diagnostic)))
+        } else {
+            None
+        }
+    }
+
+    fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
+        // FIXME: Better way to do this?
+        if let ErrorNode::Node { source, .. } = &self.error {
+            source.as_ref().map(|e| &**e as &dyn Diagnostic)
         } else {
             None
         }
@@ -72,116 +92,132 @@ impl CompositionError {
     // NOTE: I cannot (with miette) seem to attach two different labels to the same position, and they can't overlap
     // either. If I want to retain any nested information, I'll either need to print the whole source blocks nested,
     // or merge the strings into one label. I think I'll merge them for Branches and Nest for the others?
-    fn label(&self) -> Option<String> {
-        if let CompositionError::Node { kind, .. } = self {
-            kind.label().map(|l| l.to_owned())
-        } else {
-            None
-        }
-        // let label = iter::once(self.kind.label().map(|l| l.to_owned()))
-        //     .chain(self.alternatives.iter().map(Self::label))
-        //     .flatten()
-        //     .join(" or ");
-        // if !label.is_empty() {
-        //     Some(label)
-        // } else {
-        //     self.source.as_ref()?.label()
-        // }
-    }
-}
-
-impl Diagnostic for CompositionError {
-    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
-        // FIXME: Haha, abstract this into a function that takes a closure? Leaving None in the else branch
-        if let CompositionError::Node { input, .. } = self {
-            Some(input)
-        } else {
-            None
-        }
-    }
-
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        // FIXME: This should probably only print the label of the error the lowest down the stack that has a non-None
-        // label — higher labels should be ignored? But float it up to the top?
-        // FIXME: Unsafe indexing again, maybe drop the whole Vec<> again...
-
-        // FIXME: Need to find a better way to communicate that no labels should be shown than clearing
-        // the input... I should probably just have an internal flag for that... Actually, even better, have that all
-        // handled by the CompositionParseError...
-        if let CompositionError::Node { input, span, .. } = self {
-            if input.is_empty() {
-                return None;
+    // FIXME: Is mutable best here?
+    fn bubble_labels(&mut self) {
+        dbg!(&self);
+        if let Self {
+            label: label @ None,
+            error,
+            ..
+        } = self
+        {
+            match error {
+                ErrorNode::Node {
+                    source: Some(child),
+                    ..
+                } => {
+                    child.bubble_labels();
+                    *label = child.label.take();
+                }
+                ErrorNode::Branch(alternatives) => {
+                    // FIXME: This is /probably/ more idiomatic than .for_each?
+                    let new_labels: Vec<_> = alternatives
+                        .iter_mut()
+                        .filter_map(|child| {
+                            child.bubble_labels();
+                            child.label.take()
+                        })
+                        .collect();
+                    // FIXME: Probably a better way to do this!
+                    *label = (!new_labels.is_empty()).then_some(new_labels.join(" or "));
+                }
+                ErrorNode::Node { .. } => (),
             }
-            Some(Box::new(iter::once(LabeledSpan::new_with_span(
-                Some(
-                    self.label()
-                        .map(|s| s.to_owned())
-                        .unwrap_or("here".to_string()),
-                ),
-                // Some(self.label()?.to_owned()),
-                *span,
-            ))))
-        } else {
-            None
-        }
-    }
-
-    fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
-        // Some(&self.kind)
-        // TODO: Merge all of the sources here!
-        // FIXME: Also be sure to implement for Error manually...
-        // FIXME: Need to actually merge errors!
-        // FIXME: Shouldn't be indexing, can panic!
-        // self.sources.get(0).map(|e| &e.errors[0] as &dyn Diagnostic)
-        // FIXME: Replace with if-let
-        match self {
-            // FIXME: I need some sort of method that maps over either branch, returning none for the other...
-            CompositionError::Node { source, .. } => source.as_ref().map(|s| s as &dyn Diagnostic),
-            CompositionError::Branch(_) => None,
-        }
-    }
-
-    fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
-        if let CompositionError::Node { kind, .. } = self {
-            kind.help()
-        } else {
-            None
-        }
-    }
-
-    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
-        if let CompositionError::Branch(alternatives) = self {
-            Some(Box::new(alternatives.iter().map(|e| e as &dyn Diagnostic)))
-        } else {
-            None
         }
     }
 }
+
+// impl Diagnostic for CompositionError {
+//     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+//         // FIXME: Haha, abstract this into a function that takes a closure? Leaving None in the else branch
+//         if let Self::Node { input, .. } = self {
+//             Some(input)
+//         } else {
+//             None
+//         }
+//     }
+
+//     fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+//         // FIXME: This should probably only print the label of the error the lowest down the stack that has a non-None
+//         // label — higher labels should be ignored? But float it up to the top?
+//         // FIXME: Unsafe indexing again, maybe drop the whole Vec<> again...
+
+//         // FIXME: Need to find a better way to communicate that no labels should be shown than clearing
+//         // the input... I should probably just have an internal flag for that... Actually, even better, have that all
+//         // handled by the CompositionParseError...
+//         if let Self::Node {
+//             input, span, label, ..
+//         } = self
+//         {
+//             if input.is_empty() {
+//                 return None;
+//             }
+//             Some(Box::new(iter::once(LabeledSpan::new_with_span(
+//                 // FIXME: A clone? Really?
+//                 Some(label.clone()?),
+//                 *span,
+//             ))))
+//         } else {
+//             None
+//         }
+//     }
+
+//     fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
+//         // Some(&self.kind)
+//         // TODO: Merge all of the sources here!
+//         // FIXME: Also be sure to implement for Error manually...
+//         // FIXME: Need to actually merge errors!
+//         // FIXME: Shouldn't be indexing, can panic!
+//         // self.sources.get(0).map(|e| &e.errors[0] as &dyn Diagnostic)
+//         // FIXME: Replace with if-let
+//         match self {
+//             // FIXME: I need some sort of method that maps over either branch, returning none for the other...
+//             Self::Node { source, .. } => source.as_ref().map(|s| s as &dyn Diagnostic),
+//             Self::Branch { .. } => None,
+//         }
+//     }
+
+//     fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
+//         if let Self::Node { kind, .. } = self {
+//             kind.help()
+//         } else {
+//             None
+//         }
+//     }
+
+//     fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
+//         if let Self::Branch { alternatives, .. } = self {
+//             Some(Box::new(alternatives.iter().map(|e| e as &dyn Diagnostic)))
+//         } else {
+//             None
+//         }
+//     }
+// }
 
 // FIXME: Copy-paste hell
 // FIXME: Find out how to get rid of this whole impl
-impl Diagnostic for Box<CompositionError> {
-    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
-        self.deref().source_code()
-    }
+// impl Diagnostic for Box<CompositionError> {
+//     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+//         self.deref().source_code()
+//     }
 
-    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        self.deref().labels()
-    }
+//     fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+//         self.deref().labels()
+//     }
 
-    fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
-        self.deref().help()
-    }
+//     fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
+//         self.deref().help()
+//     }
 
-    // FIXME: Absolutely do not copy-paste this!
-    fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
-        self.deref().diagnostic_source()
-    }
+//     // FIXME: Absolutely do not copy-paste this!
+//     fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
+//         self.deref().diagnostic_source()
+//     }
 
-    fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
-        self.deref().related()
-    }
-}
+//     fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
+//         self.deref().related()
+//     }
+// }
 
 // FIXME: Abstract this out into it's own module (or nom-supreme?)
 // FIXME: Check that field ordering everywhere matches this!
@@ -266,27 +302,41 @@ impl<'a> CompositionParseError<'a> {
             .cloned()
             .map(|e| e.into_final_error(full_input))
             .collect();
+        let span = span_from_input(full_input, self.input, self.length);
+        let label = self.kind.label().map(str::to_string);
+        // FIXME: WET CODE!!!
         if alternatives.is_empty() {
-            CompositionError::Node {
-                // Extra space allows for labels at the end of an input
-                input: format!("{full_input} "),
-                span: span_from_input(full_input, self.input, self.length),
-                kind: self.kind,
-                source,
+            CompositionError {
+                input: full_input.to_owned(),
+                span,
+                label,
+                error: ErrorNode::Node {
+                    // FIXME: Move this to a `with_source_code()` at the end of this function
+                    // FIXME: See if I can get rid of the space by using length-zero spans? Get rid of length 1!
+                    // Extra space allows for labels at the end of an input
+                    kind: self.kind,
+                    source,
+                },
             }
         } else {
+            // FIXME: Yuckie!
             let mut other_self = self;
             other_self.alternatives.clear();
-            CompositionError::Branch(
-                [vec![other_self.into_final_error(full_input)], alternatives].concat(), // .into_iter()
-                                                                                        // .map(|mut e| {
-                                                                                        //     if let CompositionError::Node { ref mut input, .. } = e {
-                                                                                        //         input.clear()
-                                                                                        //     }
-                                                                                        //     e
-                                                                                        // })
-                                                                                        // .collect(),
-            )
+            CompositionError {
+                input: full_input.to_owned(),
+                span,
+                label: None,
+                error: ErrorNode::Branch(
+                    [vec![other_self.into_final_error(full_input)], alternatives].concat(), // .into_iter()
+                                                                                            // .map(|mut e| {
+                                                                                            //     if let CompositionError::Node { ref mut input, .. } = e {
+                                                                                            //         input.clear()
+                                                                                            //     }
+                                                                                            //     e
+                                                                                            // })
+                                                                                            // .collect(),
+                ),
+            }
         }
     }
 }
@@ -312,11 +362,12 @@ where
     // FIXME: I can't inline this because of some borrow-checker closure witchcraft...
     let mut parser = all_consuming(complete(parser));
     move |input| {
-        parser
-            .parse(input)
-            .finish()
-            .map(|(_, c)| c)
-            .map_err(|e| e.into_final_error(input))
+        parser.parse(input).finish().map(|(_, c)| c).map_err(|e| {
+            // FIXME: Ew
+            let mut error = e.into_final_error(input);
+            error.bubble_labels();
+            error
+        })
     }
 }
 
@@ -420,12 +471,13 @@ impl<'a> FromExternalError<&'a str, ChemicalLookupError> for CompositionParseErr
 // FIXME: API guidelines, check word ordering
 // FIXME: Keep this in this file when moving all of the other parser error stuff elsewhere!
 // FIXME: Need to make all of these error messages start with lowercase and word to compose better! expected...
+// FIXME: MAKE THIS PRIVATE!
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-enum CompositionErrorKind {
+pub enum CompositionErrorKind {
     // ... #[help] [#error] etc
     #[error("Should be lowercase, yo")]
     ExpectedLowercase,
-    // #[diagnostic(help("Try CAPSLOCK?"))]
+    #[diagnostic(help("Try CAPSLOCK?"))]
     #[error("expected an uppercase ASCII letter")]
     ExpectedUppercase,
     #[diagnostic(help("Just type a number..."))]
@@ -446,7 +498,7 @@ enum CompositionErrorKind {
     ExpectedIsotopeStart,
     #[error("Mass number?")]
     ExpectedMassNumber,
-    // #[diagnostic(help("Take a look at a periodic table, maybe?"))]
+    #[diagnostic(help("Take a look at a periodic table, maybe?"))]
     #[error("expected an element symbol")]
     ExpectedElementSymbol,
     // ExpectedOffsetKind
@@ -480,6 +532,7 @@ impl LabelledError for CompositionErrorKind {
             Self::LookupError(ChemicalLookupError::Particle(_)) => Some("particle not found"),
             Self::ExpectedUppercase => Some("expected uppercase"),
             Self::ExpectedLowercase => Some("expected lowercase"),
+            Self::ExpectedElementSymbol => Some("an element symbol?"),
             Self::ExpectedIsotopeStart => Some("'['"),
             Self::ExpectedIsotopeEnd => Some("']'"),
             Self::ExpectedMassNumber => Some("a number?"),
@@ -583,6 +636,8 @@ fn atomic_offset<'a>(
 ) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     report_err(pair(alt((element(db), isotope(db))), optional_count), |e| {
+        // e
+        // FIXME: Uncomment this!
         e.kind(CompositionErrorKind::ExpectedAtomicOffset)
     })
 }
@@ -630,7 +685,6 @@ fn lowercase(i: &str) -> ParseResult<char> {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use miette::GraphicalReportHandler;
     use once_cell::sync::Lazy;
 
     use crate::polychem::testing_tools::assert_miette_snapshot;
@@ -1001,7 +1055,7 @@ mod tests {
     #[test]
     fn test_errors() -> miette::Result<()> {
         let mut chemical_composition = final_parser(chemical_composition(&DB));
-        chemical_composition("]H2O")?;
+        dbg!(chemical_composition("]H2O"))?;
         // Looking up non-existant isotopes, elements, and particles
         assert_miette_snapshot!(chemical_composition("NH2[100Tc]O4"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]YhO4"));
