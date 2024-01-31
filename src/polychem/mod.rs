@@ -123,11 +123,11 @@ struct BondTarget {
 // FIXME: Should this really be public?
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 pub enum ChemicalLookupError {
-    #[error("the element {0:?} could not found in the supplied chemical database")]
+    #[error("the element {0:?} could not be found in the supplied chemical database")]
     Element(String),
-    #[error("the isotope \"{0}-{1}\" could not found in the supplied chemical database")]
+    #[error("the isotope \"{0}-{1}\" could not be found in the supplied chemical database")]
     Isotope(String, MassNumber),
-    #[error("the particle {0:?} could not found in the supplied chemical database")]
+    #[error("the particle {0:?} could not be found in the supplied chemical database")]
     Particle(String),
     // FIXME: Unforuntately, this error probably doesn't belong here... All of the other errors can be
     // encountered at parse time, but this one is only triggered by a mass calculation...

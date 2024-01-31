@@ -12,16 +12,16 @@ phf = { version = "0.11.2", features = ["macros"] }
 rust_decimal = "1.33.1"
 rust_decimal_macros = "1.33.1"
 crepe = "0.1.8"
-polars = "0.36.2"
-serde = { version = "1.0.195", features = ["derive"] }
+polars = "0.37.0"
+serde = { version = "1.0.196", features = ["derive"] }
 memoize = "0.4.2"
-rayon = "1.8.0"
+rayon = "1.8.1"
 rkyv = "0.7.43"
 thiserror = "1.0.56"
 miette = { git = "https://github.com/TheLostLambda/miette.git", features = ["fancy"] }
 knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
 once_cell = "1.19.0"
-itertools = "0.12.0"
+itertools = "0.12.1"
 
 [dev-dependencies]
 indoc = "2.0.4"
