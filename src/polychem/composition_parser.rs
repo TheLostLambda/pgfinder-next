@@ -926,7 +926,7 @@ mod tests {
     }
 
     #[test]
-    fn test_composition_errors() -> miette::Result<()> {
+    fn test_composition_errors() {
         let mut chemical_composition = final_parser(chemical_composition(&DB));
 
         // Looking up non-existant isotopes, elements, and particles
@@ -959,7 +959,5 @@ mod tests {
 
         // Check for partially valid input
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]O,4-2e+3p"));
-
-        Ok(())
     }
 }
