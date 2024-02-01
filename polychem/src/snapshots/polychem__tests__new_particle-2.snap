@@ -1,0 +1,10 @@
+---
+source: polychem/src/lib.rs
+expression: "Particle::new(&DB, \"e\")?"
+---
+Particle {
+    symbol: "e",
+    name: "Electron",
+    mass: 0.000548579909065,
+    charge: -1,
+}

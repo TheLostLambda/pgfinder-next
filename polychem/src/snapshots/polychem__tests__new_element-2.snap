@@ -1,0 +1,7 @@
+---
+source: polychem/src/lib.rs
+description: "Element::new(&DB, \"R\")"
+expression: out
+---
+  × the element "R" could not be found in the supplied chemical database
+

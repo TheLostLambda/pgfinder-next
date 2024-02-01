@@ -1,0 +1,20 @@
+---
+source: polychem/src/composition_parser.rs
+description: "chemical_composition(\"-H2O\")"
+expression: out
+---
+  × expected an element (like Au) or an isotope (like [15N]) optionally
+  │ followed by a number
+  ╰─▶   × attempted 2 parse branches unsuccessfully
+      
+      Error:   × expected an element symbol
+        ╰─▶   × expected an uppercase ASCII letter
+      
+      Error:   × expected '[' to open isotope brackets
+      
+   ╭────
+ 1 │ -H2O 
+   · ▲
+   · ╰── expected uppercase or '['
+   ╰────
+

@@ -1,0 +1,17 @@
+---
+source: polychem/src/composition_parser.rs
+expression: "(chemical_formula, charged_particles)"
+---
+(
+    [
+        (
+            "Deuterium",
+            2,
+        ),
+        (
+            "Oxygen",
+            1,
+        ),
+    ],
+    [],
+)

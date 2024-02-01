@@ -1,0 +1,17 @@
+---
+source: polychem/src/composition_parser.rs
+description: "chemical_composition(\"H2O+P\")"
+expression: out
+---
+  × expected '+' or '-', optionally followed by a number, then a particle
+  │ (like p or e)
+  ├─▶   × expected a particle symbol
+  │   
+  ╰─▶   × expected a lowercase ASCII letter
+      
+   ╭────
+ 1 │ H2O+P 
+   ·     ▲
+   ·     ╰── expected lowercase
+   ╰────
+

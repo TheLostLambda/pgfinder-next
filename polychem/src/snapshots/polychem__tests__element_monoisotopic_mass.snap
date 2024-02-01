@@ -1,0 +1,11 @@
+---
+source: polychem/src/lib.rs
+description: "Element::new(&DB, \"Tc\")?.monoisotopic_mass()"
+expression: out
+---
+  × failed to fetch isotope abundances for monoisotopic mass calculation
+  ╰─▶   × no natural abundance data could be found for Technetium (Tc), though
+      the
+        │ following isotopes were found: [97, 98, 99]
+      
+

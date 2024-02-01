@@ -1,0 +1,4642 @@
+---
+source: polychem/src/chemical_database.rs
+expression: db
+---
+ChemicalDatabaseKdl {
+    elements: [
+        ElementKdl {
+            symbol: ElementSymbol(
+                "H",
+            ),
+            name: "Hydrogen",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 1,
+                    relative_mass: DecimalKdl(
+                        1.00782503223,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.999885,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 2,
+                    relative_mass: DecimalKdl(
+                        2.01410177812,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.000115,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 3,
+                    relative_mass: DecimalKdl(
+                        3.0160492779,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "D",
+            ),
+            name: "Deuterium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 2,
+                    relative_mass: DecimalKdl(
+                        2.01410177812,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "T",
+            ),
+            name: "Tritium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 3,
+                    relative_mass: DecimalKdl(
+                        3.0160492779,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "He",
+            ),
+            name: "Helium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 3,
+                    relative_mass: DecimalKdl(
+                        3.0160293201,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00000134,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 4,
+                    relative_mass: DecimalKdl(
+                        4.00260325413,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.99999866,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Li",
+            ),
+            name: "Lithium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 6,
+                    relative_mass: DecimalKdl(
+                        6.0151228874,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0759,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 7,
+                    relative_mass: DecimalKdl(
+                        7.0160034366,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.9241,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Be",
+            ),
+            name: "Beryllium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 9,
+                    relative_mass: DecimalKdl(
+                        9.012183065,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "B",
+            ),
+            name: "Boron",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 10,
+                    relative_mass: DecimalKdl(
+                        10.01293695,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.199,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 11,
+                    relative_mass: DecimalKdl(
+                        11.00930536,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.801,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "C",
+            ),
+            name: "Carbon",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 12,
+                    relative_mass: DecimalKdl(
+                        12.0000000,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.9893,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 13,
+                    relative_mass: DecimalKdl(
+                        13.00335483507,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0107,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 14,
+                    relative_mass: DecimalKdl(
+                        14.0032419884,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "N",
+            ),
+            name: "Nitrogen",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 14,
+                    relative_mass: DecimalKdl(
+                        14.00307400443,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.99636,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 15,
+                    relative_mass: DecimalKdl(
+                        15.00010889888,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00364,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "O",
+            ),
+            name: "Oxygen",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 16,
+                    relative_mass: DecimalKdl(
+                        15.99491461957,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.99757,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 17,
+                    relative_mass: DecimalKdl(
+                        16.99913175650,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00038,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 18,
+                    relative_mass: DecimalKdl(
+                        17.99915961286,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00205,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "F",
+            ),
+            name: "Fluorine",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 19,
+                    relative_mass: DecimalKdl(
+                        18.99840316273,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ne",
+            ),
+            name: "Neon",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 20,
+                    relative_mass: DecimalKdl(
+                        19.9924401762,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.9048,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 21,
+                    relative_mass: DecimalKdl(
+                        20.993846685,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0027,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 22,
+                    relative_mass: DecimalKdl(
+                        21.991385114,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0925,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Na",
+            ),
+            name: "Sodium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 23,
+                    relative_mass: DecimalKdl(
+                        22.9897692820,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Mg",
+            ),
+            name: "Magnesium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 24,
+                    relative_mass: DecimalKdl(
+                        23.985041697,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.7899,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 25,
+                    relative_mass: DecimalKdl(
+                        24.985836976,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1000,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 26,
+                    relative_mass: DecimalKdl(
+                        25.982592968,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1101,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Al",
+            ),
+            name: "Aluminium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 27,
+                    relative_mass: DecimalKdl(
+                        26.98153853,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Si",
+            ),
+            name: "Silicon",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 28,
+                    relative_mass: DecimalKdl(
+                        27.97692653465,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.92223,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 29,
+                    relative_mass: DecimalKdl(
+                        28.97649466490,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.04685,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 30,
+                    relative_mass: DecimalKdl(
+                        29.973770136,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.03092,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "P",
+            ),
+            name: "Phosphorus",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 31,
+                    relative_mass: DecimalKdl(
+                        30.97376199842,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "S",
+            ),
+            name: "Sulfur",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 32,
+                    relative_mass: DecimalKdl(
+                        31.9720711744,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.9499,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 33,
+                    relative_mass: DecimalKdl(
+                        32.9714589098,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0075,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 34,
+                    relative_mass: DecimalKdl(
+                        33.967867004,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0425,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 36,
+                    relative_mass: DecimalKdl(
+                        35.96708071,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0001,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Cl",
+            ),
+            name: "Chlorine",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 35,
+                    relative_mass: DecimalKdl(
+                        34.968852682,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.7576,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 37,
+                    relative_mass: DecimalKdl(
+                        36.965902602,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2424,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ar",
+            ),
+            name: "Argon",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 36,
+                    relative_mass: DecimalKdl(
+                        35.967545105,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.003336,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 38,
+                    relative_mass: DecimalKdl(
+                        37.96273211,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.000629,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 40,
+                    relative_mass: DecimalKdl(
+                        39.9623831237,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.996035,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "K",
+            ),
+            name: "Potassium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 39,
+                    relative_mass: DecimalKdl(
+                        38.9637064864,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.932581,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 40,
+                    relative_mass: DecimalKdl(
+                        39.963998166,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.000117,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 41,
+                    relative_mass: DecimalKdl(
+                        40.9618252579,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.067302,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ca",
+            ),
+            name: "Calcium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 40,
+                    relative_mass: DecimalKdl(
+                        39.962590863,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.96941,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 42,
+                    relative_mass: DecimalKdl(
+                        41.95861783,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00647,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 43,
+                    relative_mass: DecimalKdl(
+                        42.95876644,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00135,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 44,
+                    relative_mass: DecimalKdl(
+                        43.95548156,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.02086,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 46,
+                    relative_mass: DecimalKdl(
+                        45.9536890,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00004,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 48,
+                    relative_mass: DecimalKdl(
+                        47.95252276,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00187,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Sc",
+            ),
+            name: "Scandium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 45,
+                    relative_mass: DecimalKdl(
+                        44.95590828,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ti",
+            ),
+            name: "Titanium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 46,
+                    relative_mass: DecimalKdl(
+                        45.95262772,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0825,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 47,
+                    relative_mass: DecimalKdl(
+                        46.95175879,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0744,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 48,
+                    relative_mass: DecimalKdl(
+                        47.94794198,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.7372,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 49,
+                    relative_mass: DecimalKdl(
+                        48.94786568,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0541,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 50,
+                    relative_mass: DecimalKdl(
+                        49.94478689,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0518,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "V",
+            ),
+            name: "Vanadium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 50,
+                    relative_mass: DecimalKdl(
+                        49.94715601,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00250,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 51,
+                    relative_mass: DecimalKdl(
+                        50.94395704,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.99750,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Cr",
+            ),
+            name: "Chromium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 50,
+                    relative_mass: DecimalKdl(
+                        49.94604183,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.04345,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 52,
+                    relative_mass: DecimalKdl(
+                        51.94050623,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.83789,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 53,
+                    relative_mass: DecimalKdl(
+                        52.94064815,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.09501,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 54,
+                    relative_mass: DecimalKdl(
+                        53.93887916,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.02365,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Mn",
+            ),
+            name: "Manganese",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 55,
+                    relative_mass: DecimalKdl(
+                        54.93804391,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Fe",
+            ),
+            name: "Iron",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 54,
+                    relative_mass: DecimalKdl(
+                        53.93960899,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.05845,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 56,
+                    relative_mass: DecimalKdl(
+                        55.93493633,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.91754,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 57,
+                    relative_mass: DecimalKdl(
+                        56.93539284,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.02119,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 58,
+                    relative_mass: DecimalKdl(
+                        57.93327443,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00282,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Co",
+            ),
+            name: "Cobalt",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 59,
+                    relative_mass: DecimalKdl(
+                        58.93319429,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ni",
+            ),
+            name: "Nickel",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 58,
+                    relative_mass: DecimalKdl(
+                        57.93534241,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.68077,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 60,
+                    relative_mass: DecimalKdl(
+                        59.93078588,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.26223,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 61,
+                    relative_mass: DecimalKdl(
+                        60.93105557,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.011399,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 62,
+                    relative_mass: DecimalKdl(
+                        61.92834537,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.036346,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 64,
+                    relative_mass: DecimalKdl(
+                        63.92796682,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.009255,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Cu",
+            ),
+            name: "Copper",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 63,
+                    relative_mass: DecimalKdl(
+                        62.92959772,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.6915,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 65,
+                    relative_mass: DecimalKdl(
+                        64.92778970,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3085,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Zn",
+            ),
+            name: "Zinc",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 64,
+                    relative_mass: DecimalKdl(
+                        63.92914201,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.4917,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 66,
+                    relative_mass: DecimalKdl(
+                        65.92603381,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2773,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 67,
+                    relative_mass: DecimalKdl(
+                        66.92712775,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0404,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 68,
+                    relative_mass: DecimalKdl(
+                        67.92484455,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1845,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 70,
+                    relative_mass: DecimalKdl(
+                        69.9253192,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0061,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ga",
+            ),
+            name: "Gallium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 69,
+                    relative_mass: DecimalKdl(
+                        68.9255735,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.60108,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 71,
+                    relative_mass: DecimalKdl(
+                        70.92470258,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.39892,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ge",
+            ),
+            name: "Germanium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 70,
+                    relative_mass: DecimalKdl(
+                        69.92424875,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2057,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 72,
+                    relative_mass: DecimalKdl(
+                        71.922075826,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2745,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 73,
+                    relative_mass: DecimalKdl(
+                        72.923458956,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0775,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 74,
+                    relative_mass: DecimalKdl(
+                        73.921177761,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3650,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 76,
+                    relative_mass: DecimalKdl(
+                        75.921402726,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0773,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "As",
+            ),
+            name: "Arsenic",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 75,
+                    relative_mass: DecimalKdl(
+                        74.92159457,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Se",
+            ),
+            name: "Selenium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 74,
+                    relative_mass: DecimalKdl(
+                        73.922475934,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0089,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 76,
+                    relative_mass: DecimalKdl(
+                        75.919213704,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0937,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 77,
+                    relative_mass: DecimalKdl(
+                        76.919914154,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0763,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 78,
+                    relative_mass: DecimalKdl(
+                        77.91730928,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2377,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 80,
+                    relative_mass: DecimalKdl(
+                        79.9165218,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.4961,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 82,
+                    relative_mass: DecimalKdl(
+                        81.9166995,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0873,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Br",
+            ),
+            name: "Bromine",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 79,
+                    relative_mass: DecimalKdl(
+                        78.9183376,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.5069,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 81,
+                    relative_mass: DecimalKdl(
+                        80.9162897,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.4931,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Kr",
+            ),
+            name: "Krypton",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 78,
+                    relative_mass: DecimalKdl(
+                        77.92036494,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00355,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 80,
+                    relative_mass: DecimalKdl(
+                        79.91637808,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.02286,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 82,
+                    relative_mass: DecimalKdl(
+                        81.91348273,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.11593,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 83,
+                    relative_mass: DecimalKdl(
+                        82.91412716,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.11500,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 84,
+                    relative_mass: DecimalKdl(
+                        83.9114977282,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.56987,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 86,
+                    relative_mass: DecimalKdl(
+                        85.9106106269,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.17279,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Rb",
+            ),
+            name: "Rubidium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 85,
+                    relative_mass: DecimalKdl(
+                        84.9117897379,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.7217,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 87,
+                    relative_mass: DecimalKdl(
+                        86.9091805310,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2783,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Sr",
+            ),
+            name: "Strontium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 84,
+                    relative_mass: DecimalKdl(
+                        83.9134191,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0056,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 86,
+                    relative_mass: DecimalKdl(
+                        85.9092606,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0986,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 87,
+                    relative_mass: DecimalKdl(
+                        86.9088775,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0700,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 88,
+                    relative_mass: DecimalKdl(
+                        87.9056125,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.8258,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Y",
+            ),
+            name: "Yttrium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 89,
+                    relative_mass: DecimalKdl(
+                        88.9058403,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Zr",
+            ),
+            name: "Zirconium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 90,
+                    relative_mass: DecimalKdl(
+                        89.9046977,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.5145,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 91,
+                    relative_mass: DecimalKdl(
+                        90.9056396,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1122,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 92,
+                    relative_mass: DecimalKdl(
+                        91.9050347,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1715,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 94,
+                    relative_mass: DecimalKdl(
+                        93.9063108,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1738,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 96,
+                    relative_mass: DecimalKdl(
+                        95.9082714,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0280,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Nb",
+            ),
+            name: "Niobium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 93,
+                    relative_mass: DecimalKdl(
+                        92.9063730,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Mo",
+            ),
+            name: "Molybdenum",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 92,
+                    relative_mass: DecimalKdl(
+                        91.90680796,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1453,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 94,
+                    relative_mass: DecimalKdl(
+                        93.90508490,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0915,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 95,
+                    relative_mass: DecimalKdl(
+                        94.90583877,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1584,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 96,
+                    relative_mass: DecimalKdl(
+                        95.90467612,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1667,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 97,
+                    relative_mass: DecimalKdl(
+                        96.90601812,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0960,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 98,
+                    relative_mass: DecimalKdl(
+                        97.90540482,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2439,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 100,
+                    relative_mass: DecimalKdl(
+                        99.9074718,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0982,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Tc",
+            ),
+            name: "Technetium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 97,
+                    relative_mass: DecimalKdl(
+                        96.9063667,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 98,
+                    relative_mass: DecimalKdl(
+                        97.9072124,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 99,
+                    relative_mass: DecimalKdl(
+                        98.9062508,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ru",
+            ),
+            name: "Ruthenium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 96,
+                    relative_mass: DecimalKdl(
+                        95.90759025,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0554,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 98,
+                    relative_mass: DecimalKdl(
+                        97.9052868,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0187,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 99,
+                    relative_mass: DecimalKdl(
+                        98.9059341,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1276,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 100,
+                    relative_mass: DecimalKdl(
+                        99.9042143,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1260,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 101,
+                    relative_mass: DecimalKdl(
+                        100.9055769,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1706,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 102,
+                    relative_mass: DecimalKdl(
+                        101.9043441,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3155,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 104,
+                    relative_mass: DecimalKdl(
+                        103.9054275,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1862,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Rh",
+            ),
+            name: "Rhodium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 103,
+                    relative_mass: DecimalKdl(
+                        102.9054980,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Pd",
+            ),
+            name: "Palladium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 102,
+                    relative_mass: DecimalKdl(
+                        101.9056022,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0102,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 104,
+                    relative_mass: DecimalKdl(
+                        103.9040305,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1114,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 105,
+                    relative_mass: DecimalKdl(
+                        104.9050796,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2233,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 106,
+                    relative_mass: DecimalKdl(
+                        105.9034804,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2733,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 108,
+                    relative_mass: DecimalKdl(
+                        107.9038916,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2646,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 110,
+                    relative_mass: DecimalKdl(
+                        109.90517220,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1172,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ag",
+            ),
+            name: "Silver",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 107,
+                    relative_mass: DecimalKdl(
+                        106.9050916,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.51839,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 109,
+                    relative_mass: DecimalKdl(
+                        108.9047553,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.48161,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Cd",
+            ),
+            name: "Cadmium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 106,
+                    relative_mass: DecimalKdl(
+                        105.9064599,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0125,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 108,
+                    relative_mass: DecimalKdl(
+                        107.9041834,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0089,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 110,
+                    relative_mass: DecimalKdl(
+                        109.90300661,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1249,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 111,
+                    relative_mass: DecimalKdl(
+                        110.90418287,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1280,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 112,
+                    relative_mass: DecimalKdl(
+                        111.90276287,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2413,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 113,
+                    relative_mass: DecimalKdl(
+                        112.90440813,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1222,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 114,
+                    relative_mass: DecimalKdl(
+                        113.90336509,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2873,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 116,
+                    relative_mass: DecimalKdl(
+                        115.90476315,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0749,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "In",
+            ),
+            name: "Indium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 113,
+                    relative_mass: DecimalKdl(
+                        112.90406184,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0429,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 115,
+                    relative_mass: DecimalKdl(
+                        114.903878776,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.9571,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Sn",
+            ),
+            name: "Tin",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 112,
+                    relative_mass: DecimalKdl(
+                        111.90482387,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0097,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 114,
+                    relative_mass: DecimalKdl(
+                        113.9027827,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0066,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 115,
+                    relative_mass: DecimalKdl(
+                        114.903344699,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0034,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 116,
+                    relative_mass: DecimalKdl(
+                        115.90174280,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1454,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 117,
+                    relative_mass: DecimalKdl(
+                        116.90295398,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0768,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 118,
+                    relative_mass: DecimalKdl(
+                        117.90160657,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2422,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 119,
+                    relative_mass: DecimalKdl(
+                        118.90331117,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0859,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 120,
+                    relative_mass: DecimalKdl(
+                        119.90220163,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3258,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 122,
+                    relative_mass: DecimalKdl(
+                        121.9034438,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0463,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 124,
+                    relative_mass: DecimalKdl(
+                        123.9052766,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0579,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Sb",
+            ),
+            name: "Antimony",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 121,
+                    relative_mass: DecimalKdl(
+                        120.9038120,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.5721,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 123,
+                    relative_mass: DecimalKdl(
+                        122.9042132,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.4279,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Te",
+            ),
+            name: "Tellurium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 120,
+                    relative_mass: DecimalKdl(
+                        119.9040593,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0009,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 122,
+                    relative_mass: DecimalKdl(
+                        121.9030435,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0255,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 123,
+                    relative_mass: DecimalKdl(
+                        122.9042698,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0089,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 124,
+                    relative_mass: DecimalKdl(
+                        123.9028171,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0474,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 125,
+                    relative_mass: DecimalKdl(
+                        124.9044299,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0707,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 126,
+                    relative_mass: DecimalKdl(
+                        125.9033109,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1884,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 128,
+                    relative_mass: DecimalKdl(
+                        127.90446128,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3174,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 130,
+                    relative_mass: DecimalKdl(
+                        129.906222748,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3408,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "I",
+            ),
+            name: "Iodine",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 127,
+                    relative_mass: DecimalKdl(
+                        126.9044719,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Xe",
+            ),
+            name: "Xenon",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 124,
+                    relative_mass: DecimalKdl(
+                        123.9058920,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.000952,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 126,
+                    relative_mass: DecimalKdl(
+                        125.9042983,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.000890,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 128,
+                    relative_mass: DecimalKdl(
+                        127.9035310,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.019102,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 129,
+                    relative_mass: DecimalKdl(
+                        128.9047808611,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.264006,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 130,
+                    relative_mass: DecimalKdl(
+                        129.903509349,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.040710,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 131,
+                    relative_mass: DecimalKdl(
+                        130.90508406,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.212324,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 132,
+                    relative_mass: DecimalKdl(
+                        131.9041550856,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.269086,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 134,
+                    relative_mass: DecimalKdl(
+                        133.90539466,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.104357,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 136,
+                    relative_mass: DecimalKdl(
+                        135.907214484,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.088573,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Cs",
+            ),
+            name: "Cesium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 133,
+                    relative_mass: DecimalKdl(
+                        132.9054519610,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ba",
+            ),
+            name: "Barium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 130,
+                    relative_mass: DecimalKdl(
+                        129.9063207,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00106,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 132,
+                    relative_mass: DecimalKdl(
+                        131.9050611,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00101,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 134,
+                    relative_mass: DecimalKdl(
+                        133.90450818,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.02417,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 135,
+                    relative_mass: DecimalKdl(
+                        134.90568838,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.06592,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 136,
+                    relative_mass: DecimalKdl(
+                        135.90457573,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.07854,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 137,
+                    relative_mass: DecimalKdl(
+                        136.90582714,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.11232,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 138,
+                    relative_mass: DecimalKdl(
+                        137.90524700,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.71698,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "La",
+            ),
+            name: "Lanthanum",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 138,
+                    relative_mass: DecimalKdl(
+                        137.9071149,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0008881,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 139,
+                    relative_mass: DecimalKdl(
+                        138.9063563,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.9991119,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ce",
+            ),
+            name: "Cerium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 136,
+                    relative_mass: DecimalKdl(
+                        135.90712921,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00185,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 138,
+                    relative_mass: DecimalKdl(
+                        137.905991,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00251,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 140,
+                    relative_mass: DecimalKdl(
+                        139.9054431,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.88450,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 142,
+                    relative_mass: DecimalKdl(
+                        141.9092504,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.11114,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Pr",
+            ),
+            name: "Praseodymium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 141,
+                    relative_mass: DecimalKdl(
+                        140.9076576,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Nd",
+            ),
+            name: "Neodymium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 142,
+                    relative_mass: DecimalKdl(
+                        141.9077290,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.27152,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 143,
+                    relative_mass: DecimalKdl(
+                        142.9098200,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.12174,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 144,
+                    relative_mass: DecimalKdl(
+                        143.9100930,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.23798,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 145,
+                    relative_mass: DecimalKdl(
+                        144.9125793,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.08293,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 146,
+                    relative_mass: DecimalKdl(
+                        145.9131226,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.17189,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 148,
+                    relative_mass: DecimalKdl(
+                        147.9168993,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.05756,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 150,
+                    relative_mass: DecimalKdl(
+                        149.9209022,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.05638,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Pm",
+            ),
+            name: "Promethium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 145,
+                    relative_mass: DecimalKdl(
+                        144.9127559,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 147,
+                    relative_mass: DecimalKdl(
+                        146.9151450,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Sm",
+            ),
+            name: "Samarium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 144,
+                    relative_mass: DecimalKdl(
+                        143.9120065,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0307,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 147,
+                    relative_mass: DecimalKdl(
+                        146.9149044,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1499,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 148,
+                    relative_mass: DecimalKdl(
+                        147.9148292,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1124,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 149,
+                    relative_mass: DecimalKdl(
+                        148.9171921,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1382,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 150,
+                    relative_mass: DecimalKdl(
+                        149.9172829,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0738,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 152,
+                    relative_mass: DecimalKdl(
+                        151.9197397,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2675,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 154,
+                    relative_mass: DecimalKdl(
+                        153.9222169,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2275,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Eu",
+            ),
+            name: "Europium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 151,
+                    relative_mass: DecimalKdl(
+                        150.9198578,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.4781,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 153,
+                    relative_mass: DecimalKdl(
+                        152.9212380,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.5219,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Gd",
+            ),
+            name: "Gadolinium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 152,
+                    relative_mass: DecimalKdl(
+                        151.9197995,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0020,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 154,
+                    relative_mass: DecimalKdl(
+                        153.9208741,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0218,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 155,
+                    relative_mass: DecimalKdl(
+                        154.9226305,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1480,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 156,
+                    relative_mass: DecimalKdl(
+                        155.9221312,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2047,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 157,
+                    relative_mass: DecimalKdl(
+                        156.9239686,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1565,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 158,
+                    relative_mass: DecimalKdl(
+                        157.9241123,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2484,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 160,
+                    relative_mass: DecimalKdl(
+                        159.9270624,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2186,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Tb",
+            ),
+            name: "Terbium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 159,
+                    relative_mass: DecimalKdl(
+                        158.9253547,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Dy",
+            ),
+            name: "Dysprosium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 156,
+                    relative_mass: DecimalKdl(
+                        155.9242847,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00056,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 158,
+                    relative_mass: DecimalKdl(
+                        157.9244159,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00095,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 160,
+                    relative_mass: DecimalKdl(
+                        159.9252046,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.02329,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 161,
+                    relative_mass: DecimalKdl(
+                        160.9269405,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.18889,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 162,
+                    relative_mass: DecimalKdl(
+                        161.9268056,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.25475,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 163,
+                    relative_mass: DecimalKdl(
+                        162.9287383,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.24896,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 164,
+                    relative_mass: DecimalKdl(
+                        163.9291819,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.28260,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ho",
+            ),
+            name: "Holmium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 165,
+                    relative_mass: DecimalKdl(
+                        164.9303288,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Er",
+            ),
+            name: "Erbium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 162,
+                    relative_mass: DecimalKdl(
+                        161.9287884,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00139,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 164,
+                    relative_mass: DecimalKdl(
+                        163.9292088,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.01601,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 166,
+                    relative_mass: DecimalKdl(
+                        165.9302995,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.33503,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 167,
+                    relative_mass: DecimalKdl(
+                        166.9320546,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.22869,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 168,
+                    relative_mass: DecimalKdl(
+                        167.9323767,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.26978,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 170,
+                    relative_mass: DecimalKdl(
+                        169.9354702,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.14910,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Tm",
+            ),
+            name: "Thulium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 169,
+                    relative_mass: DecimalKdl(
+                        168.9342179,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Yb",
+            ),
+            name: "Ytterbium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 168,
+                    relative_mass: DecimalKdl(
+                        167.9338896,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00123,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 170,
+                    relative_mass: DecimalKdl(
+                        169.9347664,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.02982,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 171,
+                    relative_mass: DecimalKdl(
+                        170.9363302,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1409,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 172,
+                    relative_mass: DecimalKdl(
+                        171.9363859,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2168,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 173,
+                    relative_mass: DecimalKdl(
+                        172.9382151,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.16103,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 174,
+                    relative_mass: DecimalKdl(
+                        173.9388664,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.32026,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 176,
+                    relative_mass: DecimalKdl(
+                        175.9425764,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.12996,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Lu",
+            ),
+            name: "Lutetium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 175,
+                    relative_mass: DecimalKdl(
+                        174.9407752,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.97401,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 176,
+                    relative_mass: DecimalKdl(
+                        175.9426897,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.02599,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Hf",
+            ),
+            name: "Hafnium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 174,
+                    relative_mass: DecimalKdl(
+                        173.9400461,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0016,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 176,
+                    relative_mass: DecimalKdl(
+                        175.9414076,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0526,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 177,
+                    relative_mass: DecimalKdl(
+                        176.9432277,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1860,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 178,
+                    relative_mass: DecimalKdl(
+                        177.9437058,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2728,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 179,
+                    relative_mass: DecimalKdl(
+                        178.9458232,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1362,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 180,
+                    relative_mass: DecimalKdl(
+                        179.9465570,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3508,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ta",
+            ),
+            name: "Tantalum",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 180,
+                    relative_mass: DecimalKdl(
+                        179.9474648,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0001201,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 181,
+                    relative_mass: DecimalKdl(
+                        180.9479958,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.9998799,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "W",
+            ),
+            name: "Tungsten",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 180,
+                    relative_mass: DecimalKdl(
+                        179.9467108,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0012,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 182,
+                    relative_mass: DecimalKdl(
+                        181.94820394,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2650,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 183,
+                    relative_mass: DecimalKdl(
+                        182.95022275,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1431,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 184,
+                    relative_mass: DecimalKdl(
+                        183.95093092,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3064,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 186,
+                    relative_mass: DecimalKdl(
+                        185.9543628,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2843,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Re",
+            ),
+            name: "Rhenium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 185,
+                    relative_mass: DecimalKdl(
+                        184.9529545,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3740,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 187,
+                    relative_mass: DecimalKdl(
+                        186.9557501,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.6260,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Os",
+            ),
+            name: "Osmium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 184,
+                    relative_mass: DecimalKdl(
+                        183.9524885,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0002,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 186,
+                    relative_mass: DecimalKdl(
+                        185.9538350,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0159,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 187,
+                    relative_mass: DecimalKdl(
+                        186.9557474,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0196,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 188,
+                    relative_mass: DecimalKdl(
+                        187.9558352,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1324,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 189,
+                    relative_mass: DecimalKdl(
+                        188.9581442,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1615,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 190,
+                    relative_mass: DecimalKdl(
+                        189.9584437,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2626,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 192,
+                    relative_mass: DecimalKdl(
+                        191.9614770,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.4078,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ir",
+            ),
+            name: "Iridium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 191,
+                    relative_mass: DecimalKdl(
+                        190.9605893,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.373,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 193,
+                    relative_mass: DecimalKdl(
+                        192.9629216,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.627,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Pt",
+            ),
+            name: "Platinum",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 190,
+                    relative_mass: DecimalKdl(
+                        189.9599297,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00012,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 192,
+                    relative_mass: DecimalKdl(
+                        191.9610387,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.00782,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 194,
+                    relative_mass: DecimalKdl(
+                        193.9626809,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3286,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 195,
+                    relative_mass: DecimalKdl(
+                        194.9647917,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.3378,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 196,
+                    relative_mass: DecimalKdl(
+                        195.96495209,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2521,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 198,
+                    relative_mass: DecimalKdl(
+                        197.9678949,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.07356,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Au",
+            ),
+            name: "Gold",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 197,
+                    relative_mass: DecimalKdl(
+                        196.96656879,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Hg",
+            ),
+            name: "Mercury",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 196,
+                    relative_mass: DecimalKdl(
+                        195.9658326,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0015,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 198,
+                    relative_mass: DecimalKdl(
+                        197.96676860,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0997,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 199,
+                    relative_mass: DecimalKdl(
+                        198.96828064,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1687,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 200,
+                    relative_mass: DecimalKdl(
+                        199.96832659,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2310,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 201,
+                    relative_mass: DecimalKdl(
+                        200.97030284,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.1318,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 202,
+                    relative_mass: DecimalKdl(
+                        201.97064340,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2986,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 204,
+                    relative_mass: DecimalKdl(
+                        203.97349398,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.0687,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Tl",
+            ),
+            name: "Thallium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 203,
+                    relative_mass: DecimalKdl(
+                        202.9723446,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.2952,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 205,
+                    relative_mass: DecimalKdl(
+                        204.9744278,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.7048,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Pb",
+            ),
+            name: "Lead",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 204,
+                    relative_mass: DecimalKdl(
+                        203.9730440,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.014,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 206,
+                    relative_mass: DecimalKdl(
+                        205.9744657,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.241,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 207,
+                    relative_mass: DecimalKdl(
+                        206.9758973,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.221,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 208,
+                    relative_mass: DecimalKdl(
+                        207.9766525,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.524,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Bi",
+            ),
+            name: "Bismuth",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 209,
+                    relative_mass: DecimalKdl(
+                        208.9803991,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Po",
+            ),
+            name: "Polonium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 209,
+                    relative_mass: DecimalKdl(
+                        208.9824308,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 210,
+                    relative_mass: DecimalKdl(
+                        209.9828741,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "At",
+            ),
+            name: "Astatine",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 210,
+                    relative_mass: DecimalKdl(
+                        209.9871479,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 211,
+                    relative_mass: DecimalKdl(
+                        210.9874966,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Rn",
+            ),
+            name: "Radon",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 211,
+                    relative_mass: DecimalKdl(
+                        210.9906011,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 220,
+                    relative_mass: DecimalKdl(
+                        220.0113941,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 222,
+                    relative_mass: DecimalKdl(
+                        222.0175782,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Fr",
+            ),
+            name: "Francium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 223,
+                    relative_mass: DecimalKdl(
+                        223.0197360,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ra",
+            ),
+            name: "Radium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 223,
+                    relative_mass: DecimalKdl(
+                        223.0185023,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 224,
+                    relative_mass: DecimalKdl(
+                        224.0202120,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 226,
+                    relative_mass: DecimalKdl(
+                        226.0254103,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 228,
+                    relative_mass: DecimalKdl(
+                        228.0310707,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ac",
+            ),
+            name: "Actinium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 227,
+                    relative_mass: DecimalKdl(
+                        227.0277523,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Th",
+            ),
+            name: "Thorium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 230,
+                    relative_mass: DecimalKdl(
+                        230.0331341,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 232,
+                    relative_mass: DecimalKdl(
+                        232.0380558,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Pa",
+            ),
+            name: "Protactinium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 231,
+                    relative_mass: DecimalKdl(
+                        231.0358842,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            1,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "U",
+            ),
+            name: "Uranium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 233,
+                    relative_mass: DecimalKdl(
+                        233.0396355,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 234,
+                    relative_mass: DecimalKdl(
+                        234.0409523,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.000054,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 235,
+                    relative_mass: DecimalKdl(
+                        235.0439301,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.007204,
+                        ),
+                    ),
+                },
+                IsotopeKdl {
+                    mass_number: 236,
+                    relative_mass: DecimalKdl(
+                        236.0455682,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 238,
+                    relative_mass: DecimalKdl(
+                        238.0507884,
+                    ),
+                    abundance: Some(
+                        DecimalKdl(
+                            0.992742,
+                        ),
+                    ),
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Np",
+            ),
+            name: "Neptunium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 236,
+                    relative_mass: DecimalKdl(
+                        236.046570,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 237,
+                    relative_mass: DecimalKdl(
+                        237.0481736,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Pu",
+            ),
+            name: "Plutonium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 238,
+                    relative_mass: DecimalKdl(
+                        238.0495601,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 239,
+                    relative_mass: DecimalKdl(
+                        239.0521636,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 240,
+                    relative_mass: DecimalKdl(
+                        240.0538138,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 241,
+                    relative_mass: DecimalKdl(
+                        241.0568517,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 242,
+                    relative_mass: DecimalKdl(
+                        242.0587428,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 244,
+                    relative_mass: DecimalKdl(
+                        244.0642053,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Am",
+            ),
+            name: "Americium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 241,
+                    relative_mass: DecimalKdl(
+                        241.0568293,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 243,
+                    relative_mass: DecimalKdl(
+                        243.0613813,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Cm",
+            ),
+            name: "Curium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 243,
+                    relative_mass: DecimalKdl(
+                        243.0613893,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 244,
+                    relative_mass: DecimalKdl(
+                        244.0627528,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 245,
+                    relative_mass: DecimalKdl(
+                        245.0654915,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 246,
+                    relative_mass: DecimalKdl(
+                        246.0672238,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 247,
+                    relative_mass: DecimalKdl(
+                        247.0703541,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 248,
+                    relative_mass: DecimalKdl(
+                        248.0723499,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Bk",
+            ),
+            name: "Berkelium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 247,
+                    relative_mass: DecimalKdl(
+                        247.0703073,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 249,
+                    relative_mass: DecimalKdl(
+                        249.0749877,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Cf",
+            ),
+            name: "Californium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 249,
+                    relative_mass: DecimalKdl(
+                        249.0748539,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 250,
+                    relative_mass: DecimalKdl(
+                        250.0764062,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 251,
+                    relative_mass: DecimalKdl(
+                        251.0795886,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 252,
+                    relative_mass: DecimalKdl(
+                        252.0816272,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Es",
+            ),
+            name: "Einsteinium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 252,
+                    relative_mass: DecimalKdl(
+                        252.082980,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Fm",
+            ),
+            name: "Fermium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 257,
+                    relative_mass: DecimalKdl(
+                        257.0951061,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Md",
+            ),
+            name: "Mendelevium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 258,
+                    relative_mass: DecimalKdl(
+                        258.0984315,
+                    ),
+                    abundance: None,
+                },
+                IsotopeKdl {
+                    mass_number: 260,
+                    relative_mass: DecimalKdl(
+                        260.10365,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "No",
+            ),
+            name: "Nobelium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 259,
+                    relative_mass: DecimalKdl(
+                        259.10103,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Lr",
+            ),
+            name: "Lawrencium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 262,
+                    relative_mass: DecimalKdl(
+                        262.10961,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Rf",
+            ),
+            name: "Rutherfordium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 267,
+                    relative_mass: DecimalKdl(
+                        267.12179,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Db",
+            ),
+            name: "Dubnium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 268,
+                    relative_mass: DecimalKdl(
+                        268.12567,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Sg",
+            ),
+            name: "Seaborgium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 271,
+                    relative_mass: DecimalKdl(
+                        271.13393,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Bh",
+            ),
+            name: "Bohrium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 272,
+                    relative_mass: DecimalKdl(
+                        272.13826,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Hs",
+            ),
+            name: "Hassium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 270,
+                    relative_mass: DecimalKdl(
+                        270.13429,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Mt",
+            ),
+            name: "Meitnerium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 276,
+                    relative_mass: DecimalKdl(
+                        276.15159,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ds",
+            ),
+            name: "Darmstadtium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 281,
+                    relative_mass: DecimalKdl(
+                        281.16451,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Rg",
+            ),
+            name: "Roentgenium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 280,
+                    relative_mass: DecimalKdl(
+                        280.16514,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Cn",
+            ),
+            name: "Copernicium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 285,
+                    relative_mass: DecimalKdl(
+                        285.17712,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Nh",
+            ),
+            name: "Nihonium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 284,
+                    relative_mass: DecimalKdl(
+                        284.17873,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Fl",
+            ),
+            name: "Flerovium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 289,
+                    relative_mass: DecimalKdl(
+                        289.19042,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Mc",
+            ),
+            name: "Moscovium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 288,
+                    relative_mass: DecimalKdl(
+                        288.19274,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Lv",
+            ),
+            name: "Livermorium",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 293,
+                    relative_mass: DecimalKdl(
+                        293.20449,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Ts",
+            ),
+            name: "Tennessine",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 292,
+                    relative_mass: DecimalKdl(
+                        292.20746,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+        ElementKdl {
+            symbol: ElementSymbol(
+                "Og",
+            ),
+            name: "Oganesson",
+            isotopes: [
+                IsotopeKdl {
+                    mass_number: 294,
+                    relative_mass: DecimalKdl(
+                        294.21392,
+                    ),
+                    abundance: None,
+                },
+            ],
+        },
+    ],
+    particles: [
+        ParticleKdl {
+            symbol: ParticleSymbol(
+                "p",
+            ),
+            name: "Proton",
+            mass: DecimalKdl(
+                1.007276466621,
+            ),
+            charge: 1,
+        },
+        ParticleKdl {
+            symbol: ParticleSymbol(
+                "e",
+            ),
+            name: "Electron",
+            mass: DecimalKdl(
+                0.000548579909065,
+            ),
+            charge: -1,
+        },
+    ],
+}

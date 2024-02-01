@@ -1,0 +1,16 @@
+---
+source: polychem/src/chemical_database.rs
+description: res
+expression: out
+---
+  × error parsing KDL
+
+Error:   × expected a single uppercase ASCII letter optionally followed by a
+  │ lowercase ASCII letter, got "DT"
+   ╭─[test:1:1]
+ 1 │ DT "Deuterium" {
+   · ─┬
+   ·  ╰── invalid value
+ 2 │   isotope 2 2.01410177812 1
+   ╰────
+

@@ -1,0 +1,14 @@
+---
+source: polychem/src/composition_parser.rs
+description: "chemical_composition(\"NH2[99Tc]O,4-2e+3p\")"
+expression: out
+---
+  × could not interpret the full input as a valid chemical composition
+   ╭────
+ 1 │ NH2[99Tc]O,4-2e+3p 
+   ·           ▲
+   ·           ╰── input was valid up until this point
+   ╰────
+  help: check the unparsed region for errors, or remove it from the rest of
+        the composition
+

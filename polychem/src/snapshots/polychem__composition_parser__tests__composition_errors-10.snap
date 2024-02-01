@@ -1,0 +1,15 @@
+---
+source: polychem/src/composition_parser.rs
+description: "chemical_composition(\"[H2O\")"
+expression: out
+---
+  × expected an element (like Au) or an isotope (like [15N]) optionally
+  │ followed by a number
+  ╰─▶   × expected an isotopic mass number
+      
+   ╭────
+ 1 │ [H2O 
+   ·  ▲
+   ·  ╰── expected a number
+   ╰────
+
