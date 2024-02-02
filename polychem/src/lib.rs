@@ -439,29 +439,64 @@ mod tests {
         Ok(())
     }
 
-    // FIXME: Messy! Give this a good second pass! Needs isotopes and particles tested!
-    // FIXME: Test the monoisotopic and average masses separately — charges too
     #[test]
-    fn compound_masses() -> Result<()> {
+    fn composition_monoisotopic_mass() -> Result<()> {
         // The masses here have been checked against https://mstools.epfl.ch/info/
         let water = ChemicalComposition::new(&DB, "H2O")?;
         assert_eq!(water.monoisotopic_mass()?, dec!(18.01056468403));
-        assert_eq!(water.average_mass()?, dec!(18.01528643242983260));
         let trp_residue = ChemicalComposition::new(&DB, "C11H10ON2")?;
         assert_eq!(trp_residue.monoisotopic_mass()?, dec!(186.07931295073));
-        assert_eq!(trp_residue.average_mass()?, dec!(186.21031375185538640));
-        // Testing with proton offsets for adducts
-        let ca = ChemicalComposition::new(&DB, "Ca-2p")?;
-        assert_eq!(ca.monoisotopic_mass()?, dec!(37.948037929758));
-        assert_eq!(ca.average_mass()?, dec!(38.06346957777573));
-        let k = ChemicalComposition::new(&DB, "K-p")?;
-        assert_eq!(k.monoisotopic_mass()?, dec!(37.956430019779));
-        assert_eq!(k.average_mass()?, dec!(38.0910244434650062));
+        let trp_isotopes = ChemicalComposition::new(&DB, "[13C]11H10O[15N]2")?;
+        assert_eq!(trp_isotopes.monoisotopic_mass()?, dec!(199.1102859254));
+        let gm_aeja = ChemicalComposition::new(&DB, "C37H63N7O21+p")?;
+        assert_eq!(gm_aeja.monoisotopic_mass()?, dec!(942.414978539091));
+
+        // Testing with proton offsets for adducts (checked against https://www.unimod.org/modifications_list.php)
+        let p2 = ChemicalComposition::new(&DB, "2p")?;
+        let ca2 = ChemicalComposition::new(&DB, "Ca-2e")?;
+        assert_eq!(
+            ca2.monoisotopic_mass()? - p2.monoisotopic_mass()?,
+            dec!(37.946940769939870)
+        );
+        let p1 = ChemicalComposition::new(&DB, "p")?;
+        let k1 = ChemicalComposition::new(&DB, "K-e")?;
+        assert_eq!(
+            k1.monoisotopic_mass()? - p1.monoisotopic_mass()?,
+            dec!(37.955881439869935)
+        );
         Ok(())
     }
 
     #[test]
-    fn compound_charges() -> Result<()> {
+    fn composition_average_mass() -> Result<()> {
+        // The masses here have been checked against https://mstools.epfl.ch/info/
+        let water = ChemicalComposition::new(&DB, "H2O")?;
+        assert_eq!(water.average_mass()?, dec!(18.01528643242983260));
+        let trp_residue = ChemicalComposition::new(&DB, "C11H10ON2")?;
+        assert_eq!(trp_residue.average_mass()?, dec!(186.21031375185538640));
+        let trp_isotopes = ChemicalComposition::new(&DB, "[13C]11H10O[15N]2")?;
+        assert_eq!(trp_isotopes.average_mass()?, dec!(199.11593344840605140));
+        let gm_aeja = ChemicalComposition::new(&DB, "C37H63N7O21+p")?;
+        assert_eq!(gm_aeja.average_mass()?, dec!(942.93919804214360795));
+
+        // Testing with proton offsets for adducts (checked against https://www.unimod.org/modifications_list.php)
+        let p2 = ChemicalComposition::new(&DB, "2p")?;
+        let ca2 = ChemicalComposition::new(&DB, "Ca-2e")?;
+        assert_eq!(
+            ca2.average_mass()? - p2.average_mass()?,
+            dec!(38.062372417957600)
+        );
+        let p1 = ChemicalComposition::new(&DB, "p")?;
+        let k1 = ChemicalComposition::new(&DB, "K-e")?;
+        assert_eq!(
+            k1.average_mass()? - p1.average_mass()?,
+            dec!(38.0904758635559412)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn composition_charges() -> Result<()> {
         // Return charge 0 for compositions without particle offsets
         assert_eq!(ChemicalComposition::new(&DB, "Ca")?.charge(), 0);
         // Get the charges for chemical formulae with particle offsets

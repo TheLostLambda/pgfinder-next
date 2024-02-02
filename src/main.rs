@@ -24,7 +24,7 @@ fn molecule_info(formula: &str) -> Result<String, PolychemError> {
     let molecule = ChemicalComposition::new(&DB, formula)?;
 
     let mono_mass = molecule.monoisotopic_mass()?.round_dp(6);
-    let avg_mass = molecule.average_mass()?.round_dp(6);
+    let avg_mass = molecule.average_mass()?.round_dp(4);
     let charge = molecule.charge();
 
     writeln!(buf, "Monoisotopic Mass: {mono_mass}").unwrap();
