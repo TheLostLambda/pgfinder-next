@@ -50,8 +50,9 @@ Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
 Multiplier = Count , "x" ;
 
 Chemical Composition
-  = { Atomic Offset }- , [ ( "+" | "-" ) , Particle Offset ]
+  = { Atomic Offset }-
   | Particle Offset
+  | { Atomic Offset }- , ( "+" | "-" ) , Particle Offset
   ;
 
 Crosslink Descriptor = position ,
