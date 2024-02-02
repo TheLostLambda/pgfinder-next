@@ -9,7 +9,8 @@ expression: out
   │     │ followed by a number
   │   
   ╰─▶   × the isotope "Tc-100" could not be found in the supplied chemical
-      database
+      database,
+        │ though the following Technetium isotopes were found: [97, 98, 99]
         help: double-check for typos, or add a new entry to the chemical
       database
       

@@ -13,11 +13,11 @@ expression: "(chemical_formula, particle_offset)"
             2,
         ),
     ],
-    [
+    Some(
         (
             Add,
             2,
             "Proton",
         ),
-    ],
+    ),
 )

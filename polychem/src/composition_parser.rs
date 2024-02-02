@@ -409,7 +409,9 @@ impl LabelledError for CompositionErrorKind {
     fn label(&self) -> Option<&'static str> {
         match self {
             Self::LookupError(ChemicalLookupError::Element(_)) => Some("element not found"),
-            Self::LookupError(ChemicalLookupError::Isotope(_, _)) => Some("isotope not found"),
+            Self::LookupError(ChemicalLookupError::Isotope(_, _, _, _)) => {
+                Some("isotope not found")
+            }
             Self::LookupError(ChemicalLookupError::Particle(_)) => Some("particle not found"),
             Self::ExpectedUppercase => Some("expected uppercase"),
             Self::ExpectedLowercase => Some("expected lowercase"),
@@ -907,10 +909,7 @@ mod tests {
                         (name, c)
                     })
                     .collect();
-                let particle_offset: Vec<_> = particle_offset
-                    .iter()
-                    .map(|(k, c, p)| (k, c, &p.name))
-                    .collect();
+                let particle_offset = particle_offset.map(|(k, c, p)| (k, c, p.name));
                 assert_debug_snapshot!((chemical_formula, particle_offset));
             };
         }

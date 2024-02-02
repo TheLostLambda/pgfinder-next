@@ -13,7 +13,10 @@ use std::collections::HashMap;
 // External Crate Imports
 use itertools::Itertools;
 use miette::{Diagnostic, Result};
-use rust_decimal::{prelude::FromPrimitive, Decimal};
+use rust_decimal::{
+    prelude::{FromPrimitive, Zero},
+    Decimal,
+};
 use thiserror::Error;
 
 use self::composition_parser::{chemical_composition, final_parser, CompositionError};
@@ -151,8 +154,8 @@ impl From<&OffsetKind> for i32 {
 pub enum ChemicalLookupError {
     #[error("the element {0:?} could not be found in the supplied chemical database")]
     Element(String),
-    #[error("the isotope \"{0}-{1}\" could not be found in the supplied chemical database")]
-    Isotope(String, MassNumber),
+    #[error("the isotope \"{0}-{1}\" could not be found in the supplied chemical database, though the following {2} isotopes were found: {3:?}")]
+    Isotope(String, MassNumber, String, Vec<MassNumber>),
     #[error("the particle {0:?} could not be found in the supplied chemical database")]
     Particle(String),
     // FIXME: Unforuntately, this error probably doesn't belong here... All of the other errors can be
@@ -192,36 +195,32 @@ impl ChemicalComposition {
 
     pub fn charge(&self) -> Charge {
         self.particle_offset
-            .iter()
+            .as_ref()
             .map(|(k, c, p)| {
                 let sign: i32 = k.into();
                 // FIXME: Deal with this unwrap!
                 let c = i32::from_u32(*c).unwrap();
                 sign * c * p.charge
             })
-            .sum()
+            .unwrap_or_default()
     }
 
-    // FIXME: No no no no! Need to properly handle errors here! No `.unwrap()`!
     fn mass(
         &self,
         accessor: impl Fn(&Element) -> Result<Decimal, PolychemError>,
     ) -> Result<Decimal, PolychemError> {
-        let atom_masses: Decimal = self
-            .chemical_formula
-            .iter()
-            .map(|(e, c)| Decimal::from_u32(*c).unwrap() * accessor(e).unwrap())
-            .sum();
-        let particle_masses: Decimal = self
-            .particle_offset
-            .iter()
-            .map(|(k, c, p)| {
-                let sign: Decimal = k.into();
-                let c = Decimal::from_u32(*c).unwrap();
-                sign * c * p.mass
-            })
-            .sum();
-        Ok(atom_masses + particle_masses)
+        // NOTE: Not using iterators makes using `?` possible, but might shut me out of `rayon` optimizations
+        let mut mass = Decimal::zero();
+
+        for (element, count) in &self.chemical_formula {
+            mass += Decimal::from(*count) * accessor(element)?;
+        }
+
+        if let Some((offset_kind, count, particle)) = &self.particle_offset {
+            mass += Decimal::from(offset_kind) * Decimal::from(*count) * particle.mass;
+        }
+
+        Ok(mass)
     }
 }
 
@@ -247,7 +246,12 @@ impl Element {
                 ..element
             })
         } else {
-            Err(ChemicalLookupError::Isotope(symbol.to_owned(), mass_number))
+            Err(ChemicalLookupError::Isotope(
+                symbol.to_owned(),
+                mass_number,
+                element.name.clone(),
+                element.isotopes.keys().copied().sorted().collect(),
+            ))
         }
     }
 
@@ -259,7 +263,7 @@ impl Element {
             // least one isotope
             Ok(self
                 .isotope_abundances()
-                .map_err(|e| PolychemError::MonoisotopicMass(e))?
+                .map_err(PolychemError::MonoisotopicMass)?
                 .max_by_key(|i| i.abundance)
                 .unwrap()
                 .relative_mass)
@@ -274,7 +278,7 @@ impl Element {
             // only isotopes containing natural abundance data
             Ok(self
                 .isotope_abundances()
-                .map_err(|e| PolychemError::AverageMass(e))?
+                .map_err(PolychemError::AverageMass)?
                 // .wrap_err("failed to fetch isotope abundances for average mass calculation")?
                 .map(|i| i.relative_mass * i.abundance.unwrap())
                 .sum())
@@ -300,8 +304,7 @@ impl Element {
                 self.name.clone(),
                 self.symbol.clone(),
                 self.isotopes.keys().copied().sorted().collect(),
-            )
-            .into())
+            ))
         }
     }
 }
@@ -459,13 +462,15 @@ mod tests {
 
     #[test]
     fn compound_charges() -> Result<()> {
-        // FIXME: Deal with these!
-        // assert_eq!(ChemicalComposition::new(&DB, "Ca-2e")?.charge(), 2);
-        // assert_eq!(ChemicalComposition::new(&DB, "Ca-2e+p")?.charge(), 3);
-        // assert_eq!(ChemicalComposition::new(&DB, "Ca+2e+p")?.charge(), -1);
-        // assert_eq!(ChemicalComposition::new(&DB, "Ca+e+p")?.charge(), 0);
-        // assert_eq!(ChemicalComposition::new(&DB, "Ca+e-p")?.charge(), -2);
-        // assert_eq!(ChemicalComposition::new(&DB, "Ca+e+p+3e+e")?.charge(), -4);
+        // Return charge 0 for compositions without particle offsets
+        assert_eq!(ChemicalComposition::new(&DB, "Ca")?.charge(), 0);
+        // Get the charges for chemical formulae with particle offsets
+        assert_eq!(ChemicalComposition::new(&DB, "Ca-2e")?.charge(), 2);
+        assert_eq!(ChemicalComposition::new(&DB, "Ca+2p")?.charge(), 2);
+        assert_eq!(ChemicalComposition::new(&DB, "Ca+p")?.charge(), 1);
+        assert_eq!(ChemicalComposition::new(&DB, "Ca-p")?.charge(), -1);
+        assert_eq!(ChemicalComposition::new(&DB, "Ca+3e")?.charge(), -3);
+        // Get the charges for standalone particle offsets
         assert_eq!(ChemicalComposition::new(&DB, "e")?.charge(), -1);
         assert_eq!(ChemicalComposition::new(&DB, "p")?.charge(), 1);
         assert_eq!(ChemicalComposition::new(&DB, "3e")?.charge(), -3);

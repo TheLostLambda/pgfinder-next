@@ -10,15 +10,11 @@ static DB: Lazy<ChemicalDatabase> = Lazy::new(|| {
 
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();
-    loop {
-        if let Ok(formula) = rl.readline("Molecule: ") {
-            rl.add_history_entry(&formula).unwrap();
-            match molecule_info(&formula) {
-                Ok(info) => print!("{info}"),
-                Err(diagnostic) => render_error(diagnostic),
-            }
-        } else {
-            break;
+    while let Ok(formula) = rl.readline("Molecule: ") {
+        rl.add_history_entry(&formula).unwrap();
+        match molecule_info(&formula) {
+            Ok(info) => print!("{info}"),
+            Err(diagnostic) => render_error(diagnostic),
         }
     }
 }
@@ -27,9 +23,13 @@ fn molecule_info(formula: &str) -> Result<String, PolychemError> {
     let mut buf = String::new();
     let molecule = ChemicalComposition::new(&DB, formula)?;
 
-    writeln!(buf, "Monoisotopic Mass: {}", molecule.monoisotopic_mass()?).unwrap();
-    writeln!(buf, "Average Mass: {}", molecule.average_mass()?).unwrap();
-    // TODO: Add charge!
+    let mono_mass = molecule.monoisotopic_mass()?.round_dp(6);
+    let avg_mass = molecule.average_mass()?.round_dp(6);
+    let charge = molecule.charge();
+
+    writeln!(buf, "Monoisotopic Mass: {mono_mass}").unwrap();
+    writeln!(buf, "Average Mass: {avg_mass}").unwrap();
+    writeln!(buf, "Charge: {charge}").unwrap();
     writeln!(buf).unwrap();
 
     Ok(buf)

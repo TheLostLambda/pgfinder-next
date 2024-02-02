@@ -16,7 +16,8 @@ members = [
 [lints.clippy]
 pedantic = "warn"
 nursery = "warn"
-cargo = "warn"
+# FIXME: Uncomment this!
+# cargo = "warn"
 
 [dependencies]
 miette = { git = "https://github.com/TheLostLambda/miette.git", features = ["fancy"] }
