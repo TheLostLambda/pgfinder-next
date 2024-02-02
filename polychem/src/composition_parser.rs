@@ -1,6 +1,7 @@
 // FIXME: Order functions in the same way as the EBNF
 
-use std::{fmt, iter};
+use std::collections::HashMap;
+use std::fmt;
 
 use miette::{Diagnostic, LabeledSpan, SourceSpan};
 use nom::combinator::cut;
@@ -25,10 +26,8 @@ use super::{
 #[derive(Debug, Clone, Eq, PartialEq, Error)]
 #[error("{error}")]
 pub struct CompositionError {
-    input: String,
-    // FIXME: Merge these into Option<LabeledSpan>
-    span: SourceSpan,
-    label: Option<String>,
+    full_input: String,
+    labels: Vec<LabeledSpan>,
     error: ErrorNode,
 }
 
@@ -47,7 +46,7 @@ pub enum ErrorNode {
 
 impl Diagnostic for CompositionError {
     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
-        Some(&self.input)
+        Some(&self.full_input)
     }
 
     fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
@@ -59,11 +58,8 @@ impl Diagnostic for CompositionError {
     }
 
     fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        // FIXME: Needing this clone?
-        Some(Box::new(iter::once(LabeledSpan::new_with_span(
-            Some(self.label.clone()?),
-            self.span,
-        ))))
+        dbg!(&self.labels);
+        Some(Box::new(self.labels.iter().cloned()))
     }
 
     fn related<'a>(&'a self) -> Option<Box<dyn Iterator<Item = &'a dyn Diagnostic> + 'a>> {
@@ -88,34 +84,47 @@ impl CompositionError {
     // FIXME: Build the whole labelled span here?
     // FIXME: Is mutable best here?
     fn bubble_labels(&mut self) {
-        if let Self {
-            label: label @ None,
-            error,
-            ..
-        } = self
-        {
-            match error {
+        if self.labels.is_empty() {
+            match &mut self.error {
                 ErrorNode::Node {
                     source: Some(child),
                     ..
                 } => {
                     child.bubble_labels();
-                    *label = child.label.take();
+                    self.labels = child.labels.drain(..).collect();
                 }
                 ErrorNode::Branch(alternatives) => {
-                    let new_labels: Vec<_> = alternatives
-                        .iter_mut()
-                        .filter_map(|child| {
-                            child.bubble_labels();
-                            child.label.take()
-                        })
-                        .collect();
-                    // FIXME: Probably a better way to do this!
-                    *label = (!new_labels.is_empty()).then_some(new_labels.join(" or "));
+                    let new_labels = alternatives.iter_mut().flat_map(|child| {
+                        child.bubble_labels();
+                        child.labels.drain(..)
+                    });
+                    self.labels = Self::merge_labels(new_labels);
                 }
                 ErrorNode::Node { .. } => (),
             }
         }
+    }
+
+    // FIXME: Where in the world does this belong...
+    // FIXME: This eventually needs testing — showing that labels with different spans *don't* get merged
+    fn merge_labels(labels: impl Iterator<Item = LabeledSpan>) -> Vec<LabeledSpan> {
+        let mut span_map: HashMap<SourceSpan, Vec<String>> = HashMap::new();
+        for labeled_span in labels {
+            let span = labeled_span.inner();
+            // FIXME: Gross with the clone() and to_owned() in here...
+            let label = labeled_span.label().unwrap().to_owned();
+            span_map
+                .entry(*span)
+                .and_modify(|l| l.push(label.clone()))
+                .or_insert_with(|| vec![label]);
+        }
+        span_map
+            .into_iter()
+            .map(|(span, labels)| {
+                let label = labels.join(" or ");
+                LabeledSpan::new_with_span(Some(label), span)
+            })
+            .collect()
     }
 }
 
@@ -196,12 +205,15 @@ impl<'a> CompositionParseError<'a> {
         let input = format!("{full_input} ");
         let span = span_from_input(full_input, self.input, self.length);
         let label = self.kind.label().map(str::to_string);
+        let labels = label
+            .into_iter()
+            .map(|l| LabeledSpan::new_with_span(Some(l), span))
+            .collect();
         // FIXME: WET CODE!!!
         if alternatives.is_empty() {
             CompositionError {
-                input,
-                span,
-                label,
+                full_input: input,
+                labels,
                 error: ErrorNode::Node {
                     kind: self.kind,
                     source,
@@ -212,9 +224,8 @@ impl<'a> CompositionParseError<'a> {
             let mut other_self = self;
             other_self.alternatives.clear();
             CompositionError {
-                input,
-                span,
-                label: None,
+                full_input: input,
+                labels: Vec::new(),
                 error: ErrorNode::Branch(
                     [vec![other_self.into_final_error(full_input)], alternatives].concat(),
                 ),

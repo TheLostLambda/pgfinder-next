@@ -13,10 +13,7 @@ use std::collections::HashMap;
 // External Crate Imports
 use itertools::Itertools;
 use miette::{Diagnostic, Result};
-use rust_decimal::{
-    prelude::{FromPrimitive, Zero},
-    Decimal,
-};
+use rust_decimal::{prelude::Zero, Decimal};
 use thiserror::Error;
 
 use self::composition_parser::{chemical_composition, final_parser, CompositionError};
@@ -115,7 +112,7 @@ struct Isotope {
     abundance: Option<Decimal>,
 }
 
-type Charge = i32;
+type Charge = i64;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 struct Bond {
@@ -136,11 +133,11 @@ struct BondTarget {
 
 impl From<&OffsetKind> for Decimal {
     fn from(value: &OffsetKind) -> Self {
-        i32::from(value).into()
+        Charge::from(value).into()
     }
 }
 
-impl From<&OffsetKind> for i32 {
+impl From<&OffsetKind> for Charge {
     fn from(value: &OffsetKind) -> Self {
         match value {
             OffsetKind::Add => 1,
@@ -197,9 +194,8 @@ impl ChemicalComposition {
         self.particle_offset
             .as_ref()
             .map(|(k, c, p)| {
-                let sign: i32 = k.into();
-                // FIXME: Deal with this unwrap!
-                let c = i32::from_u32(*c).unwrap();
+                let sign: Charge = k.into();
+                let c = Charge::from(*c);
                 sign * c * p.charge
             })
             .unwrap_or_default()
