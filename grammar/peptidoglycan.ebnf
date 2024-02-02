@@ -49,8 +49,10 @@ Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
 
 Multiplier = Count , "x" ;
 
-Chemical Composition = { Atomic Offset }- ,
-  { Particle Offset } ;
+Chemical Composition
+  = { Atomic Offset }- , [ ( "+" | "-" ) , Particle Offset ]
+  | Particle Offset
+  ;
 
 Crosslink Descriptor = position ,
   ( "-" (* Donor-Acceptor *)
@@ -61,8 +63,7 @@ Count = digit - "0" , { digit } ;
 
 Atomic Offset = ( Element | Isotope ) , [ Count ] ;
 
-Particle Offset = ( "+" | "-" ) , [ Count ] ,
-  Particle ;
+Particle Offset = [ Count ] , Particle ;
 
 Element = uppercase , [ lowercase ] ;
 
