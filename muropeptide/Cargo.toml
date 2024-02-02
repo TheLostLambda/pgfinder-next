@@ -3,8 +3,6 @@ name = "muropeptide"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 polychem = { path = "../polychem" }
 
@@ -17,5 +15,4 @@ dead_code = "allow"
 [lints.clippy]
 pedantic = "warn"
 nursery = "warn"
-# FIXME: Uncomment this!
-# cargo = "warn"
+cargo = "warn"

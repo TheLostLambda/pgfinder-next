@@ -9,8 +9,8 @@ use nom::{
     character::complete::{char, one_of, satisfy, u32},
     combinator::{all_consuming, complete, consumed, map, map_res, not, opt, recognize, success},
     error::{ErrorKind, FromExternalError, ParseError},
-    multi::{many0, many1},
-    sequence::{delimited, pair, preceded, tuple},
+    multi::many1,
+    sequence::{delimited, pair, preceded},
     Finish, IResult, Parser,
 };
 use thiserror::Error;
@@ -364,11 +364,13 @@ pub enum CompositionErrorKind {
     #[diagnostic(help("this is an internal error that you shouldn't ever see! If you have gotten this error, then please report it as a bug!"))]
     #[error("expected '{0}'")]
     Expected(char),
+    #[error("expected a chemical formula (optionally followed by a '+' or '-' and a particle offset), or a standalone particle offset")]
+    ExpectedChemicalComposition,
     #[error(
         "expected an element (like Au) or an isotope (like [15N]) optionally followed by a number"
     )]
     ExpectedAtomicOffset,
-    #[error("expected '+' or '-', optionally followed by a number, then a particle (like p or e)")]
+    #[error("expected a particle (like p or e), optionally preceded by a number")]
     ExpectedParticleOffset,
     #[diagnostic(help("you've probably forgotten to close an earlier '[' bracket"))]
     #[error("expected ']' to close isotope brackets")]
@@ -436,13 +438,14 @@ fn element_symbol(i: &str) -> ParseResult<&str> {
     })(i)
 }
 
+/// Particle = lowercase ;
 fn particle_symbol(i: &str) -> ParseResult<&str> {
     report_err(recognize(lowercase), |e| {
         e.kind(CompositionErrorKind::ExpectedParticleSymbol)
     })(i)
 }
 
-/// Isotope = "[" , Integer , Element , "]" ;
+/// Isotope = "[" , Count , Element , "]" ;
 fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
     report_err(
         delimited(char('['), cut(pair(count, element_symbol)), cut(char(']'))),
@@ -465,7 +468,7 @@ fn element<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<E
     map_res_span(element_symbol, |symbol| Element::new(db, symbol))
 }
 
-/// Isotope = "[" , Integer , Element , "]" ;
+/// Isotope = "[" , Count , Element , "]" ;
 fn isotope<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
     map_res_span(isotope_expr, |(mass_number, symbol)| {
         Element::new_isotope(db, symbol, mass_number)
@@ -477,7 +480,7 @@ fn particle<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<
     map_res_span(particle_symbol, |symbol| Particle::new(db, symbol))
 }
 
-/// Offset errors = "+" | "-" ;
+/// Offset Kind = "+" | "-" ;
 fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
     map(one_of("+-"), |c| match c {
         '+' => OffsetKind::Add,
@@ -496,16 +499,14 @@ fn count(i: &str) -> ParseResult<Count> {
     })(i)
 }
 
-/// Particle Offset = Offset Kind , [ Integer ] ,
-///   Particle ;
+/// Particle Offset = [ Count ] , Particle ;
 fn particle_offset<'a>(
     db: &'a ChemicalDatabase,
-) -> impl FnMut(&'a str) -> ParseResult<(OffsetKind, Count, Particle)> {
+) -> impl FnMut(&'a str) -> ParseResult<(Count, Particle)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
-    report_err(
-        tuple((offset_kind, optional_count, cut(particle(db)))),
-        |e| e.kind(CompositionErrorKind::ExpectedParticleOffset),
-    )
+    report_err(pair(optional_count, particle(db)), |e| {
+        e.kind(CompositionErrorKind::ExpectedParticleOffset)
+    })
 }
 
 /// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
@@ -518,17 +519,35 @@ fn atomic_offset<'a>(
     })
 }
 
-/// Chemical Composition = { Atomic Offset }- ,
-///   { Particle Offset } ;
+/// Chemical Composition
+///   = { Atomic Offset }- , [ Offset Kind , Particle Offset ]
+///   | Particle Offset
+///   ;
 pub fn chemical_composition<'a>(
     db: &'a ChemicalDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<ChemicalComposition> {
-    let parts = pair(many1(atomic_offset(db)), many0(particle_offset(db)));
-    map(parts, |(chemical_formula, charged_particles)| {
+    let atoms_and_particles = map(
+        pair(
+            many1(atomic_offset(db)),
+            opt(pair(offset_kind, cut(particle_offset(db)))),
+        ),
+        |(chemical_formula, particle_offset)| {
+            let particle_offset = particle_offset.map(|(k, (c, p))| (k, c, p));
+            ChemicalComposition {
+                chemical_formula,
+                particle_offset,
+            }
+        },
+    );
+    let just_particles = map(particle_offset(db), |(c, p)| {
+        let particle_offset = Some((OffsetKind::Add, c, p));
         ChemicalComposition {
-            chemical_formula,
-            charged_particles,
+            chemical_formula: Vec::new(),
+            particle_offset,
         }
+    });
+    report_err(alt((atoms_and_particles, just_particles)), |e| {
+        e.kind(CompositionErrorKind::ExpectedChemicalComposition)
     })
 }
 
@@ -568,7 +587,7 @@ mod tests {
     use super::*;
 
     static DB: Lazy<ChemicalDatabase> = Lazy::new(|| {
-        ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("chemistry.kdl")).unwrap()
+        ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("../chemistry.kdl")).unwrap()
     });
 
     #[test]
@@ -768,34 +787,30 @@ mod tests {
     fn test_particle_offset() {
         let mut particle_offset = particle_offset(&DB);
         macro_rules! assert_particle_offset {
-            ($input:literal, $output:literal, $kind:expr, $count:literal, $name:literal ) => {
+            ($input:literal, $output:literal, $count:literal, $name:literal ) => {
                 assert_eq!(
-                    particle_offset($input).map(|(r, (k, c, p))| (r, (k, c, p.name))),
-                    Ok(($output, ($kind, $count, $name.to_string())))
+                    particle_offset($input).map(|(r, (c, p))| (r, (c, p.name))),
+                    Ok(($output, ($count, $name.to_string())))
                 );
             };
         }
         // Valid Particle Offsets
-        assert_particle_offset!("+p", "", OffsetKind::Add, 1, "Proton");
-        assert_particle_offset!("-p", "", OffsetKind::Remove, 1, "Proton");
-        assert_particle_offset!("+e", "", OffsetKind::Add, 1, "Electron");
-        assert_particle_offset!("-e", "", OffsetKind::Remove, 1, "Electron");
+        assert_particle_offset!("p", "", 1, "Proton");
+        assert_particle_offset!("e", "", 1, "Electron");
 
-        assert_particle_offset!("+5p", "", OffsetKind::Add, 5, "Proton");
-        assert_particle_offset!("-5p", "", OffsetKind::Remove, 5, "Proton");
-        assert_particle_offset!("+5e", "", OffsetKind::Add, 5, "Electron");
-        assert_particle_offset!("-5e", "", OffsetKind::Remove, 5, "Electron");
+        assert_particle_offset!("5p", "", 5, "Proton");
+        assert_particle_offset!("5e", "", 5, "Electron");
 
-        assert_particle_offset!("+100p", "", OffsetKind::Add, 100, "Proton");
-        assert_particle_offset!("-100p", "", OffsetKind::Remove, 100, "Proton");
-        assert_particle_offset!("+100e", "", OffsetKind::Add, 100, "Electron");
-        assert_particle_offset!("-100e", "", OffsetKind::Remove, 100, "Electron");
+        assert_particle_offset!("100p", "", 100, "Proton");
+        assert_particle_offset!("100e", "", 100, "Electron");
         // Invalid Particle Offsets
+        assert!(particle_offset("-p").is_err());
+        assert!(particle_offset("-e").is_err());
+        assert!(particle_offset("+p").is_err());
+        assert!(particle_offset("+e").is_err());
         assert!(particle_offset("P").is_err());
         assert!(particle_offset("Ep").is_err());
-        assert!(particle_offset("1p").is_err());
         assert!(particle_offset("1+p").is_err());
-        assert!(particle_offset("p").is_err());
         assert!(particle_offset("+0p").is_err());
         assert!(particle_offset("-02e").is_err());
         assert!(particle_offset("+-e").is_err());
@@ -805,8 +820,8 @@ mod tests {
         assert!(particle_offset("+m").is_err());
         assert!(particle_offset("-3g").is_err());
         // Multiple Particle Offsets
-        assert_particle_offset!("+3ep", "p", OffsetKind::Add, 3, "Electron");
-        assert_particle_offset!("-pe", "e", OffsetKind::Remove, 1, "Proton");
+        assert_particle_offset!("3ep", "p", 3, "Electron");
+        assert_particle_offset!("pe", "e", 1, "Proton");
     }
 
     #[test]
@@ -877,7 +892,7 @@ mod tests {
                     rest,
                     ChemicalComposition {
                         chemical_formula,
-                        charged_particles,
+                        particle_offset,
                     },
                 ) = chemical_composition($input).unwrap();
                 assert_eq!(rest, $output);
@@ -892,11 +907,11 @@ mod tests {
                         (name, c)
                     })
                     .collect();
-                let charged_particles: Vec<_> = charged_particles
+                let particle_offset: Vec<_> = particle_offset
                     .iter()
                     .map(|(k, c, p)| (k, c, &p.name))
                     .collect();
-                assert_debug_snapshot!((chemical_formula, charged_particles));
+                assert_debug_snapshot!((chemical_formula, particle_offset));
             };
         }
         // Valid Chemical Compositions
@@ -906,7 +921,7 @@ mod tests {
         check_composition_snapshot!("Na-e", "");
         check_composition_snapshot!("NH3+p", "");
         check_composition_snapshot!("Cr2O7+2e", "");
-        check_composition_snapshot!("NH2+2p+e", "");
+        check_composition_snapshot!("NH2+2p", "");
         check_composition_snapshot!("D2O", "");
         check_composition_snapshot!("[2H]2O", "");
         check_composition_snapshot!("[37Cl]5-2p", "");
@@ -935,7 +950,7 @@ mod tests {
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]O4-8m+2p"));
 
         // Starting a composition without an element or isotope
-        assert_miette_snapshot!(chemical_composition("eH2O"));
+        assert_miette_snapshot!(chemical_composition("+H2O"));
         assert_miette_snapshot!(chemical_composition("-H2O"));
         assert_miette_snapshot!(chemical_composition("]H2O"));
 
@@ -954,10 +969,12 @@ mod tests {
         assert_miette_snapshot!(chemical_composition("[37Cl"));
 
         // Check labels at the end of an input
-        assert_miette_snapshot!(chemical_composition("[37Cl]5-2p+"));
-        assert_miette_snapshot!(chemical_composition("[37Cl]5-2p+10"));
+        assert_miette_snapshot!(chemical_composition("[37Cl]5-"));
+        assert_miette_snapshot!(chemical_composition("[37Cl]5+10"));
 
         // Check for partially valid input
+        assert_miette_snapshot!(chemical_composition("[37Cl]52p"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]O,4-2e+3p"));
+        assert_miette_snapshot!(chemical_composition("eH2O"));
     }
 }

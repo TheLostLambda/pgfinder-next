@@ -3,8 +3,11 @@ source: polychem/src/composition_parser.rs
 description: "chemical_composition(\"[10H2O\")"
 expression: out
 ---
-  × expected an element (like Au) or an isotope (like [15N]) optionally
-  │ followed by a number
+  × expected a chemical formula (optionally followed by a '+' or '-' and a
+  │ particle offset), or a standalone particle offset
+  ├─▶   × expected an element (like Au) or an isotope (like [15N]) optionally
+  │     │ followed by a number
+  │   
   ╰─▶   × expected ']' to close isotope brackets
         help: you've probably forgotten to close an earlier '[' bracket
       

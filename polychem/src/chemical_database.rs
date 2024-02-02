@@ -15,7 +15,7 @@ use rust_decimal::Decimal;
 use thiserror::Error;
 
 // Local Module Imports
-use super::{Element, Isotope, MassNumber, Particle};
+use super::{Charge, Element, Isotope, MassNumber, Particle};
 
 // Public API ==========================================================================================================
 
@@ -74,7 +74,7 @@ struct ParticleKdl {
     #[knuffel(child, unwrap(argument))]
     mass: DecimalKdl,
     #[knuffel(child, unwrap(argument))]
-    charge: i32,
+    charge: Charge,
 }
 
 #[derive(Decode, Debug)]
@@ -267,7 +267,7 @@ mod tests {
 
     use crate::testing_tools::assert_miette_snapshot;
 
-    const KDL: &str = include_str!("chemistry.kdl");
+    const KDL: &str = include_str!("../chemistry.kdl");
 
     #[test]
     fn parse_default_chemical_database() -> Result<()> {

@@ -1,19 +1,18 @@
 //! An abstraction for building chemically validated polymers
 
-mod chemical_database;
+pub mod chemical_database;
 mod composition_parser;
 #[cfg(test)]
 mod testing_tools;
 
 use chemical_database::ChemicalDatabase;
-use rust_decimal_macros::dec;
 
 // Standard Library Imports
 use std::collections::HashMap;
 
 // External Crate Imports
 use itertools::Itertools;
-use miette::{Context, Diagnostic, Result};
+use miette::{Diagnostic, Result};
 use rust_decimal::{prelude::FromPrimitive, Decimal};
 use thiserror::Error;
 
@@ -29,13 +28,15 @@ pub struct Residue {
     offset_modifications: Vec<Modification>,
 }
 
+// =====================================================================================================================
+
 type Id = usize;
 
 // FIXME: Keep this public so that people can build mass calculators
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ChemicalComposition {
     chemical_formula: Vec<(Element, Count)>,
-    charged_particles: Vec<(OffsetKind, Count, Particle)>,
+    particle_offset: Option<(OffsetKind, Count, Particle)>,
 }
 
 type Location = String;
@@ -52,7 +53,7 @@ pub struct Modification {
     kind: ModificationKind,
 }
 
-type Count = u32;
+// =====================================================================================================================
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 struct Element {
@@ -61,6 +62,8 @@ struct Element {
     mass_number: Option<MassNumber>,
     isotopes: HashMap<MassNumber, Isotope>,
 }
+
+type Count = u32;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 enum OffsetKind {
@@ -73,7 +76,7 @@ struct Particle {
     symbol: String,
     name: String,
     mass: Decimal,
-    charge: i32,
+    charge: Charge,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Default)]
@@ -99,6 +102,8 @@ enum ModificationKind {
     },
 }
 
+// =====================================================================================================================
+
 type MassNumber = u32;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -107,6 +112,8 @@ struct Isotope {
     abundance: Option<Decimal>,
 }
 
+type Charge = i32;
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 struct Bond {
     kind: String,
@@ -114,10 +121,29 @@ struct Bond {
     acceptor: BondTarget,
 }
 
+// =====================================================================================================================
+
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 struct BondTarget {
     residue: Id,
     group_location: Location,
+}
+
+// =====================================================================================================================
+
+impl From<&OffsetKind> for Decimal {
+    fn from(value: &OffsetKind) -> Self {
+        i32::from(value).into()
+    }
+}
+
+impl From<&OffsetKind> for i32 {
+    fn from(value: &OffsetKind) -> Self {
+        match value {
+            OffsetKind::Add => 1,
+            OffsetKind::Remove => -1,
+        }
+    }
 }
 
 // FIXME: Should this really be public?
@@ -138,7 +164,10 @@ pub enum ChemicalLookupError {
 // FIXME: Maybe there are too many layers of things being wrapped here!
 // FIXME: Maybe just rename this to be `Error`?
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-enum PolychemError {
+pub enum PolychemError {
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    Composition(#[from] CompositionError),
     // FIXME: Oof, are these even different enough to warrant different errors?
     #[error("failed to fetch isotope abundances for monoisotopic mass calculation")]
     MonoisotopicMass(#[diagnostic_source] ChemicalLookupError),
@@ -148,17 +177,29 @@ enum PolychemError {
 
 impl ChemicalComposition {
     // FIXME: If this isn't public API, drop the AsRef — if it is, then add it for `db`
-    fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self, CompositionError> {
+    pub fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self, CompositionError> {
         let formula = formula.as_ref();
         final_parser(chemical_composition(db))(formula)
     }
 
-    fn monoisotopic_mass(&self) -> Result<Decimal, PolychemError> {
+    pub fn monoisotopic_mass(&self) -> Result<Decimal, PolychemError> {
         self.mass(Element::monoisotopic_mass)
     }
 
-    fn average_mass(&self) -> Result<Decimal, PolychemError> {
+    pub fn average_mass(&self) -> Result<Decimal, PolychemError> {
         self.mass(Element::average_mass)
+    }
+
+    pub fn charge(&self) -> Charge {
+        self.particle_offset
+            .iter()
+            .map(|(k, c, p)| {
+                let sign: i32 = k.into();
+                // FIXME: Deal with this unwrap!
+                let c = i32::from_u32(*c).unwrap();
+                sign * c * p.charge
+            })
+            .sum()
     }
 
     // FIXME: No no no no! Need to properly handle errors here! No `.unwrap()`!
@@ -172,14 +213,10 @@ impl ChemicalComposition {
             .map(|(e, c)| Decimal::from_u32(*c).unwrap() * accessor(e).unwrap())
             .sum();
         let particle_masses: Decimal = self
-            .charged_particles
+            .particle_offset
             .iter()
             .map(|(k, c, p)| {
-                // FIXME: Probably refactor this out...
-                let sign = match k {
-                    OffsetKind::Add => dec!(1),
-                    OffsetKind::Remove => dec!(-1),
-                };
+                let sign: Decimal = k.into();
                 let c = Decimal::from_u32(*c).unwrap();
                 sign * c * p.mass
             })
@@ -288,10 +325,10 @@ mod tests {
 
     use crate::testing_tools::assert_miette_snapshot;
 
-    use super::{ChemicalComposition, ChemicalDatabase, ChemicalLookupError, Element, Particle};
+    use super::{ChemicalComposition, ChemicalDatabase, Element, Particle};
 
     static DB: Lazy<ChemicalDatabase> = Lazy::new(|| {
-        ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("chemistry.kdl")).unwrap()
+        ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("../chemistry.kdl")).unwrap()
     });
 
     #[test]
@@ -400,6 +437,7 @@ mod tests {
     }
 
     // FIXME: Messy! Give this a good second pass! Needs isotopes and particles tested!
+    // FIXME: Test the monoisotopic and average masses separately — charges too
     #[test]
     fn compound_masses() -> Result<()> {
         // The masses here have been checked against https://mstools.epfl.ch/info/
@@ -416,6 +454,22 @@ mod tests {
         let k = ChemicalComposition::new(&DB, "K-p")?;
         assert_eq!(k.monoisotopic_mass()?, dec!(37.956430019779));
         assert_eq!(k.average_mass()?, dec!(38.0910244434650062));
+        Ok(())
+    }
+
+    #[test]
+    fn compound_charges() -> Result<()> {
+        // FIXME: Deal with these!
+        // assert_eq!(ChemicalComposition::new(&DB, "Ca-2e")?.charge(), 2);
+        // assert_eq!(ChemicalComposition::new(&DB, "Ca-2e+p")?.charge(), 3);
+        // assert_eq!(ChemicalComposition::new(&DB, "Ca+2e+p")?.charge(), -1);
+        // assert_eq!(ChemicalComposition::new(&DB, "Ca+e+p")?.charge(), 0);
+        // assert_eq!(ChemicalComposition::new(&DB, "Ca+e-p")?.charge(), -2);
+        // assert_eq!(ChemicalComposition::new(&DB, "Ca+e+p+3e+e")?.charge(), -4);
+        assert_eq!(ChemicalComposition::new(&DB, "e")?.charge(), -1);
+        assert_eq!(ChemicalComposition::new(&DB, "p")?.charge(), 1);
+        assert_eq!(ChemicalComposition::new(&DB, "3e")?.charge(), -3);
+        assert_eq!(ChemicalComposition::new(&DB, "5p")?.charge(), 5);
         Ok(())
     }
 }

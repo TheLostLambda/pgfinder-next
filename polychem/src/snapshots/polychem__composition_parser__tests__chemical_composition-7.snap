@@ -1,6 +1,6 @@
 ---
 source: polychem/src/composition_parser.rs
-expression: "(chemical_formula, charged_particles)"
+expression: "(chemical_formula, particle_offset)"
 ---
 (
     [
@@ -18,11 +18,6 @@ expression: "(chemical_formula, charged_particles)"
             Add,
             2,
             "Proton",
-        ),
-        (
-            Add,
-            1,
-            "Electron",
         ),
     ],
 )
