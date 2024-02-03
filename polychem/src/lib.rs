@@ -6,6 +6,8 @@ mod composition_parser;
 mod testing_tools;
 
 use chemical_database::ChemicalDatabase;
+use composition_parser::CompositionError;
+use nom_miette::final_parser;
 
 // Standard Library Imports
 use std::collections::HashMap;
@@ -16,7 +18,7 @@ use miette::{Diagnostic, Result};
 use rust_decimal::{prelude::Zero, Decimal};
 use thiserror::Error;
 
-use self::composition_parser::{chemical_composition, final_parser, CompositionError};
+use self::composition_parser::chemical_composition;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct Residue {

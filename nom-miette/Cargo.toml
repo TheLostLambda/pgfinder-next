@@ -1,5 +1,5 @@
 [package]
-name = "polychem"
+name = "nom-miette"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,7 +12,6 @@ once_cell = "1.19.0"
 rust_decimal = "1.33.1"
 rust_decimal_macros = "1.33.1"
 thiserror = "1.0.56"
-nom-miette = { path = "../nom-miette" }
 
 [dev-dependencies]
 indoc = "2.0.4"
