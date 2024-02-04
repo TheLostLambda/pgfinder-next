@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 itertools = "0.12.1"
 knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
-miette = { git = "https://github.com/TheLostLambda/miette.git" }
+miette = "6.0.1"
 nom = "7.1.3"
 once_cell = "1.19.0"
 rust_decimal = "1.33.1"
@@ -16,7 +16,7 @@ thiserror = "1.0.56"
 [dev-dependencies]
 indoc = "2.0.4"
 insta = "1.34.0"
-miette = { git = "https://github.com/TheLostLambda/miette.git", features = ["fancy"] }
+miette = { version = "6.0.1", features = ["fancy"] }
 
 [lints.rust]
 # FIXME: Uncomment this!

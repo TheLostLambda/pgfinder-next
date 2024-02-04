@@ -20,7 +20,7 @@ nursery = "warn"
 # cargo = "warn"
 
 [dependencies]
-miette = { git = "https://github.com/TheLostLambda/miette.git", features = ["fancy"] }
+miette = { version = "6.0.1", features = ["fancy"] }
 once_cell = "1.19.0"
 polychem = { path = "polychem/" }
 rustyline = "13.0.0"
