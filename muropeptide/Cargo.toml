@@ -11,9 +11,3 @@ polychem = { path = "../polychem" }
 # missing_docs = "warn"
 # FIXME: Get rid of this!
 dead_code = "allow"
-
-[lints.clippy]
-pedantic = "warn"
-nursery = "warn"
-# FIXME: Uncomment this!
-# cargo = "warn"
