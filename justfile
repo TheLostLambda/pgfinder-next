@@ -11,7 +11,7 @@ lint:
   cargo clippy --workspace --tests
 
 annoy:
-  cargo clippy --workspace --tests -- -W clippy::nursery -W clippy::pedantic
+  cargo clippy --workspace --tests -- -W clippy::nursery -W clippy::pedantic -W clippy::cargo
 
 cov:
   cargo llvm-cov --workspace --open
