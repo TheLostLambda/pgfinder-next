@@ -165,6 +165,7 @@ pub enum ChemicalLookupError {
 
 // FIXME: Maybe there are too many layers of things being wrapped here!
 // FIXME: Maybe just rename this to be `Error`?
+// FIXME: Check all of the errors returned from public API are wrapped in this!
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 pub enum PolychemError {
     #[error(transparent)]
@@ -179,9 +180,9 @@ pub enum PolychemError {
 
 impl ChemicalComposition {
     // FIXME: If this isn't public API, drop the AsRef — if it is, then add it for `db`
-    pub fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self, CompositionError> {
+    pub fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self, PolychemError> {
         let formula = formula.as_ref();
-        final_parser(chemical_composition(db))(formula)
+        final_parser(chemical_composition(db))(formula).map_err(PolychemError::from)
     }
 
     pub fn monoisotopic_mass(&self) -> Result<Decimal, PolychemError> {

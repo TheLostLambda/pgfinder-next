@@ -117,10 +117,6 @@ impl<E: LabeledErrorKind> LabeledError<E> {
 pub struct LabeledParseError<'a, E> {
     input: &'a str,
     length: usize,
-    // FIXME: Get rid of this too — expect to wipe error stack, then wrap_err for anything above
-    reported: bool,
-    // FIXME: Get rid of this?
-    fatal: bool,
     kind: E,
     // FIXME: Replace this with the ErrorTree!!
     alternatives: Vec<LabeledParseError<'a, E>>,
@@ -128,15 +124,14 @@ pub struct LabeledParseError<'a, E> {
 }
 
 pub trait LabeledErrorKind: Diagnostic + Clone + Eq + From<nom::error::ErrorKind> {
-    fn label(&self) -> Option<&'static str>;
+    fn label(&self) -> Option<&'static str> {
+        None
+    }
 }
 
 pub trait FromExternalError<'a, E> {
+    const FATAL: bool = false;
     fn from_external_error(input: &'a str, error: E) -> Self;
-    // FIXME: Convert to associated constant!
-    fn is_fatal() -> bool {
-        false
-    }
 }
 
 // FIXME: Oh lord, what a mess...
@@ -156,8 +151,6 @@ impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
             input,
             length: 0,
             kind,
-            reported: false,
-            fatal: false,
             alternatives: Vec::new(),
             source: source.map(Box::new),
         }
@@ -177,7 +170,7 @@ impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
             .collect();
         // NOTE: The additional space is added so that Diagnostic labels can point to the end of an input
         let input = format!("{full_input} ");
-        let span = span_from_input(full_input, self.input, self.length);
+        let span = self.span_from_input(full_input);
         let label = self.kind.label().map(str::to_string);
         let labels = label
             .into_iter()
@@ -206,20 +199,20 @@ impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
             }
         }
     }
-}
 
-// FIXME: OMG refactor... Also, can I do better than stealing here?
-fn span_from_input(full_input: &str, input: &str, length: usize) -> SourceSpan {
-    let base_addr = full_input.as_ptr() as usize;
-    let substr_addr = input.as_ptr() as usize;
-    // FIXME: Keep this?
-    assert!(
-        substr_addr >= base_addr,
-        "tried to get the span of a non-substring!"
-    );
-    let start = substr_addr - base_addr;
-    let end = start + length;
-    SourceSpan::from(start..end)
+    // FIXME: OMG refactor... Also, can I do better than stealing here?
+    fn span_from_input(&self, full_input: &str) -> SourceSpan {
+        let base_addr = full_input.as_ptr() as usize;
+        let substr_addr = self.input.as_ptr() as usize;
+        // FIXME: Keep this?
+        assert!(
+            substr_addr >= base_addr,
+            "tried to get the span of a non-substring!"
+        );
+        let start = substr_addr - base_addr;
+        let end = start + self.length;
+        SourceSpan::from(start..end)
+    }
 }
 
 pub fn final_parser<'a, O, P, E>(parser: P) -> impl FnMut(&'a str) -> Result<O, LabeledError<E>>
@@ -261,29 +254,23 @@ where
                     length: consumed.len(),
                     ..LabeledParseError::from_external_error(i, e)
                 };
-                Err(if LabeledParseError::is_fatal() {
+                Err(if LabeledParseError::FATAL {
                     Err::Failure(e)
                 } else {
                     Err::Error(e)
                 })
             }
         }
-        // wrap_err(map_res_test(success(o1), f), |e| LabeledParseError {
-        //     input: i,
-        //     length: consumed.len(),
-        //     ..e
-        // })(input)
     }
 }
 
 // FIXME: Check if I'm being consistent about using `impl` or generics... I think I should avoid any generics I don't
 // use, as long as this is just a sort of "internal" library
 // FIXME: See if this signature can be simplified (elide lifetimes?)
-// FIXME: Do I really need a closure? Or just a kind?
 // FIXME: Standardize the order of all of these generic arguments!
 pub fn wrap_err<'a, O, P, E>(
     mut parser: P,
-    error: E,
+    kind: E,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, LabeledParseError<'a, E>>
 where
     // FIXME: Eek, this is a where, and below (in expect) is not!
@@ -295,14 +282,14 @@ where
         parser
             .parse(i)
             // FIXME: Really don't get why this clone is here...
-            .map_err(|e| e.map(|e| LabeledParseError::new_with_source(i, error.clone(), Some(e))))
+            .map_err(|e| e.map(|e| LabeledParseError::new_with_source(i, kind.clone(), Some(e))))
     }
 }
 
 // FIXME: I should just replace wrap_err with expect, or I should make expect *not* wrap things
 pub fn expect<'a, O, E: LabeledErrorKind + Clone, F>(
     mut parser: F,
-    error: E,
+    kind: E,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, LabeledParseError<'a, E>>
 where
     F: Parser<&'a str, O, LabeledParseError<'a, E>>,
@@ -311,7 +298,7 @@ where
         parser
             .parse(i)
             // FIXME: Really don't get why this clone is here...
-            .map_err(|e| e.map(|_| LabeledParseError::new(i, error.clone())))
+            .map_err(|e| e.map(|_| LabeledParseError::new(i, kind.clone())))
     }
 }
 
@@ -327,10 +314,8 @@ impl<'a, E: LabeledErrorKind> ParseError<&'a str> for LabeledParseError<'a, E> {
     }
 
     fn or(self, other: Self) -> Self {
-        // FIXME: Oh god...
-        let alternatives = [self.alternatives, vec![other]].concat();
         Self {
-            alternatives,
+            alternatives: [self.alternatives, vec![other]].concat(),
             ..self
         }
     }

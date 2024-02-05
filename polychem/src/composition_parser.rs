@@ -21,27 +21,18 @@ use super::{
     MassNumber, OffsetKind, Particle,
 };
 
-// FIXME: Maybe merge with the LabeledError trait?
-// FIXME: Find a way to get rid of this!!!
-// FIXME: Just define my own version of this trait, that assumes the LabeledParseError bit, drops the stupid Nom-kind,
-// then allows you to specify whether e is fatal or not?
 impl<'a> FromExternalError<'a, ChemicalLookupError>
     for LabeledParseError<'a, CompositionErrorKind>
 {
+    const FATAL: bool = true;
+
     fn from_external_error(input: &'a str, e: ChemicalLookupError) -> Self {
         Self::new(input, CompositionErrorKind::LookupError(e))
-        // FIXME: Try to get rid of this function... I need a way to move this into the LabeledErrorKind trait
-        // FIXME: Move fatal-ness to map_res_span?
-    }
-
-    // FIXME: Convert into an associated constant
-    fn is_fatal() -> bool {
-        true
     }
 }
 
 // FIXME: API guidelines, check word ordering
-// FIXME: MAKE THIS PRIVATE!
+// FIXME: Maybe mark non_exhaustive?
 // FIXME: Also order these according to the EBNF
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 pub enum CompositionErrorKind {
@@ -116,11 +107,6 @@ impl LabeledErrorKind for CompositionErrorKind {
         }
     }
 }
-
-// In the mod.rs, in the ChemicalComposition::new(), convert this ParserError to something with a pretty span for
-// miette! Here all we're concerned about is the offending string and the error it produces.
-// That code in mod.rs is also where the &str can be gotten rid of so that there isn't a lifetime in the error type
-// NOTE: I can use the `consumed` combinator to get a nice &str source for things like element lookup errors
 
 // FIXME: Where go?
 pub type CompositionError = LabeledError<CompositionErrorKind>;
