@@ -20,14 +20,14 @@ use super::{Charge, Element, Isotope, MassNumber, Particle};
 // Public API ==========================================================================================================
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct ChemicalDatabase {
+pub struct AtomicDatabase {
     pub(super) elements: HashMap<String, Element>,
     pub(super) particles: HashMap<String, Particle>,
 }
 
-impl ChemicalDatabase {
+impl AtomicDatabase {
     pub fn from_kdl(file_name: impl AsRef<str>, text: impl AsRef<str>) -> Result<Self> {
-        let parsed_db: ChemicalDatabaseKdl = knuffel::parse(file_name.as_ref(), text.as_ref())?;
+        let parsed_db: AtomicDatabaseKdl = knuffel::parse(file_name.as_ref(), text.as_ref())?;
         let elements = parsed_db
             .elements
             .into_iter()
@@ -48,7 +48,7 @@ impl ChemicalDatabase {
 // Chemistry.kdl File Schema ===========================================================================================
 
 #[derive(Decode, Debug)]
-struct ChemicalDatabaseKdl {
+struct AtomicDatabaseKdl {
     #[knuffel(child, unwrap(children))]
     elements: Vec<ElementKdl>,
     #[knuffel(child, unwrap(children))]
@@ -146,7 +146,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
 struct ElementSymbol(String);
 
 impl FromStr for ElementSymbol {
-    type Err = InvalidChemicalSymbolError;
+    type Err = InvalidAtomicSymbolError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.to_owned();
@@ -154,7 +154,7 @@ impl FromStr for ElementSymbol {
         match chrs[..] {
             [f] if f.is_ascii_uppercase() => Ok(Self(s)),
             [f, l] if f.is_ascii_uppercase() && l.is_ascii_lowercase() => Ok(Self(s)),
-            _ => Err(InvalidChemicalSymbolError::Element(s)),
+            _ => Err(InvalidAtomicSymbolError::Element(s)),
         }
     }
 }
@@ -163,20 +163,20 @@ impl FromStr for ElementSymbol {
 struct ParticleSymbol(String);
 
 impl FromStr for ParticleSymbol {
-    type Err = InvalidChemicalSymbolError;
+    type Err = InvalidAtomicSymbolError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.to_owned();
         if s.len() == 1 && s.chars().next().unwrap().is_ascii_lowercase() {
             Ok(Self(s))
         } else {
-            Err(InvalidChemicalSymbolError::Particle(s))
+            Err(InvalidAtomicSymbolError::Particle(s))
         }
     }
 }
 
 #[derive(Error, Diagnostic, PartialEq, Eq, Debug)]
-enum InvalidChemicalSymbolError {
+enum InvalidAtomicSymbolError {
     #[error(
         "expected a single uppercase ASCII letter optionally followed by a lowercase ASCII letter, got {0:?}"
     )]
@@ -263,15 +263,15 @@ mod tests {
     use miette::Result;
     use rust_decimal_macros::dec;
 
-    use super::{ChemicalDatabase, ChemicalDatabaseKdl, DecimalKdl, ElementKdl, ParticleKdl};
+    use super::{AtomicDatabase, AtomicDatabaseKdl, DecimalKdl, ElementKdl, ParticleKdl};
 
     use crate::testing_tools::assert_miette_snapshot;
 
-    const KDL: &str = include_str!("../chemistry.kdl");
+    const KDL: &str = include_str!("../atomic_database.kdl");
 
     #[test]
-    fn parse_default_chemical_database() {
-        let db: ChemicalDatabaseKdl = knuffel::parse("chemistry.kdl", KDL).unwrap();
+    fn parse_default_atomic_database() {
+        let db: AtomicDatabaseKdl = knuffel::parse("atomic_database.kdl", KDL).unwrap();
         // Basic property checking
         assert_eq!(db.elements.len(), 120); // 118 + 2 for deuterium and tritium
         assert_eq!(db.particles.len(), 2);
@@ -281,8 +281,8 @@ mod tests {
     }
 
     #[test]
-    fn build_default_chemical_database() {
-        let db = ChemicalDatabase::from_kdl("chemistry.kdl", KDL).unwrap();
+    fn build_default_atomic_database() {
+        let db = AtomicDatabase::from_kdl("atomic_database.kdl", KDL).unwrap();
         // Basic property checking
         assert_eq!(db.elements.len(), 120); // 118 + 2 for deuterium and tritium
         assert_eq!(db.particles.len(), 2);

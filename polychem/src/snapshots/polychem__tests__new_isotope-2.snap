@@ -3,5 +3,5 @@ source: polychem/src/lib.rs
 description: "Element::new_isotope(&DB, \"R\", 42)"
 expression: out
 ---
-  × the element "R" could not be found in the supplied chemical database
+  × the element "R" could not be found in the supplied atomic database
 

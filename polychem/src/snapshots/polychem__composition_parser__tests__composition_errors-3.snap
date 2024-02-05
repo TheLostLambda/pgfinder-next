@@ -7,9 +7,8 @@ expression: out
   │ particle offset), or a standalone particle offset
   ├─▶   × expected a particle (like p or e), optionally preceded by a number
   │   
-  ╰─▶   × the particle "m" could not be found in the supplied chemical
-      database
-        help: double-check for typos, or add a new entry to the chemical
+  ╰─▶   × the particle "m" could not be found in the supplied atomic database
+        help: double-check for typos, or add a new entry to the atomic
       database
       
    ╭────

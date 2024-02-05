@@ -1,5 +1,5 @@
 ---
-source: polychem/src/chemical_database.rs
+source: polychem/src/atomic_database.rs
 description: res
 expression: out
 ---

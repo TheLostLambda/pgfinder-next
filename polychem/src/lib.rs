@@ -1,11 +1,11 @@
 //! An abstraction for building chemically validated polymers
 
-pub mod chemical_database;
+pub mod atomic_database;
 mod composition_parser;
 #[cfg(test)]
 mod testing_tools;
 
-use chemical_database::ChemicalDatabase;
+use atomic_database::AtomicDatabase;
 use composition_parser::CompositionError;
 use nom_miette::final_parser;
 
@@ -149,12 +149,12 @@ impl From<&OffsetKind> for Charge {
 }
 
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-enum ChemicalLookupError {
-    #[error("the element {0:?} could not be found in the supplied chemical database")]
+enum AtomicLookupError {
+    #[error("the element {0:?} could not be found in the supplied atomic database")]
     Element(String),
-    #[error("the isotope \"{0}-{1}\" could not be found in the supplied chemical database, though the following {2} isotopes were found: {3:?}")]
+    #[error("the isotope \"{0}-{1}\" could not be found in the supplied atomic database, though the following {2} isotopes were found: {3:?}")]
     Isotope(String, MassNumber, String, Vec<MassNumber>),
-    #[error("the particle {0:?} could not be found in the supplied chemical database")]
+    #[error("the particle {0:?} could not be found in the supplied atomic database")]
     Particle(String),
     // FIXME: Unforuntately, this error probably doesn't belong here... All of the other errors can be
     // encountered at parse time, but this one is only triggered by a mass calculation...
@@ -185,14 +185,14 @@ enum PolychemError {
     Composition(#[from] CompositionError),
     // FIXME: Oof, are these even different enough to warrant different errors?
     #[error("failed to fetch isotope abundances for monoisotopic mass calculation")]
-    MonoisotopicMass(#[diagnostic_source] ChemicalLookupError),
+    MonoisotopicMass(#[diagnostic_source] AtomicLookupError),
     #[error("failed to fetch isotope abundances for average mass calculation")]
-    AverageMass(#[diagnostic_source] ChemicalLookupError),
+    AverageMass(#[diagnostic_source] AtomicLookupError),
 }
 
 impl ChemicalComposition {
     // FIXME: If this isn't public API, drop the AsRef — if it is, then add it for `db`
-    pub fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self> {
+    pub fn new(db: &AtomicDatabase, formula: impl AsRef<str>) -> Result<Self> {
         let formula = formula.as_ref();
         final_parser(chemical_composition(db))(formula).map_err(Error::from)
     }
@@ -234,21 +234,21 @@ impl ChemicalComposition {
 
 impl Element {
     fn new(
-        db: &ChemicalDatabase,
+        db: &AtomicDatabase,
         symbol: impl AsRef<str>,
-    ) -> std::result::Result<Self, ChemicalLookupError> {
+    ) -> std::result::Result<Self, AtomicLookupError> {
         let symbol = symbol.as_ref();
         db.elements
             .get(symbol)
             .cloned()
-            .ok_or_else(|| ChemicalLookupError::Element(symbol.to_owned()))
+            .ok_or_else(|| AtomicLookupError::Element(symbol.to_owned()))
     }
 
     fn new_isotope(
-        db: &ChemicalDatabase,
+        db: &AtomicDatabase,
         symbol: impl AsRef<str>,
         mass_number: MassNumber,
-    ) -> std::result::Result<Self, ChemicalLookupError> {
+    ) -> std::result::Result<Self, AtomicLookupError> {
         let symbol = symbol.as_ref();
         let element = Self::new(db, symbol)?;
         if element.isotopes.contains_key(&mass_number) {
@@ -257,7 +257,7 @@ impl Element {
                 ..element
             })
         } else {
-            Err(ChemicalLookupError::Isotope(
+            Err(AtomicLookupError::Isotope(
                 symbol.to_owned(),
                 mass_number,
                 element.name.clone(),
@@ -305,7 +305,7 @@ impl Element {
     fn isotope_abundances(
         &self,
         // FIXME: Qualify std::result::Result as just std::Result or something?
-    ) -> std::result::Result<impl Iterator<Item = &Isotope>, ChemicalLookupError> {
+    ) -> std::result::Result<impl Iterator<Item = &Isotope>, AtomicLookupError> {
         let mut isotopes_with_abundances = self
             .isotopes
             .values()
@@ -314,7 +314,7 @@ impl Element {
         if isotopes_with_abundances.peek().is_some() {
             Ok(isotopes_with_abundances)
         } else {
-            Err(ChemicalLookupError::Abundance(
+            Err(AtomicLookupError::Abundance(
                 self.name.clone(),
                 self.symbol.clone(),
                 self.isotopes.keys().copied().sorted().collect(),
@@ -325,14 +325,14 @@ impl Element {
 
 impl Particle {
     fn new(
-        db: &ChemicalDatabase,
+        db: &AtomicDatabase,
         symbol: impl AsRef<str>,
-    ) -> std::result::Result<Self, ChemicalLookupError> {
+    ) -> std::result::Result<Self, AtomicLookupError> {
         let symbol = symbol.as_ref();
         db.particles
             .get(symbol)
             .cloned()
-            .ok_or_else(|| ChemicalLookupError::Particle(symbol.to_owned()))
+            .ok_or_else(|| AtomicLookupError::Particle(symbol.to_owned()))
     }
 }
 
@@ -345,10 +345,14 @@ mod tests {
 
     use crate::testing_tools::assert_miette_snapshot;
 
-    use super::{ChemicalComposition, ChemicalDatabase, Element, Particle};
+    use super::{AtomicDatabase, ChemicalComposition, Element, Particle};
 
-    static DB: Lazy<ChemicalDatabase> = Lazy::new(|| {
-        ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("../chemistry.kdl")).unwrap()
+    static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
+        AtomicDatabase::from_kdl(
+            "atomic_database.kdl",
+            include_str!("../atomic_database.kdl"),
+        )
+        .unwrap()
     });
 
     #[test]

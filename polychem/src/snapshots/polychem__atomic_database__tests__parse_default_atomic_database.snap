@@ -1,8 +1,8 @@
 ---
-source: polychem/src/chemical_database.rs
+source: polychem/src/atomic_database.rs
 expression: db
 ---
-ChemicalDatabaseKdl {
+AtomicDatabaseKdl {
     elements: [
         ElementKdl {
             symbol: ElementSymbol(

@@ -1,11 +1,15 @@
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
 use once_cell::sync::Lazy;
-use polychem::{chemical_database::ChemicalDatabase, ChemicalComposition, Result};
+use polychem::{atomic_database::AtomicDatabase, ChemicalComposition, Result};
 use rustyline::DefaultEditor;
 use std::fmt::Write;
 
-static DB: Lazy<ChemicalDatabase> = Lazy::new(|| {
-    ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("../polychem/chemistry.kdl")).unwrap()
+static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
+    AtomicDatabase::from_kdl(
+        "atomic_database.kdl",
+        include_str!("../polychem/atomic_database.kdl"),
+    )
+    .unwrap()
 });
 
 fn main() {

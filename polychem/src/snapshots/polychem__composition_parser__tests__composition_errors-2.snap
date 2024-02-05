@@ -8,9 +8,8 @@ expression: out
   ├─▶   × expected an element (like Au) or an isotope (like [15N]) optionally
   │     │ followed by a number
   │   
-  ╰─▶   × the element "Yh" could not be found in the supplied chemical
-      database
-        help: double-check for typos, or add a new entry to the chemical
+  ╰─▶   × the element "Yh" could not be found in the supplied atomic database
+        help: double-check for typos, or add a new entry to the atomic
       database
       
    ╭────

@@ -8,10 +8,10 @@ expression: out
   ├─▶   × expected an element (like Au) or an isotope (like [15N]) optionally
   │     │ followed by a number
   │   
-  ╰─▶   × the isotope "Tc-100" could not be found in the supplied chemical
+  ╰─▶   × the isotope "Tc-100" could not be found in the supplied atomic
       database,
         │ though the following Technetium isotopes were found: [97, 98, 99]
-        help: double-check for typos, or add a new entry to the chemical
+        help: double-check for typos, or add a new entry to the atomic
       database
       
    ╭────

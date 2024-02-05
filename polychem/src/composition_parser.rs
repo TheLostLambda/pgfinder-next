@@ -16,7 +16,7 @@ use thiserror::Error;
 
 // Local Module Imports
 use super::{
-    chemical_database::ChemicalDatabase, ChemicalComposition, ChemicalLookupError, Count, Element,
+    atomic_database::AtomicDatabase, AtomicLookupError, ChemicalComposition, Count, Element,
     MassNumber, OffsetKind, Particle,
 };
 
@@ -29,7 +29,7 @@ pub type CompositionError = LabeledError<CompositionErrorKind>;
 ///   | Particle Offset
 ///   ;
 pub fn chemical_composition<'a>(
-    db: &'a ChemicalDatabase,
+    db: &'a AtomicDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<ChemicalComposition> {
     let chemical_formula = many1(atomic_offset(db));
     let optional_particle_offset = opt(pair(offset_kind, cut(particle_offset(db))));
@@ -60,7 +60,7 @@ pub fn chemical_composition<'a>(
 
 /// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
 fn atomic_offset<'a>(
-    db: &'a ChemicalDatabase,
+    db: &'a AtomicDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
     let element_or_isotope = alt((element(db), isotope(db)));
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
@@ -79,7 +79,7 @@ fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
 
 /// Particle Offset = [ Count ] , Particle ;
 fn particle_offset<'a>(
-    db: &'a ChemicalDatabase,
+    db: &'a AtomicDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<(Count, Particle)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     let parser = pair(optional_count, particle(db));
@@ -89,12 +89,12 @@ fn particle_offset<'a>(
 // =====================================================================================================================
 
 /// Element = uppercase , [ lowercase ] ;
-fn element<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
+fn element<'a>(db: &'a AtomicDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
     map_res(element_symbol, |symbol| Element::new(db, symbol))
 }
 
 /// Isotope = "[" , Count , Element , "]" ;
-fn isotope<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
+fn isotope<'a>(db: &'a AtomicDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
     map_res(isotope_expr, |(mass_number, symbol)| {
         Element::new_isotope(db, symbol, mass_number)
     })
@@ -111,7 +111,7 @@ fn count(i: &str) -> ParseResult<Count> {
 }
 
 /// Particle = lowercase ;
-fn particle<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Particle> {
+fn particle<'a>(db: &'a AtomicDatabase) -> impl FnMut(&'a str) -> ParseResult<Particle> {
     map_res(particle_symbol, |symbol| Particle::new(db, symbol))
 }
 
@@ -205,9 +205,9 @@ pub(super) enum CompositionErrorKind {
     ExpectedUppercase,
     #[error("expected a lowercase ASCII letter")]
     ExpectedLowercase,
-    #[diagnostic(help("double-check for typos, or add a new entry to the chemical database"))]
+    #[diagnostic(help("double-check for typos, or add a new entry to the atomic database"))]
     #[error(transparent)]
-    LookupError(ChemicalLookupError),
+    LookupError(AtomicLookupError),
     #[diagnostic(help(
         "this is an internal error that you shouldn't ever see! If you have gotten this error, \
         then please report it as a bug!"
@@ -224,9 +224,9 @@ pub(super) enum CompositionErrorKind {
 impl LabeledErrorKind for CompositionErrorKind {
     fn label(&self) -> Option<&'static str> {
         Some(match self {
-            Self::LookupError(ChemicalLookupError::Element(_)) => "element not found",
-            Self::LookupError(ChemicalLookupError::Isotope(_, _, _, _)) => "isotope not found",
-            Self::LookupError(ChemicalLookupError::Particle(_)) => "particle not found",
+            Self::LookupError(AtomicLookupError::Element(_)) => "element not found",
+            Self::LookupError(AtomicLookupError::Isotope(_, _, _, _)) => "isotope not found",
+            Self::LookupError(AtomicLookupError::Particle(_)) => "particle not found",
             Self::ExpectedUppercase => "expected uppercase",
             Self::ExpectedLowercase => "expected lowercase",
             Self::ExpectedDigit => "expected digit",
@@ -241,12 +241,10 @@ impl LabeledErrorKind for CompositionErrorKind {
     }
 }
 
-impl<'a> FromExternalError<'a, ChemicalLookupError>
-    for LabeledParseError<'a, CompositionErrorKind>
-{
+impl<'a> FromExternalError<'a, AtomicLookupError> for LabeledParseError<'a, CompositionErrorKind> {
     const FATAL: bool = true;
 
-    fn from_external_error(input: &'a str, e: ChemicalLookupError) -> Self {
+    fn from_external_error(input: &'a str, e: AtomicLookupError) -> Self {
         Self::new(input, CompositionErrorKind::LookupError(e))
     }
 }
@@ -272,8 +270,12 @@ mod tests {
 
     use super::*;
 
-    static DB: Lazy<ChemicalDatabase> = Lazy::new(|| {
-        ChemicalDatabase::from_kdl("chemistry.kdl", include_str!("../chemistry.kdl")).unwrap()
+    static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
+        AtomicDatabase::from_kdl(
+            "atomic_database.kdl",
+            include_str!("../atomic_database.kdl"),
+        )
+        .unwrap()
     });
 
     #[test]
