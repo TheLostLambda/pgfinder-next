@@ -42,10 +42,16 @@ pub(super) enum CompositionErrorKind {
     ExpectedUppercase,
     #[error("expected a digit 1-9")]
     ExpectedDigit,
-    #[diagnostic(help("a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like NH02, try just NH2 instead"))]
+    #[diagnostic(help(
+        "a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like \
+        NH02, try just NH2 instead"
+    ))]
     #[error("counts cannot start with 0")]
     ExpectedNoLeadingZero,
-    #[error("expected a chemical formula (optionally followed by a '+' or '-' and a particle offset), or a standalone particle offset")]
+    #[error(
+        "expected a chemical formula (optionally followed by a '+' or '-' and a particle offset), \
+        or a standalone particle offset"
+    )]
     ExpectedChemicalComposition,
     #[error(
         "expected an element (like Au) or an isotope (like [15N]) optionally followed by a number"
@@ -67,7 +73,10 @@ pub(super) enum CompositionErrorKind {
     #[diagnostic(help("double-check for typos, or add a new entry to the chemical database"))]
     #[error(transparent)]
     LookupError(ChemicalLookupError),
-    #[diagnostic(help("this is an internal error that you shouldn't ever see! If you have gotten this error, then please report it as a bug!"))]
+    #[diagnostic(help(
+        "this is an internal error that you shouldn't ever see! If you have gotten this error, \
+        then please report it as a bug!"
+    ))]
     #[error("internal `nom` error: {0:?}")]
     Nom(ErrorKind),
     #[diagnostic(help(
@@ -112,34 +121,29 @@ impl LabeledErrorKind for CompositionErrorKind {
 pub type CompositionError = LabeledError<CompositionErrorKind>;
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, CompositionErrorKind>>;
 
-// FIXME: Think about using more let statements in all of these parsers!!!
 // FIXME: Order functions in the same way as the EBNF
 
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {
-    wrap_err(
-        recognize(pair(uppercase, opt(lowercase))),
-        CompositionErrorKind::ExpectedElementSymbol,
-    )(i)
+    let parser = recognize(pair(uppercase, opt(lowercase)));
+    wrap_err(parser, CompositionErrorKind::ExpectedElementSymbol)(i)
 }
 
 /// Particle = lowercase ;
 fn particle_symbol(i: &str) -> ParseResult<&str> {
-    wrap_err(
-        recognize(lowercase),
-        CompositionErrorKind::ExpectedParticleSymbol,
-    )(i)
+    let parser = recognize(lowercase);
+    wrap_err(parser, CompositionErrorKind::ExpectedParticleSymbol)(i)
 }
 
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
+    let opening_bracket = expect(char('['), CompositionErrorKind::ExpectedIsotopeStart);
+    let mass_number = wrap_err(count, CompositionErrorKind::ExpectedMassNumber);
+    let closing_bracket = expect(cut(char(']')), CompositionErrorKind::ExpectedIsotopeEnd);
     delimited(
-        expect(char('['), CompositionErrorKind::ExpectedIsotopeStart),
-        cut(pair(
-            wrap_err(count, CompositionErrorKind::ExpectedMassNumber),
-            element_symbol,
-        )),
-        expect(cut(char(']')), CompositionErrorKind::ExpectedIsotopeEnd),
+        opening_bracket,
+        cut(pair(mass_number, element_symbol)),
+        closing_bracket,
     )(i)
 }
 
@@ -171,13 +175,12 @@ fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
 
 /// Count = digit - "0" , { digit } ;
 fn count(i: &str) -> ParseResult<Count> {
-    preceded(
-        expect(
-            cut(not(char('0'))),
-            CompositionErrorKind::ExpectedNoLeadingZero,
-        ),
-        expect(u32, CompositionErrorKind::ExpectedDigit),
-    )(i)
+    let not_zero = expect(
+        cut(not(char('0'))),
+        CompositionErrorKind::ExpectedNoLeadingZero,
+    );
+    let digits = expect(u32, CompositionErrorKind::ExpectedDigit);
+    preceded(not_zero, digits)(i)
 }
 
 /// Particle Offset = [ Count ] , Particle ;
@@ -185,10 +188,8 @@ fn particle_offset<'a>(
     db: &'a ChemicalDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<(Count, Particle)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
-    wrap_err(
-        pair(optional_count, particle(db)),
-        CompositionErrorKind::ExpectedParticleOffset,
-    )
+    let parser = pair(optional_count, particle(db));
+    wrap_err(parser, CompositionErrorKind::ExpectedParticleOffset)
 }
 
 /// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
@@ -196,10 +197,9 @@ fn atomic_offset<'a>(
     db: &'a ChemicalDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
-    wrap_err(
-        pair(alt((element(db), isotope(db))), optional_count),
-        CompositionErrorKind::ExpectedAtomicOffset,
-    )
+    let element_or_isotope = alt((element(db), isotope(db)));
+    let parser = pair(element_or_isotope, optional_count);
+    wrap_err(parser, CompositionErrorKind::ExpectedAtomicOffset)
 }
 
 /// Chemical Composition
@@ -209,11 +209,10 @@ fn atomic_offset<'a>(
 pub fn chemical_composition<'a>(
     db: &'a ChemicalDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<ChemicalComposition> {
+    let chemical_formula = many1(atomic_offset(db));
+    let optional_particle_offset = opt(pair(offset_kind, cut(particle_offset(db))));
     let atoms_and_particles = map(
-        pair(
-            many1(atomic_offset(db)),
-            opt(pair(offset_kind, cut(particle_offset(db)))),
-        ),
+        pair(chemical_formula, optional_particle_offset),
         |(chemical_formula, particle_offset)| {
             let particle_offset = particle_offset.map(|(k, (c, p))| (k, c, p));
             ChemicalComposition {
@@ -222,17 +221,17 @@ pub fn chemical_composition<'a>(
             }
         },
     );
-    let just_particles = map(particle_offset(db), |(c, p)| {
-        let particle_offset = Some((OffsetKind::Add, c, p));
+
+    let just_particles = map(particle_offset(db), |(count, particle)| {
+        let particle_offset = Some((OffsetKind::Add, count, particle));
         ChemicalComposition {
             chemical_formula: Vec::new(),
             particle_offset,
         }
     });
-    wrap_err(
-        alt((atoms_and_particles, just_particles)),
-        CompositionErrorKind::ExpectedChemicalComposition,
-    )
+
+    let parser = alt((atoms_and_particles, just_particles));
+    wrap_err(parser, CompositionErrorKind::ExpectedChemicalComposition)
 }
 
 /// uppercase
@@ -242,10 +241,8 @@ pub fn chemical_composition<'a>(
 ///   | "V" | "W" | "X" | "Y" | "Z"
 ///   ;
 fn uppercase(i: &str) -> ParseResult<char> {
-    expect(
-        satisfy(|c| c.is_ascii_uppercase()),
-        CompositionErrorKind::ExpectedUppercase,
-    )(i)
+    let parser = satisfy(|c| c.is_ascii_uppercase());
+    expect(parser, CompositionErrorKind::ExpectedUppercase)(i)
 }
 
 /// lowercase
@@ -255,10 +252,8 @@ fn uppercase(i: &str) -> ParseResult<char> {
 ///   | "v" | "w" | "x" | "y" | "z"
 ///   ;
 fn lowercase(i: &str) -> ParseResult<char> {
-    expect(
-        satisfy(|c| c.is_ascii_lowercase()),
-        CompositionErrorKind::ExpectedLowercase,
-    )(i)
+    let parser = satisfy(|c| c.is_ascii_lowercase());
+    expect(parser, CompositionErrorKind::ExpectedLowercase)(i)
 }
 
 #[cfg(test)]
