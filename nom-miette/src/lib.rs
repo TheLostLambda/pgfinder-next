@@ -2,9 +2,9 @@ use std::{collections::HashMap, fmt};
 
 use miette::{Diagnostic, LabeledSpan, SourceSpan};
 use nom::{
-    combinator::{all_consuming, complete, consumed, map_res, success},
-    error::{FromExternalError, ParseError},
-    Finish, IResult, Parser,
+    combinator::{all_consuming, complete, consumed},
+    error::ParseError,
+    Err, Finish, IResult, Parser,
 };
 use thiserror::Error;
 
@@ -112,7 +112,6 @@ impl<E: LabeledErrorKind> LabeledError<E> {
     }
 }
 
-// FIXME: Abstract this out into it's own module (or nom-supreme?)
 // FIXME: Check that field ordering everywhere matches this!
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct LabeledParseError<'a, E> {
@@ -132,31 +131,36 @@ pub trait LabeledErrorKind: Diagnostic + Clone + Eq + From<nom::error::ErrorKind
     fn label(&self) -> Option<&'static str>;
 }
 
+pub trait FromExternalError<'a, E> {
+    fn from_external_error(input: &'a str, error: E) -> Self;
+    // FIXME: Convert to associated constant!
+    fn is_fatal() -> bool {
+        false
+    }
+}
+
 // FIXME: Oh lord, what a mess...
 impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
-    // FIXME: Add a version that doesn't keep the source?
-    // FIXME: Instead of all of this rebuilding with .., just take `mut self` like miette's GraphicalReportHandler
-    // FIXME: I don't like this being public!!!
-    pub fn kind(self, kind: E) -> Self {
-        // FIXME: This erases any non-final kinds... Is that okay?
-        let source = if self.reported {
-            Some(Box::new(self.clone()))
-        } else {
-            None
-        };
-        Self {
-            kind,
-            reported: true,
-            source,
-            // FIXME: Boy, we really need a default constructor...
-            alternatives: Vec::new(),
-            ..self
-        }
+    // FIXME: Make sure this is used everywhere it can be!
+    pub fn new(input: &'a str, kind: E) -> Self {
+        Self::new_with_source(input, kind, None)
     }
 
-    // FIXME: I don't like this being public!!!
-    pub fn fatal(self, fatal: bool) -> Self {
-        Self { fatal, ..self }
+    // FIXME: Make sure this is used everywhere it can be!
+    pub fn new_with_source(
+        input: &'a str,
+        kind: E,
+        source: Option<LabeledParseError<'a, E>>,
+    ) -> Self {
+        Self {
+            input,
+            length: 0,
+            kind,
+            reported: false,
+            fatal: false,
+            alternatives: Vec::new(),
+            source: source.map(Box::new),
+        }
     }
 
     // FIXME: God help with the naming... Arguments too...
@@ -235,26 +239,40 @@ where
     }
 }
 
-// FIXME: Just rename to map_res? Make always fatal?
-pub fn map_res_span<'a, O1, O2, E1, E2, F, G>(
+// FIXME: Why are these generics so much messier than map_res from nom?
+pub fn map_res<'a, O1, O2, E1, E2, F, G>(
     parser: F,
-    f: G,
+    mut f: G,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O2, LabeledParseError<'a, E1>>
 where
     O1: Clone,
     E1: LabeledErrorKind,
     F: Copy + Parser<&'a str, O1, LabeledParseError<'a, E1>>,
     G: Copy + FnMut(O1) -> Result<O2, E2>,
-    LabeledParseError<'a, E1>: FromExternalError<&'a str, E2>,
+    LabeledParseError<'a, E1>: FromExternalError<'a, E2>,
 {
     move |input| {
         let i = input;
         let (input, (consumed, o1)) = consumed(parser)(input)?;
-        wrap_err(map_res(success(o1), f), |e| LabeledParseError {
-            input: i,
-            length: consumed.len(),
-            ..e
-        })(input)
+        match f(o1) {
+            Ok(o2) => Ok((input, o2)),
+            Err(e) => {
+                let e = LabeledParseError {
+                    length: consumed.len(),
+                    ..LabeledParseError::from_external_error(i, e)
+                };
+                Err(if LabeledParseError::is_fatal() {
+                    Err::Failure(e)
+                } else {
+                    Err::Error(e)
+                })
+            }
+        }
+        // wrap_err(map_res_test(success(o1), f), |e| LabeledParseError {
+        //     input: i,
+        //     length: consumed.len(),
+        //     ..e
+        // })(input)
     }
 }
 
@@ -263,48 +281,45 @@ where
 // FIXME: See if this signature can be simplified (elide lifetimes?)
 // FIXME: Do I really need a closure? Or just a kind?
 // FIXME: Standardize the order of all of these generic arguments!
-pub fn wrap_err<'a, O, P, F, E>(
+pub fn wrap_err<'a, O, P, E>(
     mut parser: P,
-    f: F,
+    error: E,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, LabeledParseError<'a, E>>
 where
-    E: LabeledErrorKind,
+    // FIXME: Eek, this is a where, and below (in expect) is not!
+    E: LabeledErrorKind + Clone,
     P: Parser<&'a str, O, LabeledParseError<'a, E>>,
-    F: Clone + FnOnce(LabeledParseError<'a, E>) -> LabeledParseError<'a, E>,
 {
+    // FIXME: DRY with expect below!
     move |i| {
-        parser.parse(i).map_err(|e| match e.map(f.clone()) {
-            nom::Err::Error(e) if e.fatal => nom::Err::Failure(e),
-            rest => rest,
-        })
+        parser
+            .parse(i)
+            // FIXME: Really don't get why this clone is here...
+            .map_err(|e| e.map(|e| LabeledParseError::new_with_source(i, error.clone(), Some(e))))
     }
 }
 
 // FIXME: I should just replace wrap_err with expect, or I should make expect *not* wrap things
-pub fn expect<'a, O, E: LabeledErrorKind, F>(
-    parser: F,
+pub fn expect<'a, O, E: LabeledErrorKind + Clone, F>(
+    mut parser: F,
     error: E,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, LabeledParseError<'a, E>>
 where
     F: Parser<&'a str, O, LabeledParseError<'a, E>>,
 {
-    wrap_err(parser, |e| e.kind(error))
+    move |i| {
+        parser
+            .parse(i)
+            // FIXME: Really don't get why this clone is here...
+            .map_err(|e| e.map(|_| LabeledParseError::new(i, error.clone())))
+    }
 }
 
 // FIXME: Eventually, I should make everything generic over the input type again... So you'd be able to use this
 // library with &'a [u8] like `nom` lets you
 impl<'a, E: LabeledErrorKind> ParseError<&'a str> for LabeledParseError<'a, E> {
     fn from_error_kind(input: &'a str, kind: nom::error::ErrorKind) -> Self {
-        // FIXME: Trying implementing Default and doing ..Self::default()
-        Self {
-            input,
-            length: 0,
-            kind: kind.into(),
-            reported: false,
-            fatal: false,
-            alternatives: Vec::new(),
-            source: None,
-        }
+        Self::new(input, kind.into())
     }
 
     fn append(_input: &str, _kind: nom::error::ErrorKind, other: Self) -> Self {
@@ -313,15 +328,10 @@ impl<'a, E: LabeledErrorKind> ParseError<&'a str> for LabeledParseError<'a, E> {
 
     fn or(self, other: Self) -> Self {
         // FIXME: Oh god...
-        let (new_self, alternative) = match (self.reported, other.reported) {
-            (true, true) => (self.clone(), vec![other.clone()]),
-            (true, false) => (self.clone(), Vec::new()),
-            _ => (other.clone(), Vec::new()),
-        };
-        let alternatives = [self.alternatives, alternative].concat();
+        let alternatives = [self.alternatives, vec![other]].concat();
         Self {
             alternatives,
-            ..new_self
+            ..self
         }
     }
 }

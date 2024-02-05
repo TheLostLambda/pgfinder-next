@@ -6,13 +6,13 @@ use nom::{
     branch::alt,
     character::complete::{char, one_of, satisfy, u32},
     combinator::{map, not, opt, recognize},
-    error::{ErrorKind, FromExternalError, ParseError},
+    error::ErrorKind,
     multi::many1,
     sequence::{delimited, pair, preceded},
     IResult, Parser,
 };
 use nom_miette::{
-    expect, map_res_span, wrap_err, LabeledError, LabeledErrorKind, LabeledParseError,
+    expect, map_res, wrap_err, FromExternalError, LabeledError, LabeledErrorKind, LabeledParseError,
 };
 use thiserror::Error;
 
@@ -25,15 +25,18 @@ use super::{
 // FIXME: Find a way to get rid of this!!!
 // FIXME: Just define my own version of this trait, that assumes the LabeledParseError bit, drops the stupid Nom-kind,
 // then allows you to specify whether e is fatal or not?
-impl<'a> FromExternalError<&'a str, ChemicalLookupError>
+impl<'a> FromExternalError<'a, ChemicalLookupError>
     for LabeledParseError<'a, CompositionErrorKind>
 {
-    fn from_external_error(input: &'a str, kind: ErrorKind, e: ChemicalLookupError) -> Self {
-        Self::from_error_kind(input, kind)
-            .kind(CompositionErrorKind::LookupError(e))
-            // FIXME: Try to get rid of this function... I need a way to move this into the LabeledErrorKind trait
-            // FIXME: Move fatal-ness to map_res_span?
-            .fatal(true)
+    fn from_external_error(input: &'a str, e: ChemicalLookupError) -> Self {
+        Self::new(input, CompositionErrorKind::LookupError(e))
+        // FIXME: Try to get rid of this function... I need a way to move this into the LabeledErrorKind trait
+        // FIXME: Move fatal-ness to map_res_span?
+    }
+
+    // FIXME: Convert into an associated constant
+    fn is_fatal() -> bool {
+        true
     }
 }
 
@@ -46,6 +49,8 @@ pub enum CompositionErrorKind {
     ExpectedLowercase,
     #[error("expected an uppercase ASCII letter")]
     ExpectedUppercase,
+    #[error("expected a digit 1-9")]
+    ExpectedDigit,
     #[diagnostic(help("a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like NH02, try just NH2 instead"))]
     #[error("counts cannot start with 0")]
     ExpectedNoLeadingZero,
@@ -100,6 +105,7 @@ impl LabeledErrorKind for CompositionErrorKind {
             Self::LookupError(ChemicalLookupError::Particle(_)) => Some("particle not found"),
             Self::ExpectedUppercase => Some("expected uppercase"),
             Self::ExpectedLowercase => Some("expected lowercase"),
+            Self::ExpectedDigit => Some("expected digit"),
             Self::ExpectedIsotopeStart => Some("'['"),
             Self::ExpectedIsotopeEnd => Some("expected ']'"),
             Self::ExpectedMassNumber => Some("expected a mass number"),
@@ -124,16 +130,18 @@ type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, CompositionE
 
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {
-    wrap_err(recognize(pair(uppercase, opt(lowercase))), |e| {
-        e.kind(CompositionErrorKind::ExpectedElementSymbol)
-    })(i)
+    wrap_err(
+        recognize(pair(uppercase, opt(lowercase))),
+        CompositionErrorKind::ExpectedElementSymbol,
+    )(i)
 }
 
 /// Particle = lowercase ;
 fn particle_symbol(i: &str) -> ParseResult<&str> {
-    wrap_err(recognize(lowercase), |e| {
-        e.kind(CompositionErrorKind::ExpectedParticleSymbol)
-    })(i)
+    wrap_err(
+        recognize(lowercase),
+        CompositionErrorKind::ExpectedParticleSymbol,
+    )(i)
 }
 
 /// Isotope = "[" , Count , Element , "]" ;
@@ -141,7 +149,7 @@ fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
     delimited(
         expect(char('['), CompositionErrorKind::ExpectedIsotopeStart),
         cut(pair(
-            expect(count, CompositionErrorKind::ExpectedMassNumber),
+            wrap_err(count, CompositionErrorKind::ExpectedMassNumber),
             element_symbol,
         )),
         expect(cut(char(']')), CompositionErrorKind::ExpectedIsotopeEnd),
@@ -150,19 +158,19 @@ fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
 
 /// Element = uppercase , [ lowercase ] ;
 fn element<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
-    map_res_span(element_symbol, |symbol| Element::new(db, symbol))
+    map_res(element_symbol, |symbol| Element::new(db, symbol))
 }
 
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
-    map_res_span(isotope_expr, |(mass_number, symbol)| {
+    map_res(isotope_expr, |(mass_number, symbol)| {
         Element::new_isotope(db, symbol, mass_number)
     })
 }
 
 /// Particle = lowercase ;
 fn particle<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Particle> {
-    map_res_span(particle_symbol, |symbol| Particle::new(db, symbol))
+    map_res(particle_symbol, |symbol| Particle::new(db, symbol))
 }
 
 /// Offset Kind = "+" | "-" ;
@@ -181,7 +189,7 @@ fn count(i: &str) -> ParseResult<Count> {
             cut(not(char('0'))),
             CompositionErrorKind::ExpectedNoLeadingZero,
         ),
-        u32,
+        expect(u32, CompositionErrorKind::ExpectedDigit),
     )(i)
 }
 
@@ -190,9 +198,10 @@ fn particle_offset<'a>(
     db: &'a ChemicalDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<(Count, Particle)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
-    wrap_err(pair(optional_count, particle(db)), |e| {
-        e.kind(CompositionErrorKind::ExpectedParticleOffset)
-    })
+    wrap_err(
+        pair(optional_count, particle(db)),
+        CompositionErrorKind::ExpectedParticleOffset,
+    )
 }
 
 /// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
@@ -200,9 +209,10 @@ fn atomic_offset<'a>(
     db: &'a ChemicalDatabase,
 ) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
-    wrap_err(pair(alt((element(db), isotope(db))), optional_count), |e| {
-        e.kind(CompositionErrorKind::ExpectedAtomicOffset)
-    })
+    wrap_err(
+        pair(alt((element(db), isotope(db))), optional_count),
+        CompositionErrorKind::ExpectedAtomicOffset,
+    )
 }
 
 /// Chemical Composition
@@ -232,9 +242,10 @@ pub fn chemical_composition<'a>(
             particle_offset,
         }
     });
-    wrap_err(alt((atoms_and_particles, just_particles)), |e| {
-        e.kind(CompositionErrorKind::ExpectedChemicalComposition)
-    })
+    wrap_err(
+        alt((atoms_and_particles, just_particles)),
+        CompositionErrorKind::ExpectedChemicalComposition,
+    )
 }
 
 /// uppercase
@@ -244,9 +255,10 @@ pub fn chemical_composition<'a>(
 ///   | "V" | "W" | "X" | "Y" | "Z"
 ///   ;
 fn uppercase(i: &str) -> ParseResult<char> {
-    wrap_err(satisfy(|c| c.is_ascii_uppercase()), |e| {
-        e.kind(CompositionErrorKind::ExpectedUppercase)
-    })(i)
+    expect(
+        satisfy(|c| c.is_ascii_uppercase()),
+        CompositionErrorKind::ExpectedUppercase,
+    )(i)
 }
 
 /// lowercase
@@ -258,9 +270,10 @@ fn uppercase(i: &str) -> ParseResult<char> {
 fn lowercase(i: &str) -> ParseResult<char> {
     // FIXME: Maybe make a let binding for all of the parsers that comes before the `report_err` — that way you can see
     // what the final nom code is, then you can see, seperately, where I start adding error information
-    wrap_err(satisfy(|c| c.is_ascii_lowercase()), |e| {
-        e.kind(CompositionErrorKind::ExpectedLowercase)
-    })(i)
+    expect(
+        satisfy(|c| c.is_ascii_lowercase()),
+        CompositionErrorKind::ExpectedLowercase,
+    )(i)
 }
 
 #[cfg(test)]
