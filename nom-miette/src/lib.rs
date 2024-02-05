@@ -10,22 +10,22 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Eq, PartialEq, Error)]
 #[error("{error}")]
-pub struct LabeledError<E: LabeledErrorKind> {
+pub struct LabeledError<K: LabeledErrorKind> {
     full_input: String,
     labels: Vec<LabeledSpan>,
-    error: ErrorTree<E>,
+    error: ErrorTree<K, Self>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Error)]
-enum ErrorTree<E: LabeledErrorKind> {
+enum ErrorTree<K, E> {
     #[error("{kind}")]
     Node {
-        kind: E,
+        kind: K,
         #[source]
-        source: Option<Box<LabeledError<E>>>,
+        source: Option<Box<E>>,
     },
     #[error("attempted {} parse branches unsuccessfully", .0.len())]
-    Branch(Vec<LabeledError<E>>),
+    Branch(Vec<E>),
 }
 
 impl<E: LabeledErrorKind> Diagnostic for LabeledError<E> {
@@ -54,7 +54,6 @@ impl<E: LabeledErrorKind> Diagnostic for LabeledError<E> {
     }
 
     fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
-        // FIXME: Better way to do this?
         if let ErrorTree::Node { source, .. } = &self.error {
             source.as_ref().map(|e| &**e as &dyn Diagnostic)
         } else {
@@ -64,9 +63,28 @@ impl<E: LabeledErrorKind> Diagnostic for LabeledError<E> {
 }
 
 impl<E: LabeledErrorKind> LabeledError<E> {
-    // FIXME: Build the whole labelled span here?
-    // FIXME: Is mutable best here?
     fn bubble_labels(&mut self) {
+        // FIXME: This eventually needs testing — showing that labels with different spans *don't* get merged
+        fn merge_labels(labels: impl Iterator<Item = LabeledSpan>) -> Vec<LabeledSpan> {
+            let mut span_map: HashMap<SourceSpan, Vec<String>> = HashMap::new();
+            for labeled_span in labels {
+                let span = labeled_span.inner();
+                // FIXME: Gross with the clone() and to_owned() in here...
+                let label = labeled_span.label().unwrap().to_owned();
+                span_map
+                    .entry(*span)
+                    .and_modify(|l| l.push(label.clone()))
+                    .or_insert_with(|| vec![label]);
+            }
+            span_map
+                .into_iter()
+                .map(|(span, labels)| {
+                    let label = labels.join(" or ");
+                    LabeledSpan::new_with_span(Some(label), span)
+                })
+                .collect()
+        }
+
         if self.labels.is_empty() {
             match &mut self.error {
                 ErrorTree::Node {
@@ -81,45 +99,24 @@ impl<E: LabeledErrorKind> LabeledError<E> {
                         child.bubble_labels();
                         child.labels.drain(..)
                     });
-                    self.labels = Self::merge_labels(new_labels);
+                    self.labels = merge_labels(new_labels);
                 }
                 ErrorTree::Node { .. } => (),
             }
         }
     }
-
-    // FIXME: Where in the world does this belong...
-    // FIXME: This eventually needs testing — showing that labels with different spans *don't* get merged
-    fn merge_labels(labels: impl Iterator<Item = LabeledSpan>) -> Vec<LabeledSpan> {
-        let mut span_map: HashMap<SourceSpan, Vec<String>> = HashMap::new();
-        for labeled_span in labels {
-            let span = labeled_span.inner();
-            // FIXME: Gross with the clone() and to_owned() in here...
-            let label = labeled_span.label().unwrap().to_owned();
-            span_map
-                .entry(*span)
-                .and_modify(|l| l.push(label.clone()))
-                .or_insert_with(|| vec![label]);
-        }
-        span_map
-            .into_iter()
-            .map(|(span, labels)| {
-                let label = labels.join(" or ");
-                LabeledSpan::new_with_span(Some(label), span)
-            })
-            .collect()
-    }
 }
 
 // FIXME: Check that field ordering everywhere matches this!
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct LabeledParseError<'a, E> {
-    input: &'a str,
-    length: usize,
-    kind: E,
-    // FIXME: Replace this with the ErrorTree!!
-    alternatives: Vec<LabeledParseError<'a, E>>,
-    source: Option<Box<LabeledParseError<'a, E>>>,
+pub enum LabeledParseError<'a, K> {
+    Node {
+        input: &'a str,
+        length: usize,
+        kind: K,
+        source: Option<Box<Self>>,
+    },
+    Branch(Vec<Self>),
 }
 
 pub trait LabeledErrorKind: Diagnostic + Clone + From<nom::error::ErrorKind> {
@@ -133,85 +130,77 @@ pub trait FromExternalError<'a, E> {
     fn from_external_error(input: &'a str, error: E) -> Self;
 }
 
-// FIXME: Oh lord, what a mess...
 impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
-    // FIXME: Make sure this is used everywhere it can be!
     pub fn new(input: &'a str, kind: E) -> Self {
         Self::new_with_source(input, kind, None)
     }
 
-    // FIXME: Make sure this is used everywhere it can be!
     pub fn new_with_source(
         input: &'a str,
         kind: E,
         source: Option<LabeledParseError<'a, E>>,
     ) -> Self {
-        Self {
+        Self::Node {
             input,
             length: 0,
             kind,
-            alternatives: Vec::new(),
             source: source.map(Box::new),
         }
     }
 
-    // FIXME: God help with the naming... Arguments too...
     fn into_final_error(self, full_input: &str) -> LabeledError<E> {
-        let source = self
-            .source
-            .clone()
-            .map(|e| Box::new(e.into_final_error(full_input)));
-        let alternatives: Vec<_> = self
-            .alternatives
-            .iter()
-            .cloned()
-            .map(|e| e.into_final_error(full_input))
-            .collect();
-        // NOTE: The additional space is added so that Diagnostic labels can point to the end of an input
-        let input = format!("{full_input} ");
-        let span = self.span_from_input(full_input);
-        let label = self.kind.label().map(str::to_string);
-        let labels = label
-            .into_iter()
-            .map(|l| LabeledSpan::new_with_span(Some(l), span))
-            .collect();
-        // FIXME: WET CODE!!!
-        if alternatives.is_empty() {
-            LabeledError {
-                full_input: input,
-                labels,
-                error: ErrorTree::Node {
-                    kind: self.kind,
+        fn convert_node<E: LabeledErrorKind>(
+            node: LabeledParseError<E>,
+            full_input: &str,
+        ) -> LabeledError<E> {
+            // NOTE: The additional space is added so that Diagnostic labels can point to the end of an input
+            let padded_input = format!("{full_input} ");
+
+            match node {
+                LabeledParseError::Node {
+                    input,
+                    length,
+                    kind,
                     source,
-                },
-            }
-        } else {
-            // FIXME: Yuckie!
-            let mut other_self = self;
-            other_self.alternatives.clear();
-            LabeledError {
-                full_input: input,
-                labels: Vec::new(),
-                error: ErrorTree::Branch(
-                    [vec![other_self.into_final_error(full_input)], alternatives].concat(),
-                ),
+                } => {
+                    let source = source.map(|n| Box::new(convert_node(*n, full_input)));
+                    let label = kind.label().map(str::to_string);
+                    let span = span_from_input(full_input, input, length);
+                    let labels = label
+                        .into_iter()
+                        .map(|l| LabeledSpan::new_with_span(Some(l), span))
+                        .collect();
+                    LabeledError {
+                        full_input: padded_input,
+                        labels,
+                        error: { ErrorTree::Node { kind, source } },
+                    }
+                }
+                LabeledParseError::Branch(alternatives) => {
+                    let alternatives = alternatives
+                        .into_iter()
+                        .map(|n| convert_node(n, full_input))
+                        .collect();
+                    LabeledError {
+                        full_input: padded_input,
+                        labels: Vec::new(),
+                        error: ErrorTree::Branch(alternatives),
+                    }
+                }
             }
         }
-    }
 
-    // FIXME: OMG refactor... Also, can I do better than stealing here?
-    fn span_from_input(&self, full_input: &str) -> SourceSpan {
-        let base_addr = full_input.as_ptr() as usize;
-        let substr_addr = self.input.as_ptr() as usize;
-        // FIXME: Keep this?
-        assert!(
-            substr_addr >= base_addr,
-            "tried to get the span of a non-substring!"
-        );
-        let start = substr_addr - base_addr;
-        let end = start + self.length;
-        SourceSpan::from(start..end)
+        let mut final_error = convert_node(self, full_input);
+        final_error.bubble_labels();
+        final_error
     }
+}
+
+fn span_from_input(full_input: &str, input: &str, length: usize) -> SourceSpan {
+    let base_addr = full_input.as_ptr() as usize;
+    let substr_addr = input.as_ptr() as usize;
+    let start = substr_addr - base_addr;
+    SourceSpan::new(start.into(), length)
 }
 
 pub fn final_parser<'a, O, P, E>(parser: P) -> impl FnMut(&'a str) -> Result<O, LabeledError<E>>
@@ -219,15 +208,13 @@ where
     E: LabeledErrorKind,
     P: Parser<&'a str, O, LabeledParseError<'a, E>>,
 {
-    // FIXME: I can't inline this because of some borrow-checker closure witchcraft...
-    let mut parser = all_consuming(complete(parser));
+    let mut final_parser = all_consuming(complete(parser));
     move |input| {
-        parser.parse(input).finish().map(|(_, c)| c).map_err(|e| {
-            // FIXME: Ew
-            let mut error = e.into_final_error(input);
-            error.bubble_labels();
-            error
-        })
+        final_parser
+            .parse(input)
+            .finish()
+            .map(|(_, c)| c)
+            .map_err(|e| e.into_final_error(input))
     }
 }
 
@@ -249,10 +236,11 @@ where
         match f(o1) {
             Ok(o2) => Ok((input, o2)),
             Err(e) => {
-                let e = LabeledParseError {
-                    length: consumed.len(),
-                    ..LabeledParseError::from_external_error(i, e)
-                };
+                let mut e = LabeledParseError::from_external_error(i, e);
+                if let LabeledParseError::Node { length, .. } = &mut e {
+                    *length = consumed.len();
+                }
+
                 Err(if LabeledParseError::FATAL {
                     Err::Failure(e)
                 } else {
@@ -263,8 +251,7 @@ where
     }
 }
 
-// FIXME: Check if I'm being consistent about using `impl` or generics... I think I should avoid any generics I don't
-// use, as long as this is just a sort of "internal" library
+// FIXME: Check if I'm being consistent about using `impl` or generics...
 // FIXME: See if this signature can be simplified (elide lifetimes?)
 // FIXME: Standardize the order of all of these generic arguments!
 pub fn wrap_err<'a, O, P, E>(
@@ -280,12 +267,10 @@ where
     move |i| {
         parser
             .parse(i)
-            // FIXME: Really don't get why this clone is here...
             .map_err(|e| e.map(|e| LabeledParseError::new_with_source(i, kind.clone(), Some(e))))
     }
 }
 
-// FIXME: I should just replace wrap_err with expect, or I should make expect *not* wrap things
 pub fn expect<'a, O, E: LabeledErrorKind + Clone, F>(
     mut parser: F,
     kind: E,
@@ -296,7 +281,6 @@ where
     move |i| {
         parser
             .parse(i)
-            // FIXME: Really don't get why this clone is here...
             .map_err(|e| e.map(|_| LabeledParseError::new(i, kind.clone())))
     }
 }
@@ -313,9 +297,10 @@ impl<'a, E: LabeledErrorKind> ParseError<&'a str> for LabeledParseError<'a, E> {
     }
 
     fn or(self, other: Self) -> Self {
-        Self {
-            alternatives: [self.alternatives, vec![other]].concat(),
-            ..self
-        }
+        let alternatives = match self {
+            Self::Node { .. } => Vec::new(),
+            Self::Branch(ref a) => a.clone(),
+        };
+        Self::Branch([vec![self, other], alternatives].concat())
     }
 }
