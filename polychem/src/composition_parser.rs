@@ -22,185 +22,7 @@ use super::{
 
 // Public API ==========================================================================================================
 
-impl<'a> FromExternalError<'a, ChemicalLookupError>
-    for LabeledParseError<'a, CompositionErrorKind>
-{
-    const FATAL: bool = true;
-
-    fn from_external_error(input: &'a str, e: ChemicalLookupError) -> Self {
-        Self::new(input, CompositionErrorKind::LookupError(e))
-    }
-}
-
-// FIXME: API guidelines, check word ordering
-// FIXME: Also order these according to the EBNF
-#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-pub(super) enum CompositionErrorKind {
-    #[error("expected a lowercase ASCII letter")]
-    ExpectedLowercase,
-    #[error("expected an uppercase ASCII letter")]
-    ExpectedUppercase,
-    #[error("expected a digit 1-9")]
-    ExpectedDigit,
-    #[diagnostic(help(
-        "a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like \
-        NH02, try just NH2 instead"
-    ))]
-    #[error("counts cannot start with 0")]
-    ExpectedNoLeadingZero,
-    #[error(
-        "expected a chemical formula (optionally followed by a '+' or '-' and a particle offset), \
-        or a standalone particle offset"
-    )]
-    ExpectedChemicalComposition,
-    #[error(
-        "expected an element (like Au) or an isotope (like [15N]) optionally followed by a number"
-    )]
-    ExpectedAtomicOffset,
-    #[error("expected a particle (like p or e), optionally preceded by a number")]
-    ExpectedParticleOffset,
-    #[diagnostic(help("you've probably forgotten to close an earlier '[' bracket"))]
-    #[error("expected ']' to close isotope brackets")]
-    ExpectedIsotopeEnd,
-    #[error("expected '[' to open isotope brackets")]
-    ExpectedIsotopeStart,
-    #[error("expected an isotopic mass number")]
-    ExpectedMassNumber,
-    #[error("expected an element symbol")]
-    ExpectedElementSymbol,
-    #[error("expected a particle symbol")]
-    ExpectedParticleSymbol,
-    #[diagnostic(help("double-check for typos, or add a new entry to the chemical database"))]
-    #[error(transparent)]
-    LookupError(ChemicalLookupError),
-    #[diagnostic(help(
-        "this is an internal error that you shouldn't ever see! If you have gotten this error, \
-        then please report it as a bug!"
-    ))]
-    #[error("internal `nom` error: {0:?}")]
-    Nom(ErrorKind),
-    #[diagnostic(help(
-        "check the unparsed region for errors, or remove it from the rest of the composition"
-    ))]
-    #[error("could not interpret the full input as a valid chemical composition")]
-    IncompleteParse,
-}
-
-impl From<ErrorKind> for CompositionErrorKind {
-    fn from(value: ErrorKind) -> Self {
-        match value {
-            ErrorKind::Eof => Self::IncompleteParse,
-            kind => Self::Nom(kind),
-        }
-    }
-}
-
-impl LabeledErrorKind for CompositionErrorKind {
-    fn label(&self) -> Option<&'static str> {
-        match self {
-            Self::LookupError(ChemicalLookupError::Element(_)) => Some("element not found"),
-            Self::LookupError(ChemicalLookupError::Isotope(_, _, _, _)) => {
-                Some("isotope not found")
-            }
-            Self::LookupError(ChemicalLookupError::Particle(_)) => Some("particle not found"),
-            Self::ExpectedUppercase => Some("expected uppercase"),
-            Self::ExpectedLowercase => Some("expected lowercase"),
-            Self::ExpectedDigit => Some("expected digit"),
-            Self::ExpectedIsotopeStart => Some("'['"),
-            Self::ExpectedIsotopeEnd => Some("expected ']'"),
-            Self::ExpectedMassNumber => Some("expected a mass number"),
-            Self::ExpectedNoLeadingZero => Some("expected non-zero"),
-            Self::IncompleteParse => Some("input was valid up until this point"),
-            Self::Nom(_) => Some("the region that triggered this bug!"),
-            _ => None,
-        }
-    }
-}
-
-// FIXME: Where go?
 pub type CompositionError = LabeledError<CompositionErrorKind>;
-type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, CompositionErrorKind>>;
-
-// FIXME: Order functions in the same way as the EBNF
-
-/// Element = uppercase , [ lowercase ] ;
-fn element_symbol(i: &str) -> ParseResult<&str> {
-    let parser = recognize(pair(uppercase, opt(lowercase)));
-    wrap_err(parser, CompositionErrorKind::ExpectedElementSymbol)(i)
-}
-
-/// Particle = lowercase ;
-fn particle_symbol(i: &str) -> ParseResult<&str> {
-    let parser = recognize(lowercase);
-    wrap_err(parser, CompositionErrorKind::ExpectedParticleSymbol)(i)
-}
-
-/// Isotope = "[" , Count , Element , "]" ;
-fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
-    let opening_bracket = expect(char('['), CompositionErrorKind::ExpectedIsotopeStart);
-    let mass_number = wrap_err(count, CompositionErrorKind::ExpectedMassNumber);
-    let closing_bracket = expect(cut(char(']')), CompositionErrorKind::ExpectedIsotopeEnd);
-    delimited(
-        opening_bracket,
-        cut(pair(mass_number, element_symbol)),
-        closing_bracket,
-    )(i)
-}
-
-/// Element = uppercase , [ lowercase ] ;
-fn element<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
-    map_res(element_symbol, |symbol| Element::new(db, symbol))
-}
-
-/// Isotope = "[" , Count , Element , "]" ;
-fn isotope<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
-    map_res(isotope_expr, |(mass_number, symbol)| {
-        Element::new_isotope(db, symbol, mass_number)
-    })
-}
-
-/// Particle = lowercase ;
-fn particle<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Particle> {
-    map_res(particle_symbol, |symbol| Particle::new(db, symbol))
-}
-
-/// Offset Kind = "+" | "-" ;
-fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
-    map(one_of("+-"), |c| match c {
-        '+' => OffsetKind::Add,
-        '-' => OffsetKind::Remove,
-        _ => unreachable!(),
-    })(i)
-}
-
-/// Count = digit - "0" , { digit } ;
-fn count(i: &str) -> ParseResult<Count> {
-    let not_zero = expect(
-        cut(not(char('0'))),
-        CompositionErrorKind::ExpectedNoLeadingZero,
-    );
-    let digits = expect(u32, CompositionErrorKind::ExpectedDigit);
-    preceded(not_zero, digits)(i)
-}
-
-/// Particle Offset = [ Count ] , Particle ;
-fn particle_offset<'a>(
-    db: &'a ChemicalDatabase,
-) -> impl FnMut(&'a str) -> ParseResult<(Count, Particle)> {
-    let optional_count = opt(count).map(|o| o.unwrap_or(1));
-    let parser = pair(optional_count, particle(db));
-    wrap_err(parser, CompositionErrorKind::ExpectedParticleOffset)
-}
-
-/// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
-fn atomic_offset<'a>(
-    db: &'a ChemicalDatabase,
-) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
-    let optional_count = opt(count).map(|o| o.unwrap_or(1));
-    let element_or_isotope = alt((element(db), isotope(db)));
-    let parser = pair(element_or_isotope, optional_count);
-    wrap_err(parser, CompositionErrorKind::ExpectedAtomicOffset)
-}
 
 /// Chemical Composition
 ///   = { Atomic Offset }- , [ Offset Kind , Particle Offset ]
@@ -234,6 +56,93 @@ pub fn chemical_composition<'a>(
     wrap_err(parser, CompositionErrorKind::ExpectedChemicalComposition)
 }
 
+// Private Sub-Parsers =================================================================================================
+
+/// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
+fn atomic_offset<'a>(
+    db: &'a ChemicalDatabase,
+) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
+    let element_or_isotope = alt((element(db), isotope(db)));
+    let optional_count = opt(count).map(|o| o.unwrap_or(1));
+    let parser = pair(element_or_isotope, optional_count);
+    wrap_err(parser, CompositionErrorKind::ExpectedAtomicOffset)
+}
+
+/// Offset Kind = "+" | "-" ;
+fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
+    map(one_of("+-"), |c| match c {
+        '+' => OffsetKind::Add,
+        '-' => OffsetKind::Remove,
+        _ => unreachable!(),
+    })(i)
+}
+
+/// Particle Offset = [ Count ] , Particle ;
+fn particle_offset<'a>(
+    db: &'a ChemicalDatabase,
+) -> impl FnMut(&'a str) -> ParseResult<(Count, Particle)> {
+    let optional_count = opt(count).map(|o| o.unwrap_or(1));
+    let parser = pair(optional_count, particle(db));
+    wrap_err(parser, CompositionErrorKind::ExpectedParticleOffset)
+}
+
+// =====================================================================================================================
+
+/// Element = uppercase , [ lowercase ] ;
+fn element<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
+    map_res(element_symbol, |symbol| Element::new(db, symbol))
+}
+
+/// Isotope = "[" , Count , Element , "]" ;
+fn isotope<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
+    map_res(isotope_expr, |(mass_number, symbol)| {
+        Element::new_isotope(db, symbol, mass_number)
+    })
+}
+
+/// Count = digit - "0" , { digit } ;
+fn count(i: &str) -> ParseResult<Count> {
+    let not_zero = expect(
+        cut(not(char('0'))),
+        CompositionErrorKind::ExpectedNoLeadingZero,
+    );
+    let digits = expect(u32, CompositionErrorKind::ExpectedDigit);
+    preceded(not_zero, digits)(i)
+}
+
+/// Particle = lowercase ;
+fn particle<'a>(db: &'a ChemicalDatabase) -> impl FnMut(&'a str) -> ParseResult<Particle> {
+    map_res(particle_symbol, |symbol| Particle::new(db, symbol))
+}
+
+// =====================================================================================================================
+
+/// Element = uppercase , [ lowercase ] ;
+fn element_symbol(i: &str) -> ParseResult<&str> {
+    let parser = recognize(pair(uppercase, opt(lowercase)));
+    wrap_err(parser, CompositionErrorKind::ExpectedElementSymbol)(i)
+}
+
+/// Isotope = "[" , Count , Element , "]" ;
+fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
+    let opening_bracket = expect(char('['), CompositionErrorKind::ExpectedIsotopeStart);
+    let mass_number = wrap_err(count, CompositionErrorKind::ExpectedMassNumber);
+    let closing_bracket = expect(cut(char(']')), CompositionErrorKind::ExpectedIsotopeEnd);
+    delimited(
+        opening_bracket,
+        cut(pair(mass_number, element_symbol)),
+        closing_bracket,
+    )(i)
+}
+
+/// Particle = lowercase ;
+fn particle_symbol(i: &str) -> ParseResult<&str> {
+    let parser = recognize(lowercase);
+    wrap_err(parser, CompositionErrorKind::ExpectedParticleSymbol)(i)
+}
+
+// =====================================================================================================================
+
 /// uppercase
 ///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
 ///   | "H" | "I" | "J" | "K" | "L" | "M" | "N"
@@ -255,6 +164,103 @@ fn lowercase(i: &str) -> ParseResult<char> {
     let parser = satisfy(|c| c.is_ascii_lowercase());
     expect(parser, CompositionErrorKind::ExpectedLowercase)(i)
 }
+
+// Parse Error Types and Trait Implementations =========================================================================
+
+type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, CompositionErrorKind>>;
+
+#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
+pub(super) enum CompositionErrorKind {
+    #[error(
+        "expected a chemical formula (optionally followed by a '+' or '-' and a particle offset), \
+        or a standalone particle offset"
+    )]
+    ExpectedChemicalComposition,
+    #[error(
+        "expected an element (like Au) or an isotope (like [15N]) optionally followed by a number"
+    )]
+    ExpectedAtomicOffset,
+    #[error("expected a particle (like p or e), optionally preceded by a number")]
+    ExpectedParticleOffset,
+    #[diagnostic(help(
+        "a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like \
+        NH02, try just NH2 instead"
+    ))]
+    #[error("counts cannot start with 0")]
+    ExpectedNoLeadingZero,
+    #[error("expected a digit 1-9")]
+    ExpectedDigit,
+    #[error("expected an element symbol")]
+    ExpectedElementSymbol,
+    #[error("expected '[' to open isotope brackets")]
+    ExpectedIsotopeStart,
+    #[error("expected an isotopic mass number")]
+    ExpectedMassNumber,
+    #[diagnostic(help("you've probably forgotten to close an earlier '[' bracket"))]
+    #[error("expected ']' to close isotope brackets")]
+    ExpectedIsotopeEnd,
+    #[error("expected a particle symbol")]
+    ExpectedParticleSymbol,
+    #[error("expected an uppercase ASCII letter")]
+    ExpectedUppercase,
+    #[error("expected a lowercase ASCII letter")]
+    ExpectedLowercase,
+    #[diagnostic(help("double-check for typos, or add a new entry to the chemical database"))]
+    #[error(transparent)]
+    LookupError(ChemicalLookupError),
+    #[diagnostic(help(
+        "this is an internal error that you shouldn't ever see! If you have gotten this error, \
+        then please report it as a bug!"
+    ))]
+    #[error("internal `nom` error: {0:?}")]
+    NomError(ErrorKind),
+    #[diagnostic(help(
+        "check the unparsed region for errors, or remove it from the rest of the composition"
+    ))]
+    #[error("could not interpret the full input as a valid chemical composition")]
+    Incomplete,
+}
+
+impl LabeledErrorKind for CompositionErrorKind {
+    fn label(&self) -> Option<&'static str> {
+        Some(match self {
+            Self::LookupError(ChemicalLookupError::Element(_)) => "element not found",
+            Self::LookupError(ChemicalLookupError::Isotope(_, _, _, _)) => "isotope not found",
+            Self::LookupError(ChemicalLookupError::Particle(_)) => "particle not found",
+            Self::ExpectedUppercase => "expected uppercase",
+            Self::ExpectedLowercase => "expected lowercase",
+            Self::ExpectedDigit => "expected digit",
+            Self::ExpectedIsotopeStart => "'['",
+            Self::ExpectedIsotopeEnd => "expected ']'",
+            Self::ExpectedMassNumber => "expected a mass number",
+            Self::ExpectedNoLeadingZero => "expected non-zero",
+            Self::Incomplete => "input was valid up until this point",
+            Self::NomError(_) => "the region that triggered this bug!",
+            _ => return None,
+        })
+    }
+}
+
+impl<'a> FromExternalError<'a, ChemicalLookupError>
+    for LabeledParseError<'a, CompositionErrorKind>
+{
+    const FATAL: bool = true;
+
+    fn from_external_error(input: &'a str, e: ChemicalLookupError) -> Self {
+        Self::new(input, CompositionErrorKind::LookupError(e))
+    }
+}
+
+impl From<ErrorKind> for CompositionErrorKind {
+    fn from(value: ErrorKind) -> Self {
+        match value {
+            ErrorKind::Eof => Self::Incomplete,
+            kind => Self::NomError(kind),
+        }
+    }
+}
+
+// Module Tests ========================================================================================================
 
 #[cfg(test)]
 mod tests {
@@ -477,10 +483,8 @@ mod tests {
         // Valid Particle Offsets
         assert_particle_offset!("p", "", 1, "Proton");
         assert_particle_offset!("e", "", 1, "Electron");
-
         assert_particle_offset!("5p", "", 5, "Proton");
         assert_particle_offset!("5e", "", 5, "Electron");
-
         assert_particle_offset!("100p", "", 100, "Proton");
         assert_particle_offset!("100e", "", 100, "Electron");
         // Invalid Particle Offsets
@@ -620,35 +624,28 @@ mod tests {
     #[test]
     fn test_composition_errors() {
         let mut chemical_composition = final_parser(chemical_composition(&DB));
-
         // Looking up non-existant isotopes, elements, and particles
         assert_miette_snapshot!(chemical_composition("NH2[100Tc]O4"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]YhO4"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]O4-8m+2p"));
-
         // Starting a composition without an element or isotope
         assert_miette_snapshot!(chemical_composition("+H2O"));
         assert_miette_snapshot!(chemical_composition("-H2O"));
         assert_miette_snapshot!(chemical_composition("]H2O"));
-
         // Check counts are non-zero (no leading zeroes either!)
         assert_miette_snapshot!(chemical_composition("C3H0N4"));
         assert_miette_snapshot!(chemical_composition("C3H06N4"));
-
         // Ensure that particles are lowercase
         assert_miette_snapshot!(chemical_composition("H2O+P"));
-
         // Ensure that isotope expressions are valid
         assert_miette_snapshot!(chemical_composition("[H2O"));
         assert_miette_snapshot!(chemical_composition("[0H2O"));
         assert_miette_snapshot!(chemical_composition("[10H2O"));
         assert_miette_snapshot!(chemical_composition("[10]H2O"));
         assert_miette_snapshot!(chemical_composition("[37Cl"));
-
         // Check labels at the end of an input
         assert_miette_snapshot!(chemical_composition("[37Cl]5-"));
         assert_miette_snapshot!(chemical_composition("[37Cl]5+10"));
-
         // Check for partially valid input
         assert_miette_snapshot!(chemical_composition("[37Cl]52p"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]O,4-2e+3p"));

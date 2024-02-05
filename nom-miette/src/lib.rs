@@ -122,7 +122,7 @@ pub struct LabeledParseError<'a, E> {
     source: Option<Box<LabeledParseError<'a, E>>>,
 }
 
-pub trait LabeledErrorKind: Diagnostic + Clone + Eq + From<nom::error::ErrorKind> {
+pub trait LabeledErrorKind: Diagnostic + Clone + From<nom::error::ErrorKind> {
     fn label(&self) -> Option<&'static str> {
         None
     }
