@@ -270,20 +270,19 @@ mod tests {
     const KDL: &str = include_str!("../chemistry.kdl");
 
     #[test]
-    fn parse_default_chemical_database() -> Result<()> {
-        let db: ChemicalDatabaseKdl = knuffel::parse("chemistry.kdl", KDL)?;
+    fn parse_default_chemical_database() {
+        let db: ChemicalDatabaseKdl = knuffel::parse("chemistry.kdl", KDL).unwrap();
         // Basic property checking
         assert_eq!(db.elements.len(), 120); // 118 + 2 for deuterium and tritium
         assert_eq!(db.particles.len(), 2);
         assert_eq!(db.elements.iter().flat_map(|e| &e.isotopes).count(), 356);
         // Full snapshot test
         assert_debug_snapshot!(db);
-        Ok(())
     }
 
     #[test]
-    fn build_default_chemical_database() -> Result<()> {
-        let db = ChemicalDatabase::from_kdl("chemistry.kdl", KDL)?;
+    fn build_default_chemical_database() {
+        let db = ChemicalDatabase::from_kdl("chemistry.kdl", KDL).unwrap();
         // Basic property checking
         assert_eq!(db.elements.len(), 120); // 118 + 2 for deuterium and tritium
         assert_eq!(db.particles.len(), 2);
@@ -291,7 +290,6 @@ mod tests {
             db.elements.iter().flat_map(|(_, e)| &e.isotopes).count(),
             356
         );
-        Ok(())
     }
 
     #[test]
