@@ -8,7 +8,6 @@ use nom::{
 };
 use thiserror::Error;
 
-// FIXME: Move all of this error handling and context wrapping to another crate to be shared
 #[derive(Debug, Clone, Eq, PartialEq, Error)]
 #[error("{error}")]
 pub struct LabeledError<E: LabeledErrorKind> {
@@ -18,7 +17,7 @@ pub struct LabeledError<E: LabeledErrorKind> {
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Error)]
-pub enum ErrorTree<E: LabeledErrorKind> {
+enum ErrorTree<E: LabeledErrorKind> {
     #[error("{kind}")]
     Node {
         kind: E,

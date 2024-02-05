@@ -1,11 +1,9 @@
-// FIXME: Order functions in the same way as the EBNF
-
+// External Crate Imports
 use miette::Diagnostic;
-use nom::combinator::cut;
 use nom::{
     branch::alt,
     character::complete::{char, one_of, satisfy, u32},
-    combinator::{map, not, opt, recognize},
+    combinator::{cut, map, not, opt, recognize},
     error::ErrorKind,
     multi::many1,
     sequence::{delimited, pair, preceded},
@@ -16,10 +14,13 @@ use nom_miette::{
 };
 use thiserror::Error;
 
+// Local Module Imports
 use super::{
     chemical_database::ChemicalDatabase, ChemicalComposition, ChemicalLookupError, Count, Element,
     MassNumber, OffsetKind, Particle,
 };
+
+// Public API ==========================================================================================================
 
 impl<'a> FromExternalError<'a, ChemicalLookupError>
     for LabeledParseError<'a, CompositionErrorKind>
@@ -32,10 +33,9 @@ impl<'a> FromExternalError<'a, ChemicalLookupError>
 }
 
 // FIXME: API guidelines, check word ordering
-// FIXME: Maybe mark non_exhaustive?
 // FIXME: Also order these according to the EBNF
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-pub enum CompositionErrorKind {
+pub(super) enum CompositionErrorKind {
     #[error("expected a lowercase ASCII letter")]
     ExpectedLowercase,
     #[error("expected an uppercase ASCII letter")]
@@ -113,6 +113,7 @@ pub type CompositionError = LabeledError<CompositionErrorKind>;
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, CompositionErrorKind>>;
 
 // FIXME: Think about using more let statements in all of these parsers!!!
+// FIXME: Order functions in the same way as the EBNF
 
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {
@@ -254,8 +255,6 @@ fn uppercase(i: &str) -> ParseResult<char> {
 ///   | "v" | "w" | "x" | "y" | "z"
 ///   ;
 fn lowercase(i: &str) -> ParseResult<char> {
-    // FIXME: Maybe make a let binding for all of the parsers that comes before the `report_err` — that way you can see
-    // what the final nom code is, then you can see, seperately, where I start adding error information
     expect(
         satisfy(|c| c.is_ascii_lowercase()),
         CompositionErrorKind::ExpectedLowercase,

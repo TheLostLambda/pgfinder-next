@@ -10,6 +10,9 @@ review:
 lint:
   cargo clippy --workspace --tests
 
+annoy:
+  cargo clippy --workspace --tests -- -W clippy::nursery -W clippy::pedantic
+
 cov:
   cargo llvm-cov --workspace --open
 

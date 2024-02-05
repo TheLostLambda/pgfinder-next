@@ -23,9 +23,3 @@ miette = { version = "6.0.1", features = ["fancy"] }
 # missing_docs = "warn"
 # FIXME: Get rid of this!
 dead_code = "allow"
-
-[lints.clippy]
-pedantic = "warn"
-nursery = "warn"
-# FIXME: Uncomment this!
-# cargo = "warn"

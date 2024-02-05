@@ -1,6 +1,6 @@
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
 use once_cell::sync::Lazy;
-use polychem::{chemical_database::ChemicalDatabase, ChemicalComposition, PolychemError};
+use polychem::{chemical_database::ChemicalDatabase, ChemicalComposition, Result};
 use rustyline::DefaultEditor;
 use std::fmt::Write;
 
@@ -19,7 +19,7 @@ fn main() {
     }
 }
 
-fn molecule_info(formula: &str) -> Result<String, PolychemError> {
+fn molecule_info(formula: &str) -> Result<String> {
     let mut buf = String::new();
     let molecule = ChemicalComposition::new(&DB, formula)?;
 

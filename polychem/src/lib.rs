@@ -14,7 +14,7 @@ use std::collections::HashMap;
 
 // External Crate Imports
 use itertools::Itertools;
-use miette::{Diagnostic, Result};
+use miette::Diagnostic;
 use rust_decimal::{prelude::Zero, Decimal};
 use thiserror::Error;
 
@@ -148,9 +148,8 @@ impl From<&OffsetKind> for Charge {
     }
 }
 
-// FIXME: Should this really be public?
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-pub enum ChemicalLookupError {
+enum ChemicalLookupError {
     #[error("the element {0:?} could not be found in the supplied chemical database")]
     Element(String),
     #[error("the isotope \"{0}-{1}\" could not be found in the supplied chemical database, though the following {2} isotopes were found: {3:?}")]
@@ -163,11 +162,24 @@ pub enum ChemicalLookupError {
     Abundance(String, String, Vec<MassNumber>),
 }
 
+#[derive(Debug, Diagnostic, Clone, Error)]
+#[error(transparent)]
+#[diagnostic(transparent)]
+pub struct Error(PolychemError);
+
+impl<E: Into<PolychemError>> From<E> for Error {
+    fn from(value: E) -> Self {
+        Self(value.into())
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
 // FIXME: Maybe there are too many layers of things being wrapped here!
 // FIXME: Maybe just rename this to be `Error`?
 // FIXME: Check all of the errors returned from public API are wrapped in this!
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-pub enum PolychemError {
+enum PolychemError {
     #[error(transparent)]
     #[diagnostic(transparent)]
     Composition(#[from] CompositionError),
@@ -180,16 +192,16 @@ pub enum PolychemError {
 
 impl ChemicalComposition {
     // FIXME: If this isn't public API, drop the AsRef — if it is, then add it for `db`
-    pub fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self, PolychemError> {
+    pub fn new(db: &ChemicalDatabase, formula: impl AsRef<str>) -> Result<Self> {
         let formula = formula.as_ref();
-        final_parser(chemical_composition(db))(formula).map_err(PolychemError::from)
+        final_parser(chemical_composition(db))(formula).map_err(Error::from)
     }
 
-    pub fn monoisotopic_mass(&self) -> Result<Decimal, PolychemError> {
+    pub fn monoisotopic_mass(&self) -> Result<Decimal> {
         self.mass(Element::monoisotopic_mass)
     }
 
-    pub fn average_mass(&self) -> Result<Decimal, PolychemError> {
+    pub fn average_mass(&self) -> Result<Decimal> {
         self.mass(Element::average_mass)
     }
 
@@ -204,10 +216,7 @@ impl ChemicalComposition {
             .unwrap_or_default()
     }
 
-    fn mass(
-        &self,
-        accessor: impl Fn(&Element) -> Result<Decimal, PolychemError>,
-    ) -> Result<Decimal, PolychemError> {
+    fn mass(&self, accessor: impl Fn(&Element) -> Result<Decimal>) -> Result<Decimal> {
         // NOTE: Not using iterators makes using `?` possible, but might shut me out of `rayon` optimizations
         let mut mass = Decimal::zero();
 
@@ -224,7 +233,10 @@ impl ChemicalComposition {
 }
 
 impl Element {
-    fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self, ChemicalLookupError> {
+    fn new(
+        db: &ChemicalDatabase,
+        symbol: impl AsRef<str>,
+    ) -> std::result::Result<Self, ChemicalLookupError> {
         let symbol = symbol.as_ref();
         db.elements
             .get(symbol)
@@ -236,7 +248,7 @@ impl Element {
         db: &ChemicalDatabase,
         symbol: impl AsRef<str>,
         mass_number: MassNumber,
-    ) -> Result<Self, ChemicalLookupError> {
+    ) -> std::result::Result<Self, ChemicalLookupError> {
         let symbol = symbol.as_ref();
         let element = Self::new(db, symbol)?;
         if element.isotopes.contains_key(&mass_number) {
@@ -254,7 +266,7 @@ impl Element {
         }
     }
 
-    fn monoisotopic_mass(&self) -> Result<Decimal, PolychemError> {
+    fn monoisotopic_mass(&self) -> Result<Decimal> {
         if let Some(mass) = self.isotope_mass() {
             Ok(mass)
         } else {
@@ -269,7 +281,7 @@ impl Element {
         }
     }
 
-    fn average_mass(&self) -> Result<Decimal, PolychemError> {
+    fn average_mass(&self) -> Result<Decimal> {
         if let Some(mass) = self.isotope_mass() {
             Ok(mass)
         } else {
@@ -290,7 +302,10 @@ impl Element {
             .map(|i| i.relative_mass)
     }
 
-    fn isotope_abundances(&self) -> Result<impl Iterator<Item = &Isotope>, ChemicalLookupError> {
+    fn isotope_abundances(
+        &self,
+        // FIXME: Qualify std::result::Result as just std::Result or something?
+    ) -> std::result::Result<impl Iterator<Item = &Isotope>, ChemicalLookupError> {
         let mut isotopes_with_abundances = self
             .isotopes
             .values()
@@ -309,7 +324,10 @@ impl Element {
 }
 
 impl Particle {
-    fn new(db: &ChemicalDatabase, symbol: impl AsRef<str>) -> Result<Self, ChemicalLookupError> {
+    fn new(
+        db: &ChemicalDatabase,
+        symbol: impl AsRef<str>,
+    ) -> std::result::Result<Self, ChemicalLookupError> {
         let symbol = symbol.as_ref();
         db.particles
             .get(symbol)
