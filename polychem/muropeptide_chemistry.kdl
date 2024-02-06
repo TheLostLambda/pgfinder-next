@@ -10,21 +10,19 @@ bonds {
         lost "H2O"
     }
     Stem {
-        from "Carboxyl" at="Lactyl Ether"
+        from "Carboxyl" at="Lactyl Ether" of="N-Acetylmuramic Acid"
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
     Crosslink {
-        from "Carboxyl" at="N-Terminal"
+        from "Carboxyl" at="C-Terminal"
         to "Amino"
         lost "H2O"
     }
 }
 
 modifications {
-    targeting "Carboxyl" {
-        // Can free C-termini be amidated? Is is really any Carboxyl, or should
-        // it be: targeting "Carboxyl" at="Sidechain"?
+    targeting "Carboxyl" at="Sidechain" {
         Am "Amidation" {
             lost "OH"
             gained "NH2"
@@ -49,7 +47,6 @@ modifications {
         }
     }
     targeting "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid" {
-        // Is it true that you can never have 1,6-Anhydro GlcNAc?
         Anh "1,6-Anhydro" {
             lost "H2O"
         }
@@ -59,15 +56,15 @@ modifications {
 residues {
     types {
         monosaccharide {
-            functional-group "Reducing End" "Hydroxyl"
-            functional-group "Nonreducing End" "Hydroxyl"
-            functional-group "6-Position" "Hydroxyl"
-            functional-group "Secondary Amide" "Acetyl"
+            functional-group "Hydroxyl" at="Reducing End"
+            functional-group "Hydroxyl" at="Nonreducing End"
+            functional-group "Hydroxyl" at="6-Position"
+            functional-group "Acetyl" at="Secondary Amide"
         }
 
         amino-acid {
-            functional-group "N-Terminal" "Amino"
-            functional-group "C-Terminal" "Carboxyl"
+            functional-group "Amino" at="N-Terminal"
+            functional-group "Carboxyl" at="C-Terminal"
         }
     }
 
@@ -76,7 +73,7 @@ residues {
     }
     monosaccharide "m" "N-Acetylmuramic Acid" {
         composition "C11H19NO8"
-        functional-group "Lactyl Ether" "Carboxyl"
+        functional-group "Carboxyl" at="Lactyl Ether"
     }
 
     amino-acid "A" "Alanine" {
@@ -84,18 +81,18 @@ residues {
     }
     amino-acid "B" "Diaminobutyric Acid" {
         composition "C4H10N2O2"
-        functional-group "Sidechain" "Amino"
+        functional-group "Amino" at="Sidechain"
     }
     amino-acid "C" "Cysteine" {
         composition "C3H7NO2S"
     }
     amino-acid "D" "Aspartic Acid" {
         composition "C4H7NO4"
-        functional-group "Sidechain" "Carboxyl"
+        functional-group "Carboxyl" at="Sidechain"
     }
     amino-acid "E" "Glutamic Acid" {
         composition "C5H9NO4"
-        functional-group "Sidechain" "Carboxyl"
+        functional-group "Carboxyl" at="Sidechain"
     }
     amino-acid "F" "Phenylalanine" {
         composition "C9H11NO2"
@@ -111,12 +108,12 @@ residues {
     }
     amino-acid "J" "Diaminopimelic Acid" {
         composition "C7H14N2O4"
-        functional-group "Sidechain" "Amino"
-        functional-group "Sidechain" "Carboxyl"
+        functional-group "Amino" at="Sidechain"
+        functional-group "Carboxyl" at="Sidechain"
     }
     amino-acid "K" "Lysine" {
         composition "C6H14N2O2"
-        functional-group "Sidechain" "Amino"
+        functional-group "Amino" at="Sidechain"
     }
     amino-acid "L" "Leucine" {
         composition "C6H13NO2"
@@ -126,18 +123,18 @@ residues {
     }
     amino-acid "N" "Asparagine" {
         composition "C4H8N2O3"
-        functional-group "Sidechain" "Amino"
+        functional-group "Amino" at="Sidechain"
     }
     amino-acid "O" "Ornithine" {
         composition "C5H12N2O2"
-        functional-group "Sidechain" "Amino"
+        functional-group "Amino" at="Sidechain"
     }
     amino-acid "P" "Proline" {
         composition "C5H9NO2"
     }
     amino-acid "Q" "Glutamine" {
         composition "C5H10N2O3"
-        functional-group "Sidechain" "Amino"
+        functional-group "Amino" at="Sidechain"
     }
     amino-acid "R" "Arginine" {
         composition "C6H14N4O2"
