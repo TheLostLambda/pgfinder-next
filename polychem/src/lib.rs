@@ -119,7 +119,7 @@ type Charge = i64;
 #[derive(Clone, PartialEq, Eq, Debug)]
 struct Bond {
     kind: String,
-    lost_mass: ChemicalComposition,
+    lost: ChemicalComposition,
     acceptor: BondTarget,
 }
 
