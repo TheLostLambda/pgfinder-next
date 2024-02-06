@@ -2,6 +2,7 @@
 
 pub mod atomic_database;
 mod composition_parser;
+mod polymer_chemistry;
 #[cfg(test)]
 mod testing_tools;
 
@@ -35,7 +36,7 @@ pub struct Residue {
 type Id = usize;
 
 // FIXME: Keep this public so that people can build mass calculators
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct ChemicalComposition {
     chemical_formula: Vec<(Element, Count)>,
     particle_offset: Option<(OffsetKind, Count, Particle)>,
@@ -194,6 +195,7 @@ impl ChemicalComposition {
     // FIXME: If this isn't public API, drop the AsRef — if it is, then add it for `db`
     pub fn new(db: &AtomicDatabase, formula: impl AsRef<str>) -> Result<Self> {
         let formula = formula.as_ref();
+        // FIXME: It's still feels a little odd I need to pull in that parsing code directly here...
         final_parser(chemical_composition(db))(formula).map_err(Error::from)
     }
 

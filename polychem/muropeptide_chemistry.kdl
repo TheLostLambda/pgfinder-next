@@ -1,57 +1,57 @@
-bonds {
-    Glycosidic {
-        from "Hydroxyl" at="Reducing End"
-        to "Hydroxyl" at="Nonreducing End"
-        lost "H2O"
-    }
-    Peptide {
-        from "Carboxyl" at="C-Terminal"
-        to "Amino" at="N-Terminal"
-        lost "H2O"
-    }
-    Stem {
-        from "Carboxyl" at="Lactyl Ether" of="N-Acetylmuramic Acid"
-        to "Amino" at="N-Terminal"
-        lost "H2O"
-    }
-    Crosslink {
-        from "Carboxyl" at="C-Terminal"
-        to "Amino"
-        lost "H2O"
-    }
-}
+// bonds {
+//     Glycosidic {
+//         from "Hydroxyl" at="Reducing End"
+//         to "Hydroxyl" at="Nonreducing End"
+//         lost "H2O"
+//     }
+//     Peptide {
+//         from "Carboxyl" at="C-Terminal"
+//         to "Amino" at="N-Terminal"
+//         lost "H2O"
+//     }
+//     Stem {
+//         from "Carboxyl" at="Lactyl Ether" of="N-Acetylmuramic Acid"
+//         to "Amino" at="N-Terminal"
+//         lost "H2O"
+//     }
+//     Crosslink {
+//         from "Carboxyl" at="C-Terminal"
+//         to "Amino"
+//         lost "H2O"
+//     }
+// }
 
-modifications {
-    targeting "Carboxyl" at="Sidechain" {
-        Am "Amidation" {
-            lost "OH"
-            gained "NH2"
-        }
-    }
-    targeting "Hydroxyl" at="6-Position" {
-        Ac "O-Acetylation" {
-            lost "H"
-            gained "C2H3O"
-        }
-        // TODO: Add PO3 link to polymer?
-    }
-    targeting "Acetyl" at="Secondary Amide" {
-        DeAc "De-N-Acetylation" {
-            lost "C2H3O"
-            gained "H"
-        }
-    }
-    targeting "Hydroxyl" at="Reducing End" {
-        Red "Reduced" {
-            gained "H2"
-        }
-    }
-    targeting "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid" {
-        Anh "1,6-Anhydro" {
-            lost "H2O"
-        }
-    }
-}
+// modifications {
+//     targeting "Carboxyl" at="Sidechain" {
+//         Am "Amidation" {
+//             lost "OH"
+//             gained "NH2"
+//         }
+//     }
+//     targeting "Hydroxyl" at="6-Position" {
+//         Ac "O-Acetylation" {
+//             lost "H"
+//             gained "C2H3O"
+//         }
+//         // TODO: Add PO3 link to polymer?
+//     }
+//     targeting "Acetyl" at="Secondary Amide" {
+//         DeAc "De-N-Acetylation" {
+//             lost "C2H3O"
+//             gained "H"
+//         }
+//     }
+//     targeting "Hydroxyl" at="Reducing End" {
+//         Red "Reduced" {
+//             gained "H2"
+//         }
+//     }
+//     targeting "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid" {
+//         Anh "1,6-Anhydro" {
+//             lost "H2O"
+//         }
+//     }
+// }
 
 residues {
     types {
