@@ -33,15 +33,15 @@ struct BondKdl {
     #[knuffel(node_name)]
     name: String,
     #[knuffel(child)]
-    from: BondTargetKdl,
+    from: TargetKdl,
     #[knuffel(child)]
-    to: BondTargetKdl,
+    to: TargetKdl,
     #[knuffel(child, unwrap(argument))]
     lost: ChemicalCompositionKdl,
 }
 
 #[derive(Decode, Debug)]
-struct BondTargetKdl {
+struct TargetKdl {
     #[knuffel(argument)]
     functional_group: String,
     #[knuffel(property(name = "at"))]
@@ -52,21 +52,8 @@ struct BondTargetKdl {
 
 #[derive(Decode, Debug)]
 struct ModificationsKdl {
-    #[knuffel(children(name = "targeting"))]
-    targets: Vec<ModificationTargetKdl>,
-}
-
-// FIXME: Consider using flatten to abstract out common types!
-#[derive(Decode, Debug)]
-struct ModificationTargetKdl {
-    #[knuffel(argument)]
-    functional_group: String,
-    #[knuffel(property(name = "at"))]
-    location: Option<String>,
-    #[knuffel(property(name = "of"))]
-    residue: Option<String>,
     #[knuffel(children)]
-    modifications: Vec<ModificationKdl>,
+    targets: Vec<ModificationKdl>,
 }
 
 #[derive(Decode, Debug)]
@@ -79,6 +66,8 @@ struct ModificationKdl {
     lost: Option<ChemicalCompositionKdl>,
     #[knuffel(child, unwrap(argument))]
     gained: Option<ChemicalCompositionKdl>,
+    #[knuffel(children(name = "targeting"))]
+    targets: Vec<TargetKdl>,
 }
 
 #[derive(Decode, Debug)]

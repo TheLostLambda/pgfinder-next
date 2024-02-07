@@ -7,14 +7,14 @@ PolymerChemistryKdl {
         bonds: [
             BondKdl {
                 name: "Glycosidic",
-                from: BondTargetKdl {
+                from: TargetKdl {
                     functional_group: "Hydroxyl",
                     location: Some(
                         "Reducing End",
                     ),
                     residue: None,
                 },
-                to: BondTargetKdl {
+                to: TargetKdl {
                     functional_group: "Hydroxyl",
                     location: Some(
                         "Nonreducing End",
@@ -57,14 +57,14 @@ PolymerChemistryKdl {
             },
             BondKdl {
                 name: "Peptide",
-                from: BondTargetKdl {
+                from: TargetKdl {
                     functional_group: "Carboxyl",
                     location: Some(
                         "C-Terminal",
                     ),
                     residue: None,
                 },
-                to: BondTargetKdl {
+                to: TargetKdl {
                     functional_group: "Amino",
                     location: Some(
                         "N-Terminal",
@@ -107,7 +107,7 @@ PolymerChemistryKdl {
             },
             BondKdl {
                 name: "Stem",
-                from: BondTargetKdl {
+                from: TargetKdl {
                     functional_group: "Carboxyl",
                     location: Some(
                         "Lactyl Ether",
@@ -116,7 +116,7 @@ PolymerChemistryKdl {
                         "N-Acetylmuramic Acid",
                     ),
                 },
-                to: BondTargetKdl {
+                to: TargetKdl {
                     functional_group: "Amino",
                     location: Some(
                         "N-Terminal",
@@ -159,14 +159,14 @@ PolymerChemistryKdl {
             },
             BondKdl {
                 name: "Crosslink",
-                from: BondTargetKdl {
+                from: TargetKdl {
                     functional_group: "Carboxyl",
                     location: Some(
                         "C-Terminal",
                     ),
                     residue: None,
                 },
-                to: BondTargetKdl {
+                to: TargetKdl {
                     functional_group: "Amino",
                     location: None,
                     residue: None,
@@ -209,397 +209,406 @@ PolymerChemistryKdl {
     },
     modifications: ModificationsKdl {
         targets: [
-            ModificationTargetKdl {
-                functional_group: "Carboxyl",
-                location: Some(
-                    "Sidechain",
+            ModificationKdl {
+                abbr: "Am",
+                name: "Amidation",
+                lost: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "O",
+                                        name: "Oxygen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
                 ),
-                residue: None,
-                modifications: [
-                    ModificationKdl {
-                        abbr: "Am",
-                        name: "Amidation",
-                        lost: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "O",
-                                                name: "Oxygen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
+                gained: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "N",
+                                        name: "Nitrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    2,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
+                ),
+                targets: [
+                    TargetKdl {
+                        functional_group: "Carboxyl",
+                        location: Some(
+                            "Sidechain",
                         ),
-                        gained: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "N",
-                                                name: "Nitrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            2,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
-                        ),
+                        residue: None,
                     },
                 ],
             },
-            ModificationTargetKdl {
-                functional_group: "Hydroxyl",
-                location: Some(
-                    "6-Position",
+            ModificationKdl {
+                abbr: "Ac",
+                name: "O-Acetylation",
+                lost: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
                 ),
-                residue: None,
-                modifications: [
-                    ModificationKdl {
-                        abbr: "Ac",
-                        name: "O-Acetylation",
-                        lost: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
+                gained: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "C",
+                                        name: "Carbon",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    2,
+                                ),
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    3,
+                                ),
+                                (
+                                    Element {
+                                        symbol: "O",
+                                        name: "Oxygen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
+                ),
+                targets: [
+                    TargetKdl {
+                        functional_group: "Hydroxyl",
+                        location: Some(
+                            "6-Position",
                         ),
-                        gained: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "C",
-                                                name: "Carbon",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            2,
-                                        ),
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            3,
-                                        ),
-                                        (
-                                            Element {
-                                                symbol: "O",
-                                                name: "Oxygen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
-                        ),
-                    },
-                    ModificationKdl {
-                        abbr: "Poly",
-                        name: "Wall Polymer Linkage",
-                        lost: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
-                        ),
-                        gained: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "P",
-                                                name: "Phosphorus",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                        (
-                                            Element {
-                                                symbol: "O",
-                                                name: "Oxygen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            3,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
-                        ),
+                        residue: None,
                     },
                 ],
             },
-            ModificationTargetKdl {
-                functional_group: "Acetyl",
-                location: Some(
-                    "Secondary Amide",
+            ModificationKdl {
+                abbr: "Poly",
+                name: "Wall Polymer Linkage",
+                lost: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
                 ),
-                residue: None,
-                modifications: [
-                    ModificationKdl {
-                        abbr: "DeAc",
-                        name: "De-N-Acetylation",
-                        lost: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "C",
-                                                name: "Carbon",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            2,
-                                        ),
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            3,
-                                        ),
-                                        (
-                                            Element {
-                                                symbol: "O",
-                                                name: "Oxygen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
+                gained: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "P",
+                                        name: "Phosphorus",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                                (
+                                    Element {
+                                        symbol: "O",
+                                        name: "Oxygen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    3,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
+                ),
+                targets: [
+                    TargetKdl {
+                        functional_group: "Hydroxyl",
+                        location: Some(
+                            "6-Position",
                         ),
-                        gained: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
-                        ),
+                        residue: None,
                     },
                 ],
             },
-            ModificationTargetKdl {
-                functional_group: "Hydroxyl",
-                location: Some(
-                    "Reducing End",
+            ModificationKdl {
+                abbr: "DeAc",
+                name: "De-N-Acetylation",
+                lost: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "C",
+                                        name: "Carbon",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    2,
+                                ),
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    3,
+                                ),
+                                (
+                                    Element {
+                                        symbol: "O",
+                                        name: "Oxygen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
                 ),
-                residue: None,
-                modifications: [
-                    ModificationKdl {
-                        abbr: "Red",
-                        name: "Reduced",
-                        lost: None,
-                        gained: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            2,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
+                gained: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
+                ),
+                targets: [
+                    TargetKdl {
+                        functional_group: "Acetyl",
+                        location: Some(
+                            "Secondary Amide",
                         ),
+                        residue: None,
                     },
                 ],
             },
-            ModificationTargetKdl {
-                functional_group: "Hydroxyl",
-                location: Some(
-                    "Reducing End",
+            ModificationKdl {
+                abbr: "Red",
+                name: "Reduced",
+                lost: None,
+                gained: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    2,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
                 ),
-                residue: Some(
-                    "N-Acetylmuramic Acid",
-                ),
-                modifications: [
-                    ModificationKdl {
-                        abbr: "Anh",
-                        name: "1,6-Anhydro",
-                        lost: Some(
-                            ChemicalCompositionKdl(
-                                ChemicalComposition {
-                                    chemical_formula: [
-                                        (
-                                            Element {
-                                                symbol: "H",
-                                                name: "Hydrogen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            2,
-                                        ),
-                                        (
-                                            Element {
-                                                symbol: "O",
-                                                name: "Oxygen",
-                                                mass_number: None,
-                                                isotopes: {
-                                                    [Isotope],
-                                                    [Isotope],
-                                                    [Isotope],
-                                                },
-                                            },
-                                            1,
-                                        ),
-                                    ],
-                                    particle_offset: None,
-                                },
-                            ),
+                targets: [
+                    TargetKdl {
+                        functional_group: "Hydroxyl",
+                        location: Some(
+                            "Reducing End",
                         ),
-                        gained: None,
+                        residue: None,
+                    },
+                ],
+            },
+            ModificationKdl {
+                abbr: "Anh",
+                name: "1,6-Anhydro",
+                lost: Some(
+                    ChemicalCompositionKdl(
+                        ChemicalComposition {
+                            chemical_formula: [
+                                (
+                                    Element {
+                                        symbol: "H",
+                                        name: "Hydrogen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    2,
+                                ),
+                                (
+                                    Element {
+                                        symbol: "O",
+                                        name: "Oxygen",
+                                        mass_number: None,
+                                        isotopes: {
+                                            [Isotope],
+                                            [Isotope],
+                                            [Isotope],
+                                        },
+                                    },
+                                    1,
+                                ),
+                            ],
+                            particle_offset: None,
+                        },
+                    ),
+                ),
+                gained: None,
+                targets: [
+                    TargetKdl {
+                        functional_group: "Hydroxyl",
+                        location: Some(
+                            "Reducing End",
+                        ),
+                        residue: Some(
+                            "N-Acetylmuramic Acid",
+                        ),
                     },
                 ],
             },
@@ -608,7 +617,7 @@ PolymerChemistryKdl {
     residues: ResiduesKdl {
         types: [
             ResidueTypeKdl {
-                name: "monosaccharide",
+                name: "Monosaccharide",
                 functional_groups: [
                     FunctionalGroupKdl {
                         name: "Hydroxyl",
@@ -629,7 +638,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueTypeKdl {
-                name: "amino-acid",
+                name: "AminoAcid",
                 functional_groups: [
                     FunctionalGroupKdl {
                         name: "Amino",
@@ -644,7 +653,7 @@ PolymerChemistryKdl {
         ],
         residues: [
             ResidueKdl {
-                residue_type: "monosaccharide",
+                residue_type: "Monosaccharide",
                 abbr: "g",
                 name: "N-Acetylglucosamine",
                 composition: ChemicalCompositionKdl(
@@ -708,7 +717,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "monosaccharide",
+                residue_type: "Monosaccharide",
                 abbr: "m",
                 name: "N-Acetylmuramic Acid",
                 composition: ChemicalCompositionKdl(
@@ -777,7 +786,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "A",
                 name: "Alanine",
                 composition: ChemicalCompositionKdl(
@@ -841,7 +850,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "B",
                 name: "Diaminobutyric Acid",
                 composition: ChemicalCompositionKdl(
@@ -910,7 +919,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "C",
                 name: "Cysteine",
                 composition: ChemicalCompositionKdl(
@@ -988,7 +997,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "D",
                 name: "Aspartic Acid",
                 composition: ChemicalCompositionKdl(
@@ -1057,7 +1066,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "E",
                 name: "Glutamic Acid",
                 composition: ChemicalCompositionKdl(
@@ -1126,7 +1135,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "F",
                 name: "Phenylalanine",
                 composition: ChemicalCompositionKdl(
@@ -1190,7 +1199,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "G",
                 name: "Glycine",
                 composition: ChemicalCompositionKdl(
@@ -1254,7 +1263,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "H",
                 name: "Histidine",
                 composition: ChemicalCompositionKdl(
@@ -1318,7 +1327,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "I",
                 name: "Isoleucine",
                 composition: ChemicalCompositionKdl(
@@ -1382,7 +1391,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "J",
                 name: "Diaminopimelic Acid",
                 composition: ChemicalCompositionKdl(
@@ -1455,7 +1464,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "K",
                 name: "Lysine",
                 composition: ChemicalCompositionKdl(
@@ -1524,7 +1533,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "L",
                 name: "Leucine",
                 composition: ChemicalCompositionKdl(
@@ -1588,7 +1597,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "M",
                 name: "Methionine",
                 composition: ChemicalCompositionKdl(
@@ -1666,7 +1675,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "N",
                 name: "Asparagine",
                 composition: ChemicalCompositionKdl(
@@ -1735,7 +1744,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "O",
                 name: "Ornithine",
                 composition: ChemicalCompositionKdl(
@@ -1804,7 +1813,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "P",
                 name: "Proline",
                 composition: ChemicalCompositionKdl(
@@ -1868,7 +1877,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "Q",
                 name: "Glutamine",
                 composition: ChemicalCompositionKdl(
@@ -1937,7 +1946,7 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "R",
                 name: "Arginine",
                 composition: ChemicalCompositionKdl(
@@ -2001,7 +2010,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "S",
                 name: "Serine",
                 composition: ChemicalCompositionKdl(
@@ -2065,7 +2074,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "T",
                 name: "Threonine",
                 composition: ChemicalCompositionKdl(
@@ -2129,7 +2138,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "U",
                 name: "Homoserine",
                 composition: ChemicalCompositionKdl(
@@ -2193,7 +2202,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "V",
                 name: "Valine",
                 composition: ChemicalCompositionKdl(
@@ -2257,7 +2266,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "W",
                 name: "Tryptophan",
                 composition: ChemicalCompositionKdl(
@@ -2321,7 +2330,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "X",
                 name: "Unknown Amino Acid",
                 composition: ChemicalCompositionKdl(
@@ -2333,7 +2342,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "Y",
                 name: "Tyrosine",
                 composition: ChemicalCompositionKdl(
@@ -2397,7 +2406,7 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                residue_type: "amino-acid",
+                residue_type: "AminoAcid",
                 abbr: "Z",
                 name: "Threo-3-Hydroxyglutamic Acid",
                 composition: ChemicalCompositionKdl(

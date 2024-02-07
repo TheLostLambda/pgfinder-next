@@ -22,148 +22,144 @@ bonds {
 }
 
 modifications {
-    targeting "Carboxyl" at="Sidechain" {
-        Am "Amidation" {
-            lost "OH"
-            gained "NH2"
-        }
+    Am "Amidation" {
+        targeting "Carboxyl" at="Sidechain"
+        lost "OH"
+        gained "NH2"
     }
-    targeting "Hydroxyl" at="6-Position" {
-        Ac "O-Acetylation" {
-            lost "H"
-            gained "C2H3O"
-        }
-        Poly "Wall Polymer Linkage" {
-            lost "H"
-            gained "PO3"
-        }
+    Ac "O-Acetylation" {
+        targeting "Hydroxyl" at="6-Position" 
+        lost "H"
+        gained "C2H3O"
     }
-    targeting "Acetyl" at="Secondary Amide" {
-        DeAc "De-N-Acetylation" {
-            lost "C2H3O"
-            gained "H"
-        }
+    Poly "Wall Polymer Linkage" {
+        targeting "Hydroxyl" at="6-Position"
+        lost "H"
+        gained "PO3"
     }
-    targeting "Hydroxyl" at="Reducing End" {
-        Red "Reduced" {
-            gained "H2"
-        }
+    DeAc "De-N-Acetylation" {
+        targeting "Acetyl" at="Secondary Amide" 
+        lost "C2H3O"
+        gained "H"
     }
-    targeting "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid" {
-        Anh "1,6-Anhydro" {
-            lost "H2O"
-        }
+    Red "Reduced" {
+        targeting "Hydroxyl" at="Reducing End" 
+        gained "H2"
+    }
+    Anh "1,6-Anhydro" {
+        targeting "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid" 
+        lost "H2O"
     }
 }
 
 residues {
     types {
-        monosaccharide {
+        Monosaccharide {
             functional-group "Hydroxyl" at="Reducing End"
             functional-group "Hydroxyl" at="Nonreducing End"
             functional-group "Hydroxyl" at="6-Position"
             functional-group "Acetyl" at="Secondary Amide"
         }
 
-        amino-acid {
+        AminoAcid {
             functional-group "Amino" at="N-Terminal"
             functional-group "Carboxyl" at="C-Terminal"
         }
     }
 
-    monosaccharide "g" "N-Acetylglucosamine" {
+    Monosaccharide "g" "N-Acetylglucosamine" {
         composition "C8H15NO6"
     }
-    monosaccharide "m" "N-Acetylmuramic Acid" {
+    Monosaccharide "m" "N-Acetylmuramic Acid" {
         composition "C11H19NO8"
         functional-group "Carboxyl" at="Lactyl Ether"
     }
 
-    amino-acid "A" "Alanine" {
+    AminoAcid "A" "Alanine" {
         composition "C3H7NO2"
     }
-    amino-acid "B" "Diaminobutyric Acid" {
+    AminoAcid "B" "Diaminobutyric Acid" {
         composition "C4H10N2O2"
         functional-group "Amino" at="Sidechain"
     }
-    amino-acid "C" "Cysteine" {
+    AminoAcid "C" "Cysteine" {
         composition "C3H7NO2S"
     }
-    amino-acid "D" "Aspartic Acid" {
+    AminoAcid "D" "Aspartic Acid" {
         composition "C4H7NO4"
         functional-group "Carboxyl" at="Sidechain"
     }
-    amino-acid "E" "Glutamic Acid" {
+    AminoAcid "E" "Glutamic Acid" {
         composition "C5H9NO4"
         functional-group "Carboxyl" at="Sidechain"
     }
-    amino-acid "F" "Phenylalanine" {
+    AminoAcid "F" "Phenylalanine" {
         composition "C9H11NO2"
     }
-    amino-acid "G" "Glycine" {
+    AminoAcid "G" "Glycine" {
         composition "C2H5NO2"
     }
-    amino-acid "H" "Histidine" {
+    AminoAcid "H" "Histidine" {
         composition "C6H9N3O2"
     }
-    amino-acid "I" "Isoleucine" {
+    AminoAcid "I" "Isoleucine" {
         composition "C6H13NO2"
     }
-    amino-acid "J" "Diaminopimelic Acid" {
+    AminoAcid "J" "Diaminopimelic Acid" {
         composition "C7H14N2O4"
         functional-group "Amino" at="Sidechain"
         functional-group "Carboxyl" at="Sidechain"
     }
-    amino-acid "K" "Lysine" {
+    AminoAcid "K" "Lysine" {
         composition "C6H14N2O2"
         functional-group "Amino" at="Sidechain"
     }
-    amino-acid "L" "Leucine" {
+    AminoAcid "L" "Leucine" {
         composition "C6H13NO2"
     }
-    amino-acid "M" "Methionine" {
+    AminoAcid "M" "Methionine" {
         composition "C5H11NO2S"
     }
-    amino-acid "N" "Asparagine" {
+    AminoAcid "N" "Asparagine" {
         composition "C4H8N2O3"
         functional-group "Amino" at="Sidechain"
     }
-    amino-acid "O" "Ornithine" {
+    AminoAcid "O" "Ornithine" {
         composition "C5H12N2O2"
         functional-group "Amino" at="Sidechain"
     }
-    amino-acid "P" "Proline" {
+    AminoAcid "P" "Proline" {
         composition "C5H9NO2"
     }
-    amino-acid "Q" "Glutamine" {
+    AminoAcid "Q" "Glutamine" {
         composition "C5H10N2O3"
         functional-group "Amino" at="Sidechain"
     }
-    amino-acid "R" "Arginine" {
+    AminoAcid "R" "Arginine" {
         composition "C6H14N4O2"
     }
-    amino-acid "S" "Serine" {
+    AminoAcid "S" "Serine" {
         composition "C3H7NO3"
     }
-    amino-acid "T" "Threonine" {
+    AminoAcid "T" "Threonine" {
         composition "C4H9NO3"
     }
-    amino-acid "U" "Homoserine" {
+    AminoAcid "U" "Homoserine" {
         composition "C4H9NO3"
     }
-    amino-acid "V" "Valine" {
+    AminoAcid "V" "Valine" {
         composition "C5H11NO2"
     }
-    amino-acid "W" "Tryptophan" {
+    AminoAcid "W" "Tryptophan" {
         composition "C11H12N2O2"
     }
-    amino-acid "X" "Unknown Amino Acid" {
+    AminoAcid "X" "Unknown Amino Acid" {
         composition null
     }
-    amino-acid "Y" "Tyrosine" {
+    AminoAcid "Y" "Tyrosine" {
         composition "C9H11NO3"
     }
-    amino-acid "Z" "Threo-3-Hydroxyglutamic Acid" {
+    AminoAcid "Z" "Threo-3-Hydroxyglutamic Acid" {
         composition "C5H9NO5"
     }
 }
