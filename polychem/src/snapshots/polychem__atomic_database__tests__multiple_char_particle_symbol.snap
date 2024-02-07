@@ -5,7 +5,9 @@ expression: out
 ---
   × error parsing KDL
 
-Error:   × expected a single lowercase ASCII letter, got "pr"
+Error:   × an error occured during scalar conversion
+  ╰─▶   × expected a single lowercase ASCII letter, got "pr"
+      
    ╭─[test:1:1]
  1 │ pr "Proton" {
    · ─┬
