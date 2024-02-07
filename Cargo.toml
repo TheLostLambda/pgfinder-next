@@ -14,7 +14,7 @@ members = [
 # missing_docs = "warn"
 
 [dependencies]
-miette = { git = "https://github.com/TheLostLambda/miette", features=["fancy"] }
+miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
 once_cell = "1.19.0"
 polychem = { path = "polychem/" }
 rustyline = "13.0.0"

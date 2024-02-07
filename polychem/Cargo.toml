@@ -14,8 +14,8 @@ thiserror = "1.0.56"
 
 [dev-dependencies]
 indoc = "2.0.4"
-insta = "1.34.0"
-miette = { git = "https://github.com/TheLostLambda/miette", features=["fancy"] }
+insta = { version = "1.34.0", features = ["filters"] }
+miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
 once_cell = "1.19.0"
 rust_decimal_macros = "1.33.1"
 

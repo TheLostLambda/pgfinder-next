@@ -1,5 +1,5 @@
 watch:
-  watchexec -e rs,toml just test
+  watchexec -e rs,toml,kdl just test
 
 test:
   cargo test --workspace

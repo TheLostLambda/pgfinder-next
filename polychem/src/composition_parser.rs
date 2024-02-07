@@ -652,5 +652,7 @@ mod tests {
         assert_miette_snapshot!(chemical_composition("[37Cl]52p"));
         assert_miette_snapshot!(chemical_composition("NH2[99Tc]O,4-2e+3p"));
         assert_miette_snapshot!(chemical_composition("eH2O"));
+        // Check that multiple labels are reported for errors with different spans
+        assert_miette_snapshot!(chemical_composition("2H2"));
     }
 }

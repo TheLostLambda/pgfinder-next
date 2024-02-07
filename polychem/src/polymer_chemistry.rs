@@ -15,7 +15,70 @@ use crate::{atomic_database::AtomicDatabase, ChemicalComposition};
 #[derive(Decode, Debug)]
 struct PolymerChemistryKdl {
     #[knuffel(child)]
+    bonds: BondsKdl,
+    #[knuffel(child)]
+    modifications: ModificationsKdl,
+    #[knuffel(child)]
     residues: ResiduesKdl,
+}
+
+#[derive(Decode, Debug)]
+struct BondsKdl {
+    #[knuffel(children)]
+    bonds: Vec<BondKdl>,
+}
+
+#[derive(Decode, Debug)]
+struct BondKdl {
+    #[knuffel(node_name)]
+    name: String,
+    #[knuffel(child)]
+    from: BondTargetKdl,
+    #[knuffel(child)]
+    to: BondTargetKdl,
+    #[knuffel(child, unwrap(argument))]
+    lost: ChemicalCompositionKdl,
+}
+
+#[derive(Decode, Debug)]
+struct BondTargetKdl {
+    #[knuffel(argument)]
+    functional_group: String,
+    #[knuffel(property(name = "at"))]
+    location: Option<String>,
+    #[knuffel(property(name = "of"))]
+    residue: Option<String>,
+}
+
+#[derive(Decode, Debug)]
+struct ModificationsKdl {
+    #[knuffel(children(name = "targeting"))]
+    targets: Vec<ModificationTargetKdl>,
+}
+
+// FIXME: Consider using flatten to abstract out common types!
+#[derive(Decode, Debug)]
+struct ModificationTargetKdl {
+    #[knuffel(argument)]
+    functional_group: String,
+    #[knuffel(property(name = "at"))]
+    location: Option<String>,
+    #[knuffel(property(name = "of"))]
+    residue: Option<String>,
+    #[knuffel(children)]
+    modifications: Vec<ModificationKdl>,
+}
+
+#[derive(Decode, Debug)]
+struct ModificationKdl {
+    #[knuffel(node_name)]
+    abbr: String,
+    #[knuffel(argument)]
+    name: String,
+    #[knuffel(child, unwrap(argument))]
+    lost: Option<ChemicalCompositionKdl>,
+    #[knuffel(child, unwrap(argument))]
+    gained: Option<ChemicalCompositionKdl>,
 }
 
 #[derive(Decode, Debug)]
@@ -78,7 +141,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for ChemicalCompositionKdl {
         match &**value {
             Literal::String(s) => {
                 let db = ctx.get::<Cow<'static, AtomicDatabase>>().unwrap();
-                match ChemicalComposition::new(&db, s) {
+                match ChemicalComposition::new(db, s) {
                     Ok(d) => Ok(Self(d)),
                     Err(e) => {
                         ctx.emit_error(DecodeError::conversion_diagnostic(value, Box::new(e)));
@@ -105,6 +168,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for ChemicalCompositionKdl {
 mod tests {
     use std::borrow::Cow;
 
+    use insta::assert_debug_snapshot;
     use knuffel::{decode::Context, span::Span};
     use miette::Result;
     use once_cell::sync::Lazy;
@@ -131,7 +195,11 @@ mod tests {
             KDL,
             |ctx: &mut Context<Span>| ctx.set::<Cow<'static, AtomicDatabase>>(Cow::Borrowed(&DB)),
         )?;
-        // TODO: Check compute the masses of each composition and take a snapshot!
+        insta::with_settings!({filters => vec![
+            (r"\d+: Isotope \{[^}]+\}", "[Isotope]"),
+        ]}, {
+            assert_debug_snapshot!(chemistry);
+        });
         Ok(())
     }
 }
