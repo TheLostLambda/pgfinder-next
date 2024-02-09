@@ -1,0 +1,393 @@
+---
+source: polychem/src/polymer_chemistry.rs
+expression: sorted_entires(&chemistry.modifications)
+---
+[
+    (
+        "Ac",
+        ModificationDescription {
+            abbr: "Ac",
+            name: "O-Acetylation",
+            lost: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            gained: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            targets: [
+                Target {
+                    functional_group: "Hydroxyl",
+                    location: Some(
+                        "6-Position",
+                    ),
+                    residue: None,
+                },
+            ],
+        },
+    ),
+    (
+        "Am",
+        ModificationDescription {
+            abbr: "Am",
+            name: "Amidation",
+            lost: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            gained: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            targets: [
+                Target {
+                    functional_group: "Carboxyl",
+                    location: Some(
+                        "Sidechain",
+                    ),
+                    residue: None,
+                },
+            ],
+        },
+    ),
+    (
+        "Anh",
+        ModificationDescription {
+            abbr: "Anh",
+            name: "1,6-Anhydro",
+            lost: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            gained: ChemicalComposition {
+                chemical_formula: [],
+                particle_offset: None,
+            },
+            targets: [
+                Target {
+                    functional_group: "Hydroxyl",
+                    location: Some(
+                        "Reducing End",
+                    ),
+                    residue: Some(
+                        "N-Acetylmuramic Acid",
+                    ),
+                },
+            ],
+        },
+    ),
+    (
+        "DeAc",
+        ModificationDescription {
+            abbr: "DeAc",
+            name: "De-N-Acetylation",
+            lost: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            gained: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            targets: [
+                Target {
+                    functional_group: "Acetyl",
+                    location: Some(
+                        "Secondary Amide",
+                    ),
+                    residue: None,
+                },
+            ],
+        },
+    ),
+    (
+        "Poly",
+        ModificationDescription {
+            abbr: "Poly",
+            name: "Wall Polymer Linkage",
+            lost: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            gained: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "P",
+                            name: "Phosphorus",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            targets: [
+                Target {
+                    functional_group: "Hydroxyl",
+                    location: Some(
+                        "6-Position",
+                    ),
+                    residue: None,
+                },
+            ],
+        },
+    ),
+    (
+        "Red",
+        ModificationDescription {
+            abbr: "Red",
+            name: "Reduced",
+            lost: ChemicalComposition {
+                chemical_formula: [],
+                particle_offset: None,
+            },
+            gained: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            targets: [
+                Target {
+                    functional_group: "Hydroxyl",
+                    location: Some(
+                        "Reducing End",
+                    ),
+                    residue: None,
+                },
+            ],
+        },
+    ),
+]

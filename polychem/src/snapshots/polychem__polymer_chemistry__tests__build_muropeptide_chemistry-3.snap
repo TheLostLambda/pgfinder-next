@@ -1,0 +1,2138 @@
+---
+source: polychem/src/polymer_chemistry.rs
+expression: sorted_entires(&chemistry.residues)
+---
+[
+    (
+        "A",
+        Residue {
+            id: 0,
+            abbr: "A",
+            name: "Alanine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        7,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "B",
+        Residue {
+            id: 0,
+            abbr: "B",
+            name: "Diaminobutyric Acid",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        10,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "Sidechain",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "C",
+        Residue {
+            id: 0,
+            abbr: "C",
+            name: "Cysteine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        7,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "S",
+                            name: "Sulfur",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "D",
+        Residue {
+            id: 0,
+            abbr: "D",
+            name: "Aspartic Acid",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        7,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "Sidechain",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "E",
+        Residue {
+            id: 0,
+            abbr: "E",
+            name: "Glutamic Acid",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        9,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "Sidechain",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "F",
+        Residue {
+            id: 0,
+            abbr: "F",
+            name: "Phenylalanine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        9,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        11,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "G",
+        Residue {
+            id: 0,
+            abbr: "G",
+            name: "Glycine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "H",
+        Residue {
+            id: 0,
+            abbr: "H",
+            name: "Histidine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        6,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        9,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "I",
+        Residue {
+            id: 0,
+            abbr: "I",
+            name: "Isoleucine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        6,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        13,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "J",
+        Residue {
+            id: 0,
+            abbr: "J",
+            name: "Diaminopimelic Acid",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        7,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        14,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "Sidechain",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "Sidechain",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "K",
+        Residue {
+            id: 0,
+            abbr: "K",
+            name: "Lysine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        6,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        14,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "Sidechain",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "L",
+        Residue {
+            id: 0,
+            abbr: "L",
+            name: "Leucine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        6,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        13,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "M",
+        Residue {
+            id: 0,
+            abbr: "M",
+            name: "Methionine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        11,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "S",
+                            name: "Sulfur",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "N",
+        Residue {
+            id: 0,
+            abbr: "N",
+            name: "Asparagine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        8,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "Sidechain",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "O",
+        Residue {
+            id: 0,
+            abbr: "O",
+            name: "Ornithine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        12,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "Sidechain",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "P",
+        Residue {
+            id: 0,
+            abbr: "P",
+            name: "Proline",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        9,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "Q",
+        Residue {
+            id: 0,
+            abbr: "Q",
+            name: "Glutamine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        10,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "Sidechain",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "R",
+        Residue {
+            id: 0,
+            abbr: "R",
+            name: "Arginine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        6,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        14,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "S",
+        Residue {
+            id: 0,
+            abbr: "S",
+            name: "Serine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        7,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "T",
+        Residue {
+            id: 0,
+            abbr: "T",
+            name: "Threonine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        9,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "U",
+        Residue {
+            id: 0,
+            abbr: "U",
+            name: "Homoserine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        4,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        9,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "V",
+        Residue {
+            id: 0,
+            abbr: "V",
+            name: "Valine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        11,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "W",
+        Residue {
+            id: 0,
+            abbr: "W",
+            name: "Tryptophan",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        11,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        12,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        2,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "X",
+        Residue {
+            id: 0,
+            abbr: "X",
+            name: "Unknown Amino Acid",
+            composition: ChemicalComposition {
+                chemical_formula: [],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "Y",
+        Residue {
+            id: 0,
+            abbr: "Y",
+            name: "Tyrosine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        9,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        11,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        3,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "Z",
+        Residue {
+            id: 0,
+            abbr: "Z",
+            name: "Threo-3-Hydroxyglutamic Acid",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        9,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        5,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Amino",
+                    location: "N-Terminal",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "C-Terminal",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "g",
+        Residue {
+            id: 0,
+            abbr: "g",
+            name: "N-Acetylglucosamine",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        8,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        15,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        6,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Acetyl",
+                    location: "Secondary Amide",
+                }: Free,
+                FunctionalGroup {
+                    name: "Hydroxyl",
+                    location: "Nonreducing End",
+                }: Free,
+                FunctionalGroup {
+                    name: "Hydroxyl",
+                    location: "6-Position",
+                }: Free,
+                FunctionalGroup {
+                    name: "Hydroxyl",
+                    location: "Reducing End",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+    (
+        "m",
+        Residue {
+            id: 0,
+            abbr: "m",
+            name: "N-Acetylmuramic Acid",
+            composition: ChemicalComposition {
+                chemical_formula: [
+                    (
+                        Element {
+                            symbol: "C",
+                            name: "Carbon",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        11,
+                    ),
+                    (
+                        Element {
+                            symbol: "H",
+                            name: "Hydrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        19,
+                    ),
+                    (
+                        Element {
+                            symbol: "N",
+                            name: "Nitrogen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        1,
+                    ),
+                    (
+                        Element {
+                            symbol: "O",
+                            name: "Oxygen",
+                            mass_number: None,
+                            isotopes: {
+                                [Isotope],
+                                [Isotope],
+                                [Isotope],
+                            },
+                        },
+                        8,
+                    ),
+                ],
+                particle_offset: None,
+            },
+            functional_groups: {
+                FunctionalGroup {
+                    name: "Hydroxyl",
+                    location: "6-Position",
+                }: Free,
+                FunctionalGroup {
+                    name: "Hydroxyl",
+                    location: "Reducing End",
+                }: Free,
+                FunctionalGroup {
+                    name: "Carboxyl",
+                    location: "Lactyl Ether",
+                }: Free,
+                FunctionalGroup {
+                    name: "Acetyl",
+                    location: "Secondary Amide",
+                }: Free,
+                FunctionalGroup {
+                    name: "Hydroxyl",
+                    location: "Nonreducing End",
+                }: Free,
+            },
+            offset_modifications: [],
+        },
+    ),
+]

@@ -21,6 +21,7 @@ use super::{Charge, Element, Isotope, MassNumber, Particle};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct AtomicDatabase {
+    // FIXME: Change to accessors from public fields
     pub(super) elements: HashMap<String, Element>,
     pub(super) particles: HashMap<String, Particle>,
 }
@@ -89,6 +90,7 @@ struct IsotopeKdl {
 
 // Lossless Parsing of KDL Numbers to Decimal ==========================================================================
 
+// FIXME: Replace all of this fluff with some TryFrom impls, and move away from forked knuffel
 #[derive(Debug, Default)]
 struct DecimalKdl(Decimal);
 

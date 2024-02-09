@@ -9,6 +9,7 @@ mod testing_tools;
 use atomic_database::AtomicDatabase;
 use composition_parser::CompositionError;
 use nom_miette::final_parser;
+use serde::{Deserialize, Serialize};
 
 // Standard Library Imports
 use std::collections::HashMap;
@@ -21,13 +22,15 @@ use thiserror::Error;
 
 use self::composition_parser::chemical_composition;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+// FIXME: Blocks here need reordering!
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Residue {
     id: Id,
     abbr: String,
     name: String,
     composition: ChemicalComposition,
-    functional_groups: HashMap<Location, FunctionalGroup>,
+    functional_groups: HashMap<FunctionalGroup, GroupState>,
     offset_modifications: Vec<Modification>,
 }
 
@@ -36,7 +39,7 @@ pub struct Residue {
 type Id = usize;
 
 // FIXME: Keep this public so that people can build mass calculators
-#[derive(Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct ChemicalComposition {
     chemical_formula: Vec<(Element, Count)>,
     particle_offset: Option<(OffsetKind, Count, Particle)>,
@@ -44,13 +47,13 @@ pub struct ChemicalComposition {
 
 type Location = String;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 struct FunctionalGroup {
     name: String,
-    state: GroupState,
+    location: String,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Modification {
     multiplier: Count,
     kind: ModificationKind,
@@ -58,7 +61,7 @@ pub struct Modification {
 
 // =====================================================================================================================
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Element {
     symbol: String,
     name: String,
@@ -68,13 +71,13 @@ struct Element {
 
 type Count = u32;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 enum OffsetKind {
     Add,
     Remove,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 struct Particle {
     symbol: String,
     name: String,
@@ -82,7 +85,7 @@ struct Particle {
     charge: Charge,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 enum GroupState {
     #[default]
     Free,
@@ -91,7 +94,7 @@ enum GroupState {
     Acceptor,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 enum ModificationKind {
     Predefined {
         abbr: String,
@@ -109,7 +112,7 @@ enum ModificationKind {
 
 type MassNumber = u32;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 struct Isotope {
     relative_mass: Decimal,
     abundance: Option<Decimal>,
@@ -117,7 +120,7 @@ struct Isotope {
 
 type Charge = i64;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Bond {
     kind: String,
     lost: ChemicalComposition,
@@ -126,7 +129,7 @@ struct Bond {
 
 // =====================================================================================================================
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 struct BondTarget {
     residue: Id,
     group_location: Location,
