@@ -425,13 +425,20 @@ struct FunctionalGroupKdl {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
+    use indoc::indoc;
     use insta::{assert_debug_snapshot, assert_ron_snapshot};
     use miette::Result;
     use once_cell::sync::Lazy;
 
-    use crate::atomic_database::AtomicDatabase;
+    use crate::{
+        atomic_database::AtomicDatabase,
+        polymer_chemistry::{ContextualTryInto, ResidueDescription},
+        testing_tools::assert_miette_snapshot,
+    };
 
-    use super::{PolymerChemistry, PolymerChemistryKdl};
+    use super::{PolymerChemistry, PolymerChemistryKdl, ResiduesKdl};
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
         AtomicDatabase::from_kdl(
@@ -445,19 +452,51 @@ mod tests {
 
     // FIXME: Be sure to test that miette errors from the composition parser get displayed! `[100Tc]` etc...
     #[test]
-    fn parse_muropeptide_chemistry() -> Result<()> {
-        let chemistry: PolymerChemistryKdl = knuffel::parse("muropeptide_chemistry.rs", KDL)?;
+    fn parse_muropeptide_chemistry() {
+        let chemistry: PolymerChemistryKdl =
+            knuffel::parse("muropeptide_chemistry.rs", KDL).unwrap();
         assert_debug_snapshot!(chemistry);
-        Ok(())
     }
 
     #[test]
-    fn build_muropeptide_chemistry() -> Result<()> {
-        let chemistry = PolymerChemistry::from_kdl(&DB, "muropeptide_chemistry.rs", KDL)?;
+    fn build_muropeptide_chemistry() {
+        let chemistry = PolymerChemistry::from_kdl(&DB, "muropeptide_chemistry.rs", KDL).unwrap();
         assert_ron_snapshot!(chemistry, {
             ".bonds, .modifications, .residues" => insta::sorted_redaction(),
             ".**.isotopes" => insta::sorted_redaction()
         });
+    }
+
+    #[test]
+    fn parse_residues_types_without_groups() -> Result<()> {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid
+            }
+            AminoAcid "G" "Glycine" {
+                composition "C2H5NO2"
+            }
+        "#};
+        let residues: Result<ResiduesKdl, _> = knuffel::parse("test", kdl);
+        assert!(residues.is_ok());
+        assert_debug_snapshot!(residues.unwrap());
+        Ok(())
+    }
+
+    #[test]
+    fn parse_residues_without_types() -> Result<()> {
+        let kdl = indoc! {r#"
+            types {
+            //     AminoAcid
+            }
+            AminoAcid "G" "Glycine" {
+                composition "C2H5NO2"
+            }
+        "#};
+        let residues: ResiduesKdl = knuffel::parse("test", kdl).unwrap();
+        // let residues: HashMap<String, ResidueDescription> = residues.ctx_try_into(&*DB)?;
+        // assert!(residues.is_err());
+        // assert_miette_snapshot!(residues);
         Ok(())
     }
 }
