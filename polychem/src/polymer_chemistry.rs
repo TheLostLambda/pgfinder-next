@@ -112,7 +112,7 @@ impl ResidueKdl {
         functional_groups.extend(types[&self.residue_type].clone());
         Ok(ResidueDescription {
             name: self.name,
-            composition: self.composition.validate(db)?,
+            composition: ChemicalCompositionKdl::validate_optional(self.composition, db)?,
             functional_groups,
         })
     }
@@ -123,40 +123,18 @@ impl ChemicalCompositionKdl {
         ChemicalComposition::new(db, &*self.0)
             .map_err(|e| ProtoChemistryError(self.0.span().clone().into(), e.into()))
     }
-}
 
-trait ValidateInto<'a, T> {
-    type Context: 'a;
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<T>;
-}
-
-impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
-    type Context = &'a AtomicDatabase;
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
-        Ok(if let Some(c) = self {
-            c.validate(ctx)?
-        } else {
-            ChemicalComposition::default()
-        })
+    fn validate_optional(
+        value: Option<Self>,
+        db: &AtomicDatabase,
+    ) -> ChemResult<ChemicalComposition> {
+        // FIXME: Good lord, maybe just if let?
+        Ok(value
+            .map(|c| c.validate(db))
+            .transpose()?
+            .unwrap_or_default())
     }
 }
-
-// trait Validate<T> {
-//     fn validate(self, f: impl FnOnce(Self) -> ChemResult<T>) -> ChemResult<T>
-//     where
-//         Self: Sized;
-// }
-
-// impl Validate<ChemicalComposition> for Option<ChemicalCompositionKdl> {
-//     fn validate(
-//         self,
-//         f: impl FnOnce(Self) -> ChemResult<ChemicalComposition>,
-//     ) -> ChemResult<ChemicalComposition> {
-//         Ok(self.map(f).transpose()?.unwrap_or_default())
-//     }
-// }
 
 type ResidueTypeEntry = (String, Vec<FunctionalGroup>);
 
@@ -215,7 +193,7 @@ impl BondKdl {
         Ok(BondDescription {
             from: self.from.into(),
             to: self.to.into(),
-            lost: ChemicalCompositionKdl::validate_optional(self.lost, db)?,
+            lost: self.lost.validate(db)?,
         })
     }
 }
@@ -263,7 +241,7 @@ struct BondKdl {
     #[knuffel(child)]
     to: TargetKdl,
     #[knuffel(child)]
-    lost: Option<ChemicalCompositionKdl>,
+    lost: ChemicalCompositionKdl,
 }
 
 #[derive(Decode, Debug)]

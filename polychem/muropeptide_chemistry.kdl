@@ -153,7 +153,9 @@ residues {
     AminoAcid "W" "Tryptophan" {
         composition "C11H12N2O2"
     }
-    AminoAcid "X" "Unknown Amino Acid"
+    AminoAcid "X" "Unknown Amino Acid" {
+        composition null
+    }
     AminoAcid "Y" "Tyrosine" {
         composition "C9H11NO3"
     }
