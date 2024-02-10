@@ -67,11 +67,20 @@ impl PolymerChemistry {
     }
 }
 
-impl<'a> ContextualTryFrom<'a, PolymerChemistryKdl> for PolymerChemistry {
-    type Error = ProtoChemistryError;
+type ChemResult<T> = Result<T, ProtoChemistryError>;
+struct ProtoChemistryError(SourceSpan, ChemistryErrorKind);
+
+impl ProtoChemistryError {
+    fn finalize(self, file_name: impl AsRef<str>, kdl: impl AsRef<str>) -> ChemistryError {
+        let Self(span, kind) = self;
+        let kdl = NamedSource::new(file_name, kdl.as_ref().to_string());
+        ChemistryError { kdl, span, kind }.into()
+    }
+}
+impl<'a> ValidateInto<'a, PolymerChemistry> for PolymerChemistryKdl {
     type Context = &'a AtomicDatabase;
 
-    fn ctx_try_from(ctx: Self::Context, value: PolymerChemistryKdl) -> Result<Self, Self::Error> {
+    fn validate(self, ctx: Self::Context) -> Result<Self, Self::Error> {
         Ok(Self {
             bonds: value.bonds.ctx_try_into(ctx)?,
             modifications: value.modifications.ctx_try_into(ctx)?,
@@ -80,11 +89,10 @@ impl<'a> ContextualTryFrom<'a, PolymerChemistryKdl> for PolymerChemistry {
     }
 }
 
-impl<'a> ContextualTryFrom<'a, ResiduesKdl> for HashMap<String, ResidueDescription> {
-    type Error = ProtoChemistryError;
+impl<'a> ValidateInto<'a, HashMap> for ResiduesKdl<String, ResidueDescription> {
     type Context = &'a AtomicDatabase;
 
-    fn ctx_try_from(ctx: Self::Context, value: ResiduesKdl) -> Result<Self, Self::Error> {
+    fn validate(self, ctx: Self::Context, value: ResiduesKdl) -> Result<Self, Self::Error> {
         let types: HashMap<_, _> = value
             .types
             .into_iter()
@@ -141,66 +149,11 @@ impl ChemistryErrorKind {
     }
 }
 
-type ProtoChemistryError = (SourceSpan, ChemistryErrorKind);
-
-// FIXME: This should definitely live in it's own crate!
-
-trait ContextualTryInto<'a, T>: Sized {
-    /// The type returned in the event of a conversion error.
-    type Error;
-    /// The type of context needed for this conversion
-    type Context: 'a;
-
-    // FIXME: Wow, I really hate this ctx naming...
-    /// Performs the conversion.
-    fn ctx_try_into(self, ctx: Self::Context) -> Result<T, Self::Error>;
-}
-
-trait ContextualTryFrom<'a, T>: Sized {
-    /// The type returned in the event of a conversion error.
-    type Error;
-    /// The type of context needed for this conversion
-    type Context: 'a;
-
-    /// Performs the conversion.
-    fn ctx_try_from(ctx: Self::Context, value: T) -> Result<Self, Self::Error>;
-}
-
-// TryFrom implies TryInto
-impl<'a, T, U> ContextualTryInto<'a, U> for T
-where
-    U: ContextualTryFrom<'a, T>,
-{
-    type Error = U::Error;
-    type Context = U::Context;
-
-    #[inline]
-    fn ctx_try_into(self, ctx: U::Context) -> Result<U, U::Error> {
-        U::ctx_try_from(ctx, self)
-    }
-}
-
-// FIXME: Check that ContextualTryFrom<T> for T is implemented by this?
-// Infallible conversions are semantically equivalent to fallible conversions
-// with an uninhabited error type.
-impl<T, U> ContextualTryFrom<'static, U> for T
-where
-    U: Into<T>,
-{
-    type Error = Infallible;
-    type Context = ();
-
-    #[inline]
-    fn ctx_try_from(_ctx: Self::Context, value: U) -> Result<Self, Self::Error> {
-        Ok(U::into(value))
-    }
-}
-
-impl<'a> ContextualTryFrom<'a, ChemicalCompositionKdl> for ChemicalComposition {
-    type Error = ProtoChemistryError;
+impl<'a> ValidateInto<'a, ChemicalComposition> for ChemicalCompositionKdl {
     type Context = &'a AtomicDatabase;
 
-    fn ctx_try_from(
+    fn validate(
+        self,
         ctx: Self::Context,
         value: ChemicalCompositionKdl,
     ) -> Result<Self, Self::Error> {
@@ -208,11 +161,11 @@ impl<'a> ContextualTryFrom<'a, ChemicalCompositionKdl> for ChemicalComposition {
     }
 }
 
-impl<'a> ContextualTryFrom<'a, Option<ChemicalCompositionKdl>> for ChemicalComposition {
-    type Error = ProtoChemistryError;
+impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
     type Context = &'a AtomicDatabase;
 
-    fn ctx_try_from(
+    fn validate(
+        self,
         ctx: Self::Context,
         value: Option<ChemicalCompositionKdl>,
     ) -> Result<Self, Self::Error> {
@@ -247,11 +200,10 @@ impl From<FunctionalGroupKdl> for FunctionalGroup {
     }
 }
 
-impl<'a> ContextualTryFrom<'a, ModificationsKdl> for HashMap<String, ModificationDescription> {
-    type Error = ProtoChemistryError;
+impl<'a> ValidateInto<'a, HashMap> for ModificationsKdl<String, ModificationDescription> {
     type Context = &'a AtomicDatabase;
 
-    fn ctx_try_from(ctx: Self::Context, value: ModificationsKdl) -> Result<Self, Self::Error> {
+    fn validate(self, ctx: Self::Context, value: ModificationsKdl) -> Result<Self, Self::Error> {
         // FIXME: This is a bit repetitive with the above...
         value
             .modifications
@@ -261,11 +213,10 @@ impl<'a> ContextualTryFrom<'a, ModificationsKdl> for HashMap<String, Modificatio
     }
 }
 
-impl<'a> ContextualTryFrom<'a, ModificationKdl> for ModificationDescription {
-    type Error = ProtoChemistryError;
+impl<'a> ValidateInto<'a, ModificationDescription> for ModificationKdl {
     type Context = &'a AtomicDatabase;
 
-    fn ctx_try_from(ctx: Self::Context, value: ModificationKdl) -> Result<Self, Self::Error> {
+    fn validate(self, ctx: Self::Context, value: ModificationKdl) -> Result<Self, Self::Error> {
         Ok(Self {
             name: value.name,
             lost: value.lost.ctx_try_into(ctx)?,
@@ -275,11 +226,10 @@ impl<'a> ContextualTryFrom<'a, ModificationKdl> for ModificationDescription {
     }
 }
 
-impl<'a> ContextualTryFrom<'a, BondsKdl> for HashMap<String, BondDescription> {
-    type Error = ProtoChemistryError;
+impl<'a> ValidateInto<'a, HashMap> for BondsKdl<String, BondDescription> {
     type Context = &'a AtomicDatabase;
 
-    fn ctx_try_from(ctx: Self::Context, value: BondsKdl) -> Result<Self, Self::Error> {
+    fn validate(self, ctx: Self::Context, value: BondsKdl) -> Result<Self, Self::Error> {
         // FIXME: This is a bit repetitive with the above...
         value
             .bonds
@@ -289,11 +239,10 @@ impl<'a> ContextualTryFrom<'a, BondsKdl> for HashMap<String, BondDescription> {
     }
 }
 
-impl<'a> ContextualTryFrom<'a, BondKdl> for BondDescription {
-    type Error = ProtoChemistryError;
+impl<'a> ValidateInto<'a, BondDescription> for BondKdl {
     type Context = &'a AtomicDatabase;
 
-    fn ctx_try_from(ctx: Self::Context, value: BondKdl) -> Result<Self, Self::Error> {
+    fn validate(self, ctx: Self::Context, value: BondKdl) -> Result<Self, Self::Error> {
         Ok(Self {
             from: value.from.into(),
             to: value.to.into(),
