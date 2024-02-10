@@ -1,4 +1,4 @@
-use std::{collections::HashMap, convert::Infallible};
+use std::collections::HashMap;
 
 use knuffel::{
     span::{Span, Spanned},
@@ -52,176 +52,87 @@ struct Target {
     residue: Option<String>,
 }
 
+struct ProtoChemistryError(SourceSpan, ChemistryErrorKind);
+
+impl ProtoChemistryError {
+    fn finalize(self, file_name: impl AsRef<str>, kdl: impl AsRef<str>) -> ChemistryError {
+        let Self(span, kind) = self;
+        let kdl = NamedSource::new(file_name, kdl.as_ref().to_string());
+        ChemistryError { kdl, span, kind }.into()
+    }
+}
+
 impl PolymerChemistry {
     pub fn from_kdl(
         db: &AtomicDatabase,
         file_name: impl AsRef<str>,
-        text: impl AsRef<str>,
+        kdl: impl AsRef<str>,
     ) -> Result<Self> {
         let parsed_chemistry: PolymerChemistryKdl =
-            knuffel::parse(file_name.as_ref(), text.as_ref())?;
-        parsed_chemistry.ctx_try_into(db).map_err(|(span, kind)| {
-            let kdl = NamedSource::new(file_name, text.as_ref().to_string());
-            ChemistryError { kdl, span, kind }.into()
+            knuffel::parse(file_name.as_ref(), kdl.as_ref())?;
+        parsed_chemistry
+            .validate(db)
+            .map_err(|e| e.finalize(file_name, kdl).into())
+    }
+}
+type ChemResult<T> = Result<T, ProtoChemistryError>;
+
+impl PolymerChemistryKdl {
+    fn validate(self, db: &AtomicDatabase) -> ChemResult<PolymerChemistry> {
+        Ok(PolymerChemistry {
+            bonds: self.bonds.validate(db)?,
+            modifications: self.modifications.validate(db)?,
+            residues: self.residues.validate(db)?,
         })
     }
 }
 
-impl<'a> ContextualTryFrom<'a, PolymerChemistryKdl> for PolymerChemistry {
-    type Error = ProtoChemistryError;
-    type Context = &'a AtomicDatabase;
-
-    fn ctx_try_from(ctx: Self::Context, value: PolymerChemistryKdl) -> Result<Self, Self::Error> {
-        Ok(Self {
-            bonds: value.bonds.ctx_try_into(ctx)?,
-            modifications: value.modifications.ctx_try_into(ctx)?,
-            residues: value.residues.ctx_try_into(ctx)?,
-        })
-    }
-}
-
-impl<'a> ContextualTryFrom<'a, ResiduesKdl> for HashMap<String, ResidueDescription> {
-    type Error = ProtoChemistryError;
-    type Context = &'a AtomicDatabase;
-
-    fn ctx_try_from(ctx: Self::Context, value: ResiduesKdl) -> Result<Self, Self::Error> {
-        let types: HashMap<_, _> = value
-            .types
-            .into_iter()
-            .map(ResidueTypeEntry::from)
-            .collect();
-        let to_residue = |r: ResidueKdl| {
-            let mut functional_groups: Vec<_> = r
-                .functional_groups
-                .into_iter()
-                .map(FunctionalGroup::from)
-                .collect();
-            functional_groups.extend(types[&r.residue_type].clone());
-            Ok(ResidueDescription {
-                name: r.name,
-                composition: r.composition.ctx_try_into(ctx)?,
-                functional_groups,
-            })
-        };
-        value
-            .residues
+impl ResiduesKdl {
+    fn validate(self, db: &AtomicDatabase) -> ChemResult<HashMap<String, ResidueDescription>> {
+        let types: HashMap<_, _> = self.types.into_iter().map(ResidueTypeEntry::from).collect();
+        self.residues
             .into_iter()
             // FIXME: Big hmm for the ? operator here...
-            .map(|r| Ok((r.abbr.clone(), to_residue(r)?)))
+            .map(|r| Ok((r.abbr.clone(), r.validate(db, &types)?)))
             .collect()
     }
 }
 
-// FIXME: Might also want to pull out this error-handling into it's own crate...
-#[derive(Debug, Error, Diagnostic)]
-#[error("failed to validate polymer chemistry file")]
-struct ChemistryError {
-    #[source_code]
-    kdl: NamedSource<String>,
-    #[label("{}", kind.label())]
-    span: SourceSpan,
-    #[source]
-    #[diagnostic_source]
-    kind: ChemistryErrorKind,
-}
-
-// FIXME: Need to implement something like that labeled error trait...
-#[derive(Debug, Clone, Error, Diagnostic)]
-enum ChemistryErrorKind {
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    Composition(#[from] crate::Error),
-}
-
-impl ChemistryErrorKind {
-    const fn label(&self) -> &'static str {
-        match self {
-            Self::Composition(_) => "invalid chemical composition",
-        }
-    }
-}
-
-type ProtoChemistryError = (SourceSpan, ChemistryErrorKind);
-
-// FIXME: This should definitely live in it's own crate!
-
-trait ContextualTryInto<'a, T>: Sized {
-    /// The type returned in the event of a conversion error.
-    type Error;
-    /// The type of context needed for this conversion
-    type Context: 'a;
-
-    // FIXME: Wow, I really hate this ctx naming...
-    /// Performs the conversion.
-    fn ctx_try_into(self, ctx: Self::Context) -> Result<T, Self::Error>;
-}
-
-trait ContextualTryFrom<'a, T>: Sized {
-    /// The type returned in the event of a conversion error.
-    type Error;
-    /// The type of context needed for this conversion
-    type Context: 'a;
-
-    /// Performs the conversion.
-    fn ctx_try_from(ctx: Self::Context, value: T) -> Result<Self, Self::Error>;
-}
-
-// TryFrom implies TryInto
-impl<'a, T, U> ContextualTryInto<'a, U> for T
-where
-    U: ContextualTryFrom<'a, T>,
-{
-    type Error = U::Error;
-    type Context = U::Context;
-
-    #[inline]
-    fn ctx_try_into(self, ctx: U::Context) -> Result<U, U::Error> {
-        U::ctx_try_from(ctx, self)
-    }
-}
-
-// FIXME: Check that ContextualTryFrom<T> for T is implemented by this?
-// Infallible conversions are semantically equivalent to fallible conversions
-// with an uninhabited error type.
-impl<T, U> ContextualTryFrom<'static, U> for T
-where
-    U: Into<T>,
-{
-    type Error = Infallible;
-    type Context = ();
-
-    #[inline]
-    fn ctx_try_from(_ctx: Self::Context, value: U) -> Result<Self, Self::Error> {
-        Ok(U::into(value))
-    }
-}
-
-impl<'a> ContextualTryFrom<'a, ChemicalCompositionKdl> for ChemicalComposition {
-    type Error = ProtoChemistryError;
-    type Context = &'a AtomicDatabase;
-
-    fn ctx_try_from(
-        ctx: Self::Context,
-        value: ChemicalCompositionKdl,
-    ) -> Result<Self, Self::Error> {
-        Self::new(ctx, &*value).map_err(|e| (value.span().clone().into(), e.into()))
-    }
-}
-
-impl<'a> ContextualTryFrom<'a, Option<ChemicalCompositionKdl>> for ChemicalComposition {
-    type Error = ProtoChemistryError;
-    type Context = &'a AtomicDatabase;
-
-    fn ctx_try_from(
-        ctx: Self::Context,
-        value: Option<ChemicalCompositionKdl>,
-    ) -> Result<Self, Self::Error> {
-        // FIXME: Questionable style...
-        Ok(if let Some(s) = value {
-            s.ctx_try_into(ctx)?
-        } else {
-            Self::default()
+impl ResidueKdl {
+    fn validate(
+        self,
+        db: &AtomicDatabase,
+        types: &HashMap<String, Vec<FunctionalGroup>>,
+    ) -> ChemResult<ResidueDescription> {
+        let mut functional_groups: Vec<_> = self
+            .functional_groups
+            .into_iter()
+            .map(FunctionalGroup::from)
+            .collect();
+        functional_groups.extend(types[&self.residue_type].clone());
+        Ok(ResidueDescription {
+            name: self.name,
+            composition: ChemicalCompositionKdl::validate_optional(self.composition, db)?,
+            functional_groups,
         })
+    }
+}
+
+impl ChemicalCompositionKdl {
+    fn validate(self, db: &AtomicDatabase) -> ChemResult<ChemicalComposition> {
+        ChemicalComposition::new(db, &*self.0)
+            .map_err(|e| ProtoChemistryError(self.0.span().clone().into(), e.into()))
+    }
+
+    fn validate_optional(
+        value: Option<Self>,
+        db: &AtomicDatabase,
+    ) -> ChemResult<ChemicalComposition> {
+        // FIXME: Good lord, maybe just if let?
+        Ok(value
+            .map(|c| c.validate(db))
+            .transpose()?
+            .unwrap_or_default())
     }
 }
 
@@ -247,57 +158,42 @@ impl From<FunctionalGroupKdl> for FunctionalGroup {
     }
 }
 
-impl<'a> ContextualTryFrom<'a, ModificationsKdl> for HashMap<String, ModificationDescription> {
-    type Error = ProtoChemistryError;
-    type Context = &'a AtomicDatabase;
-
-    fn ctx_try_from(ctx: Self::Context, value: ModificationsKdl) -> Result<Self, Self::Error> {
-        // FIXME: This is a bit repetitive with the above...
-        value
-            .modifications
+impl ModificationsKdl {
+    fn validate(self, db: &AtomicDatabase) -> ChemResult<HashMap<String, ModificationDescription>> {
+        // FIXME: DRY this out...
+        self.modifications
             .into_iter()
-            .map(|m| Ok((m.abbr.clone(), m.ctx_try_into(ctx)?)))
+            .map(|m| Ok((m.abbr.clone(), m.validate(db)?)))
             .collect()
     }
 }
 
-impl<'a> ContextualTryFrom<'a, ModificationKdl> for ModificationDescription {
-    type Error = ProtoChemistryError;
-    type Context = &'a AtomicDatabase;
-
-    fn ctx_try_from(ctx: Self::Context, value: ModificationKdl) -> Result<Self, Self::Error> {
-        Ok(Self {
-            name: value.name,
-            lost: value.lost.ctx_try_into(ctx)?,
-            gained: value.gained.ctx_try_into(ctx)?,
-            targets: value.targets.into_iter().map(Target::from).collect(),
+impl ModificationKdl {
+    fn validate(self, db: &AtomicDatabase) -> ChemResult<ModificationDescription> {
+        Ok(ModificationDescription {
+            name: self.name,
+            lost: ChemicalCompositionKdl::validate_optional(self.lost, db)?,
+            gained: ChemicalCompositionKdl::validate_optional(self.gained, db)?,
+            targets: self.targets.into_iter().map(Target::from).collect(),
         })
     }
 }
-
-impl<'a> ContextualTryFrom<'a, BondsKdl> for HashMap<String, BondDescription> {
-    type Error = ProtoChemistryError;
-    type Context = &'a AtomicDatabase;
-
-    fn ctx_try_from(ctx: Self::Context, value: BondsKdl) -> Result<Self, Self::Error> {
+impl BondsKdl {
+    fn validate(self, db: &AtomicDatabase) -> ChemResult<HashMap<String, BondDescription>> {
         // FIXME: This is a bit repetitive with the above...
-        value
-            .bonds
+        self.bonds
             .into_iter()
-            .map(|b| Ok((b.name.clone(), b.ctx_try_into(ctx)?)))
+            .map(|b| Ok((b.name.clone(), b.validate(db)?)))
             .collect()
     }
 }
 
-impl<'a> ContextualTryFrom<'a, BondKdl> for BondDescription {
-    type Error = ProtoChemistryError;
-    type Context = &'a AtomicDatabase;
-
-    fn ctx_try_from(ctx: Self::Context, value: BondKdl) -> Result<Self, Self::Error> {
-        Ok(Self {
-            from: value.from.into(),
-            to: value.to.into(),
-            lost: value.lost.ctx_try_into(ctx)?,
+impl BondKdl {
+    fn validate(self, db: &AtomicDatabase) -> ChemResult<BondDescription> {
+        Ok(BondDescription {
+            from: self.from.into(),
+            to: self.to.into(),
+            lost: self.lost.validate(db)?,
         })
     }
 }
@@ -331,7 +227,9 @@ struct BondsKdl {
     bonds: Vec<BondKdl>,
 }
 
-type ChemicalCompositionKdl = Spanned<String, Span>;
+#[derive(Decode, Debug)]
+#[knuffel(span_type=Span)]
+struct ChemicalCompositionKdl(#[knuffel(argument)] Spanned<String, Span>);
 
 #[derive(Decode, Debug)]
 #[knuffel(span_type=Span)]
@@ -342,7 +240,7 @@ struct BondKdl {
     from: TargetKdl,
     #[knuffel(child)]
     to: TargetKdl,
-    #[knuffel(child, unwrap(argument))]
+    #[knuffel(child)]
     lost: ChemicalCompositionKdl,
 }
 
@@ -370,9 +268,9 @@ struct ModificationKdl {
     abbr: String,
     #[knuffel(argument)]
     name: String,
-    #[knuffel(child, unwrap(argument))]
+    #[knuffel(child)]
     lost: Option<ChemicalCompositionKdl>,
-    #[knuffel(child, unwrap(argument))]
+    #[knuffel(child)]
     gained: Option<ChemicalCompositionKdl>,
     #[knuffel(children(name = "targeting"))]
     targets: Vec<TargetKdl>,
@@ -398,7 +296,9 @@ struct ResidueTypeKdl {
 // FIXME: Be sure to write tests to check this errors for missing composition keys but works for nulled ones — also
 // check that the `lost` and `gained` keys are the opposite — null isn't allowed, but they can be left out entirely
 // NOTE: This forces composition to have a `null` value instead of being a totally optional key
-type NullOr<T> = Option<T>;
+// #[derive(Decode, Debug)]
+// #[knuffel(span_type=Span)]
+// struct NullOr<T: Decode<Span>>(#[knuffel(argument)] Option<T>);
 
 #[derive(Decode, Debug)]
 #[knuffel(span_type=Span)]
@@ -409,8 +309,8 @@ struct ResidueKdl {
     abbr: String,
     #[knuffel(argument)]
     name: String,
-    #[knuffel(child, unwrap(argument))]
-    composition: NullOr<ChemicalCompositionKdl>,
+    #[knuffel(child)]
+    composition: Option<ChemicalCompositionKdl>,
     #[knuffel(children(name = "functional-group"))]
     functional_groups: Vec<FunctionalGroupKdl>,
 }
@@ -423,18 +323,44 @@ struct FunctionalGroupKdl {
     location: String,
 }
 
+// FIXME: Might also want to pull out this error-handling into it's own crate...
+#[derive(Debug, Error, Diagnostic)]
+#[error("failed to validate polymer chemistry file")]
+struct ChemistryError {
+    #[source_code]
+    kdl: NamedSource<String>,
+    #[label("{}", kind.label())]
+    span: SourceSpan,
+    #[source]
+    #[diagnostic_source]
+    kind: ChemistryErrorKind,
+}
+
+// FIXME: Need to implement something like that labeled error trait...
+#[derive(Debug, Clone, Error, Diagnostic)]
+enum ChemistryErrorKind {
+    #[error(transparent)]
+    #[diagnostic(transparent)]
+    Composition(#[from] crate::Error),
+}
+
+impl ChemistryErrorKind {
+    const fn label(&self) -> &'static str {
+        match self {
+            Self::Composition(_) => "invalid chemical composition",
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use indoc::indoc;
     use insta::{assert_debug_snapshot, assert_ron_snapshot};
     use miette::Result;
     use once_cell::sync::Lazy;
 
     use crate::{
-        atomic_database::AtomicDatabase,
-        polymer_chemistry::{ContextualTryInto, ResidueDescription},
+        atomic_database::AtomicDatabase, polymer_chemistry::ResidueDescription,
         testing_tools::assert_miette_snapshot,
     };
 
