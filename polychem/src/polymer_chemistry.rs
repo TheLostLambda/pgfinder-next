@@ -1,4 +1,4 @@
-use std::{collections::HashMap, convert::Infallible};
+use std::collections::HashMap;
 
 use knuffel::{
     span::{Span, Spanned},
@@ -52,6 +52,23 @@ struct Target {
     residue: Option<String>,
 }
 
+trait ValidateInto<'a, T> {
+    type Context: 'a;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<T>;
+}
+
+impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
+    type Context = &'a AtomicDatabase;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
+        Ok(if let Some(c) = self {
+            c.validate(ctx)?
+        } else {
+            ChemicalComposition::default()
+        })
+    }
+}
 impl PolymerChemistry {
     pub fn from_kdl(
         db: &AtomicDatabase,
@@ -60,10 +77,9 @@ impl PolymerChemistry {
     ) -> Result<Self> {
         let parsed_chemistry: PolymerChemistryKdl =
             knuffel::parse(file_name.as_ref(), text.as_ref())?;
-        parsed_chemistry.ctx_try_into(db).map_err(|(span, kind)| {
-            let kdl = NamedSource::new(file_name, text.as_ref().to_string());
-            ChemistryError { kdl, span, kind }.into()
-        })
+        parsed_chemistry
+            .validate(db)
+            .map_err(|e| e.finalize(file_name, text).into())
     }
 }
 
@@ -80,39 +96,41 @@ impl ProtoChemistryError {
 impl<'a> ValidateInto<'a, PolymerChemistry> for PolymerChemistryKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context) -> Result<Self, Self::Error> {
-        Ok(Self {
-            bonds: value.bonds.ctx_try_into(ctx)?,
-            modifications: value.modifications.ctx_try_into(ctx)?,
-            residues: value.residues.ctx_try_into(ctx)?,
+    fn validate(self, ctx: Self::Context) -> ChemResult<PolymerChemistry> {
+        Ok(PolymerChemistry {
+            bonds: self.bonds.validate(ctx)?,
+            modifications: self.modifications.validate(ctx)?,
+            residues: self.residues.validate(ctx)?,
         })
     }
 }
 
-impl<'a> ValidateInto<'a, HashMap> for ResiduesKdl<String, ResidueDescription> {
+// FIXME: Maybe add a type synonym for the HashMap type
+impl<'a> ValidateInto<'a, HashMap<String, ResidueDescription>> for ResiduesKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context, value: ResiduesKdl) -> Result<Self, Self::Error> {
-        let types: HashMap<_, _> = value
-            .types
-            .into_iter()
-            .map(ResidueTypeEntry::from)
-            .collect();
+    fn validate(self, ctx: Self::Context) -> ChemResult<HashMap<String, ResidueDescription>> {
+        let types: HashMap<_, _> = self.types.into_iter().map(ResidueTypeEntry::from).collect();
+        // FIXME: Split this out into a ValidateInto with Context = (AtomicDatabase, HashMap<String, FunctionalGroup>)
         let to_residue = |r: ResidueKdl| {
             let mut functional_groups: Vec<_> = r
                 .functional_groups
                 .into_iter()
                 .map(FunctionalGroup::from)
                 .collect();
-            functional_groups.extend(types[&r.residue_type].clone());
+            let type_groups = types
+                .get(&r.residue_type)
+                // FIXME: PICK UP HERE! NEED TO ADD A SPAN TO THE TYPE STRING...
+                .ok_or_else(|| ChemistryErrorKind::UndefinedResidueType(r.residue_type))
+                .unwrap();
+            functional_groups.extend(type_groups.clone());
             Ok(ResidueDescription {
                 name: r.name,
-                composition: r.composition.ctx_try_into(ctx)?,
+                composition: r.composition.validate(ctx)?,
                 functional_groups,
             })
         };
-        value
-            .residues
+        self.residues
             .into_iter()
             // FIXME: Big hmm for the ? operator here...
             .map(|r| Ok((r.abbr.clone(), to_residue(r)?)))
@@ -139,12 +157,16 @@ enum ChemistryErrorKind {
     #[error(transparent)]
     #[diagnostic(transparent)]
     Composition(#[from] crate::Error),
+    #[error("the residue type {0:?} is undefined")]
+    #[diagnostic(help("double-check for typos, or add {0:?} to the types section"))]
+    UndefinedResidueType(String),
 }
 
 impl ChemistryErrorKind {
     const fn label(&self) -> &'static str {
         match self {
             Self::Composition(_) => "invalid chemical composition",
+            Self::UndefinedResidueType(_) => "undefined residue type",
         }
     }
 }
@@ -152,31 +174,24 @@ impl ChemistryErrorKind {
 impl<'a> ValidateInto<'a, ChemicalComposition> for ChemicalCompositionKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(
-        self,
-        ctx: Self::Context,
-        value: ChemicalCompositionKdl,
-    ) -> Result<Self, Self::Error> {
-        Self::new(ctx, &*value).map_err(|e| (value.span().clone().into(), e.into()))
+    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
+        ChemicalComposition::new(ctx, &*self)
+            .map_err(|e| ProtoChemistryError(self.span().clone().into(), e.into()))
     }
 }
 
-impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
-    type Context = &'a AtomicDatabase;
+// impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
+//     type Context = &'a AtomicDatabase;
 
-    fn validate(
-        self,
-        ctx: Self::Context,
-        value: Option<ChemicalCompositionKdl>,
-    ) -> Result<Self, Self::Error> {
-        // FIXME: Questionable style...
-        Ok(if let Some(s) = value {
-            s.ctx_try_into(ctx)?
-        } else {
-            Self::default()
-        })
-    }
-}
+//     fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
+//         // FIXME: Questionable style...
+//         Ok(if let Some(s) = self {
+//             s.validate(ctx)?
+//         } else {
+//             Self::default()
+//         })
+//     }
+// }
 
 type ResidueTypeEntry = (String, Vec<FunctionalGroup>);
 
@@ -200,15 +215,14 @@ impl From<FunctionalGroupKdl> for FunctionalGroup {
     }
 }
 
-impl<'a> ValidateInto<'a, HashMap> for ModificationsKdl<String, ModificationDescription> {
+impl<'a> ValidateInto<'a, HashMap<String, ModificationDescription>> for ModificationsKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context, value: ModificationsKdl) -> Result<Self, Self::Error> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<HashMap<String, ModificationDescription>> {
         // FIXME: This is a bit repetitive with the above...
-        value
-            .modifications
+        self.modifications
             .into_iter()
-            .map(|m| Ok((m.abbr.clone(), m.ctx_try_into(ctx)?)))
+            .map(|m| Ok((m.abbr.clone(), m.validate(ctx)?)))
             .collect()
     }
 }
@@ -216,25 +230,24 @@ impl<'a> ValidateInto<'a, HashMap> for ModificationsKdl<String, ModificationDesc
 impl<'a> ValidateInto<'a, ModificationDescription> for ModificationKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context, value: ModificationKdl) -> Result<Self, Self::Error> {
-        Ok(Self {
-            name: value.name,
-            lost: value.lost.ctx_try_into(ctx)?,
-            gained: value.gained.ctx_try_into(ctx)?,
-            targets: value.targets.into_iter().map(Target::from).collect(),
+    fn validate(self, ctx: Self::Context) -> ChemResult<ModificationDescription> {
+        Ok(ModificationDescription {
+            name: self.name,
+            lost: self.lost.validate(ctx)?,
+            gained: self.gained.validate(ctx)?,
+            targets: self.targets.into_iter().map(Target::from).collect(),
         })
     }
 }
 
-impl<'a> ValidateInto<'a, HashMap> for BondsKdl<String, BondDescription> {
+impl<'a> ValidateInto<'a, HashMap<String, BondDescription>> for BondsKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context, value: BondsKdl) -> Result<Self, Self::Error> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<HashMap<String, BondDescription>> {
         // FIXME: This is a bit repetitive with the above...
-        value
-            .bonds
+        self.bonds
             .into_iter()
-            .map(|b| Ok((b.name.clone(), b.ctx_try_into(ctx)?)))
+            .map(|b| Ok((b.name.clone(), b.validate(ctx)?)))
             .collect()
     }
 }
@@ -242,11 +255,11 @@ impl<'a> ValidateInto<'a, HashMap> for BondsKdl<String, BondDescription> {
 impl<'a> ValidateInto<'a, BondDescription> for BondKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context, value: BondKdl) -> Result<Self, Self::Error> {
-        Ok(Self {
-            from: value.from.into(),
-            to: value.to.into(),
-            lost: value.lost.ctx_try_into(ctx)?,
+    fn validate(self, ctx: Self::Context) -> ChemResult<BondDescription> {
+        Ok(BondDescription {
+            from: self.from.into(),
+            to: self.to.into(),
+            lost: self.lost.validate(ctx)?,
         })
     }
 }
@@ -374,8 +387,6 @@ struct FunctionalGroupKdl {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use indoc::indoc;
     use insta::{assert_debug_snapshot, assert_ron_snapshot};
     use miette::Result;
@@ -383,7 +394,7 @@ mod tests {
 
     use crate::{
         atomic_database::AtomicDatabase,
-        polymer_chemistry::{ContextualTryInto, ResidueDescription},
+        polymer_chemistry::{ResidueDescription, ValidateInto},
         testing_tools::assert_miette_snapshot,
     };
 
@@ -443,9 +454,9 @@ mod tests {
             }
         "#};
         let residues: ResiduesKdl = knuffel::parse("test", kdl).unwrap();
-        // let residues: HashMap<String, ResidueDescription> = residues.ctx_try_into(&*DB)?;
-        // assert!(residues.is_err());
-        // assert_miette_snapshot!(residues);
+        let residues = residues.validate(&*DB).map_err(|e| e.finalize("test", kdl));
+        assert!(residues.is_err());
+        assert_miette_snapshot!(residues);
         Ok(())
     }
 }
