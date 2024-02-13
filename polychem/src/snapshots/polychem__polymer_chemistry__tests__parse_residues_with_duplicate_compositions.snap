@@ -1,0 +1,16 @@
+---
+source: polychem/src/polymer_chemistry.rs
+description: residues
+expression: out
+---
+  × error parsing KDL
+
+Error:   × duplicate node `composition`, single node expected
+   ╭─[test:6:5]
+ 5 │     composition "C6H14N2O2"
+ 6 │     composition "C2H5NO2"
+   ·     ─────┬─────
+   ·          ╰── unexpected node
+ 7 │ }
+   ╰────
+

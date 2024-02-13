@@ -289,18 +289,34 @@ PolymerChemistryKdl {
                 name: "Monosaccharide",
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            1262,
+                            1308,
+                        ),
                         name: "Hydroxyl",
                         location: "Reducing End",
                     },
                     FunctionalGroupKdl {
+                        span: Span(
+                            1320,
+                            1369,
+                        ),
                         name: "Hydroxyl",
                         location: "Nonreducing End",
                     },
                     FunctionalGroupKdl {
+                        span: Span(
+                            1381,
+                            1425,
+                        ),
                         name: "Hydroxyl",
                         location: "6-Position",
                     },
                     FunctionalGroupKdl {
+                        span: Span(
+                            1437,
+                            1484,
+                        ),
                         name: "Acetyl",
                         location: "Secondary Amide",
                     },
@@ -314,10 +330,18 @@ PolymerChemistryKdl {
                 name: "AminoAcid",
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            1527,
+                            1568,
+                        ),
                         name: "Amino",
                         location: "N-Terminal",
                     },
                     FunctionalGroupKdl {
+                        span: Span(
+                            1580,
+                            1624,
+                        ),
                         name: "Carboxyl",
                         location: "C-Terminal",
                     },
@@ -363,6 +387,10 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            1813,
+                            1859,
+                        ),
                         name: "Carboxyl",
                         location: "Lactyl Ether",
                     },
@@ -406,6 +434,10 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            2014,
+                            2054,
+                        ),
                         name: "Amino",
                         location: "Sidechain",
                     },
@@ -449,6 +481,10 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            2202,
+                            2245,
+                        ),
                         name: "Carboxyl",
                         location: "Sidechain",
                     },
@@ -473,6 +509,10 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            2325,
+                            2368,
+                        ),
                         name: "Carboxyl",
                         location: "Sidechain",
                     },
@@ -573,10 +613,18 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            2734,
+                            2774,
+                        ),
                         name: "Amino",
                         location: "Sidechain",
                     },
                     FunctionalGroupKdl {
+                        span: Span(
+                            2782,
+                            2825,
+                        ),
                         name: "Carboxyl",
                         location: "Sidechain",
                     },
@@ -601,6 +649,10 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            2900,
+                            2940,
+                        ),
                         name: "Amino",
                         location: "Sidechain",
                     },
@@ -663,6 +715,10 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            3156,
+                            3196,
+                        ),
                         name: "Amino",
                         location: "Sidechain",
                     },
@@ -687,6 +743,10 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            3274,
+                            3314,
+                        ),
                         name: "Amino",
                         location: "Sidechain",
                     },
@@ -730,6 +790,10 @@ PolymerChemistryKdl {
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
+                        span: Span(
+                            3458,
+                            3498,
+                        ),
                         name: "Amino",
                         location: "Sidechain",
                     },

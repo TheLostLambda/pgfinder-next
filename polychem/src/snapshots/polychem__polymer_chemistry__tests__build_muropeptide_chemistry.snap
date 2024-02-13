@@ -848,11 +848,11 @@ PolymerChemistry(
       functional_groups: [
         FunctionalGroup(
           name: "Amino",
-          location: "Sidechain",
+          location: "N-Terminal",
         ),
         FunctionalGroup(
           name: "Amino",
-          location: "N-Terminal",
+          location: "Sidechain",
         ),
         FunctionalGroup(
           name: "Carboxyl",
@@ -1054,16 +1054,16 @@ PolymerChemistry(
       ),
       functional_groups: [
         FunctionalGroup(
-          name: "Carboxyl",
-          location: "Sidechain",
-        ),
-        FunctionalGroup(
           name: "Amino",
           location: "N-Terminal",
         ),
         FunctionalGroup(
           name: "Carboxyl",
           location: "C-Terminal",
+        ),
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "Sidechain",
         ),
       ],
     ),
@@ -1148,16 +1148,16 @@ PolymerChemistry(
       ),
       functional_groups: [
         FunctionalGroup(
-          name: "Carboxyl",
-          location: "Sidechain",
-        ),
-        FunctionalGroup(
           name: "Amino",
           location: "N-Terminal",
         ),
         FunctionalGroup(
           name: "Carboxyl",
           location: "C-Terminal",
+        ),
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "Sidechain",
         ),
       ],
     ),
@@ -1603,19 +1603,19 @@ PolymerChemistry(
       functional_groups: [
         FunctionalGroup(
           name: "Amino",
-          location: "Sidechain",
-        ),
-        FunctionalGroup(
-          name: "Carboxyl",
-          location: "Sidechain",
+          location: "N-Terminal",
         ),
         FunctionalGroup(
           name: "Amino",
-          location: "N-Terminal",
+          location: "Sidechain",
         ),
         FunctionalGroup(
           name: "Carboxyl",
           location: "C-Terminal",
+        ),
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "Sidechain",
         ),
       ],
     ),
@@ -1701,11 +1701,11 @@ PolymerChemistry(
       functional_groups: [
         FunctionalGroup(
           name: "Amino",
-          location: "Sidechain",
+          location: "N-Terminal",
         ),
         FunctionalGroup(
           name: "Amino",
-          location: "N-Terminal",
+          location: "Sidechain",
         ),
         FunctionalGroup(
           name: "Carboxyl",
@@ -1998,11 +1998,11 @@ PolymerChemistry(
       functional_groups: [
         FunctionalGroup(
           name: "Amino",
-          location: "Sidechain",
+          location: "N-Terminal",
         ),
         FunctionalGroup(
           name: "Amino",
-          location: "N-Terminal",
+          location: "Sidechain",
         ),
         FunctionalGroup(
           name: "Carboxyl",
@@ -2092,11 +2092,11 @@ PolymerChemistry(
       functional_groups: [
         FunctionalGroup(
           name: "Amino",
-          location: "Sidechain",
+          location: "N-Terminal",
         ),
         FunctionalGroup(
           name: "Amino",
-          location: "N-Terminal",
+          location: "Sidechain",
         ),
         FunctionalGroup(
           name: "Carboxyl",
@@ -2276,11 +2276,11 @@ PolymerChemistry(
       functional_groups: [
         FunctionalGroup(
           name: "Amino",
-          location: "Sidechain",
+          location: "N-Terminal",
         ),
         FunctionalGroup(
           name: "Amino",
-          location: "N-Terminal",
+          location: "Sidechain",
         ),
         FunctionalGroup(
           name: "Carboxyl",
@@ -3106,8 +3106,12 @@ PolymerChemistry(
       ),
       functional_groups: [
         FunctionalGroup(
+          name: "Acetyl",
+          location: "Secondary Amide",
+        ),
+        FunctionalGroup(
           name: "Hydroxyl",
-          location: "Reducing End",
+          location: "6-Position",
         ),
         FunctionalGroup(
           name: "Hydroxyl",
@@ -3115,11 +3119,7 @@ PolymerChemistry(
         ),
         FunctionalGroup(
           name: "Hydroxyl",
-          location: "6-Position",
-        ),
-        FunctionalGroup(
-          name: "Acetyl",
-          location: "Secondary Amide",
+          location: "Reducing End",
         ),
       ],
     ),
@@ -3204,12 +3204,16 @@ PolymerChemistry(
       ),
       functional_groups: [
         FunctionalGroup(
+          name: "Acetyl",
+          location: "Secondary Amide",
+        ),
+        FunctionalGroup(
           name: "Carboxyl",
           location: "Lactyl Ether",
         ),
         FunctionalGroup(
           name: "Hydroxyl",
-          location: "Reducing End",
+          location: "6-Position",
         ),
         FunctionalGroup(
           name: "Hydroxyl",
@@ -3217,11 +3221,7 @@ PolymerChemistry(
         ),
         FunctionalGroup(
           name: "Hydroxyl",
-          location: "6-Position",
-        ),
-        FunctionalGroup(
-          name: "Acetyl",
-          location: "Secondary Amide",
+          location: "Reducing End",
         ),
       ],
     ),

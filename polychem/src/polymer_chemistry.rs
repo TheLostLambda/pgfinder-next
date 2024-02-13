@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use knuffel::{
     span::{Span, Spanned},
@@ -9,7 +9,6 @@ use thiserror::Error;
 
 use crate::{atomic_database::AtomicDatabase, ChemicalComposition, FunctionalGroup};
 
-// FIXME: Might want to change how this is structured down the line...
 // FIXME: Accessors, not public fields!
 #[derive(Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
@@ -111,22 +110,16 @@ impl<'a> ValidateInto<'a, HashMap<String, ResidueDescription>> for ResiduesKdl {
     }
 }
 
-impl<'a> ValidateInto<'a, HashMap<String, Vec<FunctionalGroup>>> for Vec<ResidueTypeKdl> {
+impl<'a> ValidateInto<'a, HashMap<String, Vec<FunctionalGroupKdl>>> for Vec<ResidueTypeKdl> {
     type Context = ();
 
-    fn validate(self, _ctx: Self::Context) -> ChemResult<HashMap<String, Vec<FunctionalGroup>>> {
+    fn validate(self, _ctx: Self::Context) -> ChemResult<HashMap<String, Vec<FunctionalGroupKdl>>> {
         // FIXME: Is there a more functional way to do this?
         let mut types = HashMap::with_capacity(self.len());
         for residue_type in self {
-            let functional_groups = residue_type
-                .functional_groups
-                .into_iter()
-                .map(FunctionalGroup::from)
-                .collect();
-            // FIXME: Yuckie clone
             if let Some((first_span, _)) = types.insert(
                 residue_type.name.clone(),
-                (residue_type.span, functional_groups),
+                (residue_type.span, residue_type.functional_groups),
             ) {
                 return Err(ChemistryErrorKind::DuplicateResidueType(
                     first_span,
@@ -142,36 +135,35 @@ impl<'a> ValidateInto<'a, HashMap<String, Vec<FunctionalGroup>>> for Vec<Residue
 impl<'a> ValidateInto<'a, ResidueDescription> for ResidueKdl {
     type Context = (
         &'a AtomicDatabase,
-        &'a HashMap<String, Vec<FunctionalGroup>>,
+        &'a HashMap<String, Vec<FunctionalGroupKdl>>,
     );
 
     fn validate(self, ctx: Self::Context) -> ChemResult<ResidueDescription> {
-        let mut functional_groups: Vec<_> = self
-            .functional_groups
-            .into_iter()
-            .map(FunctionalGroup::from)
-            .collect();
-        let type_groups = ctx.1.get(&self.residue_type).ok_or_else(|| {
-            ChemistryErrorKind::UndefinedResidueType(self.span, self.residue_type)
-        })?;
-        functional_groups.extend(type_groups.clone());
+        let type_groups = ctx
+            .1
+            .get(&self.residue_type)
+            .ok_or_else(|| ChemistryErrorKind::UndefinedResidueType(self.span, self.residue_type))?
+            .clone();
         // FIXME: Abstract this logic out into a function — it's used in a couple of places, the dedeuplication
-        let mut deduplicated_groups = HashMap::new();
-        // FIXME: Damn it... I need the span (that I'll add to FunctionalGroupKdl) in this function (I'll probably need
-        // something like Vec<(Span, FunctionalGroup)> in my context here... Then I'll go through this merged list of
-        // groups (a Vec<(Span, FunctionalGroup)>) and I can just store in a HashMap the spans of each functional
-        // group, so that they can be recalled when there is a duplicate with .insert() and the error can be reported
-        for functional_group in functional_groups {
-            if let Some((first_span, _)) =
-                deduplicated_groups.insert(functional_group.name.clone(), functional_group.span)
+        let mut functional_group_spans = HashMap::new();
+        for functional_group_kdl in type_groups.into_iter().chain(self.functional_groups) {
+            let span = functional_group_kdl.span;
+            let functional_group = FunctionalGroup::from(functional_group_kdl);
+            if let Some(first_defined_span) =
+                functional_group_spans.insert(functional_group.clone(), span)
             {
-                return Err(ChemistryErrorKind::DuplicateResidueType(
-                    first_span,
-                    functional_group.span,
+                return Err(ChemistryErrorKind::DuplicateFunctionalGroup(
+                    first_defined_span,
+                    span,
                     functional_group.name,
+                    functional_group.location,
                 ));
             }
         }
+        let functional_groups = functional_group_spans
+            .into_keys()
+            .map(FunctionalGroup::from)
+            .collect();
         Ok(ResidueDescription {
             name: self.name,
             composition: self.composition.validate(ctx.0)?,
@@ -430,8 +422,11 @@ struct ResidueKdl {
     functional_groups: Vec<FunctionalGroupKdl>,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Clone, Decode, Debug)]
+#[knuffel(span_type=Span)]
 struct FunctionalGroupKdl {
+    #[knuffel(span)]
+    span: Span,
     #[knuffel(argument)]
     name: String,
     #[knuffel(property(name = "at"))]
@@ -478,7 +473,7 @@ mod tests {
         let chemistry = PolymerChemistry::from_kdl(&DB, "muropeptide_chemistry.rs", KDL).unwrap();
         assert_ron_snapshot!(chemistry, {
             ".bonds, .modifications, .residues" => insta::sorted_redaction(),
-            ".**.isotopes" => insta::sorted_redaction()
+            ".**.isotopes, .**.functional_groups" => insta::sorted_redaction()
         });
     }
 
@@ -522,8 +517,19 @@ mod tests {
         let residues = parse_residues(kdl);
         assert!(residues.is_ok());
         assert_ron_snapshot!(residues.unwrap(), {
-            ".**.isotopes" => insta::sorted_redaction()
+            ".**.isotopes, .**.functional_groups" => insta::sorted_redaction()
         });
+    }
+
+    #[test]
+    fn parse_residues_without_type_section() {
+        let kdl = indoc! {r#"
+            AminoAcid "G" "Glycine" {
+                composition "C2H5NO2"
+            }
+        "#};
+        let residues: Result<ResiduesKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(residues);
     }
 
     #[test]
@@ -553,6 +559,64 @@ mod tests {
             }
             AminoAcid "G" "Glycine" {
                 composition "C2H5NO2"
+            }
+        "#};
+        let residues = parse_residues(kdl);
+        assert_miette_snapshot!(residues);
+    }
+
+    #[test]
+    fn parse_residues_with_no_composition() {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid
+            }
+            AminoAcid "K" "Lysine" {
+                // composition "C6H14N2O2"
+            }
+        "#};
+        let residues: Result<ResiduesKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(residues);
+    }
+
+    #[test]
+    fn parse_residues_with_null_composition() {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid
+            }
+            AminoAcid "K" "Lysine" {
+                composition null
+            }
+        "#};
+        let residues = parse_residues(kdl);
+        assert!(residues.is_ok());
+        assert_ron_snapshot!(residues.unwrap());
+    }
+
+    #[test]
+    fn parse_residues_with_duplicate_compositions() {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid
+            }
+            AminoAcid "K" "Lysine" {
+                composition "C6H14N2O2"
+                composition "C2H5NO2"
+            }
+        "#};
+        let residues: Result<ResiduesKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(residues);
+    }
+
+    #[test]
+    fn parse_residues_with_invalid_composition() {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid
+            }
+            AminoAcid "K" "Lysine" {
+                composition "C6H14[100Tc]N2O2"
             }
         "#};
         let residues = parse_residues(kdl);

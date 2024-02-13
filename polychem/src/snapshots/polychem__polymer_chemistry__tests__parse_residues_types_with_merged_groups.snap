@@ -85,11 +85,11 @@ expression: residues.unwrap()
     functional_groups: [
       FunctionalGroup(
         name: "Amino",
-        location: "Sidechain",
+        location: "N-terminal",
       ),
       FunctionalGroup(
         name: "Amino",
-        location: "N-terminal",
+        location: "Sidechain",
       ),
       FunctionalGroup(
         name: "Carboxyl",
