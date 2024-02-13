@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use knuffel::{
     span::{Span, Spanned},
     Decode,
 };
-use miette::{Diagnostic, NamedSource, Result, SourceSpan};
+use miette::{Diagnostic, LabeledSpan, NamedSource, Result};
 use thiserror::Error;
 
 use crate::{atomic_database::AtomicDatabase, ChemicalComposition, FunctionalGroup};
@@ -83,16 +83,8 @@ impl PolymerChemistry {
     }
 }
 
-type ChemResult<T> = Result<T, ProtoChemistryError>;
-struct ProtoChemistryError(SourceSpan, ChemistryErrorKind);
+type ChemResult<T> = Result<T, ChemistryErrorKind>;
 
-impl ProtoChemistryError {
-    fn finalize(self, file_name: impl AsRef<str>, kdl: impl AsRef<str>) -> ChemistryError {
-        let Self(span, kind) = self;
-        let kdl = NamedSource::new(file_name, kdl.as_ref().to_string());
-        ChemistryError { kdl, span, kind }.into()
-    }
-}
 impl<'a> ValidateInto<'a, PolymerChemistry> for PolymerChemistryKdl {
     type Context = &'a AtomicDatabase;
 
@@ -110,64 +102,146 @@ impl<'a> ValidateInto<'a, HashMap<String, ResidueDescription>> for ResiduesKdl {
     type Context = &'a AtomicDatabase;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<HashMap<String, ResidueDescription>> {
-        let types: HashMap<_, _> = self.types.into_iter().map(ResidueTypeEntry::from).collect();
-        // FIXME: Split this out into a ValidateInto with Context = (AtomicDatabase, HashMap<String, FunctionalGroup>)
-        let to_residue = |r: ResidueKdl| {
-            let mut functional_groups: Vec<_> = r
-                .functional_groups
-                .into_iter()
-                .map(FunctionalGroup::from)
-                .collect();
-            let type_groups = types
-                .get(&r.residue_type)
-                // FIXME: PICK UP HERE! NEED TO ADD A SPAN TO THE TYPE STRING...
-                .ok_or_else(|| ChemistryErrorKind::UndefinedResidueType(r.residue_type))
-                .unwrap();
-            functional_groups.extend(type_groups.clone());
-            Ok(ResidueDescription {
-                name: r.name,
-                composition: r.composition.validate(ctx)?,
-                functional_groups,
-            })
-        };
+        let types = self.types.validate(())?;
         self.residues
             .into_iter()
             // FIXME: Big hmm for the ? operator here...
-            .map(|r| Ok((r.abbr.clone(), to_residue(r)?)))
+            .map(|r| Ok((r.abbr.clone(), r.validate((ctx, &types))?)))
             .collect()
     }
 }
 
+impl<'a> ValidateInto<'a, HashMap<String, Vec<FunctionalGroup>>> for Vec<ResidueTypeKdl> {
+    type Context = ();
+
+    fn validate(self, _ctx: Self::Context) -> ChemResult<HashMap<String, Vec<FunctionalGroup>>> {
+        // FIXME: Is there a more functional way to do this?
+        let mut types = HashMap::with_capacity(self.len());
+        for residue_type in self {
+            let functional_groups = residue_type
+                .functional_groups
+                .into_iter()
+                .map(FunctionalGroup::from)
+                .collect();
+            // FIXME: Yuckie clone
+            if let Some((first_span, _)) = types.insert(
+                residue_type.name.clone(),
+                (residue_type.span, functional_groups),
+            ) {
+                return Err(ChemistryErrorKind::DuplicateResidueType(
+                    first_span,
+                    residue_type.span,
+                    residue_type.name,
+                ));
+            }
+        }
+        Ok(types.into_iter().map(|(k, (_, v))| (k, v)).collect())
+    }
+}
+
+impl<'a> ValidateInto<'a, ResidueDescription> for ResidueKdl {
+    type Context = (
+        &'a AtomicDatabase,
+        &'a HashMap<String, Vec<FunctionalGroup>>,
+    );
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<ResidueDescription> {
+        let mut functional_groups: Vec<_> = self
+            .functional_groups
+            .into_iter()
+            .map(FunctionalGroup::from)
+            .collect();
+        let type_groups = ctx.1.get(&self.residue_type).ok_or_else(|| {
+            ChemistryErrorKind::UndefinedResidueType(self.span, self.residue_type)
+        })?;
+        functional_groups.extend(type_groups.clone());
+        // FIXME: Abstract this logic out into a function — it's used in a couple of places, the dedeuplication
+        let mut deduplicated_groups = HashMap::new();
+        // FIXME: Damn it... I need the span (that I'll add to FunctionalGroupKdl) in this function (I'll probably need
+        // something like Vec<(Span, FunctionalGroup)> in my context here... Then I'll go through this merged list of
+        // groups (a Vec<(Span, FunctionalGroup)>) and I can just store in a HashMap the spans of each functional
+        // group, so that they can be recalled when there is a duplicate with .insert() and the error can be reported
+        for functional_group in functional_groups {
+            if let Some((first_span, _)) =
+                deduplicated_groups.insert(functional_group.name.clone(), functional_group.span)
+            {
+                return Err(ChemistryErrorKind::DuplicateResidueType(
+                    first_span,
+                    functional_group.span,
+                    functional_group.name,
+                ));
+            }
+        }
+        Ok(ResidueDescription {
+            name: self.name,
+            composition: self.composition.validate(ctx.0)?,
+            functional_groups,
+        })
+    }
+}
+
 // FIXME: Might also want to pull out this error-handling into it's own crate...
-#[derive(Debug, Error, Diagnostic)]
+#[derive(Debug, Error)]
 #[error("failed to validate polymer chemistry file")]
 struct ChemistryError {
-    #[source_code]
     kdl: NamedSource<String>,
-    #[label("{}", kind.label())]
-    span: SourceSpan,
     #[source]
-    #[diagnostic_source]
     kind: ChemistryErrorKind,
 }
 
-// FIXME: Need to implement something like that labeled error trait...
+impl Diagnostic for ChemistryError {
+    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+        Some(&self.kdl)
+    }
+
+    fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+        Some(Box::new(self.kind.labels().into_iter().map(|(s, l)| {
+            LabeledSpan::new_with_span(Some(l.to_string()), s)
+        })))
+    }
+
+    fn diagnostic_source(&self) -> Option<&dyn Diagnostic> {
+        Some(&self.kind)
+    }
+}
+
 #[derive(Debug, Clone, Error, Diagnostic)]
 enum ChemistryErrorKind {
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    Composition(#[from] crate::Error),
-    #[error("the residue type {0:?} is undefined")]
-    #[diagnostic(help("double-check for typos, or add {0:?} to the types section"))]
-    UndefinedResidueType(String),
+    #[error("polymer chemistry file contained an invalid chemical composition")]
+    Composition(
+        Span,
+        // FIXME: I've checked with cargo expand — I need both source and diagnostic source. Make I've got this
+        // #[source] added globally — wherever `diagnostic_source` is defined!
+        #[source]
+        #[diagnostic_source]
+        crate::Error,
+    ),
+    #[error("the residue type {1:?} is undefined")]
+    #[diagnostic(help("double-check for typos, or add {1:?} to the types section"))]
+    UndefinedResidueType(Span, String),
+    #[error("the residue type {2:?} has already been defined")]
+    #[diagnostic(help("consider consolidating duplicate types or picking a new type name"))]
+    DuplicateResidueType(Span, Span, String),
+    #[error("the functional group {2:?} has already been defined at {3:?}")]
+    #[diagnostic(help("double-check for typos, or remove the duplicate functional group"))]
+    DuplicateFunctionalGroup(Span, Span, String, String),
 }
 
 impl ChemistryErrorKind {
-    const fn label(&self) -> &'static str {
+    fn labels(&self) -> Vec<(Span, &'static str)> {
         match self {
-            Self::Composition(_) => "invalid chemical composition",
-            Self::UndefinedResidueType(_) => "undefined residue type",
+            Self::Composition(s, _) => vec![(*s, "invalid chemical composition")],
+            Self::UndefinedResidueType(s, _) => vec![(*s, "undefined residue type")],
+            Self::DuplicateResidueType(s1, s2, _)
+            | Self::DuplicateFunctionalGroup(s1, s2, _, _) => {
+                vec![(*s1, "first defined here"), (*s2, "then again here")]
+            }
         }
+    }
+
+    fn finalize(self, file_name: impl AsRef<str>, kdl: impl AsRef<str>) -> ChemistryError {
+        let kdl = NamedSource::new(file_name, kdl.as_ref().to_string());
+        ChemistryError { kdl, kind: self }
     }
 }
 
@@ -176,33 +250,7 @@ impl<'a> ValidateInto<'a, ChemicalComposition> for ChemicalCompositionKdl {
 
     fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
         ChemicalComposition::new(ctx, &*self)
-            .map_err(|e| ProtoChemistryError(self.span().clone().into(), e.into()))
-    }
-}
-
-// impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
-//     type Context = &'a AtomicDatabase;
-
-//     fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
-//         // FIXME: Questionable style...
-//         Ok(if let Some(s) = self {
-//             s.validate(ctx)?
-//         } else {
-//             Self::default()
-//         })
-//     }
-// }
-
-type ResidueTypeEntry = (String, Vec<FunctionalGroup>);
-
-impl From<ResidueTypeKdl> for ResidueTypeEntry {
-    fn from(value: ResidueTypeKdl) -> Self {
-        let functional_groups = value
-            .functional_groups
-            .into_iter()
-            .map(FunctionalGroup::from)
-            .collect();
-        (value.name, functional_groups)
+            .map_err(|e| ChemistryErrorKind::Composition(*self.span(), e))
     }
 }
 
@@ -350,7 +398,10 @@ struct ResiduesKdl {
 }
 
 #[derive(Decode, Debug)]
+#[knuffel(span_type=Span)]
 struct ResidueTypeKdl {
+    #[knuffel(span)]
+    span: Span,
     #[knuffel(node_name)]
     name: String,
     #[knuffel(children)]
@@ -365,6 +416,8 @@ type NullOr<T> = Option<T>;
 #[derive(Decode, Debug)]
 #[knuffel(span_type=Span)]
 struct ResidueKdl {
+    #[knuffel(span)]
+    span: Span,
     #[knuffel(node_name)]
     residue_type: String,
     #[knuffel(argument)]
@@ -387,6 +440,8 @@ struct FunctionalGroupKdl {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
     use indoc::indoc;
     use insta::{assert_debug_snapshot, assert_ron_snapshot};
     use miette::Result;
@@ -398,7 +453,7 @@ mod tests {
         testing_tools::assert_miette_snapshot,
     };
 
-    use super::{PolymerChemistry, PolymerChemistryKdl, ResiduesKdl};
+    use super::{ChemistryError, PolymerChemistry, PolymerChemistryKdl, ResiduesKdl};
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
         AtomicDatabase::from_kdl(
@@ -427,8 +482,14 @@ mod tests {
         });
     }
 
+    // FIXME: This HashMap type absolutely needs a type synonym...
+    fn parse_residues(kdl: &str) -> Result<HashMap<String, ResidueDescription>, ChemistryError> {
+        let residues: ResiduesKdl = knuffel::parse("test", kdl).unwrap();
+        residues.validate(&*DB).map_err(|e| e.finalize("test", kdl))
+    }
+
     #[test]
-    fn parse_residues_types_without_groups() -> Result<()> {
+    fn parse_residues_types_without_groups() {
         let kdl = indoc! {r#"
             types {
                 AminoAcid
@@ -437,14 +498,36 @@ mod tests {
                 composition "C2H5NO2"
             }
         "#};
-        let residues: Result<ResiduesKdl, _> = knuffel::parse("test", kdl);
+        let residues = parse_residues(kdl);
         assert!(residues.is_ok());
-        assert_debug_snapshot!(residues.unwrap());
-        Ok(())
+        assert_ron_snapshot!(residues.unwrap(), {
+            ".**.isotopes" => insta::sorted_redaction()
+        });
     }
 
     #[test]
-    fn parse_residues_without_types() -> Result<()> {
+    fn parse_residues_types_with_merged_groups() {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid {
+                    functional-group "Amino" at="N-terminal"
+                    functional-group "Carboxyl" at="C-terminal"
+                }
+            }
+            AminoAcid "K" "Lysine" {
+                composition "C6H14N2O2"
+                functional-group "Amino" at="Sidechain"
+            }
+        "#};
+        let residues = parse_residues(kdl);
+        assert!(residues.is_ok());
+        assert_ron_snapshot!(residues.unwrap(), {
+            ".**.isotopes" => insta::sorted_redaction()
+        });
+    }
+
+    #[test]
+    fn parse_residues_without_types() {
         let kdl = indoc! {r#"
             types {
             //     AminoAcid
@@ -453,10 +536,60 @@ mod tests {
                 composition "C2H5NO2"
             }
         "#};
-        let residues: ResiduesKdl = knuffel::parse("test", kdl).unwrap();
-        let residues = residues.validate(&*DB).map_err(|e| e.finalize("test", kdl));
-        assert!(residues.is_err());
+        let residues = parse_residues(kdl);
         assert_miette_snapshot!(residues);
-        Ok(())
+    }
+
+    #[test]
+    fn parse_residues_with_duplicate_types() {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid {
+                    functional-group "Amino" at="N-terminal"
+                    functional-group "Carboxyl" at="C-terminal"
+                }
+                Monosaccharide
+                AminoAcid
+            }
+            AminoAcid "G" "Glycine" {
+                composition "C2H5NO2"
+            }
+        "#};
+        let residues = parse_residues(kdl);
+        assert_miette_snapshot!(residues);
+    }
+
+    #[test]
+    fn parse_residues_with_duplicate_functional_groups() {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid
+            }
+            AminoAcid "K" "Lysine" {
+                composition "C6H14N2O2"
+                functional-group "Amino" at="N-terminal"
+                functional-group "Carboxyl" at="C-terminal"
+                functional-group "Amino" at="N-terminal"
+            }
+        "#};
+        let residues = parse_residues(kdl);
+        assert_miette_snapshot!(residues);
+    }
+
+    #[test]
+    fn parse_residues_with_duplicate_merged_functional_groups() {
+        let kdl = indoc! {r#"
+            types {
+                AminoAcid {
+                    functional-group "Amino" at="N-terminal"
+                }
+            }
+            AminoAcid "K" "Lysine" {
+                composition "C6H14N2O2"
+                functional-group "Amino" at="N-terminal"
+            }
+        "#};
+        let residues = parse_residues(kdl);
+        assert_miette_snapshot!(residues);
     }
 }

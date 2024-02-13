@@ -10,9 +10,9 @@ knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
 miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"
 nom-miette = { path = "../nom-miette" }
-rust_decimal = "1.34.2"
+rust_decimal = "1.34.3"
 serde = { version = "1.0", features = ["derive"] }
-thiserror = "1.0.56"
+thiserror = "1.0.57"
 
 [dev-dependencies]
 indoc = "2.0.4"

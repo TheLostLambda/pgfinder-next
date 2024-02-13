@@ -282,6 +282,10 @@ PolymerChemistryKdl {
     residues: ResiduesKdl {
         types: [
             ResidueTypeKdl {
+                span: Span(
+                    1233,
+                    1494,
+                ),
                 name: "Monosaccharide",
                 functional_groups: [
                     FunctionalGroupKdl {
@@ -303,6 +307,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueTypeKdl {
+                span: Span(
+                    1503,
+                    1634,
+                ),
                 name: "AminoAcid",
                 functional_groups: [
                     FunctionalGroupKdl {
@@ -318,6 +326,10 @@ PolymerChemistryKdl {
         ],
         residues: [
             ResidueKdl {
+                span: Span(
+                    1645,
+                    1725,
+                ),
                 residue_type: "Monosaccharide",
                 abbr: "g",
                 name: "N-Acetylglucosamine",
@@ -333,6 +345,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    1729,
+                    1865,
+                ),
                 residue_type: "Monosaccharide",
                 abbr: "m",
                 name: "N-Acetylmuramic Acid",
@@ -353,6 +369,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    1870,
+                    1932,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "A",
                 name: "Alanine",
@@ -368,6 +388,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    1936,
+                    2060,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "B",
                 name: "Diaminobutyric Acid",
@@ -388,6 +412,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    2064,
+                    2128,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "C",
                 name: "Cysteine",
@@ -403,6 +431,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    2132,
+                    2251,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "D",
                 name: "Aspartic Acid",
@@ -423,6 +455,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    2255,
+                    2374,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "E",
                 name: "Glutamic Acid",
@@ -443,6 +479,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    2378,
+                    2447,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "F",
                 name: "Phenylalanine",
@@ -458,6 +498,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    2451,
+                    2513,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "G",
                 name: "Glycine",
@@ -473,6 +517,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    2517,
+                    2582,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "H",
                 name: "Histidine",
@@ -488,6 +536,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    2586,
+                    2652,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "I",
                 name: "Isoleucine",
@@ -503,6 +555,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    2656,
+                    2831,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "J",
                 name: "Diaminopimelic Acid",
@@ -527,6 +583,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    2835,
+                    2946,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "K",
                 name: "Lysine",
@@ -547,6 +607,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    2950,
+                    3013,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "L",
                 name: "Leucine",
@@ -562,6 +626,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3017,
+                    3084,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "M",
                 name: "Methionine",
@@ -577,6 +645,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3088,
+                    3202,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "N",
                 name: "Asparagine",
@@ -597,6 +669,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    3206,
+                    3320,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "O",
                 name: "Ornithine",
@@ -617,6 +693,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    3324,
+                    3386,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "P",
                 name: "Proline",
@@ -632,6 +712,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3390,
+                    3504,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "Q",
                 name: "Glutamine",
@@ -652,6 +736,10 @@ PolymerChemistryKdl {
                 ],
             },
             ResidueKdl {
+                span: Span(
+                    3508,
+                    3573,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "R",
                 name: "Arginine",
@@ -667,6 +755,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3577,
+                    3638,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "S",
                 name: "Serine",
@@ -682,6 +774,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3642,
+                    3706,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "T",
                 name: "Threonine",
@@ -697,6 +793,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3710,
+                    3775,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "U",
                 name: "Homoserine",
@@ -712,6 +812,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3779,
+                    3841,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "V",
                 name: "Valine",
@@ -727,6 +831,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3845,
+                    3913,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "W",
                 name: "Tryptophan",
@@ -742,6 +850,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3917,
+                    3985,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "X",
                 name: "Unknown Amino Acid",
@@ -749,6 +861,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    3989,
+                    4053,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "Y",
                 name: "Tyrosine",
@@ -764,6 +880,10 @@ PolymerChemistryKdl {
                 functional_groups: [],
             },
             ResidueKdl {
+                span: Span(
+                    4057,
+                    4140,
+                ),
                 residue_type: "AminoAcid",
                 abbr: "Z",
                 name: "Threo-3-Hydroxyglutamic Acid",

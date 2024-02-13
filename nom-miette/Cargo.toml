@@ -7,7 +7,7 @@ edition = "2021"
 # miette = "6.0.1"
 miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"
-thiserror = "1.0.56"
+thiserror = "1.0.57"
 
 [lints.rust]
 # FIXME: Uncomment this!
