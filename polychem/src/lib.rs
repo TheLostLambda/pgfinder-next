@@ -2,6 +2,8 @@
 
 pub mod atomic_database;
 mod composition_parser;
+// FIXME: Create a sub-module with this parser / validator + the Polymerizer + the TargetIndex modules
+mod chemical_targets;
 mod polymer_chemistry;
 #[cfg(test)]
 mod testing_tools;

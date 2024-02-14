@@ -1,3 +1,4 @@
+// FIXME: Create a sub-module with this parser / validator + the Polymerizer + the TargetIndex modules
 use std::collections::HashMap;
 
 use knuffel::{
@@ -7,15 +8,21 @@ use knuffel::{
 use miette::{Diagnostic, LabeledSpan, NamedSource, Result};
 use thiserror::Error;
 
-use crate::{atomic_database::AtomicDatabase, ChemicalComposition, FunctionalGroup};
+use crate::{
+    atomic_database::AtomicDatabase, chemical_targets::Target, ChemicalComposition, FunctionalGroup,
+};
 
 // FIXME: Accessors, not public fields!
+type Bonds = HashMap<String, BondDescription>;
+type Modifications = HashMap<String, ModificationDescription>;
+type Residues = HashMap<String, ResidueDescription>;
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 struct PolymerChemistry {
-    bonds: HashMap<String, BondDescription>,
-    modifications: HashMap<String, ModificationDescription>,
-    residues: HashMap<String, ResidueDescription>,
+    bonds: Bonds,
+    modifications: Modifications,
+    residues: Residues,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -41,14 +48,6 @@ struct ResidueDescription {
     name: String,
     composition: ChemicalComposition,
     functional_groups: Vec<FunctionalGroup>,
-}
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-#[cfg_attr(test, derive(serde::Serialize))]
-struct Target {
-    functional_group: String,
-    location: Option<String>,
-    residue: Option<String>,
 }
 
 trait ValidateInto<'a, T> {
@@ -88,19 +87,19 @@ impl<'a> ValidateInto<'a, PolymerChemistry> for PolymerChemistryKdl {
     type Context = &'a AtomicDatabase;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<PolymerChemistry> {
+        let residues = self.residues.validate(ctx)?;
         Ok(PolymerChemistry {
             bonds: self.bonds.validate(ctx)?,
-            modifications: self.modifications.validate(ctx)?,
-            residues: self.residues.validate(ctx)?,
+            modifications: self.modifications.validate((ctx, &residues))?,
+            residues,
         })
     }
 }
 
-// FIXME: Maybe add a type synonym for the HashMap type
-impl<'a> ValidateInto<'a, HashMap<String, ResidueDescription>> for ResiduesKdl {
+impl<'a> ValidateInto<'a, Residues> for ResiduesKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<HashMap<String, ResidueDescription>> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<Residues> {
         let types = self.types.validate(())?;
         self.residues
             .into_iter()
@@ -241,7 +240,7 @@ impl<'a> ValidateInto<'a, ChemicalComposition> for ChemicalCompositionKdl {
     type Context = &'a AtomicDatabase;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
-        ChemicalComposition::new(ctx, &*self)
+        ChemicalComposition::new(ctx, &self)
             .map_err(|e| ChemistryErrorKind::Composition(*self.span(), e))
     }
 }
@@ -255,14 +254,16 @@ impl From<FunctionalGroupKdl> for FunctionalGroup {
     }
 }
 
-impl<'a> ValidateInto<'a, HashMap<String, ModificationDescription>> for ModificationsKdl {
-    type Context = &'a AtomicDatabase;
+impl<'a> ValidateInto<'a, Modifications> for ModificationsKdl {
+    type Context = (&'a AtomicDatabase, &'a Residues);
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<HashMap<String, ModificationDescription>> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<Modifications> {
         // FIXME: This is a bit repetitive with the above...
+        // FIXME: This is where I should build an index of functional groups, then pass that down to the validation
+        // function for ModificationKdl
         self.modifications
             .into_iter()
-            .map(|m| Ok((m.abbr.clone(), m.validate(ctx)?)))
+            .map(|m| Ok((m.abbr.clone(), m.validate(ctx.0)?)))
             .collect()
     }
 }
@@ -280,10 +281,10 @@ impl<'a> ValidateInto<'a, ModificationDescription> for ModificationKdl {
     }
 }
 
-impl<'a> ValidateInto<'a, HashMap<String, BondDescription>> for BondsKdl {
+impl<'a> ValidateInto<'a, Bonds> for BondsKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<HashMap<String, BondDescription>> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<Bonds> {
         // FIXME: This is a bit repetitive with the above...
         self.bonds
             .into_iter()
@@ -306,11 +307,7 @@ impl<'a> ValidateInto<'a, BondDescription> for BondKdl {
 
 impl From<TargetKdl> for Target {
     fn from(value: TargetKdl) -> Self {
-        Self {
-            functional_group: value.functional_group,
-            location: value.location,
-            residue: value.residue,
-        }
+        Target::new(value.functional_group, value.location, value.residue)
     }
 }
 
@@ -376,7 +373,7 @@ struct ModificationKdl {
     lost: Option<ChemicalCompositionKdl>,
     #[knuffel(child, unwrap(argument))]
     gained: Option<ChemicalCompositionKdl>,
-    #[knuffel(children(name = "targeting"))]
+    #[knuffel(children(name = "targeting", non_empty))]
     targets: Vec<TargetKdl>,
 }
 
@@ -435,20 +432,20 @@ struct FunctionalGroupKdl {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
     use indoc::indoc;
     use insta::{assert_debug_snapshot, assert_ron_snapshot};
     use miette::Result;
     use once_cell::sync::Lazy;
 
     use crate::{
-        atomic_database::AtomicDatabase,
-        polymer_chemistry::{ResidueDescription, ValidateInto},
+        atomic_database::AtomicDatabase, polymer_chemistry::ValidateInto,
         testing_tools::assert_miette_snapshot,
     };
 
-    use super::{ChemistryError, PolymerChemistry, PolymerChemistryKdl, ResiduesKdl};
+    use super::{
+        ChemistryError, Modifications, ModificationsKdl, PolymerChemistry, PolymerChemistryKdl,
+        Residues, ResiduesKdl,
+    };
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
         AtomicDatabase::from_kdl(
@@ -460,7 +457,6 @@ mod tests {
 
     const KDL: &str = include_str!("../muropeptide_chemistry.kdl");
 
-    // FIXME: Be sure to test that miette errors from the composition parser get displayed! `[100Tc]` etc...
     #[test]
     fn parse_muropeptide_chemistry() {
         let chemistry: PolymerChemistryKdl =
@@ -477,10 +473,9 @@ mod tests {
         });
     }
 
-    // FIXME: This HashMap type absolutely needs a type synonym...
-    fn parse_residues(kdl: &str) -> Result<HashMap<String, ResidueDescription>, ChemistryError> {
+    fn parse_residues(kdl: &str) -> Result<Residues, ChemistryError> {
         let residues: ResiduesKdl = knuffel::parse("test", kdl).unwrap();
-        residues.validate(&*DB).map_err(|e| e.finalize("test", kdl))
+        residues.validate(&DB).map_err(|e| e.finalize("test", kdl))
     }
 
     #[test]
@@ -655,5 +650,81 @@ mod tests {
         "#};
         let residues = parse_residues(kdl);
         assert_miette_snapshot!(residues);
+    }
+
+    static RESIDUES: Lazy<Residues> = Lazy::new(|| {
+        let residues_kdl = indoc! {r#"
+            types {
+                Monosaccharide {
+                    functional-group "Hydroxyl" at="Reducing End"
+                    functional-group "Hydroxyl" at="Nonreducing End"
+                    functional-group "Hydroxyl" at="6-Position"
+                }
+                AminoAcid {
+                    functional-group "Amino" at="N-Terminal"
+                }
+            }
+            Monosaccharide "m" "N-Acetylmuramic Acid" {
+                composition null
+                functional-group "Carboxyl" at="Lactyl Ether"
+            }
+            AminoAcid "A" "Alanine" {
+                composition null
+            }
+        "#};
+        parse_residues(residues_kdl).unwrap()
+    });
+
+    fn parse_modifications(kdl: &str) -> Result<Modifications, ChemistryError> {
+        let modifications: ModificationsKdl = knuffel::parse("test", kdl).unwrap();
+        modifications
+            .validate((&DB, &RESIDUES))
+            .map_err(|e| e.finalize("test", kdl))
+    }
+
+    #[test]
+    fn parse_empty_modifications() {
+        let kdl = "";
+        let modifications = parse_modifications(kdl);
+        assert!(modifications.is_ok());
+        assert_ron_snapshot!(modifications.unwrap());
+    }
+
+    #[test]
+    fn parse_untargeted_modification() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                // targeting "Hydroxyl" at="6-Position"
+                // lost "H"
+                // gained "C2H3O"
+            }
+        "#};
+        let modifications: Result<ModificationsKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
+    fn parse_massless_modification() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="6-Position"
+            }
+        "#};
+        let modifications = parse_modifications(kdl);
+        assert!(modifications.is_ok());
+        assert_ron_snapshot!(modifications.unwrap());
+    }
+
+    #[ignore]
+    #[test]
+    fn parse_duplicate_target_modification() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="6-Position"
+                targeting "Hydroxyl" at="6-Position"
+            }
+        "#};
+        let modifications = parse_modifications(kdl);
+        assert_miette_snapshot!(modifications);
     }
 }

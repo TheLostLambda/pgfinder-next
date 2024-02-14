@@ -24,6 +24,7 @@ rustyline = "13.0.0"
 # petgraph = "0.6.4"
 # nom = "7.1.3"
 # phf = { version = "0.11.2", features = ["macros"] }
+# boomphf = "*" # For perfect minimal hash functions at runtime!
 # rust_decimal = "1.33.1"
 # rust_decimal_macros = "1.33.1"
 # crepe = "0.1.8"

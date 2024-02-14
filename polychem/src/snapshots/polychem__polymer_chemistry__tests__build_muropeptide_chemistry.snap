@@ -6,12 +6,12 @@ PolymerChemistry(
   bonds: {
     "Crosslink": BondDescription(
       from: Target(
-        functional_group: "Carboxyl",
+        group: "Carboxyl",
         location: Some("C-Terminal"),
         residue: None,
       ),
       to: Target(
-        functional_group: "Amino",
+        group: "Amino",
         location: None,
         residue: None,
       ),
@@ -61,12 +61,12 @@ PolymerChemistry(
     ),
     "Glycosidic": BondDescription(
       from: Target(
-        functional_group: "Hydroxyl",
+        group: "Hydroxyl",
         location: Some("Reducing End"),
         residue: None,
       ),
       to: Target(
-        functional_group: "Hydroxyl",
+        group: "Hydroxyl",
         location: Some("Nonreducing End"),
         residue: None,
       ),
@@ -116,12 +116,12 @@ PolymerChemistry(
     ),
     "Peptide": BondDescription(
       from: Target(
-        functional_group: "Carboxyl",
+        group: "Carboxyl",
         location: Some("C-Terminal"),
         residue: None,
       ),
       to: Target(
-        functional_group: "Amino",
+        group: "Amino",
         location: Some("N-Terminal"),
         residue: None,
       ),
@@ -171,12 +171,12 @@ PolymerChemistry(
     ),
     "Stem": BondDescription(
       from: Target(
-        functional_group: "Carboxyl",
+        group: "Carboxyl",
         location: Some("Lactyl Ether"),
         residue: Some("N-Acetylmuramic Acid"),
       ),
       to: Target(
-        functional_group: "Amino",
+        group: "Amino",
         location: Some("N-Terminal"),
         residue: None,
       ),
@@ -316,7 +316,7 @@ PolymerChemistry(
       ),
       targets: [
         Target(
-          functional_group: "Hydroxyl",
+          group: "Hydroxyl",
           location: Some("6-Position"),
           residue: None,
         ),
@@ -408,7 +408,7 @@ PolymerChemistry(
       ),
       targets: [
         Target(
-          functional_group: "Carboxyl",
+          group: "Carboxyl",
           location: Some("Sidechain"),
           residue: None,
         ),
@@ -465,7 +465,7 @@ PolymerChemistry(
       ),
       targets: [
         Target(
-          functional_group: "Hydroxyl",
+          group: "Hydroxyl",
           location: Some("Reducing End"),
           residue: Some("N-Acetylmuramic Acid"),
         ),
@@ -561,7 +561,7 @@ PolymerChemistry(
       ),
       targets: [
         Target(
-          functional_group: "Acetyl",
+          group: "Acetyl",
           location: Some("Secondary Amide"),
           residue: None,
         ),
@@ -630,7 +630,7 @@ PolymerChemistry(
       ),
       targets: [
         Target(
-          functional_group: "Hydroxyl",
+          group: "Hydroxyl",
           location: Some("6-Position"),
           residue: None,
         ),
@@ -668,7 +668,7 @@ PolymerChemistry(
       ),
       targets: [
         Target(
-          functional_group: "Hydroxyl",
+          group: "Hydroxyl",
           location: Some("Reducing End"),
           residue: None,
         ),
