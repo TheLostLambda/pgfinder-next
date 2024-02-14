@@ -8,7 +8,7 @@ expression: out
 Error:   × at least one child node `targeting` is required
    ╭─[test:1:1]
  1 │ ╭─▶ Ac "O-Acetylation" {
- 2 │ │       // targeting "Hydroxyl" at="6-Position" 
+ 2 │ │       // targeting "Hydroxyl" at="6-Position"
  3 │ │       // lost "H"
  4 │ │       // gained "C2H3O"
  5 │ ├─▶ }

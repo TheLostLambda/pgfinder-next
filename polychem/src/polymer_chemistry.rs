@@ -307,7 +307,7 @@ impl<'a> ValidateInto<'a, BondDescription> for BondKdl {
 
 impl From<TargetKdl> for Target {
     fn from(value: TargetKdl) -> Self {
-        Target::new(value.functional_group, value.location, value.residue)
+        Self::new(value.functional_group, value.location, value.residue)
     }
 }
 
