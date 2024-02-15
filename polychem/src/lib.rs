@@ -212,6 +212,7 @@ impl ChemicalComposition {
         self.mass(Element::average_mass)
     }
 
+    #[must_use]
     pub fn charge(&self) -> Charge {
         self.particle_offset
             .as_ref()

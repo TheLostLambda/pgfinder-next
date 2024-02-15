@@ -103,7 +103,23 @@ impl<'a, V> TargetIndex<'a, V> {
             .insert(residue, value)
     }
 
-    // FIXME: Is this stays private, move it to the end of the impl block after all of the pub fns
+    pub fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
+        self.get_entries(target)
+            .into_iter()
+            .filter_map(|(&r, _)| r)
+            .collect()
+    }
+
+    pub fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
+        self.get_entries(target)
+            .into_iter()
+            .map(|(_, v)| v)
+            .collect()
+    }
+
+    // NOTE: Is this is made public, I should actually apply this lint — ignoring it for now keeps the code
+    // for this function simpler and just adds one `&` to `.get_residues()`
+    #[allow(clippy::ref_option_ref)]
     fn get_entries(&self, target: impl Into<Target<&'a str>>) -> Vec<(&Option<&str>, &V)> {
         let Target {
             group,
@@ -126,20 +142,6 @@ impl<'a, V> TargetIndex<'a, V> {
         index
             .get_key_value(&residue)
             .map_or_else(Vec::new, |entry| vec![entry])
-    }
-
-    pub fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
-        self.get_entries(target)
-            .into_iter()
-            .filter_map(|(&r, _)| r)
-            .collect()
-    }
-
-    pub fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
-        self.get_entries(target)
-            .into_iter()
-            .map(|(_, v)| v)
-            .collect()
     }
 }
 
