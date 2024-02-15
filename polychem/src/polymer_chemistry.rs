@@ -1,5 +1,8 @@
 // FIXME: Create a sub-module with this parser / validator + the Polymerizer + the TargetIndex modules
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    iter::{self, zip},
+};
 
 use knuffel::{
     span::{Span, Spanned},
@@ -9,7 +12,9 @@ use miette::{Diagnostic, LabeledSpan, NamedSource, Result};
 use thiserror::Error;
 
 use crate::{
-    atomic_database::AtomicDatabase, chemical_targets::Target, ChemicalComposition, FunctionalGroup,
+    atomic_database::AtomicDatabase,
+    chemical_targets::{Target, TargetIndex},
+    ChemicalComposition, FunctionalGroup,
 };
 
 // FIXME: Accessors, not public fields!
@@ -48,6 +53,25 @@ struct ResidueDescription {
     name: String,
     composition: ChemicalComposition,
     functional_groups: Vec<FunctionalGroup>,
+}
+
+// FIXME: Maybe move this `type` definition to `chemical_targets.rs`
+type Targets<'a> = Vec<Target<&'a str>>;
+
+impl<'a> From<&'a ResidueDescription> for Targets<'a> {
+    fn from(value: &'a ResidueDescription) -> Self {
+        value
+            .functional_groups
+            .iter()
+            .map(|group| {
+                Target::new(
+                    group.name.as_str(),
+                    Some(group.location.as_str()),
+                    Some(value.name.as_str()),
+                )
+            })
+            .collect()
+    }
 }
 
 trait ValidateInto<'a, T> {
@@ -216,6 +240,9 @@ enum ChemistryErrorKind {
     #[error("the functional group {2:?} has already been defined at {3:?}")]
     #[diagnostic(help("double-check for typos, or remove the duplicate functional group"))]
     DuplicateFunctionalGroup(Span, Span, String, String),
+    #[error("the target {2} overlaps with {} other target specifier{}", .1.len(), if .1.len() > 1 {"s"} else {""})]
+    #[diagnostic(help("double-check for typos, or remove the overlapping target specifier"))]
+    OverlappingTargets(Span, Vec<Span>, Target),
 }
 
 impl ChemistryErrorKind {
@@ -227,6 +254,9 @@ impl ChemistryErrorKind {
             | Self::DuplicateFunctionalGroup(s1, s2, _, _) => {
                 vec![(*s1, "first defined here"), (*s2, "then again here")]
             }
+            Self::OverlappingTargets(s1, ss, _) => iter::once((*s1, "this target"))
+                .chain(zip(ss.clone(), iter::repeat("overlaps with")))
+                .collect(),
         }
     }
 
@@ -261,22 +291,54 @@ impl<'a> ValidateInto<'a, Modifications> for ModificationsKdl {
         // FIXME: This is a bit repetitive with the above...
         // FIXME: This is where I should build an index of functional groups, then pass that down to the validation
         // function for ModificationKdl
+        let target_index: TargetIndex = ctx.1.values().flat_map(Targets::from).collect();
         self.modifications
             .into_iter()
-            .map(|m| Ok((m.abbr.clone(), m.validate(ctx.0)?)))
+            .map(|m| Ok((m.abbr.clone(), m.validate((ctx.0, &target_index))?)))
             .collect()
     }
 }
 
 impl<'a> ValidateInto<'a, ModificationDescription> for ModificationKdl {
-    type Context = &'a AtomicDatabase;
+    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<ModificationDescription> {
+        // FIXME: Use ctx.1 to validate this!
+        let targets_and_spans: Vec<_> = self
+            .targets
+            .into_iter()
+            .map(|t| {
+                let span = t.span;
+                (Target::from(t), span)
+            })
+            .collect();
+
+        // FIXME: Messy!
+        let target_index: TargetIndex<Span> =
+            targets_and_spans.iter().map(|(t, s)| (t, *s)).collect();
+        for (target, span) in &targets_and_spans {
+            let overlapping_targets: Vec<_> = target_index
+                .get(target)
+                .into_iter()
+                .filter(|&s| s != span)
+                .collect();
+            if !overlapping_targets.is_empty() {
+                return Err(ChemistryErrorKind::OverlappingTargets(
+                    *span,
+                    overlapping_targets.into_iter().copied().collect(),
+                    target.clone(),
+                ));
+            }
+        }
+
+        // FIXME: Inline?
+        let targets = targets_and_spans.into_iter().map(|(t, _)| t).collect();
+
         Ok(ModificationDescription {
             name: self.name,
-            lost: self.lost.validate(ctx)?,
-            gained: self.gained.validate(ctx)?,
-            targets: self.targets.into_iter().map(Target::from).collect(),
+            lost: self.lost.validate(ctx.0)?,
+            gained: self.gained.validate(ctx.0)?,
+            targets,
         })
     }
 }
@@ -346,7 +408,10 @@ struct BondKdl {
 }
 
 #[derive(Decode, Debug)]
+#[knuffel(span_type=Span)]
 struct TargetKdl {
+    #[knuffel(span)]
+    span: Span,
     #[knuffel(argument)]
     functional_group: String,
     #[knuffel(property(name = "at"))]
@@ -715,13 +780,51 @@ mod tests {
         assert_ron_snapshot!(modifications.unwrap());
     }
 
-    #[ignore]
     #[test]
     fn parse_duplicate_target_modification() {
         let kdl = indoc! {r#"
             Ac "O-Acetylation" {
                 targeting "Hydroxyl" at="6-Position"
                 targeting "Hydroxyl" at="6-Position"
+            }
+        "#};
+        let modifications = parse_modifications(kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
+    fn parse_modification_with_overlapping_broadening_targets() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="6-Position" of="GlcNAc"
+                targeting "Hydroxyl" at="Reducing End"
+                targeting "Hydroxyl"
+            }
+        "#};
+        let modifications = parse_modifications(kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
+    fn parse_modification_with_overlapping_narrowing_targets() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl"
+                targeting "Hydroxyl" at="Reducing End"
+                targeting "Hydroxyl" at="6-Position" of="GlcNAc"
+            }
+        "#};
+        let modifications = parse_modifications(kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
+    fn parse_modification_with_overlapping_unordered_targets() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="Reducing End"
+                targeting "Hydroxyl"
+                targeting "Hydroxyl" at="6-Position" of="GlcNAc"
             }
         "#};
         let modifications = parse_modifications(kdl);

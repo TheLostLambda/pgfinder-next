@@ -1,40 +1,65 @@
 use std::{
     collections::{HashMap, HashSet},
+    fmt::Display,
     iter,
+    ops::Deref,
 };
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub struct Target {
-    group: String,
-    location: Option<String>,
-    residue: Option<String>,
+pub struct Target<S: Deref<Target = str> = String> {
+    group: S,
+    location: Option<S>,
+    residue: Option<S>,
 }
 
-impl Target {
-    pub fn new<S: Into<String>>(group: S, location: Option<S>, residue: Option<S>) -> Self {
-        Self {
-            group: group.into(),
-            location: location.map(Into::into),
-            residue: residue.map(Into::into),
+impl<'a> From<&'a Target> for Target<&'a str> {
+    fn from(value: &'a Target) -> Self {
+        Target {
+            group: &value.group,
+            location: value.location.as_deref(),
+            residue: value.residue.as_deref(),
         }
     }
 }
 
-type GroupMap<T> = HashMap<String, LocationMap<T>>;
-type LocationMap<T> = HashMap<Option<String>, ResidueMap<T>>;
-type ResidueMap<T> = HashMap<Option<String>, T>;
+impl<S: Deref<Target = str>> Display for Target<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", &*self.group)?;
+        if let Some(location) = self.location.as_ref() {
+            write!(f, " at={:?}", &**location)?;
+        }
+        if let Some(residue) = self.residue.as_ref() {
+            write!(f, " of={:?}", &**residue)?;
+        }
+        Ok(())
+    }
+}
+
+impl<S: Deref<Target = str>> Target<S> {
+    pub fn new(group: S, location: Option<S>, residue: Option<S>) -> Self {
+        Self {
+            group,
+            location,
+            residue,
+        }
+    }
+}
+
+type GroupMap<'a, T> = HashMap<&'a str, LocationMap<'a, T>>;
+type LocationMap<'a, T> = HashMap<Option<&'a str>, ResidueMap<'a, T>>;
+type ResidueMap<'a, T> = HashMap<Option<&'a str>, T>;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct TargetIndex<T = ()> {
+pub struct TargetIndex<'a, V = ()> {
     // FIXME: From a pure time-complexity standpoint, this should be ideal, but I honestly don't expect more than a
     // couple dozen entries to ever end up here — it'll likely be even fewer, so maybe just searching a (sorted?)
     // Vec could be better?
-    index: GroupMap<T>,
+    index: GroupMap<'a, V>,
 }
 
-// NOTE: This is manually implemented because #[derive(Default)] is wrongly convinced that T needs to implement Default
-impl<T> Default for TargetIndex<T> {
+// NOTE: This is manually implemented because #[derive(Default)] is wrongly convinced that V needs to implement Default
+impl<V> Default for TargetIndex<'_, V> {
     fn default() -> Self {
         Self {
             index: HashMap::new(),
@@ -42,7 +67,7 @@ impl<T> Default for TargetIndex<T> {
     }
 }
 
-impl<K: Into<Target>, V> FromIterator<(K, V)> for TargetIndex<V> {
+impl<'a, V, K: Into<Target<&'a str>>> FromIterator<(K, V)> for TargetIndex<'a, V> {
     fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
         let mut index = Self::new();
         for (k, v) in iter {
@@ -52,18 +77,19 @@ impl<K: Into<Target>, V> FromIterator<(K, V)> for TargetIndex<V> {
     }
 }
 
-impl<K: Into<Target>> FromIterator<K> for TargetIndex {
+impl<'a, K: Into<Target<&'a str>>> FromIterator<K> for TargetIndex<'a> {
     fn from_iter<T: IntoIterator<Item = K>>(iter: T) -> Self {
         iter.into_iter().zip(iter::repeat(())).collect()
     }
 }
 
-impl<T> TargetIndex<T> {
-    fn new() -> Self {
+// FIXME: Need to finalize the names of all of these methods! Especially the duplicated insert and get ones!
+impl<'a, V> TargetIndex<'a, V> {
+    pub fn new() -> Self {
         Self::default()
     }
 
-    fn insert_value(&mut self, target: impl Into<Target>, value: T) -> Option<T> {
+    pub fn insert_value(&mut self, target: impl Into<Target<&'a str>>, value: V) -> Option<V> {
         let Target {
             group,
             location,
@@ -77,14 +103,15 @@ impl<T> TargetIndex<T> {
             .insert(residue, value)
     }
 
-    fn get_entries(&self, target: impl Into<Target>) -> Vec<(&Option<String>, &T)> {
-        // FIXME: Refactor? + Entry API?
+    // FIXME: Is this stays private, move it to the end of the impl block after all of the pub fns
+    fn get_entries(&self, target: impl Into<Target<&'a str>>) -> Vec<(&Option<&str>, &V)> {
         let Target {
             group,
             location,
             residue,
         } = target.into();
-        let Some(index) = self.index.get(&group) else {
+        // FIXME: Refactor? + Entry API?
+        let Some(index) = self.index.get(group) else {
             return Vec::new();
         };
         if location.is_none() {
@@ -101,14 +128,14 @@ impl<T> TargetIndex<T> {
             .map_or_else(Vec::new, |entry| vec![entry])
     }
 
-    fn get_residues(&self, target: impl Into<Target>) -> HashSet<&String> {
+    pub fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
         self.get_entries(target)
             .into_iter()
-            .filter_map(|(r, _)| r.as_ref())
+            .filter_map(|(&r, _)| r)
             .collect()
     }
 
-    fn get(&self, target: impl Into<Target>) -> Vec<&T> {
+    pub fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
         self.get_entries(target)
             .into_iter()
             .map(|(_, v)| v)
@@ -116,8 +143,8 @@ impl<T> TargetIndex<T> {
     }
 }
 
-impl TargetIndex {
-    fn insert(&mut self, target: impl Into<Target>) -> bool {
+impl<'a> TargetIndex<'a> {
+    fn insert(&mut self, target: impl Into<Target<&'a str>>) -> bool {
         self.insert_value(target, ()).is_some()
     }
 }
@@ -128,7 +155,7 @@ mod tests {
 
     use super::{Target, TargetIndex};
 
-    static TARGET_LIST: Lazy<[(Target, &str); 3]> = Lazy::new(|| {
+    static TARGET_LIST: Lazy<[(Target<&str>, &str); 3]> = Lazy::new(|| {
         [
             (Target::new("Amino", None, None), "group"),
             (
@@ -145,23 +172,23 @@ mod tests {
     #[test]
     fn construct_target_index() {
         let mut for_index = TargetIndex::new();
-        for (target, value) in TARGET_LIST.clone() {
-            for_index.insert_value(target.clone(), value);
+        for &(target, value) in TARGET_LIST.iter() {
+            for_index.insert_value(target, value);
         }
-        let iter_index: TargetIndex<_> = TARGET_LIST.iter().cloned().collect();
+        let iter_index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         assert_eq!(for_index, iter_index);
     }
 
     #[test]
     fn get_nonexistent_group() {
-        let index: TargetIndex<_> = TARGET_LIST.iter().cloned().collect();
+        let index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Carboxyl", None, None);
         assert!(index.get(amino).is_empty());
     }
 
     #[test]
     fn get_group() {
-        let index: TargetIndex<_> = TARGET_LIST.iter().cloned().collect();
+        let index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", None, None);
         let mut values = index.get(amino);
         values.sort_unstable();
@@ -173,7 +200,7 @@ mod tests {
 
     #[test]
     fn get_group_location() {
-        let index: TargetIndex<_> = TARGET_LIST.iter().cloned().collect();
+        let index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), None);
         let mut values = index.get(amino);
         values.sort_unstable();
@@ -182,14 +209,14 @@ mod tests {
 
     #[test]
     fn get_group_location_residue() {
-        let index: TargetIndex<_> = TARGET_LIST.iter().cloned().collect();
+        let index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), Some("Alanine"));
         let mut values = index.get(amino);
         values.sort_unstable();
         assert_eq!(values, vec![&"group-location-residue"]);
     }
 
-    static RESIDUE_LIST: Lazy<[Target; 6]> = Lazy::new(|| {
+    static RESIDUE_LIST: Lazy<[Target<&str>; 6]> = Lazy::new(|| {
         [
             Target::new("Amino", Some("N-Terminal"), Some("Lysine")),
             Target::new("Amino", Some("Sidechain"), Some("Lysine")),
@@ -203,16 +230,16 @@ mod tests {
     #[test]
     fn construct_residue_index() {
         let mut for_index = TargetIndex::new();
-        for residue in RESIDUE_LIST.clone() {
-            for_index.insert(residue.clone());
+        for &residue in RESIDUE_LIST.iter() {
+            for_index.insert(residue);
         }
-        let iter_index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let iter_index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         assert_eq!(for_index, iter_index);
     }
 
     #[test]
     fn get_nonexistant_residues() {
-        let index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         let amino = Target::new("Hydroxyl", None, None);
         let values = index.get_residues(amino);
         assert!(values.is_empty());
@@ -220,7 +247,7 @@ mod tests {
 
     #[test]
     fn get_amino_residues() {
-        let index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         let amino = Target::new("Amino", None, None);
         let mut values = Vec::from_iter(index.get_residues(amino));
         values.sort_unstable();
@@ -229,7 +256,7 @@ mod tests {
 
     #[test]
     fn get_carboxyl_residues() {
-        let index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         let amino = Target::new("Carboxyl", None, None);
         let mut values = Vec::from_iter(index.get_residues(amino));
         values.sort_unstable();
@@ -238,7 +265,7 @@ mod tests {
 
     #[test]
     fn get_amino_sidechain_residues() {
-        let index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("Sidechain"), None);
         let mut values = Vec::from_iter(index.get_residues(amino));
         values.sort_unstable();
@@ -247,7 +274,7 @@ mod tests {
 
     #[test]
     fn get_carboxyl_sidechain_residues() {
-        let index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         let amino = Target::new("Carboxyl", Some("Sidechain"), None);
         let mut values = Vec::from_iter(index.get_residues(amino));
         values.sort_unstable();
@@ -256,7 +283,7 @@ mod tests {
 
     #[test]
     fn get_aspartic_acid_n_terminal() {
-        let index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), Some("Aspartic Acid"));
         let mut values = Vec::from_iter(index.get_residues(amino));
         values.sort_unstable();
@@ -265,7 +292,7 @@ mod tests {
 
     #[test]
     fn get_aspartic_acid_nonexistant_terminal() {
-        let index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         let amino = Target::new("Carboxyl", Some("N-Terminal"), Some("Aspartic Acid"));
         let values = index.get_residues(amino);
         assert!(values.is_empty());
@@ -273,7 +300,7 @@ mod tests {
 
     #[test]
     fn get_nonexistant_amino_n_terminal() {
-        let index: TargetIndex = RESIDUE_LIST.iter().cloned().collect();
+        let index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), Some("Glycine"));
         let values = index.get_residues(amino);
         assert!(values.is_empty());
