@@ -29,13 +29,15 @@ PolymerChemistryKdl {
                     ),
                     residue: None,
                 },
-                lost: Spanned {
-                    span: Span(
-                        123,
-                        128,
-                    ),
-                    value: "H2O",
-                },
+                lost: Some(
+                    Spanned {
+                        span: Span(
+                            123,
+                            128,
+                        ),
+                        value: "H2O",
+                    },
+                ),
             },
             BondKdl {
                 name: "Peptide",
@@ -61,13 +63,15 @@ PolymerChemistryKdl {
                     ),
                     residue: None,
                 },
-                lost: Spanned {
-                    span: Span(
-                        237,
-                        242,
-                    ),
-                    value: "H2O",
-                },
+                lost: Some(
+                    Spanned {
+                        span: Span(
+                            237,
+                            242,
+                        ),
+                        value: "H2O",
+                    },
+                ),
             },
             BondKdl {
                 name: "Stem",
@@ -95,13 +99,15 @@ PolymerChemistryKdl {
                     ),
                     residue: None,
                 },
-                lost: Spanned {
-                    span: Span(
-                        376,
-                        381,
-                    ),
-                    value: "H2O",
-                },
+                lost: Some(
+                    Spanned {
+                        span: Span(
+                            376,
+                            381,
+                        ),
+                        value: "H2O",
+                    },
+                ),
             },
             BondKdl {
                 name: "Crosslink",
@@ -125,13 +131,15 @@ PolymerChemistryKdl {
                     location: None,
                     residue: None,
                 },
-                lost: Spanned {
-                    span: Span(
-                        476,
-                        481,
-                    ),
-                    value: "H2O",
-                },
+                lost: Some(
+                    Spanned {
+                        span: Span(
+                            476,
+                            481,
+                        ),
+                        value: "H2O",
+                    },
+                ),
             },
         ],
     },

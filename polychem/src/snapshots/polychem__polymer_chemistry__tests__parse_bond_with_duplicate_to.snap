@@ -1,0 +1,16 @@
+---
+source: polychem/src/polymer_chemistry.rs
+description: bonds
+expression: out
+---
+  × error parsing KDL
+
+Error:   × duplicate node `to`, single node expected
+   ╭─[test:3:5]
+ 2 │     to "Hydroxyl" at="Reducing End"
+ 3 │     to "Hydroxyl" at="Nonreducing End"
+   ·     ─┬
+   ·      ╰── unexpected node
+ 4 │ }
+   ╰────
+

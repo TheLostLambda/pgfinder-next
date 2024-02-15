@@ -172,6 +172,16 @@ mod tests {
     });
 
     #[test]
+    fn print_targets() {
+        assert_eq!(TARGET_LIST[0].0.to_string(), r#""Amino""#);
+        assert_eq!(TARGET_LIST[1].0.to_string(), r#""Amino" at="N-Terminal""#);
+        assert_eq!(
+            TARGET_LIST[2].0.to_string(),
+            r#""Amino" at="N-Terminal" of="Alanine""#
+        );
+    }
+
+    #[test]
     fn construct_target_index() {
         let mut for_index = TargetIndex::new();
         for &(target, value) in TARGET_LIST.iter() {

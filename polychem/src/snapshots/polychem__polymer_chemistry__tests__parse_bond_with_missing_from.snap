@@ -1,0 +1,15 @@
+---
+source: polychem/src/polymer_chemistry.rs
+description: bonds
+expression: out
+---
+  × error parsing KDL
+
+Error:   × child node `from` is required
+   ╭─[test:1:1]
+ 1 │ ╭─▶ Glycosidic {
+ 2 │ │       to "Hydroxyl" at="Nonreducing End"
+ 3 │ ├─▶ }
+   · ╰──── node starts here
+   ╰────
+

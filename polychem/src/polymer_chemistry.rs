@@ -419,7 +419,7 @@ struct BondKdl {
     #[knuffel(child)]
     to: TargetKdl,
     #[knuffel(child, unwrap(argument))]
-    lost: ChemicalCompositionKdl,
+    lost: Option<ChemicalCompositionKdl>,
 }
 
 #[derive(Decode, Debug)]
@@ -473,7 +473,7 @@ struct ResidueTypeKdl {
     span: Span,
     #[knuffel(node_name)]
     name: String,
-    #[knuffel(children)]
+    #[knuffel(children(name = "functional-group"))]
     functional_groups: Vec<FunctionalGroupKdl>,
 }
 
@@ -514,8 +514,9 @@ struct FunctionalGroupKdl {
 mod tests {
     use indoc::indoc;
     use insta::{assert_debug_snapshot, assert_ron_snapshot};
-    use miette::Result;
+    use miette::{Diagnostic, Report, Result};
     use once_cell::sync::Lazy;
+    use thiserror::Error;
 
     use crate::{
         atomic_database::AtomicDatabase, chemical_targets::TargetIndex,
@@ -523,8 +524,8 @@ mod tests {
     };
 
     use super::{
-        ChemistryError, Modifications, ModificationsKdl, PolymerChemistry, PolymerChemistryKdl,
-        Residues, ResiduesKdl, Targets,
+        Bonds, BondsKdl, ChemistryError, Modifications, ModificationsKdl, PolymerChemistry,
+        PolymerChemistryKdl, Residues, ResiduesKdl, Targets,
     };
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
@@ -912,5 +913,279 @@ mod tests {
         "#};
         let modifications = parse_modifications(kdl);
         assert_miette_snapshot!(modifications);
+    }
+
+    fn parse_bonds(kdl: &str) -> Result<Bonds, ChemistryError> {
+        let bonds: BondsKdl = knuffel::parse("test", kdl).unwrap();
+        bonds
+            .validate((&DB, &RESIDUE_INDEX))
+            .map_err(|e| e.finalize("test", kdl))
+    }
+
+    #[test]
+    fn parse_muropeptide_bonds() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                from "Hydroxyl" at="Reducing End"
+                to "Hydroxyl" at="Nonreducing End"
+            }
+            Stem {
+                from "Carboxyl" at="Lactyl Ether" of="N-Acetylmuramic Acid"
+                to "Amino" at="N-Terminal"
+                lost "H2O"
+            }
+        "#};
+        let bonds = parse_bonds(kdl);
+        assert!(bonds.is_ok());
+        assert_ron_snapshot!(bonds.unwrap(), {
+            "." => insta::sorted_redaction(),
+            ".**.isotopes" => insta::sorted_redaction()
+        });
+    }
+
+    #[test]
+    fn parse_bond_with_chemically_invalid_lost() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                from "Hydroxyl" at="Reducing End"
+                to "Hydroxyl" at="Nonreducing End"
+                lost "2H2O"
+            }
+        "#};
+        let bonds = parse_bonds(kdl);
+        assert_miette_snapshot!(bonds);
+    }
+
+    #[test]
+    fn parse_bond_with_null_lost() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                from "Hydroxyl" at="Reducing End"
+                to "Hydroxyl" at="Nonreducing End"
+                lost null
+            }
+        "#};
+        let bonds: Result<BondsKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(bonds);
+    }
+
+    #[test]
+    fn parse_bond_with_missing_to() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                from "Hydroxyl" at="Reducing End"
+            }
+        "#};
+        let bonds: Result<BondsKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(bonds);
+    }
+
+    #[test]
+    fn parse_bond_with_missing_from() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                to "Hydroxyl" at="Nonreducing End"
+            }
+        "#};
+        let bonds: Result<BondsKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(bonds);
+    }
+
+    #[test]
+    fn parse_bond_with_nonexistent_from() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                from "Hydroxyl" at="Sidechain"
+                to "Hydroxyl" at="Nonreducing End"
+            }
+        "#};
+        let bonds = parse_bonds(kdl);
+        assert_miette_snapshot!(bonds);
+    }
+
+    #[test]
+    fn parse_bond_with_nonexistent_to() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                from "Hydroxyl" at="Reducing End"
+                to "Hydroxyl" at="Nonreducing End" of="Alanine"
+            }
+        "#};
+        let bonds = parse_bonds(kdl);
+        assert_miette_snapshot!(bonds);
+    }
+
+    #[test]
+    fn parse_bond_with_duplicate_from() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                from "Hydroxyl" at="Reducing End"
+                from "Hydroxyl" at="Nonreducing End"
+            }
+        "#};
+        let bonds: Result<BondsKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(bonds);
+    }
+
+    #[test]
+    fn parse_bond_with_duplicate_to() {
+        let kdl = indoc! {r#"
+            Glycosidic {
+                to "Hydroxyl" at="Reducing End"
+                to "Hydroxyl" at="Nonreducing End"
+            }
+        "#};
+        let bonds: Result<BondsKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(bonds);
+    }
+
+    #[derive(Debug, Error, Diagnostic)]
+    #[error("encountered an error during testing")]
+    #[diagnostic(transparent)]
+    struct WrapErr(Report);
+
+    #[test]
+    fn parse_complete_parse_error() {
+        let kdl = indoc! {r#"
+            bonds {
+                Peptide {
+                    from "Carboxyl" at="C-Terminal"
+                    to "Amino" at="N-Terminal"
+                    lost "H2O"
+                }
+            }
+
+            modifications {
+                Am "Amidation" {
+                    targeting "Carboxyl" at="Sidechain"
+                    lost "OH"
+                    gained "NH2"
+                }
+            }
+
+            residues {
+                types {
+                    AminoAcid {
+                        group "Amino" at="N-Terminal"
+                        functional-group "Carboxyl" at="C-Terminal"
+                    }
+                }
+                AminoAcid "E" "Glutamic Acid" {
+                    composition "C5H9NO4"
+                    functional-group "Carboxyl" at="Sidechain"
+                }
+            }
+        "#};
+        let polymer_chemistry = PolymerChemistry::from_kdl(&DB, "test", kdl);
+        assert_miette_snapshot!(polymer_chemistry.map_err(WrapErr));
+    }
+
+    #[test]
+    fn parse_complete_bonds_error() {
+        let kdl = indoc! {r#"
+            bonds {
+                Peptide {
+                    from "Carboxyl" at="C-Terminal"
+                    to "Amino" at="C-Terminal"
+                    lost "H2O"
+                }
+            }
+
+            modifications {
+                Am "Amidation" {
+                    targeting "Carboxyl" at="Sidechain"
+                    lost "OH"
+                    gained "NH2"
+                }
+            }
+
+            residues {
+                types {
+                    AminoAcid {
+                        functional-group "Amino" at="N-Terminal"
+                        functional-group "Carboxyl" at="C-Terminal"
+                    }
+                }
+                AminoAcid "E" "Glutamic Acid" {
+                    composition "C5H9NO4"
+                    functional-group "Carboxyl" at="Sidechain"
+                }
+            }
+        "#};
+        let polymer_chemistry = PolymerChemistry::from_kdl(&DB, "test", kdl);
+        assert_miette_snapshot!(polymer_chemistry.map_err(WrapErr));
+    }
+
+    #[test]
+    fn parse_complete_modifications_error() {
+        let kdl = indoc! {r#"
+            bonds {
+                Peptide {
+                    from "Carboxyl" at="C-Terminal"
+                    to "Amino" at="N-Terminal"
+                    lost "H2O"
+                }
+            }
+
+            modifications {
+                Am "Amidation" {
+                    targeting "Carboxyl" at="Sidechain"
+                    targeting "Carboxyl"
+                    lost "OH"
+                    gained "NH2"
+                }
+            }
+
+            residues {
+                types {
+                    AminoAcid {
+                        functional-group "Amino" at="N-Terminal"
+                        functional-group "Carboxyl" at="C-Terminal"
+                    }
+                }
+                AminoAcid "E" "Glutamic Acid" {
+                    composition "C5H9NO4"
+                    functional-group "Carboxyl" at="Sidechain"
+                }
+            }
+        "#};
+        let polymer_chemistry = PolymerChemistry::from_kdl(&DB, "test", kdl);
+        assert_miette_snapshot!(polymer_chemistry.map_err(WrapErr));
+    }
+
+    #[test]
+    fn parse_complete_residues_error() {
+        let kdl = indoc! {r#"
+            bonds {
+                Peptide {
+                    from "Carboxyl" at="C-Terminal"
+                    to "Amino" at="N-Terminal"
+                    lost "H2O"
+                }
+            }
+
+            modifications {
+                Am "Amidation" {
+                    targeting "Carboxyl" at="Sidechain"
+                    lost "OH"
+                    gained "NH2"
+                }
+            }
+
+            residues {
+                types {
+                    AminoAcid {
+                        functional-group "Amino" at="N-Terminal"
+                        functional-group "Carboxyl" at="C-Terminal"
+                    }
+                }
+                SuperAminoAcid "E" "Glutamic Acid" {
+                    composition "C5H9NO4"
+                    functional-group "Carboxyl" at="Sidechain"
+                }
+            }
+        "#};
+        let polymer_chemistry = PolymerChemistry::from_kdl(&DB, "test", kdl);
+        assert_miette_snapshot!(polymer_chemistry.map_err(WrapErr));
     }
 }
