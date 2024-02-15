@@ -1,0 +1,17 @@
+---
+source: polychem/src/polymerizer/polymer_chemistry.rs
+description: residues
+expression: out
+---
+  × failed to validate polymer chemistry file
+  ╰─▶   × the residue type "AminoAcid" is undefined
+        help: double-check for typos, or add "AminoAcid" to the types section
+      
+   ╭─[test:4:1]
+ 3 │     }
+ 4 │ ╭─▶ AminoAcid "G" "Glycine" {
+ 5 │ │       composition "C2H5NO2"
+ 6 │ ├─▶ }
+   · ╰──── undefined residue type
+   ╰────
+

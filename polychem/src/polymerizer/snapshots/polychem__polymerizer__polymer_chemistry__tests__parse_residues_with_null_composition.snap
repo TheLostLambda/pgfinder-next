@@ -1,0 +1,14 @@
+---
+source: polychem/src/polymerizer/polymer_chemistry.rs
+expression: residues.unwrap()
+---
+{
+  "K": ResidueDescription(
+    name: "Lysine",
+    composition: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
+    functional_groups: [],
+  ),
+}

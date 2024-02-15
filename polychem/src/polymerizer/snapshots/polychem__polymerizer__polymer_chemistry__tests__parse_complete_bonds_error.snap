@@ -1,0 +1,21 @@
+---
+source: polychem/src/polymerizer/polymer_chemistry.rs
+description: polymer_chemistry.map_err(WrapErr)
+expression: out
+---
+  × encountered an error during testing
+  ╰─▶   × the specifier "Amino" at="C-Terminal" cannot target any currently
+      defined
+        │ residues
+        help: double-check for typos, or add new residues / groups that are
+              targeted by this specifier
+      
+   ╭─[test:4:9]
+ 3 │         from "Carboxyl" at="C-Terminal"
+ 4 │         to "Amino" at="C-Terminal"
+   ·         ─────────────┬─────────────
+   ·                      ╰── targets nothing
+ 5 │         lost "H2O"
+ 6 │     }
+   ╰────
+

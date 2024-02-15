@@ -1,0 +1,20 @@
+---
+source: polychem/src/polymerizer/polymer_chemistry.rs
+description: bonds
+expression: out
+---
+  × failed to validate polymer chemistry file
+  ╰─▶   × the specifier "Hydroxyl" at="Nonreducing End" of="Alanine" cannot
+      target
+        │ any currently defined residues
+        help: double-check for typos, or add new residues / groups that are
+              targeted by this specifier
+      
+   ╭─[test:3:5]
+ 2 │     from "Hydroxyl" at="Reducing End"
+ 3 │     to "Hydroxyl" at="Nonreducing End" of="Alanine"
+   ·     ────────────────────────┬───────────────────────
+   ·                             ╰── targets nothing
+ 4 │ }
+   ╰────
+

@@ -1,0 +1,20 @@
+---
+source: polychem/src/polymerizer/polymer_chemistry.rs
+description: bonds
+expression: out
+---
+  × failed to validate polymer chemistry file
+  ╰─▶   × the specifier "Hydroxyl" at="Sidechain" cannot target any currently
+        │ defined residues
+        help: double-check for typos, or add new residues / groups that are
+              targeted by this specifier
+      
+   ╭─[test:2:5]
+ 1 │ Glycosidic {
+ 2 │     from "Hydroxyl" at="Sidechain"
+   ·     ───────────────┬───────────────
+   ·                    ╰── targets nothing
+ 3 │     to "Hydroxyl" at="Nonreducing End"
+ 4 │ }
+   ╰────
+
