@@ -112,9 +112,11 @@ impl<'a> ValidateInto<'a, PolymerChemistry> for PolymerChemistryKdl {
 
     fn validate(self, ctx: Self::Context) -> ChemResult<PolymerChemistry> {
         let residues = self.residues.validate(ctx)?;
+        let target_index: TargetIndex = residues.values().flat_map(Targets::from).collect();
+        let ctx = (ctx, &target_index);
         Ok(PolymerChemistry {
             bonds: self.bonds.validate(ctx)?,
-            modifications: self.modifications.validate((ctx, &residues))?,
+            modifications: self.modifications.validate(ctx)?,
             residues,
         })
     }
@@ -243,6 +245,11 @@ enum ChemistryErrorKind {
     #[error("the target {2} overlaps with {} other target specifier{}", .1.len(), if .1.len() > 1 {"s"} else {""})]
     #[diagnostic(help("double-check for typos, or remove the overlapping target specifier"))]
     OverlappingTargets(Span, Vec<Span>, Target),
+    #[error("the specifier {1} cannot target any currently defined residues")]
+    #[diagnostic(help(
+        "double-check for typos, or add new residues / groups that are targeted by this specifier"
+    ))]
+    NonexistentTarget(Span, Target),
 }
 
 impl ChemistryErrorKind {
@@ -257,6 +264,7 @@ impl ChemistryErrorKind {
             Self::OverlappingTargets(s1, ss, _) => iter::once((*s1, "this target"))
                 .chain(zip(ss.clone(), iter::repeat("overlaps with")))
                 .collect(),
+            Self::NonexistentTarget(s, _) => vec![(*s, "targets nothing")],
         }
     }
 
@@ -285,16 +293,15 @@ impl From<FunctionalGroupKdl> for FunctionalGroup {
 }
 
 impl<'a> ValidateInto<'a, Modifications> for ModificationsKdl {
-    type Context = (&'a AtomicDatabase, &'a Residues);
+    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<Modifications> {
         // FIXME: This is a bit repetitive with the above...
         // FIXME: This is where I should build an index of functional groups, then pass that down to the validation
         // function for ModificationKdl
-        let target_index: TargetIndex = ctx.1.values().flat_map(Targets::from).collect();
         self.modifications
             .into_iter()
-            .map(|m| Ok((m.abbr.clone(), m.validate((ctx.0, &target_index))?)))
+            .map(|m| Ok((m.abbr.clone(), m.validate(ctx)?)))
             .collect()
     }
 }
@@ -303,15 +310,15 @@ impl<'a> ValidateInto<'a, ModificationDescription> for ModificationKdl {
     type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<ModificationDescription> {
-        // FIXME: Use ctx.1 to validate this!
         let targets_and_spans: Vec<_> = self
             .targets
             .into_iter()
             .map(|t| {
                 let span = t.span;
-                (Target::from(t), span)
+                Ok((t.validate(ctx.1)?, span))
             })
-            .collect();
+            // FIXME: That's also messy...
+            .collect::<Result<_, _>>()?;
 
         // FIXME: Messy!
         let target_index: TargetIndex<Span> =
@@ -344,7 +351,7 @@ impl<'a> ValidateInto<'a, ModificationDescription> for ModificationKdl {
 }
 
 impl<'a> ValidateInto<'a, Bonds> for BondsKdl {
-    type Context = &'a AtomicDatabase;
+    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<Bonds> {
         // FIXME: This is a bit repetitive with the above...
@@ -356,20 +363,28 @@ impl<'a> ValidateInto<'a, Bonds> for BondsKdl {
 }
 
 impl<'a> ValidateInto<'a, BondDescription> for BondKdl {
-    type Context = &'a AtomicDatabase;
+    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<BondDescription> {
         Ok(BondDescription {
-            from: self.from.into(),
-            to: self.to.into(),
-            lost: self.lost.validate(ctx)?,
+            from: self.from.validate(ctx.1)?,
+            to: self.to.validate(ctx.1)?,
+            lost: self.lost.validate(ctx.0)?,
         })
     }
 }
 
-impl From<TargetKdl> for Target {
-    fn from(value: TargetKdl) -> Self {
-        Self::new(value.functional_group, value.location, value.residue)
+impl<'a> ValidateInto<'a, Target> for TargetKdl {
+    type Context = &'a TargetIndex<'a>;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<Target> {
+        let target = Target::new(self.functional_group, self.location, self.residue);
+        // FIXME: Okay style?
+        if ctx.get(&target).is_empty() {
+            Err(ChemistryErrorKind::NonexistentTarget(self.span, target))
+        } else {
+            Ok(target)
+        }
     }
 }
 
@@ -503,13 +518,13 @@ mod tests {
     use once_cell::sync::Lazy;
 
     use crate::{
-        atomic_database::AtomicDatabase, polymer_chemistry::ValidateInto,
-        testing_tools::assert_miette_snapshot,
+        atomic_database::AtomicDatabase, chemical_targets::TargetIndex,
+        polymer_chemistry::ValidateInto, testing_tools::assert_miette_snapshot,
     };
 
     use super::{
         ChemistryError, Modifications, ModificationsKdl, PolymerChemistry, PolymerChemistryKdl,
-        Residues, ResiduesKdl,
+        Residues, ResiduesKdl, Targets,
     };
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
@@ -740,10 +755,13 @@ mod tests {
         parse_residues(residues_kdl).unwrap()
     });
 
+    static RESIDUE_INDEX: Lazy<TargetIndex> =
+        Lazy::new(|| RESIDUES.values().flat_map(Targets::from).collect());
+
     fn parse_modifications(kdl: &str) -> Result<Modifications, ChemistryError> {
         let modifications: ModificationsKdl = knuffel::parse("test", kdl).unwrap();
         modifications
-            .validate((&DB, &RESIDUES))
+            .validate((&DB, &RESIDUE_INDEX))
             .map_err(|e| e.finalize("test", kdl))
     }
 
@@ -781,6 +799,58 @@ mod tests {
     }
 
     #[test]
+    fn parse_chemically_invalid_lost_modification() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="6-Position"
+                lost "-H"
+                gained "C2H3O"
+            }
+        "#};
+        let modifications = parse_modifications(kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
+    fn parse_chemically_invalid_gained_modification() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="6-Position"
+                lost "H"
+                gained "C2H-3O"
+            }
+        "#};
+        let modifications = parse_modifications(kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
+    fn parse_null_lost_modification() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="6-Position"
+                lost null
+                gained "C2H3O"
+            }
+        "#};
+        let modifications: Result<ModificationsKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
+    fn parse_null_gained_modification() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="6-Position"
+                lost "H"
+                gained null
+            }
+        "#};
+        let modifications: Result<ModificationsKdl, _> = knuffel::parse("test", kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
     fn parse_duplicate_target_modification() {
         let kdl = indoc! {r#"
             Ac "O-Acetylation" {
@@ -796,7 +866,7 @@ mod tests {
     fn parse_modification_with_overlapping_broadening_targets() {
         let kdl = indoc! {r#"
             Ac "O-Acetylation" {
-                targeting "Hydroxyl" at="6-Position" of="GlcNAc"
+                targeting "Hydroxyl" at="6-Position" of="N-Acetylmuramic Acid"
                 targeting "Hydroxyl" at="Reducing End"
                 targeting "Hydroxyl"
             }
@@ -811,7 +881,7 @@ mod tests {
             Ac "O-Acetylation" {
                 targeting "Hydroxyl"
                 targeting "Hydroxyl" at="Reducing End"
-                targeting "Hydroxyl" at="6-Position" of="GlcNAc"
+                targeting "Hydroxyl" at="6-Position" of="N-Acetylmuramic Acid"
             }
         "#};
         let modifications = parse_modifications(kdl);
@@ -824,7 +894,20 @@ mod tests {
             Ac "O-Acetylation" {
                 targeting "Hydroxyl" at="Reducing End"
                 targeting "Hydroxyl"
-                targeting "Hydroxyl" at="6-Position" of="GlcNAc"
+                targeting "Hydroxyl" at="6-Position" of="N-Acetylmuramic Acid"
+            }
+        "#};
+        let modifications = parse_modifications(kdl);
+        assert_miette_snapshot!(modifications);
+    }
+
+    #[test]
+    fn parse_modification_with_nonexistent_targets() {
+        let kdl = indoc! {r#"
+            Ac "O-Acetylation" {
+                targeting "Hydroxyl" at="6-Position" of="N-Acetylmuramic Acid"
+                targeting "Amino" at="Reducing End"
+                targeting "Amino"
             }
         "#};
         let modifications = parse_modifications(kdl);

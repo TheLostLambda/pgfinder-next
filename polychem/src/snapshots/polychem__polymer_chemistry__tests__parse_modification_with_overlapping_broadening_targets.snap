@@ -10,9 +10,9 @@ expression: out
       
    ╭─[test:2:5]
  1 │ Ac "O-Acetylation" {
- 2 │     targeting "Hydroxyl" at="6-Position" of="GlcNAc"
-   ·     ────────────────────────┬────────────────────────
-   ·                             ╰── overlaps with
+ 2 │     targeting "Hydroxyl" at="6-Position" of="N-Acetylmuramic Acid"
+   ·     ───────────────────────────────┬───────────────────────────────
+   ·                                    ╰── overlaps with
  3 │     targeting "Hydroxyl" at="Reducing End"
    ·     ───────────────────┬───────────────────
    ·                        ╰── overlaps with

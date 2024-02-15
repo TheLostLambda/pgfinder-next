@@ -16,9 +16,9 @@ expression: out
  3 │     targeting "Hydroxyl"
    ·     ──────────┬──────────
    ·               ╰── this target
- 4 │     targeting "Hydroxyl" at="6-Position" of="GlcNAc"
-   ·     ────────────────────────┬────────────────────────
-   ·                             ╰── overlaps with
+ 4 │     targeting "Hydroxyl" at="6-Position" of="N-Acetylmuramic Acid"
+   ·     ───────────────────────────────┬───────────────────────────────
+   ·                                    ╰── overlaps with
  5 │ }
    ╰────
 

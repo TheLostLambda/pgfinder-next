@@ -37,7 +37,7 @@ impl<S: Deref<Target = str>> Display for Target<S> {
 }
 
 impl<S: Deref<Target = str>> Target<S> {
-    pub fn new(group: S, location: Option<S>, residue: Option<S>) -> Self {
+    pub const fn new(group: S, location: Option<S>, residue: Option<S>) -> Self {
         Self {
             group,
             location,
