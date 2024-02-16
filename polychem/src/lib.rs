@@ -1,8 +1,10 @@
 //! An abstraction for building chemically validated polymers
 
 pub mod atomic_database;
+pub mod polymerizer;
+
 mod composition_parser;
-mod polymerizer;
+
 #[cfg(test)]
 mod testing_tools;
 

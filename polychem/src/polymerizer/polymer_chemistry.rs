@@ -1,4 +1,3 @@
-// FIXME: Create a sub-module with this parser / validator + the Polymerizer + the TargetIndex modules
 use std::{
     collections::HashMap,
     iter::{self, zip},
@@ -14,39 +13,38 @@ use thiserror::Error;
 use super::chemical_targets::{Target, TargetIndex};
 use crate::{atomic_database::AtomicDatabase, ChemicalComposition, FunctionalGroup};
 
-// FIXME: Accessors, not public fields!
-type Bonds = HashMap<String, BondDescription>;
-type Modifications = HashMap<String, ModificationDescription>;
-type Residues = HashMap<String, ResidueDescription>;
+pub type Bonds = HashMap<String, BondDescription>;
+pub type Modifications = HashMap<String, ModificationDescription>;
+pub type Residues = HashMap<String, ResidueDescription>;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-struct PolymerChemistry {
-    bonds: Bonds,
-    modifications: Modifications,
-    residues: Residues,
+pub struct PolymerChemistry {
+    pub bonds: Bonds,
+    pub modifications: Modifications,
+    pub residues: Residues,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-struct BondDescription {
+pub struct BondDescription {
     from: Target,
     to: Target,
     lost: ChemicalComposition,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-struct ModificationDescription {
+pub struct ModificationDescription {
     name: String,
     lost: ChemicalComposition,
     gained: ChemicalComposition,
     targets: Vec<Target>,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-struct ResidueDescription {
+pub struct ResidueDescription {
     name: String,
     composition: ChemicalComposition,
     functional_groups: Vec<FunctionalGroup>,
@@ -386,7 +384,7 @@ impl<'a> ValidateInto<'a, Target> for TargetKdl {
 }
 
 // FIXME: Check that field names here line up with those in `lib.rs`!
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct PolymerChemistryKdl {
     #[knuffel(child)]
@@ -397,7 +395,7 @@ struct PolymerChemistryKdl {
     residues: ResiduesKdl,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct BondsKdl {
     #[knuffel(children)]
@@ -406,7 +404,7 @@ struct BondsKdl {
 
 type ChemicalCompositionKdl = Spanned<String, Span>;
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct BondKdl {
     #[knuffel(node_name)]
@@ -419,7 +417,7 @@ struct BondKdl {
     lost: Option<ChemicalCompositionKdl>,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct TargetKdl {
     #[knuffel(span)]
@@ -432,14 +430,14 @@ struct TargetKdl {
     residue: Option<String>,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct ModificationsKdl {
     #[knuffel(children)]
     modifications: Vec<ModificationKdl>,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct ModificationKdl {
     #[knuffel(node_name)]
@@ -454,7 +452,7 @@ struct ModificationKdl {
     targets: Vec<TargetKdl>,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct ResiduesKdl {
     #[knuffel(child, unwrap(children))]
@@ -463,7 +461,7 @@ struct ResiduesKdl {
     residues: Vec<ResidueKdl>,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct ResidueTypeKdl {
     #[knuffel(span)]
@@ -479,7 +477,7 @@ struct ResidueTypeKdl {
 // NOTE: This forces composition to have a `null` value instead of being a totally optional key
 type NullOr<T> = Option<T>;
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 #[knuffel(span_type=Span)]
 struct ResidueKdl {
     #[knuffel(span)]

@@ -1,3 +1,4 @@
+// Standard Library Imports
 use std::{
     collections::{HashMap, HashSet},
     fmt::Display,
@@ -5,35 +6,14 @@ use std::{
     ops::Deref,
 };
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+// Public API ==========================================================================================================
+
+#[derive(Copy, Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct Target<S: Deref<Target = str> = String> {
     group: S,
     location: Option<S>,
     residue: Option<S>,
-}
-
-impl<'a> From<&'a Target> for Target<&'a str> {
-    fn from(value: &'a Target) -> Self {
-        Target {
-            group: &value.group,
-            location: value.location.as_deref(),
-            residue: value.residue.as_deref(),
-        }
-    }
-}
-
-impl<S: Deref<Target = str>> Display for Target<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", &*self.group)?;
-        if let Some(location) = self.location.as_ref() {
-            write!(f, " at={:?}", &**location)?;
-        }
-        if let Some(residue) = self.residue.as_ref() {
-            write!(f, " of={:?}", &**residue)?;
-        }
-        Ok(())
-    }
 }
 
 impl<S: Deref<Target = str>> Target<S> {
@@ -46,50 +26,19 @@ impl<S: Deref<Target = str>> Target<S> {
     }
 }
 
-type GroupMap<'a, T> = HashMap<&'a str, LocationMap<'a, T>>;
-type LocationMap<'a, T> = HashMap<Option<&'a str>, ResidueMap<'a, T>>;
-type ResidueMap<'a, T> = HashMap<Option<&'a str>, T>;
-
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct TargetIndex<'a, V = ()> {
-    // FIXME: From a pure time-complexity standpoint, this should be ideal, but I honestly don't expect more than a
-    // couple dozen entries to ever end up here — it'll likely be even fewer, so maybe just searching a (sorted?)
-    // Vec could be better?
     index: GroupMap<'a, V>,
 }
 
-// NOTE: This is manually implemented because #[derive(Default)] is wrongly convinced that V needs to implement Default
-impl<V> Default for TargetIndex<'_, V> {
-    fn default() -> Self {
+impl<'a, V> TargetIndex<'a, V> {
+    pub fn new() -> Self {
         Self {
             index: HashMap::new(),
         }
     }
-}
 
-impl<'a, V, K: Into<Target<&'a str>>> FromIterator<(K, V)> for TargetIndex<'a, V> {
-    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
-        let mut index = Self::new();
-        for (k, v) in iter {
-            index.insert_value(k, v);
-        }
-        index
-    }
-}
-
-impl<'a, K: Into<Target<&'a str>>> FromIterator<K> for TargetIndex<'a> {
-    fn from_iter<T: IntoIterator<Item = K>>(iter: T) -> Self {
-        iter.into_iter().zip(iter::repeat(())).collect()
-    }
-}
-
-// FIXME: Need to finalize the names of all of these methods! Especially the duplicated insert and get ones!
-impl<'a, V> TargetIndex<'a, V> {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn insert_value(&mut self, target: impl Into<Target<&'a str>>, value: V) -> Option<V> {
+    pub fn insert(&mut self, target: impl Into<Target<&'a str>>, value: V) -> Option<V> {
         let Target {
             group,
             location,
@@ -103,13 +52,6 @@ impl<'a, V> TargetIndex<'a, V> {
             .insert(residue, value)
     }
 
-    pub fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
-        self.get_entries(target)
-            .into_iter()
-            .filter_map(|(&r, _)| r)
-            .collect()
-    }
-
     pub fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
         self.get_entries(target)
             .into_iter()
@@ -117,8 +59,72 @@ impl<'a, V> TargetIndex<'a, V> {
             .collect()
     }
 
-    // NOTE: Is this is made public, I should actually apply this lint — ignoring it for now keeps the code
-    // for this function simpler and just adds one `&` to `.get_residues()`
+    pub fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
+        self.get_entries(target)
+            .into_iter()
+            .filter_map(|(&r, _)| r)
+            .collect()
+    }
+}
+
+impl<'a> TargetIndex<'a> {
+    pub fn insert_residue(&mut self, target: impl Into<Target<&'a str>>) -> bool {
+        self.insert(target, ()).is_some()
+    }
+}
+
+// Target Printing & Borrowing =========================================================================================
+
+impl<S: Deref<Target = str>> Display for Target<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", &*self.group)?;
+        if let Some(location) = self.location.as_deref() {
+            write!(f, " at={location:?}")?;
+        }
+        if let Some(residue) = self.residue.as_deref() {
+            write!(f, " of={residue:?}")?;
+        }
+        Ok(())
+    }
+}
+
+impl<'a> From<&'a Target> for Target<&'a str> {
+    fn from(value: &'a Target) -> Self {
+        Self {
+            group: &value.group,
+            location: value.location.as_deref(),
+            residue: value.residue.as_deref(),
+        }
+    }
+}
+
+// Collecting an Iterator of Targets Into a TargetIndex ================================================================
+
+impl<'a, V, K: Into<Target<&'a str>>> FromIterator<(K, V)> for TargetIndex<'a, V> {
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
+        let mut index = Self::new();
+        for (k, v) in iter {
+            index.insert(k, v);
+        }
+        index
+    }
+}
+
+impl<'a, K: Into<Target<&'a str>>> FromIterator<K> for TargetIndex<'a> {
+    fn from_iter<T: IntoIterator<Item = K>>(iter: T) -> Self {
+        iter.into_iter().zip(iter::repeat(())).collect()
+    }
+}
+
+// Private Types & Methods =============================================================================================
+
+type GroupMap<'a, T> = HashMap<&'a str, LocationMap<'a, T>>;
+type LocationMap<'a, T> = HashMap<Option<&'a str>, ResidueMap<'a, T>>;
+type ResidueMap<'a, T> = HashMap<Option<&'a str>, T>;
+
+impl<'a, V> TargetIndex<'a, V> {
+    // NOTE: Is this is ever made public, I should actually apply this lint — ignoring it for now keeps the code for
+    // this function simpler and just adds one `&` to `.get_residues()`
     #[allow(clippy::ref_option_ref)]
     fn get_entries(&self, target: impl Into<Target<&'a str>>) -> Vec<(&Option<&str>, &V)> {
         let Target {
@@ -126,30 +132,27 @@ impl<'a, V> TargetIndex<'a, V> {
             location,
             residue,
         } = target.into();
-        // FIXME: Refactor? + Entry API?
-        let Some(index) = self.index.get(group) else {
+
+        // NOTE: Although this approach repeats Vec::new, it avoids the nesting of the equivalent if-let approach
+        let Some(locations) = self.index.get(group) else {
             return Vec::new();
         };
         if location.is_none() {
-            return index.values().flatten().collect();
+            return locations.values().flatten().collect();
         }
-        let Some(index) = index.get(&location) else {
+        let Some(residues) = locations.get(&location) else {
             return Vec::new();
         };
         if residue.is_none() {
-            return index.iter().collect();
+            return residues.iter().collect();
         }
-        index
+        residues
             .get_key_value(&residue)
             .map_or_else(Vec::new, |entry| vec![entry])
     }
 }
 
-impl<'a> TargetIndex<'a> {
-    fn insert(&mut self, target: impl Into<Target<&'a str>>) -> bool {
-        self.insert_value(target, ()).is_some()
-    }
-}
+// Module Tests ========================================================================================================
 
 #[cfg(test)]
 mod tests {
@@ -185,7 +188,7 @@ mod tests {
     fn construct_target_index() {
         let mut for_index = TargetIndex::new();
         for &(target, value) in TARGET_LIST.iter() {
-            for_index.insert_value(target, value);
+            for_index.insert(target, value);
         }
         let iter_index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         assert_eq!(for_index, iter_index);
@@ -243,7 +246,7 @@ mod tests {
     fn construct_residue_index() {
         let mut for_index = TargetIndex::new();
         for &residue in RESIDUE_LIST.iter() {
-            for_index.insert(residue);
+            for_index.insert_residue(residue);
         }
         let iter_index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         assert_eq!(for_index, iter_index);

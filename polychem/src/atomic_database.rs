@@ -19,9 +19,8 @@ use super::{Charge, Element, Isotope, MassNumber, Particle};
 
 // Public API ==========================================================================================================
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct AtomicDatabase {
-    // FIXME: Change to accessors from public fields
     pub(super) elements: HashMap<String, Element>,
     pub(super) particles: HashMap<String, Particle>,
 }
@@ -48,7 +47,7 @@ impl AtomicDatabase {
 
 // Chemistry.kdl File Schema ===========================================================================================
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 struct AtomicDatabaseKdl {
     #[knuffel(child, unwrap(children))]
     elements: Vec<ElementKdl>,
@@ -56,7 +55,7 @@ struct AtomicDatabaseKdl {
     particles: Vec<ParticleKdl>,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 struct ElementKdl {
     #[knuffel(node_name)]
     symbol: ElementSymbol,
@@ -66,7 +65,7 @@ struct ElementKdl {
     isotopes: Vec<IsotopeKdl>,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 struct ParticleKdl {
     #[knuffel(node_name)]
     symbol: ParticleSymbol,
@@ -78,7 +77,7 @@ struct ParticleKdl {
     charge: Charge,
 }
 
-#[derive(Decode, Debug)]
+#[derive(Debug, Decode)]
 struct IsotopeKdl {
     #[knuffel(argument)]
     mass_number: MassNumber,
@@ -90,7 +89,6 @@ struct IsotopeKdl {
 
 // Lossless Parsing of KDL Numbers to Decimal ==========================================================================
 
-// FIXME: Replace all of this fluff with some TryFrom impls, and move away from forked knuffel
 #[derive(Debug, Default)]
 struct DecimalKdl(Decimal);
 
@@ -174,7 +172,7 @@ impl FromStr for ParticleSymbol {
     }
 }
 
-#[derive(Error, Diagnostic, PartialEq, Eq, Debug)]
+#[derive(Eq, PartialEq, Debug, Diagnostic, Error)]
 enum InvalidAtomicSymbolError {
     #[error(
         "expected a single uppercase ASCII letter optionally followed by a lowercase ASCII letter, got {0:?}"
@@ -365,7 +363,7 @@ mod tests {
         assert_miette_snapshot!(res);
     }
 
-    #[derive(Decode, Debug)]
+    #[derive(Debug, Decode)]
     struct Lossless(#[knuffel(argument)] DecimalKdl);
 
     #[test]
