@@ -86,7 +86,7 @@ fn particle_offset<'a>(
     wrap_err(parser, CompositionErrorKind::ExpectedParticleOffset)
 }
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 /// Element = uppercase , [ lowercase ] ;
 fn element<'a>(db: &'a AtomicDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
@@ -115,7 +115,7 @@ fn particle<'a>(db: &'a AtomicDatabase) -> impl FnMut(&'a str) -> ParseResult<Pa
     map_res(particle_symbol, |symbol| Particle::new(db, symbol))
 }
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {
@@ -141,7 +141,7 @@ fn particle_symbol(i: &str) -> ParseResult<&str> {
     wrap_err(parser, CompositionErrorKind::ExpectedParticleSymbol)(i)
 }
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 /// uppercase
 ///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"

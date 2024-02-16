@@ -1,8 +1,10 @@
+// Standard Library Imports
 use std::{
     collections::HashMap,
     iter::{self, zip},
 };
 
+// External Crate Imports
 use knuffel::{
     span::{Span, Spanned},
     Decode,
@@ -10,12 +12,11 @@ use knuffel::{
 use miette::{Diagnostic, LabeledSpan, NamedSource, Result};
 use thiserror::Error;
 
+// Local Module Imports
 use super::chemical_targets::{Target, TargetIndex};
 use crate::{atomic_database::AtomicDatabase, ChemicalComposition, FunctionalGroup};
 
-pub type Bonds = HashMap<String, BondDescription>;
-pub type Modifications = HashMap<String, ModificationDescription>;
-pub type Residues = HashMap<String, ResidueDescription>;
+// Public API ==========================================================================================================
 
 #[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
@@ -25,30 +26,167 @@ pub struct PolymerChemistry {
     pub residues: Residues,
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+
+type Bonds = HashMap<String, BondDescription>;
+type Modifications = HashMap<String, ModificationDescription>;
+type Residues = HashMap<String, ResidueDescription>;
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 #[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct BondDescription {
-    from: Target,
-    to: Target,
-    lost: ChemicalComposition,
+    pub from: Target,
+    pub to: Target,
+    pub lost: ChemicalComposition,
 }
 
 #[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct ModificationDescription {
-    name: String,
-    lost: ChemicalComposition,
-    gained: ChemicalComposition,
-    targets: Vec<Target>,
+    pub name: String,
+    pub lost: ChemicalComposition,
+    pub gained: ChemicalComposition,
+    pub targets: Vec<Target>,
 }
 
 #[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct ResidueDescription {
-    name: String,
-    composition: ChemicalComposition,
-    functional_groups: Vec<FunctionalGroup>,
+    pub name: String,
+    pub composition: ChemicalComposition,
+    pub functional_groups: Vec<FunctionalGroup>,
 }
+
+// KDL File Schema =====================================================================================================
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct PolymerChemistryKdl {
+    #[knuffel(child)]
+    bonds: BondsKdl,
+    #[knuffel(child)]
+    modifications: ModificationsKdl,
+    #[knuffel(child)]
+    residues: ResiduesKdl,
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct BondsKdl {
+    #[knuffel(children)]
+    bonds: Vec<BondKdl>,
+}
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct ModificationsKdl {
+    #[knuffel(children)]
+    modifications: Vec<ModificationKdl>,
+}
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct ResiduesKdl {
+    #[knuffel(child, unwrap(children))]
+    types: Vec<ResidueTypeKdl>,
+    #[knuffel(children)]
+    residues: Vec<ResidueKdl>,
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct BondKdl {
+    #[knuffel(node_name)]
+    kind: String,
+    #[knuffel(child)]
+    from: TargetKdl,
+    #[knuffel(child)]
+    to: TargetKdl,
+    #[knuffel(child, unwrap(argument))]
+    lost: Option<ChemicalCompositionKdl>,
+}
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct ModificationKdl {
+    #[knuffel(node_name)]
+    abbr: String,
+    #[knuffel(argument)]
+    name: String,
+    #[knuffel(child, unwrap(argument))]
+    lost: Option<ChemicalCompositionKdl>,
+    #[knuffel(child, unwrap(argument))]
+    gained: Option<ChemicalCompositionKdl>,
+    #[knuffel(children(name = "targeting", non_empty))]
+    targets: Vec<TargetKdl>,
+}
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct ResidueTypeKdl {
+    #[knuffel(span)]
+    span: Span,
+    #[knuffel(node_name)]
+    name: String,
+    #[knuffel(children(name = "functional-group"))]
+    functional_groups: Vec<FunctionalGroupKdl>,
+}
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct ResidueKdl {
+    #[knuffel(span)]
+    span: Span,
+    #[knuffel(node_name)]
+    residue_type: String,
+    #[knuffel(argument)]
+    abbr: String,
+    #[knuffel(argument)]
+    name: String,
+    #[knuffel(child, unwrap(argument))]
+    composition: NullOr<ChemicalCompositionKdl>,
+    #[knuffel(children(name = "functional-group"))]
+    functional_groups: Vec<FunctionalGroupKdl>,
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+#[derive(Debug, Decode)]
+#[knuffel(span_type=Span)]
+struct TargetKdl {
+    #[knuffel(span)]
+    span: Span,
+    #[knuffel(argument)]
+    group: String,
+    #[knuffel(property(name = "at"))]
+    location: Option<String>,
+    #[knuffel(property(name = "of"))]
+    residue: Option<String>,
+}
+
+type ChemicalCompositionKdl = Spanned<String, Span>;
+
+#[derive(Clone, Decode, Debug)]
+#[knuffel(span_type=Span)]
+struct FunctionalGroupKdl {
+    #[knuffel(span)]
+    span: Span,
+    #[knuffel(argument)]
+    name: String,
+    #[knuffel(property(name = "at"))]
+    location: String,
+}
+
+// NOTE: This forces composition to have a `null` value instead of being an entirely optional node
+type NullOr<T> = Option<T>;
+
+// FIXME: Pick up here! ================================================================================================
 
 // FIXME: Maybe move this `type` definition to `chemical_targets.rs`
 type Targets<'a> = Vec<Target<&'a str>>;
@@ -352,7 +490,7 @@ impl<'a> ValidateInto<'a, Bonds> for BondsKdl {
         // FIXME: This is a bit repetitive with the above...
         self.bonds
             .into_iter()
-            .map(|b| Ok((b.name.clone(), b.validate(ctx)?)))
+            .map(|b| Ok((b.kind.clone(), b.validate(ctx)?)))
             .collect()
     }
 }
@@ -373,7 +511,7 @@ impl<'a> ValidateInto<'a, Target> for TargetKdl {
     type Context = &'a TargetIndex<'a>;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<Target> {
-        let target = Target::new(self.functional_group, self.location, self.residue);
+        let target = Target::new(self.group, self.location, self.residue);
         // FIXME: Okay style?
         if ctx.get(&target).is_empty() {
             Err(ChemistryErrorKind::NonexistentTarget(self.span, target))
@@ -381,128 +519,6 @@ impl<'a> ValidateInto<'a, Target> for TargetKdl {
             Ok(target)
         }
     }
-}
-
-// FIXME: Check that field names here line up with those in `lib.rs`!
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct PolymerChemistryKdl {
-    #[knuffel(child)]
-    bonds: BondsKdl,
-    #[knuffel(child)]
-    modifications: ModificationsKdl,
-    #[knuffel(child)]
-    residues: ResiduesKdl,
-}
-
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct BondsKdl {
-    #[knuffel(children)]
-    bonds: Vec<BondKdl>,
-}
-
-type ChemicalCompositionKdl = Spanned<String, Span>;
-
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct BondKdl {
-    #[knuffel(node_name)]
-    name: String,
-    #[knuffel(child)]
-    from: TargetKdl,
-    #[knuffel(child)]
-    to: TargetKdl,
-    #[knuffel(child, unwrap(argument))]
-    lost: Option<ChemicalCompositionKdl>,
-}
-
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct TargetKdl {
-    #[knuffel(span)]
-    span: Span,
-    #[knuffel(argument)]
-    functional_group: String,
-    #[knuffel(property(name = "at"))]
-    location: Option<String>,
-    #[knuffel(property(name = "of"))]
-    residue: Option<String>,
-}
-
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct ModificationsKdl {
-    #[knuffel(children)]
-    modifications: Vec<ModificationKdl>,
-}
-
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct ModificationKdl {
-    #[knuffel(node_name)]
-    abbr: String,
-    #[knuffel(argument)]
-    name: String,
-    #[knuffel(child, unwrap(argument))]
-    lost: Option<ChemicalCompositionKdl>,
-    #[knuffel(child, unwrap(argument))]
-    gained: Option<ChemicalCompositionKdl>,
-    #[knuffel(children(name = "targeting", non_empty))]
-    targets: Vec<TargetKdl>,
-}
-
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct ResiduesKdl {
-    #[knuffel(child, unwrap(children))]
-    types: Vec<ResidueTypeKdl>,
-    #[knuffel(children)]
-    residues: Vec<ResidueKdl>,
-}
-
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct ResidueTypeKdl {
-    #[knuffel(span)]
-    span: Span,
-    #[knuffel(node_name)]
-    name: String,
-    #[knuffel(children(name = "functional-group"))]
-    functional_groups: Vec<FunctionalGroupKdl>,
-}
-
-// FIXME: Be sure to write tests to check this errors for missing composition keys but works for nulled ones — also
-// check that the `lost` and `gained` keys are the opposite — null isn't allowed, but they can be left out entirely
-// NOTE: This forces composition to have a `null` value instead of being a totally optional key
-type NullOr<T> = Option<T>;
-
-#[derive(Debug, Decode)]
-#[knuffel(span_type=Span)]
-struct ResidueKdl {
-    #[knuffel(span)]
-    span: Span,
-    #[knuffel(node_name)]
-    residue_type: String,
-    #[knuffel(argument)]
-    abbr: String,
-    #[knuffel(argument)]
-    name: String,
-    #[knuffel(child, unwrap(argument))]
-    composition: NullOr<ChemicalCompositionKdl>,
-    #[knuffel(children(name = "functional-group"))]
-    functional_groups: Vec<FunctionalGroupKdl>,
-}
-
-#[derive(Clone, Decode, Debug)]
-#[knuffel(span_type=Span)]
-struct FunctionalGroupKdl {
-    #[knuffel(span)]
-    span: Span,
-    #[knuffel(argument)]
-    name: String,
-    #[knuffel(property(name = "at"))]
-    location: String,
 }
 
 #[cfg(test)]

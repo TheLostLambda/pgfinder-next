@@ -6,13 +6,13 @@ PolymerChemistryKdl {
     bonds: BondsKdl {
         bonds: [
             BondKdl {
-                name: "Glycosidic",
+                kind: "Glycosidic",
                 from: TargetKdl {
                     span: Span(
                         33,
                         67,
                     ),
-                    functional_group: "Hydroxyl",
+                    group: "Hydroxyl",
                     location: Some(
                         "Reducing End",
                     ),
@@ -23,7 +23,7 @@ PolymerChemistryKdl {
                         75,
                         110,
                     ),
-                    functional_group: "Hydroxyl",
+                    group: "Hydroxyl",
                     location: Some(
                         "Nonreducing End",
                     ),
@@ -40,13 +40,13 @@ PolymerChemistryKdl {
                 ),
             },
             BondKdl {
-                name: "Peptide",
+                kind: "Peptide",
                 from: TargetKdl {
                     span: Span(
                         157,
                         189,
                     ),
-                    functional_group: "Carboxyl",
+                    group: "Carboxyl",
                     location: Some(
                         "C-Terminal",
                     ),
@@ -57,7 +57,7 @@ PolymerChemistryKdl {
                         197,
                         224,
                     ),
-                    functional_group: "Amino",
+                    group: "Amino",
                     location: Some(
                         "N-Terminal",
                     ),
@@ -74,13 +74,13 @@ PolymerChemistryKdl {
                 ),
             },
             BondKdl {
-                name: "Stem",
+                kind: "Stem",
                 from: TargetKdl {
                     span: Span(
                         268,
                         328,
                     ),
-                    functional_group: "Carboxyl",
+                    group: "Carboxyl",
                     location: Some(
                         "Lactyl Ether",
                     ),
@@ -93,7 +93,7 @@ PolymerChemistryKdl {
                         336,
                         363,
                     ),
-                    functional_group: "Amino",
+                    group: "Amino",
                     location: Some(
                         "N-Terminal",
                     ),
@@ -110,13 +110,13 @@ PolymerChemistryKdl {
                 ),
             },
             BondKdl {
-                name: "Crosslink",
+                kind: "Crosslink",
                 from: TargetKdl {
                     span: Span(
                         412,
                         444,
                     ),
-                    functional_group: "Carboxyl",
+                    group: "Carboxyl",
                     location: Some(
                         "C-Terminal",
                     ),
@@ -127,7 +127,7 @@ PolymerChemistryKdl {
                         452,
                         463,
                     ),
-                    functional_group: "Amino",
+                    group: "Amino",
                     location: None,
                     residue: None,
                 },
@@ -172,7 +172,7 @@ PolymerChemistryKdl {
                             536,
                             572,
                         ),
-                        functional_group: "Carboxyl",
+                        group: "Carboxyl",
                         location: Some(
                             "Sidechain",
                         ),
@@ -207,7 +207,7 @@ PolymerChemistryKdl {
                             650,
                             688,
                         ),
-                        functional_group: "Hydroxyl",
+                        group: "Hydroxyl",
                         location: Some(
                             "6-Position",
                         ),
@@ -242,7 +242,7 @@ PolymerChemistryKdl {
                             776,
                             813,
                         ),
-                        functional_group: "Hydroxyl",
+                        group: "Hydroxyl",
                         location: Some(
                             "6-Position",
                         ),
@@ -277,7 +277,7 @@ PolymerChemistryKdl {
                             895,
                             936,
                         ),
-                        functional_group: "Acetyl",
+                        group: "Acetyl",
                         location: Some(
                             "Secondary Amide",
                         ),
@@ -304,7 +304,7 @@ PolymerChemistryKdl {
                             1010,
                             1050,
                         ),
-                        functional_group: "Hydroxyl",
+                        group: "Hydroxyl",
                         location: Some(
                             "Reducing End",
                         ),
@@ -331,7 +331,7 @@ PolymerChemistryKdl {
                             1108,
                             1174,
                         ),
-                        functional_group: "Hydroxyl",
+                        group: "Hydroxyl",
                         location: Some(
                             "Reducing End",
                         ),

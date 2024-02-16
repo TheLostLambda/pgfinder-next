@@ -36,11 +36,10 @@ pub struct Residue {
     offset_modifications: Vec<Modification>,
 }
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 type Id = usize;
 
-// FIXME: Keep this public so that people can build mass calculators
 #[derive(Clone, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct ChemicalComposition {
     chemical_formula: Vec<(Element, Count)>,
@@ -50,7 +49,7 @@ pub struct ChemicalComposition {
 type Location = String;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-struct FunctionalGroup {
+pub struct FunctionalGroup {
     name: String,
     location: String,
 }
@@ -61,7 +60,7 @@ pub struct Modification {
     kind: ModificationKind,
 }
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Element {
@@ -110,7 +109,7 @@ enum ModificationKind {
     },
 }
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 type MassNumber = u32;
 
@@ -129,7 +128,7 @@ struct Bond {
     acceptor: BondTarget,
 }
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 struct BondTarget {
@@ -137,7 +136,7 @@ struct BondTarget {
     group_location: Location,
 }
 
-// =====================================================================================================================
+// ---------------------------------------------------------------------------------------------------------------------
 
 impl From<&OffsetKind> for Decimal {
     fn from(value: &OffsetKind) -> Self {
