@@ -24,6 +24,7 @@ enum ErrorTree<K, E> {
         #[source]
         source: Option<Box<E>>,
     },
+
     #[error("attempted {} parse branches unsuccessfully", .0.len())]
     Branch(Vec<E>),
 }

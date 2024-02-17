@@ -178,6 +178,7 @@ enum InvalidAtomicSymbolError {
         "expected a single uppercase ASCII letter optionally followed by a lowercase ASCII letter, got {0:?}"
     )]
     Element(String),
+
     #[error("expected a single lowercase ASCII letter, got {0:?}")]
     Particle(String),
 }

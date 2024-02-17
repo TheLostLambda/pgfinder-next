@@ -1,6 +1,6 @@
 // Standard Library Imports
 use std::{
-    collections::HashMap,
+    collections::{hash_map::Entry, HashMap},
     iter::{self, zip},
 };
 
@@ -24,6 +24,20 @@ pub struct PolymerChemistry {
     pub bonds: Bonds,
     pub modifications: Modifications,
     pub residues: Residues,
+}
+
+impl PolymerChemistry {
+    pub fn from_kdl(
+        db: &AtomicDatabase,
+        file_name: impl AsRef<str>,
+        text: impl AsRef<str>,
+    ) -> Result<Self> {
+        let parsed_chemistry: PolymerChemistryKdl =
+            knuffel::parse(file_name.as_ref(), text.as_ref())?;
+        parsed_chemistry
+            .validate(db)
+            .map_err(|e| e.finalize(file_name, text).into())
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -186,9 +200,257 @@ struct FunctionalGroupKdl {
 // NOTE: This forces composition to have a `null` value instead of being an entirely optional node
 type NullOr<T> = Option<T>;
 
-// FIXME: Pick up here! ================================================================================================
+// Contextual Validation Trait  ========================================================================================
 
-// FIXME: Maybe move this `type` definition to `chemical_targets.rs`
+type ChemResult<T> = Result<T, ChemistryErrorKind>;
+
+trait ValidateInto<'a, T> {
+    type Context: 'a;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<T>;
+}
+
+// Polymer Chemistry Validation ========================================================================================
+
+impl<'a> ValidateInto<'a, PolymerChemistry> for PolymerChemistryKdl {
+    type Context = &'a AtomicDatabase;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<PolymerChemistry> {
+        let residues = self.residues.validate(ctx)?;
+        let target_index: TargetIndex = residues.values().flat_map(Targets::from).collect();
+        let ctx = (ctx, &target_index);
+        Ok(PolymerChemistry {
+            bonds: self.bonds.validate(ctx)?,
+            modifications: self.modifications.validate(ctx)?,
+            residues,
+        })
+    }
+}
+
+// Validate Residue Types and Residues =================================================================================
+
+impl<'a> ValidateInto<'a, Residues> for ResiduesKdl {
+    type Context = &'a AtomicDatabase;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<Residues> {
+        let types = self.types.validate(())?;
+        self.residues
+            .into_iter()
+            .map(|r| r.validate((ctx, &types)))
+            .collect()
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+type ResidueTypes = HashMap<String, Vec<FunctionalGroupKdl>>;
+
+// NOTE: The Context = () means this is essentially a TryInto implementation, but Rust's orphan rules mean I can't
+// actually implement TryInto, because Vec<_> is not a local type (despite its parameter, ResidueTypeKdl being one)
+impl<'a> ValidateInto<'a, ResidueTypes> for Vec<ResidueTypeKdl> {
+    type Context = ();
+
+    fn validate(self, _ctx: Self::Context) -> ChemResult<ResidueTypes> {
+        let mut seen_types = HashMap::new();
+
+        for residue_type in self {
+            match seen_types.entry(residue_type.name) {
+                Entry::Occupied(e) => {
+                    let (residue_name, (first_defined_at, _)) = e.remove_entry();
+                    return Err(ChemistryErrorKind::DuplicateResidueType(
+                        first_defined_at,
+                        residue_type.span,
+                        residue_name,
+                    ));
+                }
+                Entry::Vacant(e) => e.insert((residue_type.span, residue_type.functional_groups)),
+            };
+        }
+
+        Ok(seen_types.into_iter().map(|(k, (_, v))| (k, v)).collect())
+    }
+}
+
+type ResidueEntry = (String, ResidueDescription);
+
+impl<'a> ValidateInto<'a, ResidueEntry> for ResidueKdl {
+    type Context = (&'a AtomicDatabase, &'a ResidueTypes);
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<ResidueEntry> {
+        let groups_from_type = ctx
+            .1
+            .get(&self.residue_type)
+            .ok_or_else(|| ChemistryErrorKind::UndefinedResidueType(self.span, self.residue_type))?
+            .clone();
+
+        let mut seen_groups = HashMap::new();
+
+        for functional_group_kdl in groups_from_type.into_iter().chain(self.functional_groups) {
+            let (functional_group, group_span) = functional_group_kdl.into();
+
+            match seen_groups.entry(functional_group) {
+                Entry::Occupied(e) => {
+                    let (functional_group, first_defined_at) = e.remove_entry();
+                    return Err(ChemistryErrorKind::DuplicateFunctionalGroup(
+                        first_defined_at,
+                        group_span,
+                        functional_group.name,
+                        functional_group.location,
+                    ));
+                }
+                Entry::Vacant(e) => e.insert(group_span),
+            };
+        }
+
+        Ok((
+            self.abbr,
+            ResidueDescription {
+                name: self.name,
+                composition: self.composition.validate(ctx.0)?,
+                functional_groups: seen_groups.into_keys().collect(),
+            },
+        ))
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
+    type Context = &'a AtomicDatabase;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
+        self.map_or_else(|| Ok(ChemicalComposition::default()), |c| c.validate(ctx))
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+impl<'a> ValidateInto<'a, ChemicalComposition> for ChemicalCompositionKdl {
+    type Context = &'a AtomicDatabase;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
+        ChemicalComposition::new(ctx, &self)
+            .map_err(|e| ChemistryErrorKind::Composition(*self.span(), e))
+    }
+}
+
+// Validate Bonds ======================================================================================================
+
+impl<'a> ValidateInto<'a, Bonds> for BondsKdl {
+    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<Bonds> {
+        self.bonds.into_iter().map(|b| b.validate(ctx)).collect()
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+type BondEntry = (String, BondDescription);
+
+impl<'a> ValidateInto<'a, BondEntry> for BondKdl {
+    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<BondEntry> {
+        Ok((
+            self.kind,
+            BondDescription {
+                from: self.from.validate(ctx.1)?,
+                to: self.to.validate(ctx.1)?,
+                lost: self.lost.validate(ctx.0)?,
+            },
+        ))
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+impl<'a> ValidateInto<'a, Target> for TargetKdl {
+    type Context = &'a TargetIndex<'a>;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<Target> {
+        let target = Target::new(self.group, self.location, self.residue);
+
+        if ctx.get(&target).is_empty() {
+            Err(ChemistryErrorKind::NonexistentTarget(self.span, target))
+        } else {
+            Ok(target)
+        }
+    }
+}
+
+// Validate Modifications ==============================================================================================
+
+impl<'a> ValidateInto<'a, Modifications> for ModificationsKdl {
+    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<Modifications> {
+        self.modifications
+            .into_iter()
+            .map(|m| m.validate(ctx))
+            .collect()
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+type ModificationEntry = (String, ModificationDescription);
+
+impl<'a> ValidateInto<'a, ModificationEntry> for ModificationKdl {
+    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<ModificationEntry> {
+        let targets_and_spans: Vec<_> = self
+            .targets
+            .into_iter()
+            .map(|t| t.validate(ctx.1))
+            .collect::<Result<_, _>>()?;
+
+        let target_index: TargetIndex<_> = targets_and_spans.iter().map(|(t, s)| (t, *s)).collect();
+        for (target, span) in &targets_and_spans {
+            let overlapping_targets: Vec<_> = target_index
+                .get(target)
+                .into_iter()
+                .copied()
+                .filter(|s| s != span)
+                .collect();
+
+            if !overlapping_targets.is_empty() {
+                return Err(ChemistryErrorKind::OverlappingTargets(
+                    *span,
+                    overlapping_targets,
+                    target.clone(),
+                ));
+            }
+        }
+
+        Ok((
+            self.abbr,
+            ModificationDescription {
+                name: self.name,
+                lost: self.lost.validate(ctx.0)?,
+                gained: self.gained.validate(ctx.0)?,
+                targets: targets_and_spans.into_iter().map(|(t, _)| t).collect(),
+            },
+        ))
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+type TargetEntry = (Target, Span);
+
+impl<'a> ValidateInto<'a, TargetEntry> for TargetKdl {
+    type Context = &'a TargetIndex<'a>;
+
+    fn validate(self, ctx: Self::Context) -> ChemResult<TargetEntry> {
+        let span = self.span;
+        Ok((self.validate(ctx)?, span))
+    }
+}
+
+// Infallible Conversions =============================================================================================
+
 type Targets<'a> = Vec<Target<&'a str>>;
 
 impl<'a> From<&'a ResidueDescription> for Targets<'a> {
@@ -207,130 +469,22 @@ impl<'a> From<&'a ResidueDescription> for Targets<'a> {
     }
 }
 
-trait ValidateInto<'a, T> {
-    type Context: 'a;
+type FunctionalGroupEntry = (FunctionalGroup, Span);
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<T>;
-}
-
-impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
-    type Context = &'a AtomicDatabase;
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
-        Ok(if let Some(c) = self {
-            c.validate(ctx)?
-        } else {
-            ChemicalComposition::default()
-        })
-    }
-}
-impl PolymerChemistry {
-    pub fn from_kdl(
-        db: &AtomicDatabase,
-        file_name: impl AsRef<str>,
-        text: impl AsRef<str>,
-    ) -> Result<Self> {
-        let parsed_chemistry: PolymerChemistryKdl =
-            knuffel::parse(file_name.as_ref(), text.as_ref())?;
-        parsed_chemistry
-            .validate(db)
-            .map_err(|e| e.finalize(file_name, text).into())
+impl From<FunctionalGroupKdl> for FunctionalGroupEntry {
+    fn from(value: FunctionalGroupKdl) -> Self {
+        (
+            FunctionalGroup {
+                name: value.name,
+                location: value.location,
+            },
+            value.span,
+        )
     }
 }
 
-type ChemResult<T> = Result<T, ChemistryErrorKind>;
+// Validation Error Types and Trait Implementations  ===================================================================
 
-impl<'a> ValidateInto<'a, PolymerChemistry> for PolymerChemistryKdl {
-    type Context = &'a AtomicDatabase;
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<PolymerChemistry> {
-        let residues = self.residues.validate(ctx)?;
-        let target_index: TargetIndex = residues.values().flat_map(Targets::from).collect();
-        let ctx = (ctx, &target_index);
-        Ok(PolymerChemistry {
-            bonds: self.bonds.validate(ctx)?,
-            modifications: self.modifications.validate(ctx)?,
-            residues,
-        })
-    }
-}
-
-impl<'a> ValidateInto<'a, Residues> for ResiduesKdl {
-    type Context = &'a AtomicDatabase;
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<Residues> {
-        let types = self.types.validate(())?;
-        self.residues
-            .into_iter()
-            // FIXME: Big hmm for the ? operator here...
-            .map(|r| Ok((r.abbr.clone(), r.validate((ctx, &types))?)))
-            .collect()
-    }
-}
-
-impl<'a> ValidateInto<'a, HashMap<String, Vec<FunctionalGroupKdl>>> for Vec<ResidueTypeKdl> {
-    type Context = ();
-
-    fn validate(self, _ctx: Self::Context) -> ChemResult<HashMap<String, Vec<FunctionalGroupKdl>>> {
-        // FIXME: Is there a more functional way to do this?
-        let mut types = HashMap::with_capacity(self.len());
-        for residue_type in self {
-            if let Some((first_span, _)) = types.insert(
-                residue_type.name.clone(),
-                (residue_type.span, residue_type.functional_groups),
-            ) {
-                return Err(ChemistryErrorKind::DuplicateResidueType(
-                    first_span,
-                    residue_type.span,
-                    residue_type.name,
-                ));
-            }
-        }
-        Ok(types.into_iter().map(|(k, (_, v))| (k, v)).collect())
-    }
-}
-
-impl<'a> ValidateInto<'a, ResidueDescription> for ResidueKdl {
-    type Context = (
-        &'a AtomicDatabase,
-        &'a HashMap<String, Vec<FunctionalGroupKdl>>,
-    );
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<ResidueDescription> {
-        let type_groups = ctx
-            .1
-            .get(&self.residue_type)
-            .ok_or_else(|| ChemistryErrorKind::UndefinedResidueType(self.span, self.residue_type))?
-            .clone();
-        // FIXME: Abstract this logic out into a function — it's used in a couple of places, the dedeuplication
-        let mut functional_group_spans = HashMap::new();
-        for functional_group_kdl in type_groups.into_iter().chain(self.functional_groups) {
-            let span = functional_group_kdl.span;
-            let functional_group = FunctionalGroup::from(functional_group_kdl);
-            if let Some(first_defined_span) =
-                functional_group_spans.insert(functional_group.clone(), span)
-            {
-                return Err(ChemistryErrorKind::DuplicateFunctionalGroup(
-                    first_defined_span,
-                    span,
-                    functional_group.name,
-                    functional_group.location,
-                ));
-            }
-        }
-        let functional_groups = functional_group_spans
-            .into_keys()
-            .map(FunctionalGroup::from)
-            .collect();
-        Ok(ResidueDescription {
-            name: self.name,
-            composition: self.composition.validate(ctx.0)?,
-            functional_groups,
-        })
-    }
-}
-
-// FIXME: Might also want to pull out this error-handling into it's own crate...
 #[derive(Debug, Error)]
 #[error("failed to validate polymer chemistry file")]
 struct ChemistryError {
@@ -339,6 +493,7 @@ struct ChemistryError {
     kind: ChemistryErrorKind,
 }
 
+// NOTE: This is manually implemented because the list of labels is dynamic and needs to be extracted from `self.kind`
 impl Diagnostic for ChemistryError {
     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
         Some(&self.kdl)
@@ -355,49 +510,52 @@ impl Diagnostic for ChemistryError {
     }
 }
 
-#[derive(Debug, Clone, Error, Diagnostic)]
+#[derive(Clone, Debug, Diagnostic, Error)]
 enum ChemistryErrorKind {
-    #[error("polymer chemistry file contained an invalid chemical composition")]
-    Composition(
-        Span,
-        // FIXME: I've checked with cargo expand — I need both source and diagnostic source. Make I've got this
-        // #[source] added globally — wherever `diagnostic_source` is defined!
-        #[source]
-        #[diagnostic_source]
-        crate::Error,
-    ),
-    #[error("the residue type {1:?} is undefined")]
-    #[diagnostic(help("double-check for typos, or add {1:?} to the types section"))]
-    UndefinedResidueType(Span, String),
     #[error("the residue type {2:?} has already been defined")]
     #[diagnostic(help("consider consolidating duplicate types or picking a new type name"))]
     DuplicateResidueType(Span, Span, String),
+
+    #[error("the residue type {1:?} is undefined")]
+    #[diagnostic(help("double-check for typos, or add {1:?} to the types section"))]
+    UndefinedResidueType(Span, String),
+
     #[error("the functional group {2:?} has already been defined at {3:?}")]
     #[diagnostic(help("double-check for typos, or remove the duplicate functional group"))]
     DuplicateFunctionalGroup(Span, Span, String, String),
-    #[error("the target {2} overlaps with {} other target specifier{}", .1.len(), if .1.len() > 1 {"s"} else {""})]
-    #[diagnostic(help("double-check for typos, or remove the overlapping target specifier"))]
-    OverlappingTargets(Span, Vec<Span>, Target),
+
     #[error("the specifier {1} cannot target any currently defined residues")]
     #[diagnostic(help(
         "double-check for typos, or add new residues / groups that are targeted by this specifier"
     ))]
     NonexistentTarget(Span, Target),
+
+    #[error("the target {2} overlaps with {} other target specifier{}", .1.len(), if .1.len() > 1 {"s"} else {""})]
+    #[diagnostic(help("double-check for typos, or remove the overlapping target specifier"))]
+    OverlappingTargets(Span, Vec<Span>, Target),
+
+    #[error("polymer chemistry file contained an invalid chemical composition")]
+    Composition(
+        Span,
+        #[source]
+        #[diagnostic_source]
+        crate::Error,
+    ),
 }
 
 impl ChemistryErrorKind {
     fn labels(&self) -> Vec<(Span, &'static str)> {
         match self {
-            Self::Composition(s, _) => vec![(*s, "invalid chemical composition")],
-            Self::UndefinedResidueType(s, _) => vec![(*s, "undefined residue type")],
             Self::DuplicateResidueType(s1, s2, _)
             | Self::DuplicateFunctionalGroup(s1, s2, _, _) => {
                 vec![(*s1, "first defined here"), (*s2, "then again here")]
             }
+            Self::UndefinedResidueType(s, _) => vec![(*s, "undefined residue type")],
+            Self::NonexistentTarget(s, _) => vec![(*s, "targets nothing")],
             Self::OverlappingTargets(s1, ss, _) => iter::once((*s1, "this target"))
                 .chain(zip(ss.clone(), iter::repeat("overlaps with")))
                 .collect(),
-            Self::NonexistentTarget(s, _) => vec![(*s, "targets nothing")],
+            Self::Composition(s, _) => vec![(*s, "invalid chemical composition")],
         }
     }
 
@@ -407,119 +565,7 @@ impl ChemistryErrorKind {
     }
 }
 
-impl<'a> ValidateInto<'a, ChemicalComposition> for ChemicalCompositionKdl {
-    type Context = &'a AtomicDatabase;
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
-        ChemicalComposition::new(ctx, &self)
-            .map_err(|e| ChemistryErrorKind::Composition(*self.span(), e))
-    }
-}
-
-impl From<FunctionalGroupKdl> for FunctionalGroup {
-    fn from(value: FunctionalGroupKdl) -> Self {
-        Self {
-            name: value.name,
-            location: value.location,
-        }
-    }
-}
-
-impl<'a> ValidateInto<'a, Modifications> for ModificationsKdl {
-    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<Modifications> {
-        // FIXME: This is a bit repetitive with the above...
-        // FIXME: This is where I should build an index of functional groups, then pass that down to the validation
-        // function for ModificationKdl
-        self.modifications
-            .into_iter()
-            .map(|m| Ok((m.abbr.clone(), m.validate(ctx)?)))
-            .collect()
-    }
-}
-
-impl<'a> ValidateInto<'a, ModificationDescription> for ModificationKdl {
-    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<ModificationDescription> {
-        let targets_and_spans: Vec<_> = self
-            .targets
-            .into_iter()
-            .map(|t| {
-                let span = t.span;
-                Ok((t.validate(ctx.1)?, span))
-            })
-            // FIXME: That's also messy...
-            .collect::<Result<_, _>>()?;
-
-        // FIXME: Messy!
-        let target_index: TargetIndex<Span> =
-            targets_and_spans.iter().map(|(t, s)| (t, *s)).collect();
-        for (target, span) in &targets_and_spans {
-            let overlapping_targets: Vec<_> = target_index
-                .get(target)
-                .into_iter()
-                .filter(|&s| s != span)
-                .collect();
-            if !overlapping_targets.is_empty() {
-                return Err(ChemistryErrorKind::OverlappingTargets(
-                    *span,
-                    overlapping_targets.into_iter().copied().collect(),
-                    target.clone(),
-                ));
-            }
-        }
-
-        // FIXME: Inline?
-        let targets = targets_and_spans.into_iter().map(|(t, _)| t).collect();
-
-        Ok(ModificationDescription {
-            name: self.name,
-            lost: self.lost.validate(ctx.0)?,
-            gained: self.gained.validate(ctx.0)?,
-            targets,
-        })
-    }
-}
-
-impl<'a> ValidateInto<'a, Bonds> for BondsKdl {
-    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<Bonds> {
-        // FIXME: This is a bit repetitive with the above...
-        self.bonds
-            .into_iter()
-            .map(|b| Ok((b.kind.clone(), b.validate(ctx)?)))
-            .collect()
-    }
-}
-
-impl<'a> ValidateInto<'a, BondDescription> for BondKdl {
-    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<BondDescription> {
-        Ok(BondDescription {
-            from: self.from.validate(ctx.1)?,
-            to: self.to.validate(ctx.1)?,
-            lost: self.lost.validate(ctx.0)?,
-        })
-    }
-}
-
-impl<'a> ValidateInto<'a, Target> for TargetKdl {
-    type Context = &'a TargetIndex<'a>;
-
-    fn validate(self, ctx: Self::Context) -> ChemResult<Target> {
-        let target = Target::new(self.group, self.location, self.residue);
-        // FIXME: Okay style?
-        if ctx.get(&target).is_empty() {
-            Err(ChemistryErrorKind::NonexistentTarget(self.span, target))
-        } else {
-            Ok(target)
-        }
-    }
-}
+// Module Tests ========================================================================================================
 
 #[cfg(test)]
 mod tests {

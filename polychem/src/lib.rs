@@ -157,10 +157,13 @@ impl From<&OffsetKind> for Charge {
 enum AtomicLookupError {
     #[error("the element {0:?} could not be found in the supplied atomic database")]
     Element(String),
+
     #[error("the isotope \"{0}-{1}\" could not be found in the supplied atomic database, though the following {2} isotopes were found: {3:?}")]
     Isotope(String, MassNumber, String, Vec<MassNumber>),
+
     #[error("the particle {0:?} could not be found in the supplied atomic database")]
     Particle(String),
+
     // FIXME: Unforuntately, this error probably doesn't belong here... All of the other errors can be
     // encountered at parse time, but this one is only triggered by a mass calculation...
     #[error("no natural abundance data could be found for {0} ({1}), though the following isotopes were found: {2:?}")]
@@ -188,15 +191,24 @@ enum PolychemError {
     #[error(transparent)]
     #[diagnostic(transparent)]
     Composition(#[from] CompositionError),
+
     // FIXME: Oof, are these even different enough to warrant different errors?
     #[error("failed to fetch isotope abundances for monoisotopic mass calculation")]
-    MonoisotopicMass(#[diagnostic_source] AtomicLookupError),
+    MonoisotopicMass(
+        #[source]
+        #[diagnostic_source]
+        AtomicLookupError,
+    ),
+
     #[error("failed to fetch isotope abundances for average mass calculation")]
-    AverageMass(#[diagnostic_source] AtomicLookupError),
+    AverageMass(
+        #[source]
+        #[diagnostic_source]
+        AtomicLookupError,
+    ),
 }
 
 impl ChemicalComposition {
-    // FIXME: If this isn't public API, drop the AsRef — if it is, then add it for `db`
     pub fn new(db: &AtomicDatabase, formula: impl AsRef<str>) -> Result<Self> {
         let formula = formula.as_ref();
         // FIXME: It's still feels a little odd I need to pull in that parsing code directly here...

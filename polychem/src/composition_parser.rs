@@ -176,44 +176,58 @@ pub(super) enum CompositionErrorKind {
         or a standalone particle offset"
     )]
     ExpectedChemicalComposition,
+
     #[error(
         "expected an element (like Au) or an isotope (like [15N]) optionally followed by a number"
     )]
     ExpectedAtomicOffset,
+
     #[error("expected a particle (like p or e), optionally preceded by a number")]
     ExpectedParticleOffset,
+
     #[diagnostic(help(
         "a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like \
         NH02, try just NH2 instead"
     ))]
     #[error("counts cannot start with 0")]
     ExpectedNoLeadingZero,
+
     #[error("expected a digit 1-9")]
     ExpectedDigit,
+
     #[error("expected an element symbol")]
     ExpectedElementSymbol,
+
     #[error("expected '[' to open isotope brackets")]
     ExpectedIsotopeStart,
+
     #[error("expected an isotopic mass number")]
     ExpectedMassNumber,
+
     #[diagnostic(help("you've probably forgotten to close an earlier '[' bracket"))]
     #[error("expected ']' to close isotope brackets")]
     ExpectedIsotopeEnd,
+
     #[error("expected a particle symbol")]
     ExpectedParticleSymbol,
+
     #[error("expected an uppercase ASCII letter")]
     ExpectedUppercase,
+
     #[error("expected a lowercase ASCII letter")]
     ExpectedLowercase,
+
     #[diagnostic(help("double-check for typos, or add a new entry to the atomic database"))]
     #[error(transparent)]
     LookupError(AtomicLookupError),
+
     #[diagnostic(help(
         "this is an internal error that you shouldn't ever see! If you have gotten this error, \
         then please report it as a bug!"
     ))]
     #[error("internal `nom` error: {0:?}")]
     NomError(ErrorKind),
+
     #[diagnostic(help(
         "check the unparsed region for errors, or remove it from the rest of the composition"
     ))]

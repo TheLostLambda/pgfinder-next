@@ -73,7 +73,7 @@ impl<'a> TargetIndex<'a> {
     }
 }
 
-// Target Printing & Borrowing =========================================================================================
+// Target Printing and Borrowing =======================================================================================
 
 impl<S: Deref<Target = str>> Display for Target<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -116,7 +116,7 @@ impl<'a, K: Into<Target<&'a str>>> FromIterator<K> for TargetIndex<'a> {
     }
 }
 
-// Private Types & Methods =============================================================================================
+// Private Types and Methods ===========================================================================================
 
 type GroupMap<'a, T> = HashMap<&'a str, LocationMap<'a, T>>;
 type LocationMap<'a, T> = HashMap<Option<&'a str>, ResidueMap<'a, T>>;
