@@ -26,6 +26,10 @@ use self::composition_parser::chemical_composition;
 
 // FIXME: Blocks here need reordering!
 
+// FIXME: A more intense refactor, but things that don't change for residues, like abbr, name, composition, etc, should
+// be stored as references to the chemical databases. Otherwise, when creating new residues, I'm doing a *lot* of
+// copying that I really shouldn't need to do... I should really go through all of these types and use references for
+// anything that's "static" / just comes from a config file
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Residue {
     id: Id,
@@ -208,6 +212,7 @@ enum PolychemError {
     ),
 }
 
+// FIXME: This should probably be split out into it's own module...
 impl ChemicalComposition {
     pub fn new(db: &AtomicDatabase, formula: impl AsRef<str>) -> Result<Self> {
         let formula = formula.as_ref();
