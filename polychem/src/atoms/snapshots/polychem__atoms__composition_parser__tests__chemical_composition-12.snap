@@ -1,0 +1,19 @@
+---
+source: polychem/src/atoms/composition_parser.rs
+expression: "(chemical_formula, particle_offset)"
+---
+(
+    [
+        (
+            "Chlorine-37",
+            5,
+        ),
+    ],
+    Some(
+        (
+            Remove,
+            2,
+            "Proton",
+        ),
+    ),
+)

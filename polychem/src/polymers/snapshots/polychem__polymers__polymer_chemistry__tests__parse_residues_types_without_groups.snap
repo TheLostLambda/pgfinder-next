@@ -1,0 +1,87 @@
+---
+source: polychem/src/polymers/polymer_chemistry.rs
+expression: residues.unwrap()
+---
+{
+  "G": ResidueDescription(
+    name: "Glycine",
+    composition: ChemicalComposition(
+      chemical_formula: [
+        (Element(
+          symbol: "C",
+          name: "Carbon",
+          mass_number: None,
+          isotopes: {
+            12: Isotope(
+              relative_mass: "12.0000000",
+              abundance: Some("0.9893"),
+            ),
+            13: Isotope(
+              relative_mass: "13.00335483507",
+              abundance: Some("0.0107"),
+            ),
+            14: Isotope(
+              relative_mass: "14.0032419884",
+              abundance: None,
+            ),
+          },
+        ), 2),
+        (Element(
+          symbol: "H",
+          name: "Hydrogen",
+          mass_number: None,
+          isotopes: {
+            1: Isotope(
+              relative_mass: "1.00782503223",
+              abundance: Some("0.999885"),
+            ),
+            2: Isotope(
+              relative_mass: "2.01410177812",
+              abundance: Some("0.000115"),
+            ),
+            3: Isotope(
+              relative_mass: "3.0160492779",
+              abundance: None,
+            ),
+          },
+        ), 5),
+        (Element(
+          symbol: "N",
+          name: "Nitrogen",
+          mass_number: None,
+          isotopes: {
+            14: Isotope(
+              relative_mass: "14.00307400443",
+              abundance: Some("0.99636"),
+            ),
+            15: Isotope(
+              relative_mass: "15.00010889888",
+              abundance: Some("0.00364"),
+            ),
+          },
+        ), 1),
+        (Element(
+          symbol: "O",
+          name: "Oxygen",
+          mass_number: None,
+          isotopes: {
+            16: Isotope(
+              relative_mass: "15.99491461957",
+              abundance: Some("0.99757"),
+            ),
+            17: Isotope(
+              relative_mass: "16.99913175650",
+              abundance: Some("0.00038"),
+            ),
+            18: Isotope(
+              relative_mass: "17.99915961286",
+              abundance: Some("0.00205"),
+            ),
+          },
+        ), 2),
+      ],
+      particle_offset: None,
+    ),
+    functional_groups: [],
+  ),
+}

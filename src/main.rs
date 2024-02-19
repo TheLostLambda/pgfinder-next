@@ -1,6 +1,6 @@
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
 use once_cell::sync::Lazy;
-use polychem::{atomic_database::AtomicDatabase, ChemicalComposition, Result};
+use polychem::{atoms::atomic_database::AtomicDatabase, ChemicalComposition, Result};
 use rustyline::DefaultEditor;
 use std::fmt::Write;
 

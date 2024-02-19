@@ -1,0 +1,19 @@
+---
+source: polychem/src/atoms/composition_parser.rs
+description: "chemical_composition(\"[37Cl]5+10\")"
+expression: out
+---
+  × expected a chemical formula (optionally followed by a '+' or '-' and a
+  │ particle offset), or a standalone particle offset
+  ├─▶   × expected a particle (like p or e), optionally preceded by a number
+  │   
+  ├─▶   × expected a particle symbol
+  │   
+  ╰─▶   × expected a lowercase ASCII letter
+      
+   ╭────
+ 1 │ [37Cl]5+10 
+   ·           ▲
+   ·           ╰── expected lowercase
+   ╰────
+

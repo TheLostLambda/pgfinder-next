@@ -1,0 +1,16 @@
+---
+source: polychem/src/atoms/atomic_database.rs
+description: res
+expression: out
+---
+  × error parsing KDL
+
+Error:   × an error occured during scalar conversion
+  ╰─▶   × Number has a high precision that can not be represented.
+      
+   ╭─[test:1:10]
+ 1 │ lossless 0.00000_00000_00000_00000_00000_0001
+   ·          ──────────────────┬─────────────────
+   ·                            ╰── invalid value
+   ╰────
+

@@ -1,0 +1,17 @@
+---
+source: polychem/src/atoms/atomic_database.rs
+description: res
+expression: out
+---
+  × error parsing KDL
+
+Error:   × an error occured during scalar conversion
+  ╰─▶   × expected a single lowercase ASCII letter, got "pr"
+      
+   ╭─[test:1:1]
+ 1 │ pr "Proton" {
+   · ─┬
+   ·  ╰── invalid value
+ 2 │   mass 1.007276466621
+   ╰────
+

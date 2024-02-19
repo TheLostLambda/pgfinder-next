@@ -1,0 +1,18 @@
+---
+source: polychem/src/atoms/atomic_database.rs
+description: res
+expression: out
+---
+  × error parsing KDL
+
+Error:   × an error occured during scalar conversion
+  ╰─▶   × expected a single uppercase ASCII letter optionally followed by a
+        │ lowercase ASCII letter, got "Deu"
+      
+   ╭─[test:1:1]
+ 1 │ Deu "Deuterium" {
+   · ─┬─
+   ·  ╰── invalid value
+ 2 │   isotope 2 2.01410177812 1
+   ╰────
+

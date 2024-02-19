@@ -1,0 +1,10 @@
+---
+source: polychem/src/atoms/particle.rs
+expression: "Particle::new(&DB, \"p\")?"
+---
+Particle {
+    symbol: "p",
+    name: "Proton",
+    mass: 1.007276466621,
+    charge: 1,
+}

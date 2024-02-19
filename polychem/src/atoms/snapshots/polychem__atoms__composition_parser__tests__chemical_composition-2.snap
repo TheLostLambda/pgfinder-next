@@ -1,0 +1,25 @@
+---
+source: polychem/src/atoms/composition_parser.rs
+expression: "(chemical_formula, particle_offset)"
+---
+(
+    [
+        (
+            "Carbon",
+            11,
+        ),
+        (
+            "Hydrogen",
+            12,
+        ),
+        (
+            "Nitrogen",
+            2,
+        ),
+        (
+            "Oxygen",
+            2,
+        ),
+    ],
+    None,
+)

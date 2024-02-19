@@ -1,0 +1,17 @@
+---
+source: polychem/src/atoms/composition_parser.rs
+expression: "(chemical_formula, particle_offset)"
+---
+(
+    [
+        (
+            "Deuterium",
+            2,
+        ),
+        (
+            "Oxygen",
+            1,
+        ),
+    ],
+    None,
+)
