@@ -135,6 +135,7 @@ struct BondTarget {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+// FIXME: These OffsetKind impls probably need a better home?
 impl From<&OffsetKind> for Decimal {
     fn from(value: &OffsetKind) -> Self {
         Charge::from(value).into()
@@ -187,5 +188,3 @@ enum PolychemError {
         AtomicLookupError,
     ),
 }
-
-// FIXME: This should probably be split out into it's own module...

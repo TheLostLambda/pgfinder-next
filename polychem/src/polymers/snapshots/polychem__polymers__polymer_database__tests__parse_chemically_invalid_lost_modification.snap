@@ -1,0 +1,44 @@
+---
+source: polychem/src/polymers/polymer_database.rs
+description: modifications
+expression: out
+---
+  × failed to validate polymer database file
+  ├─▶   × polymer database file contained an invalid chemical composition
+  │   
+  ├─▶   × expected a chemical formula (optionally followed by a '+' or '-'
+  │   and a
+  │     │ particle offset), or a standalone particle offset
+  │      ╭────
+  │    1 │ -H
+  │      · ▲
+  │      · ╰── expected uppercase or '[' or expected lowercase
+  │      ╰────
+  │   
+  ╰─▶   × attempted 2 parse branches unsuccessfully
+      
+      Error:   × expected an element (like Au) or an isotope (like [15N])
+      optionally
+        │ followed by a number
+        ╰─▶   × attempted 2 parse branches unsuccessfully
+      
+            Error:   × expected an element symbol
+              ╰─▶   × expected an uppercase ASCII letter
+      
+            Error:   × expected '[' to open isotope brackets
+      
+      Error:   × expected a particle (like p or e), optionally preceded by
+      a number
+        ├─▶   × expected a particle symbol
+        │
+        ╰─▶   × expected a lowercase ASCII letter
+      
+      
+   ╭─[test:3:10]
+ 2 │     targeting "Hydroxyl" at="6-Position"
+ 3 │     lost "-H"
+   ·          ──┬─
+   ·            ╰── invalid chemical composition
+ 4 │     gained "C2H3O"
+   ╰────
+

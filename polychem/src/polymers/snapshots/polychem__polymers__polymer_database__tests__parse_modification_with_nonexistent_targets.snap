@@ -1,0 +1,20 @@
+---
+source: polychem/src/polymers/polymer_database.rs
+description: modifications
+expression: out
+---
+  × failed to validate polymer database file
+  ╰─▶   × the specifier "Amino" at="Reducing End" cannot target any currently
+        │ defined residues
+        help: double-check for typos, or add new residues / groups that are
+              targeted by this specifier
+      
+   ╭─[test:3:5]
+ 2 │     targeting "Hydroxyl" at="6-Position" of="N-Acetylmuramic Acid"
+ 3 │     targeting "Amino" at="Reducing End"
+   ·     ──────────────────┬─────────────────
+   ·                       ╰── targets nothing
+ 4 │     targeting "Amino"
+ 5 │ }
+   ╰────
+

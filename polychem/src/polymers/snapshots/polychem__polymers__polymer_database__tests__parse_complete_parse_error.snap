@@ -1,0 +1,17 @@
+---
+source: polychem/src/polymers/polymer_database.rs
+description: db.map_err(WrapErr)
+expression: out
+---
+  × encountered an error during testing
+
+Error:   × unexpected node `group`
+    ╭─[test:20:13]
+ 19 │         AminoAcid {
+ 20 │             group "Amino" at="N-Terminal"
+    ·             ───────────────┬──────────────
+    ·                            ╰── unexpected node
+ 21 │             functional-group "Carboxyl" at="C-Terminal"
+ 22 │         }
+    ╰────
+

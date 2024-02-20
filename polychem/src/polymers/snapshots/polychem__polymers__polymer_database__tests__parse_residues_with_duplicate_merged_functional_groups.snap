@@ -1,0 +1,25 @@
+---
+source: polychem/src/polymers/polymer_database.rs
+description: residues
+expression: out
+---
+  × failed to validate polymer database file
+  ╰─▶   × the functional group "Amino" has already been defined at "N-
+      terminal"
+        help: double-check for typos, or remove the duplicate functional group
+      
+   ╭─[test:3:9]
+ 2 │     AminoAcid {
+ 3 │         functional-group "Amino" at="N-terminal"
+   ·         ────────────────────┬────────────────────
+   ·                             ╰── first defined here
+ 4 │     }
+ 5 │ }
+ 6 │ AminoAcid "K" "Lysine" {
+ 7 │     composition "C6H14N2O2"
+ 8 │     functional-group "Amino" at="N-terminal"
+   ·     ────────────────────┬────────────────────
+   ·                         ╰── then again here
+ 9 │ }
+   ╰────
+

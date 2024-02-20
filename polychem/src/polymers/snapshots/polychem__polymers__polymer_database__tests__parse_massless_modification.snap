@@ -1,0 +1,24 @@
+---
+source: polychem/src/polymers/polymer_database.rs
+expression: modifications.unwrap()
+---
+{
+  "Ac": ModificationDescription(
+    name: "O-Acetylation",
+    lost: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
+    gained: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
+    targets: [
+      Target(
+        group: "Hydroxyl",
+        location: Some("6-Position"),
+        residue: None,
+      ),
+    ],
+  ),
+}

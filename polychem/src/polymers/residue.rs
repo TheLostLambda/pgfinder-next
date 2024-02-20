@@ -2,11 +2,11 @@ use rust_decimal::Decimal;
 
 use crate::{GroupState, Residue, Result};
 
-use super::polymer_chemistry::{PolymerChemistry, ResidueDescription};
+use super::polymer_database::{PolymerDatabase, ResidueDescription};
 
 impl Residue {
     // FIXME: Get rid of unwrap
-    pub fn new(db: &PolymerChemistry, abbr: impl AsRef<str>, id: usize) -> Self {
+    pub fn new(db: &PolymerDatabase, abbr: impl AsRef<str>, id: usize) -> Self {
         let abbr = abbr.as_ref();
         let ResidueDescription {
             name,
@@ -42,7 +42,7 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        atoms::atomic_database::AtomicDatabase, polymers::polymer_chemistry::PolymerChemistry,
+        atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
         Residue,
     };
 
@@ -54,8 +54,8 @@ mod tests {
         .unwrap()
     });
 
-    static POLYMER_DB: Lazy<PolymerChemistry> = Lazy::new(|| {
-        PolymerChemistry::from_kdl(
+    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+        PolymerDatabase::from_kdl(
             &ATOMIC_DB,
             "muropeptide_chemistry.kdl",
             include_str!("../../muropeptide_chemistry.kdl"),

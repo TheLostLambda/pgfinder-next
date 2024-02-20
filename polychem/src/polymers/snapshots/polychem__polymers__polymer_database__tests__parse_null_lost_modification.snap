@@ -1,0 +1,16 @@
+---
+source: polychem/src/polymers/polymer_database.rs
+description: modifications
+expression: out
+---
+  × error parsing KDL
+
+Error:   × expected string scalar, found null
+   ╭─[test:3:10]
+ 2 │     targeting "Hydroxyl" at="6-Position"
+ 3 │     lost null
+   ·          ──┬─
+   ·            ╰── unexpected null
+ 4 │     gained "C2H3O"
+   ╰────
+
