@@ -1,0 +1,14 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+description: "chemical_composition(\"[37Cl]52p\")"
+expression: out
+---
+  × could not interpret the full input as a valid chemical composition
+   ╭────
+ 1 │ [37Cl]52p 
+   ·         ▲
+   ·         ╰── input was valid up until this point
+   ╰────
+  help: check the unparsed region for errors, or remove it from the rest of
+        the composition
+

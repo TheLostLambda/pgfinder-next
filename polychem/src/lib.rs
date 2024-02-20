@@ -6,7 +6,7 @@ pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
 
-use atoms::{composition_parser::CompositionError, AtomicLookupError};
+use atoms::{chemical_composition::CompositionError, AtomicLookupError};
 use serde::{Deserialize, Serialize};
 
 // Standard Library Imports

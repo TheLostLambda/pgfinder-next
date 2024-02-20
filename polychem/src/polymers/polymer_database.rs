@@ -13,7 +13,7 @@ use miette::{Diagnostic, LabeledSpan, NamedSource, Result};
 use thiserror::Error;
 
 // Local Crate Imports
-use super::chemical_targets::{Target, TargetIndex};
+use super::target::{Target, TargetIndex};
 use crate::{atoms::atomic_database::AtomicDatabase, ChemicalComposition, FunctionalGroup};
 
 // Public API ==========================================================================================================
@@ -575,7 +575,7 @@ mod tests {
     use thiserror::Error;
 
     use crate::{
-        atoms::atomic_database::AtomicDatabase, polymers::chemical_targets::TargetIndex,
+        atoms::atomic_database::AtomicDatabase, polymers::target::TargetIndex,
         testing_tools::assert_miette_snapshot,
     };
 

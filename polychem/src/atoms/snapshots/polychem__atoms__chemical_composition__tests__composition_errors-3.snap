@@ -1,0 +1,19 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+description: "chemical_composition(\"NH2[99Tc]O4-8m+2p\")"
+expression: out
+---
+  × expected a chemical formula (optionally followed by a '+' or '-' and a
+  │ particle offset), or a standalone particle offset
+  ├─▶   × expected a particle (like p or e), optionally preceded by a number
+  │   
+  ╰─▶   × the particle "m" could not be found in the supplied atomic database
+        help: double-check for typos, or add a new entry to the atomic
+      database
+      
+   ╭────
+ 1 │ NH2[99Tc]O4-8m+2p 
+   ·              ┬
+   ·              ╰── particle not found
+   ╰────
+

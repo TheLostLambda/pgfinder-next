@@ -1,0 +1,32 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+description: "chemical_composition(\"-H2O\")"
+expression: out
+---
+  × expected a chemical formula (optionally followed by a '+' or '-' and a
+  │ particle offset), or a standalone particle offset
+  ╰─▶   × attempted 2 parse branches unsuccessfully
+      
+      Error:   × expected an element (like Au) or an isotope (like [15N])
+      optionally
+        │ followed by a number
+        ╰─▶   × attempted 2 parse branches unsuccessfully
+      
+            Error:   × expected an element symbol
+              ╰─▶   × expected an uppercase ASCII letter
+      
+            Error:   × expected '[' to open isotope brackets
+      
+      Error:   × expected a particle (like p or e), optionally preceded by
+      a number
+        ├─▶   × expected a particle symbol
+        │
+        ╰─▶   × expected a lowercase ASCII letter
+      
+      
+   ╭────
+ 1 │ -H2O 
+   · ▲
+   · ╰── expected uppercase or '[' or expected lowercase
+   ╰────
+

@@ -1,0 +1,19 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+expression: "(chemical_formula, particle_offset)"
+---
+(
+    [
+        (
+            "Sodium",
+            1,
+        ),
+    ],
+    Some(
+        (
+            Remove,
+            1,
+            "Electron",
+        ),
+    ),
+)

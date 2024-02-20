@@ -1,0 +1,21 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+expression: "(chemical_formula, particle_offset)"
+---
+(
+    [
+        (
+            "Nitrogen",
+            1,
+        ),
+        (
+            "Hydrogen",
+            2,
+        ),
+        (
+            "Technetium-99",
+            1,
+        ),
+    ],
+    None,
+)

@@ -4,7 +4,7 @@ use thiserror::Error;
 use crate::MassNumber;
 
 pub mod atomic_database;
-pub mod composition_parser;
+pub mod chemical_composition;
 mod element;
 mod particle;
 

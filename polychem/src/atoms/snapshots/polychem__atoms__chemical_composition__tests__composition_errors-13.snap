@@ -1,0 +1,20 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+description: "chemical_composition(\"[10]H2O\")"
+expression: out
+---
+  × expected a chemical formula (optionally followed by a '+' or '-' and a
+  │ particle offset), or a standalone particle offset
+  ├─▶   × expected an element (like Au) or an isotope (like [15N]) optionally
+  │     │ followed by a number
+  │   
+  ├─▶   × expected an element symbol
+  │   
+  ╰─▶   × expected an uppercase ASCII letter
+      
+   ╭────
+ 1 │ [10]H2O 
+   ·    ▲
+   ·    ╰── expected uppercase
+   ╰────
+

@@ -1,0 +1,23 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+expression: "(chemical_formula, particle_offset)"
+---
+(
+    [
+        (
+            "Oxygen",
+            1,
+        ),
+        (
+            "Hydrogen",
+            1,
+        ),
+    ],
+    Some(
+        (
+            Add,
+            1,
+            "Electron",
+        ),
+    ),
+)
