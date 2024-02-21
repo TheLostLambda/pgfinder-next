@@ -1,52 +1,52 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 
-// FIXME: Uncomment all of this, and decide if having two lifetime parameters for Residue is stupid...
-// use polychem::{Modification, Residue};
+// FIXME: Blocks need separating and reordering!
+use polychem::{AnyModification, Residue};
 
-// pub struct Muropeptide {
-//     monomers: Vec<Monomer>,
-//     connections: Vec<Connection>,
-//     modifications: Vec<Modification>,
-// }
+pub struct Muropeptide<'a> {
+    monomers: Vec<Monomer<'a>>,
+    connections: Vec<Connection>,
+    modifications: Vec<AnyModification<'a>>,
+}
 
-// struct Monomer {
-//     glycan: Vec<Monosaccharide>,
-//     peptide: Vec<AminoAcid>,
-// }
+struct Monomer<'a> {
+    glycan: Vec<Monosaccharide<'a>>,
+    peptide: Vec<AminoAcid<'a>>,
+}
 
-// type Connection = Vec<ConnectionKind>;
+type Connection = Vec<ConnectionKind>;
 
-// type Monosaccharide = Residue;
+type Monosaccharide<'a> = Residue<'a, 'a>;
 
-// struct AminoAcid {
-//     residue: Residue,
-//     lateral_chain: Option<LateralChain>,
-// }
+struct AminoAcid<'a> {
+    residue: Residue<'a, 'a>,
+    lateral_chain: Option<LateralChain<'a>>,
+}
 
-// enum ConnectionKind {
-//     GlycosidicBond,
-//     Crosslink(Vec<CrosslinkDescriptor>),
-// }
+enum ConnectionKind {
+    GlycosidicBond,
+    Crosslink(Vec<CrosslinkDescriptor>),
+}
 
-// struct LateralChain {
-//     direction: PeptideDirection,
-//     peptide: Vec<UnbranchedAminoAcid>,
-// }
+struct LateralChain<'a> {
+    direction: PeptideDirection,
+    peptide: Vec<UnbranchedAminoAcid<'a>>,
+}
 
-// enum CrosslinkDescriptor {
-//     DonorAcceptor(Position, Position),
-//     AcceptorDonor(Position, Position),
-// }
+enum CrosslinkDescriptor {
+    DonorAcceptor(Position, Position),
+    AcceptorDonor(Position, Position),
+}
 
-// enum PeptideDirection {
-//     Unspecified,
-//     CToN,
-//     NToC,
-// }
+enum PeptideDirection {
+    Unspecified,
+    CToN,
+    NToC,
+}
 
-// type UnbranchedAminoAcid = Residue;
+type UnbranchedAminoAcid<'a> = Residue<'a, 'a>;
 
-// type Position = u8;
+type Position = u8;
 
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)

@@ -89,8 +89,16 @@ enum GroupState<'a, 'p> {
     Acceptor,
 }
 
+// FIXME: Move these "Any" types to their own section, after the main tree of data structures, since they are only used
+// *outside* of this crate!
+pub type AnyModification<'a> = Modification<AnyMod<'a>>;
+pub enum AnyMod<'a> {
+    Named(NamedMod<'a>),
+    Offset(OffsetMod<'a>),
+}
+
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-struct NamedMod<'a> {
+pub struct NamedMod<'a> {
     abbr: String,
     name: String,
     lost: ChemicalComposition<'a>,
@@ -98,7 +106,7 @@ struct NamedMod<'a> {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-struct OffsetMod<'a> {
+pub struct OffsetMod<'a> {
     kind: OffsetKind,
     composition: ChemicalComposition<'a>,
 }
