@@ -178,6 +178,9 @@ enum PolychemError {
     #[diagnostic(transparent)]
     Composition(#[from] CompositionError),
 
+    #[error("the residue {0:?} could not be found in the supplied polymer database")]
+    Residue(String),
+
     // FIXME: Oof, are these even different enough to warrant different errors?
     #[error("failed to fetch isotope abundances for monoisotopic mass calculation")]
     MonoisotopicMass(

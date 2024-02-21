@@ -92,7 +92,7 @@ mod polymers {
         let abbrs: Vec<_> = ('A'..'Z').map(|c| c.to_string()).collect();
         bencher.bench_local(|| {
             for abbr in &abbrs {
-                black_box(Residue::new(&POLYMER_DB, abbr, 0));
+                black_box(Residue::new(&POLYMER_DB, abbr, 0).unwrap());
             }
         });
     }

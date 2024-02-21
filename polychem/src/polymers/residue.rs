@@ -1,12 +1,12 @@
 use rust_decimal::Decimal;
 
-use crate::{GroupState, Residue, Result};
+use crate::{GroupState, PolychemError, Residue, Result};
 
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
 
 impl<'a, 'p> Residue<'a, 'p> {
-    // FIXME: Get rid of unwrap
-    pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>, id: usize) -> Self {
+    pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>, id: usize) -> Result<Self> {
+        let abbr = abbr.as_ref();
         let (
             abbr,
             ResidueDescription {
@@ -14,19 +14,22 @@ impl<'a, 'p> Residue<'a, 'p> {
                 composition,
                 functional_groups,
             },
-        ) = db.residues.get_key_value(abbr.as_ref()).unwrap();
+        ) = db
+            .residues
+            .get_key_value(abbr)
+            .ok_or_else(|| PolychemError::Residue(abbr.to_owned()))?;
         let functional_groups = functional_groups
             .iter()
             .map(|fg| (fg, GroupState::default()))
             .collect();
-        Self {
+        Ok(Self {
             id,
             abbr,
             name,
             composition,
             functional_groups,
             offset_modifications: Vec::new(),
-        }
+        })
     }
 
     // FIXME: Should these mass functions be made into a trait? I think they probably should be...
@@ -66,7 +69,7 @@ mod tests {
     // FIXME: Rubbish, actually split this into sensible tests!
     #[test]
     fn residue_construction() {
-        let alanine = Residue::new(&POLYMER_DB, "A", 0);
+        let alanine = Residue::new(&POLYMER_DB, "A", 0).unwrap();
         assert_eq!(alanine.monoisotopic_mass().unwrap(), dec!(89.04767846918));
     }
 }
