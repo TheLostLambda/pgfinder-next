@@ -83,7 +83,7 @@ mod polymers {
     use super::*;
 
     #[divan::bench]
-    fn build_polymer_database() -> PolymerDatabase {
+    fn build_polymer_database() -> PolymerDatabase<'static> {
         PolymerDatabase::from_kdl(&ATOMIC_DB, "muropeptide_chemistry.kdl", POLYMER_KDL).unwrap()
     }
 

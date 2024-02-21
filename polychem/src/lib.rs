@@ -76,7 +76,6 @@ enum OffsetKind {
 struct Particle<'a> {
     symbol: &'a str,
     name: &'a str,
-    // FIXME: Benchmark if these types are better just being copied...
     mass: &'a Decimal,
     charge: &'a Charge,
 }
