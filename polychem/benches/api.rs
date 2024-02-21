@@ -1,4 +1,4 @@
-use divan::AllocProfiler;
+use divan::{black_box, AllocProfiler};
 use once_cell::sync::Lazy;
 use polychem::{
     atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
@@ -50,28 +50,28 @@ mod atoms {
     #[divan::bench]
     fn parse_chemical_compositions() {
         for formula in FORMULAS.into_iter() {
-            let _ = ChemicalComposition::new(&ATOMIC_DB, formula);
+            black_box(ChemicalComposition::new(&ATOMIC_DB, formula).unwrap());
         }
     }
 
     #[divan::bench]
     fn calculate_monoisotopic_masses() {
         for composition in COMPOSITIONS.iter() {
-            let _ = composition.monoisotopic_mass();
+            black_box(composition.monoisotopic_mass().unwrap());
         }
     }
 
     #[divan::bench]
     fn calculate_average_masses() {
         for composition in COMPOSITIONS.iter() {
-            let _ = composition.average_mass();
+            black_box(composition.average_mass().unwrap());
         }
     }
 
     #[divan::bench]
     fn calculate_charges() {
         for composition in COMPOSITIONS.iter() {
-            let _ = composition.charge();
+            black_box(composition.charge());
         }
     }
 }
@@ -83,7 +83,7 @@ mod polymers {
     use super::*;
 
     #[divan::bench]
-    fn build_polymer_database() -> PolymerDatabase<'static> {
+    fn build_polymer_database() -> PolymerDatabase {
         PolymerDatabase::from_kdl(&ATOMIC_DB, "muropeptide_chemistry.kdl", POLYMER_KDL).unwrap()
     }
 
@@ -92,7 +92,7 @@ mod polymers {
         let abbrs: Vec<_> = ('A'..'Z').map(|c| c.to_string()).collect();
         bencher.bench_local(|| {
             for abbr in &abbrs {
-                Residue::new(&POLYMER_DB, abbr, 0);
+                black_box(Residue::new(&POLYMER_DB, abbr, 0));
             }
         });
     }
