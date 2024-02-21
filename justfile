@@ -7,6 +7,9 @@ test:
 review:
   cargo insta test --workspace --review
 
+bench:
+  cargo bench --workspace
+
 lint:
   cargo clippy --workspace --tests
 

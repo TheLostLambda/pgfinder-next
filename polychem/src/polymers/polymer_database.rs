@@ -596,13 +596,13 @@ mod tests {
 
     #[test]
     fn parse_muropeptide_chemistry() {
-        let db: PolymerDatabaseKdl = knuffel::parse("muropeptide_chemistry.rs", KDL).unwrap();
+        let db: PolymerDatabaseKdl = knuffel::parse("muropeptide_chemistry.kdl", KDL).unwrap();
         assert_debug_snapshot!(db);
     }
 
     #[test]
     fn build_muropeptide_chemistry() {
-        let db = PolymerDatabase::from_kdl(&DB, "muropeptide_chemistry.rs", KDL).unwrap();
+        let db = PolymerDatabase::from_kdl(&DB, "muropeptide_chemistry.kdl", KDL).unwrap();
         assert_ron_snapshot!(db, {
             ".bonds, .modifications, .residues" => insta::sorted_redaction(),
             ".**.isotopes, .**.functional_groups" => insta::sorted_redaction()
