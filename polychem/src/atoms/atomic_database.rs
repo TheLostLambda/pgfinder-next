@@ -15,14 +15,14 @@ use rust_decimal::Decimal;
 use thiserror::Error;
 
 // Local Crate Imports
-use crate::{Charge, Element, Isotope, MassNumber, Particle};
+use crate::{Charge, Isotope, MassNumber};
 
 // Public API ==========================================================================================================
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct AtomicDatabase {
-    pub(super) elements: HashMap<String, Element>,
-    pub(super) particles: HashMap<String, Particle>,
+    pub(super) elements: HashMap<String, ElementDescription>,
+    pub(super) particles: HashMap<String, ParticleDescription>,
 }
 
 impl AtomicDatabase {
@@ -43,6 +43,21 @@ impl AtomicDatabase {
             particles,
         })
     }
+}
+
+// Private Types =======================================================================================================
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub(super) struct ElementDescription {
+    pub(super) name: String,
+    pub(super) isotopes: HashMap<MassNumber, Isotope>,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub(super) struct ParticleDescription {
+    pub(super) name: String,
+    pub(super) mass: Decimal,
+    pub(super) charge: Charge,
 }
 
 // KDL File Schema =====================================================================================================
@@ -185,7 +200,7 @@ enum InvalidAtomicSymbolError {
 
 // Conversion From Parsed KDL to Internal Representation ===============================================================
 
-type ElementEntry = (String, Element);
+type ElementEntry = (String, ElementDescription);
 
 impl From<ElementKdl> for ElementEntry {
     fn from(
@@ -196,15 +211,7 @@ impl From<ElementKdl> for ElementEntry {
         }: ElementKdl,
     ) -> Self {
         let isotopes = isotopes.into_iter().map(IsotopeEntry::from).collect();
-        (
-            symbol.0.clone(),
-            Element {
-                symbol: symbol.0,
-                name,
-                mass_number: None,
-                isotopes,
-            },
-        )
+        (symbol.0, ElementDescription { name, isotopes })
     }
 }
 
@@ -228,7 +235,7 @@ impl From<IsotopeKdl> for IsotopeEntry {
     }
 }
 
-type ParticleEntry = (String, Particle);
+type ParticleEntry = (String, ParticleDescription);
 
 impl From<ParticleKdl> for ParticleEntry {
     fn from(
@@ -240,9 +247,8 @@ impl From<ParticleKdl> for ParticleEntry {
         }: ParticleKdl,
     ) -> Self {
         (
-            symbol.0.clone(),
-            Particle {
-                symbol: symbol.0,
+            symbol.0,
+            ParticleDescription {
                 name,
                 mass: mass.0,
                 charge,

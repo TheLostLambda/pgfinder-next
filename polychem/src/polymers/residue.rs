@@ -4,26 +4,26 @@ use crate::{GroupState, Residue, Result};
 
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
 
-impl Residue {
+impl<'a, 'p> Residue<'a, 'p> {
     // FIXME: Get rid of unwrap
-    pub fn new(db: &PolymerDatabase, abbr: impl AsRef<str>, id: usize) -> Self {
-        let abbr = abbr.as_ref();
-        let ResidueDescription {
-            name,
-            composition,
-            functional_groups,
-        } = db.residues.get(abbr).unwrap();
+    pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>, id: usize) -> Self {
+        let (
+            abbr,
+            ResidueDescription {
+                name,
+                composition,
+                functional_groups,
+            },
+        ) = db.residues.get_key_value(abbr.as_ref()).unwrap();
         let functional_groups = functional_groups
             .iter()
-            // FIXME: Another clone I shouldn't need...
-            .map(|fg| (fg.clone(), GroupState::default()))
+            .map(|fg| (fg, GroupState::default()))
             .collect();
-        // FIXME: Need to eradicate these clones
         Self {
             id,
-            abbr: abbr.to_owned(),
-            name: name.clone(),
-            composition: composition.clone(),
+            abbr,
+            name,
+            composition,
             functional_groups,
             offset_modifications: Vec::new(),
         }

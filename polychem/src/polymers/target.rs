@@ -8,7 +8,7 @@ use std::{
 
 // Public API ==========================================================================================================
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub(super) struct Target<S: Deref<Target = str> = String> {
     group: S,

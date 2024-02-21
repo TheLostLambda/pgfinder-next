@@ -3,22 +3,31 @@ use rust_decimal::Decimal;
 
 use crate::{Element, Isotope, MassNumber, PolychemError, Result};
 
-use super::{atomic_database::AtomicDatabase, AtomicLookupError};
+use super::{
+    atomic_database::{AtomicDatabase, ElementDescription},
+    AtomicLookupError,
+};
 
-impl Element {
+impl<'a> Element<'a> {
     pub(super) fn new(
-        db: &AtomicDatabase,
+        db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
     ) -> std::result::Result<Self, AtomicLookupError> {
         let symbol = symbol.as_ref();
-        db.elements
-            .get(symbol)
-            .cloned()
-            .ok_or_else(|| AtomicLookupError::Element(symbol.to_owned()))
+        let (symbol, ElementDescription { name, isotopes }) = db
+            .elements
+            .get_key_value(symbol)
+            .ok_or_else(|| AtomicLookupError::Element(symbol.to_owned()))?;
+        Ok(Self {
+            symbol,
+            name,
+            mass_number: None,
+            isotopes,
+        })
     }
 
     pub(super) fn new_isotope(
-        db: &AtomicDatabase,
+        db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
         mass_number: MassNumber,
     ) -> std::result::Result<Self, AtomicLookupError> {
@@ -33,7 +42,7 @@ impl Element {
             Err(AtomicLookupError::Isotope(
                 symbol.to_owned(),
                 mass_number,
-                element.name.clone(),
+                element.name.to_owned(),
                 element.isotopes.keys().copied().sorted().collect(),
             ))
         }
@@ -88,8 +97,8 @@ impl Element {
             Ok(isotopes_with_abundances)
         } else {
             Err(AtomicLookupError::Abundance(
-                self.name.clone(),
-                self.symbol.clone(),
+                self.name.to_owned(),
+                self.symbol.to_owned(),
                 self.isotopes.keys().copied().sorted().collect(),
             ))
         }
@@ -127,7 +136,7 @@ mod tests {
         assert_eq!(symbol, "C");
         assert_eq!(name, "Carbon");
         assert_eq!(mass_number, None);
-        let mut isotopes: Vec<_> = isotopes.into_iter().collect();
+        let mut isotopes: Vec<_> = isotopes.iter().collect();
         isotopes.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
         assert_debug_snapshot!(isotopes);
         // Fail to lookup elements that don't exist
@@ -147,7 +156,7 @@ mod tests {
         assert_eq!(symbol, "C");
         assert_eq!(name, "Carbon");
         assert_eq!(mass_number, Some(13));
-        let mut isotopes: Vec<_> = isotopes.into_iter().collect();
+        let mut isotopes: Vec<_> = isotopes.iter().collect();
         isotopes.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
         assert_debug_snapshot!(isotopes);
         // Fail to lookup isotopes for elements that don't exist

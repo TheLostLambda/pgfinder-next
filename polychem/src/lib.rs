@@ -7,7 +7,7 @@ pub mod polymers;
 mod testing_tools;
 
 use atoms::{chemical_composition::CompositionError, AtomicLookupError};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 // Standard Library Imports
 use std::collections::HashMap;
@@ -19,98 +19,96 @@ use thiserror::Error;
 
 // FIXME: Blocks here need reordering!
 
-// FIXME: A more intense refactor, but things that don't change for residues, like abbr, name, composition, etc, should
-// be stored as references to the chemical databases. Otherwise, when creating new residues, I'm doing a *lot* of
-// copying that I really shouldn't need to do... I should really go through all of these types and use references for
-// anything that's "static" / just comes from a config file
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct Residue {
+// NOTE: For the types in this module, 'a lifetimes indicate references to the AtomicDatabase, whilst 'p lifetimes
+// indicate references to the PolymerDatabase
+#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+pub struct Residue<'a, 'p> {
     id: Id,
-    abbr: String,
-    name: String,
-    composition: ChemicalComposition,
-    functional_groups: HashMap<FunctionalGroup, GroupState>,
-    offset_modifications: Vec<Modification>,
+    abbr: &'p str,
+    name: &'p str,
+    composition: &'p ChemicalComposition<'a>,
+    functional_groups: HashMap<&'p FunctionalGroup, GroupState<'a, 'p>>,
+    offset_modifications: Vec<Modification<OffsetMod<'a>>>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 type Id = usize;
 
-#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
-pub struct ChemicalComposition {
-    chemical_formula: Vec<(Element, Count)>,
-    particle_offset: Option<(OffsetKind, Count, Particle)>,
+#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize)]
+pub struct ChemicalComposition<'a> {
+    chemical_formula: Vec<(Element<'a>, Count)>,
+    particle_offset: Option<(OffsetKind, Count, Particle<'a>)>,
 }
 
-type Location = String;
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct FunctionalGroup {
     name: String,
     location: String,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct Modification {
+// FIXME: Ensure that K implements the Mass and Charge traits!
+#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+pub struct Modification<K> {
     multiplier: Count,
-    kind: ModificationKind,
+    kind: K,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-struct Element {
-    symbol: String,
-    name: String,
+#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+struct Element<'a> {
+    symbol: &'a str,
+    name: &'a str,
     mass_number: Option<MassNumber>,
-    isotopes: HashMap<MassNumber, Isotope>,
+    isotopes: &'a HashMap<MassNumber, Isotope>,
 }
 
 type Count = u32;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 enum OffsetKind {
     Add,
     Remove,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-struct Particle {
-    symbol: String,
-    name: String,
-    mass: Decimal,
-    charge: Charge,
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+struct Particle<'a> {
+    symbol: &'a str,
+    name: &'a str,
+    // FIXME: Benchmark if these types are better just being copied...
+    mass: &'a Decimal,
+    charge: &'a Charge,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
-enum GroupState {
+#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize)]
+enum GroupState<'a, 'p> {
     #[default]
     Free,
-    Modified(Modification),
-    Donor(Bond),
+    Modified(Modification<&'p NamedMod<'a>>),
+    Donor(Bond<'a, 'p>),
     Acceptor,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-enum ModificationKind {
-    Predefined {
-        abbr: String,
-        name: String,
-        lost: ChemicalComposition,
-        gained: ChemicalComposition,
-    },
-    ChemicalOffset {
-        kind: OffsetKind,
-        composition: ChemicalComposition,
-    },
+#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+struct NamedMod<'a> {
+    abbr: String,
+    name: String,
+    lost: ChemicalComposition<'a>,
+    gained: ChemicalComposition<'a>,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+struct OffsetMod<'a> {
+    kind: OffsetKind,
+    composition: ChemicalComposition<'a>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
 type MassNumber = u32;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 struct Isotope {
     relative_mass: Decimal,
     abundance: Option<Decimal>,
@@ -118,19 +116,19 @@ struct Isotope {
 
 type Charge = i64;
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-struct Bond {
-    kind: String,
-    lost: ChemicalComposition,
-    acceptor: BondTarget,
+#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+struct Bond<'a, 'p> {
+    kind: &'p str,
+    lost: &'p ChemicalComposition<'a>,
+    acceptor: BondTarget<'p>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-struct BondTarget {
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+struct BondTarget<'p> {
     residue: Id,
-    group_location: Location,
+    group_location: &'p str,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

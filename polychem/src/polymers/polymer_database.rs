@@ -18,17 +18,17 @@ use crate::{atoms::atomic_database::AtomicDatabase, ChemicalComposition, Functio
 
 // Public API ==========================================================================================================
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub struct PolymerDatabase {
-    pub bonds: Bonds,
-    pub modifications: Modifications,
-    pub residues: Residues,
+pub struct PolymerDatabase<'a> {
+    pub(super) bonds: Bonds<'a>,
+    pub(super) modifications: Modifications<'a>,
+    pub(super) residues: Residues<'a>,
 }
 
-impl PolymerDatabase {
+impl<'a> PolymerDatabase<'a> {
     pub fn from_kdl(
-        db: &AtomicDatabase,
+        db: &'a AtomicDatabase,
         file_name: impl AsRef<str>,
         text: impl AsRef<str>,
     ) -> Result<Self> {
@@ -39,36 +39,36 @@ impl PolymerDatabase {
     }
 }
 
+// Private Types =======================================================================================================
+
+type Bonds<'a> = HashMap<String, BondDescription<'a>>;
+type Modifications<'a> = HashMap<String, ModificationDescription<'a>>;
+type Residues<'a> = HashMap<String, ResidueDescription<'a>>;
+
 // ---------------------------------------------------------------------------------------------------------------------
 
-type Bonds = HashMap<String, BondDescription>;
-type Modifications = HashMap<String, ModificationDescription>;
-type Residues = HashMap<String, ResidueDescription>;
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub struct BondDescription {
+pub(super) struct BondDescription<'a> {
     pub(super) from: Target,
     pub(super) to: Target,
-    pub(super) lost: ChemicalComposition,
+    pub(super) lost: ChemicalComposition<'a>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub struct ModificationDescription {
+pub(super) struct ModificationDescription<'a> {
     pub(super) name: String,
-    pub(super) lost: ChemicalComposition,
-    pub(super) gained: ChemicalComposition,
+    pub(super) lost: ChemicalComposition<'a>,
+    pub(super) gained: ChemicalComposition<'a>,
     pub(super) targets: Vec<Target>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub struct ResidueDescription {
+pub(super) struct ResidueDescription<'a> {
     pub(super) name: String,
-    pub(super) composition: ChemicalComposition,
+    pub(super) composition: ChemicalComposition<'a>,
     pub(super) functional_groups: Vec<FunctionalGroup>,
 }
 
@@ -203,18 +203,18 @@ type NullOr<T> = Option<T>;
 
 type ChemResult<T> = Result<T, ChemistryErrorKind>;
 
-trait ValidateInto<'a, T> {
-    type Context: 'a;
+trait ValidateInto<'c, T> {
+    type Context: 'c;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<T>;
 }
 
 // Polymer Database Validation =========================================================================================
 
-impl<'a> ValidateInto<'a, PolymerDatabase> for PolymerDatabaseKdl {
+impl<'a> ValidateInto<'a, PolymerDatabase<'a>> for PolymerDatabaseKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<PolymerDatabase> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<PolymerDatabase<'a>> {
         let residues = self.residues.validate(ctx)?;
         let target_index: TargetIndex = residues.values().flat_map(Targets::from).collect();
         let ctx = (ctx, &target_index);
@@ -228,10 +228,10 @@ impl<'a> ValidateInto<'a, PolymerDatabase> for PolymerDatabaseKdl {
 
 // Validate Residue Types and Residues =================================================================================
 
-impl<'a> ValidateInto<'a, Residues> for ResiduesKdl {
+impl<'a> ValidateInto<'a, Residues<'a>> for ResiduesKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<Residues> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<Residues<'a>> {
         let types = self.types.validate(())?;
         self.residues
             .into_iter()
@@ -246,7 +246,7 @@ type ResidueTypes = HashMap<String, Vec<FunctionalGroupKdl>>;
 
 // NOTE: The Context = () means this is essentially a TryInto implementation, but Rust's orphan rules mean I can't
 // actually implement TryInto, because Vec<_> is not a local type (despite its parameter, ResidueTypeKdl being one)
-impl<'a> ValidateInto<'a, ResidueTypes> for Vec<ResidueTypeKdl> {
+impl ValidateInto<'_, ResidueTypes> for Vec<ResidueTypeKdl> {
     type Context = ();
 
     fn validate(self, _ctx: Self::Context) -> ChemResult<ResidueTypes> {
@@ -270,12 +270,12 @@ impl<'a> ValidateInto<'a, ResidueTypes> for Vec<ResidueTypeKdl> {
     }
 }
 
-type ResidueEntry = (String, ResidueDescription);
+type ResidueEntry<'a> = (String, ResidueDescription<'a>);
 
-impl<'a> ValidateInto<'a, ResidueEntry> for ResidueKdl {
-    type Context = (&'a AtomicDatabase, &'a ResidueTypes);
+impl<'a: 'r, 'r> ValidateInto<'r, ResidueEntry<'a>> for ResidueKdl {
+    type Context = (&'a AtomicDatabase, &'r ResidueTypes);
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<ResidueEntry> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<ResidueEntry<'a>> {
         let groups_from_type = ctx
             .1
             .get(&self.residue_type)
@@ -314,20 +314,20 @@ impl<'a> ValidateInto<'a, ResidueEntry> for ResidueKdl {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-impl<'a> ValidateInto<'a, ChemicalComposition> for Option<ChemicalCompositionKdl> {
+impl<'a> ValidateInto<'a, ChemicalComposition<'a>> for Option<ChemicalCompositionKdl> {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition<'a>> {
         self.map_or_else(|| Ok(ChemicalComposition::default()), |c| c.validate(ctx))
     }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-impl<'a> ValidateInto<'a, ChemicalComposition> for ChemicalCompositionKdl {
+impl<'a> ValidateInto<'a, ChemicalComposition<'a>> for ChemicalCompositionKdl {
     type Context = &'a AtomicDatabase;
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition<'a>> {
         ChemicalComposition::new(ctx, &self)
             .map_err(|e| ChemistryErrorKind::Composition(*self.span(), e))
     }
@@ -335,22 +335,22 @@ impl<'a> ValidateInto<'a, ChemicalComposition> for ChemicalCompositionKdl {
 
 // Validate Bonds ======================================================================================================
 
-impl<'a> ValidateInto<'a, Bonds> for BondsKdl {
-    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
+impl<'a: 't, 't> ValidateInto<'t, Bonds<'a>> for BondsKdl {
+    type Context = (&'a AtomicDatabase, &'t TargetIndex<'t>);
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<Bonds> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<Bonds<'a>> {
         self.bonds.into_iter().map(|b| b.validate(ctx)).collect()
     }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-type BondEntry = (String, BondDescription);
+type BondEntry<'a> = (String, BondDescription<'a>);
 
-impl<'a> ValidateInto<'a, BondEntry> for BondKdl {
-    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
+impl<'a: 't, 't> ValidateInto<'t, BondEntry<'a>> for BondKdl {
+    type Context = (&'a AtomicDatabase, &'t TargetIndex<'t>);
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<BondEntry> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<BondEntry<'a>> {
         Ok((
             self.kind,
             BondDescription {
@@ -364,8 +364,8 @@ impl<'a> ValidateInto<'a, BondEntry> for BondKdl {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-impl<'a> ValidateInto<'a, Target> for TargetKdl {
-    type Context = &'a TargetIndex<'a>;
+impl<'t> ValidateInto<'t, Target> for TargetKdl {
+    type Context = &'t TargetIndex<'t>;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<Target> {
         let target = Target::new(self.group, self.location, self.residue);
@@ -380,10 +380,10 @@ impl<'a> ValidateInto<'a, Target> for TargetKdl {
 
 // Validate Modifications ==============================================================================================
 
-impl<'a> ValidateInto<'a, Modifications> for ModificationsKdl {
-    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
+impl<'a: 't, 't> ValidateInto<'t, Modifications<'a>> for ModificationsKdl {
+    type Context = (&'a AtomicDatabase, &'t TargetIndex<'t>);
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<Modifications> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<Modifications<'a>> {
         self.modifications
             .into_iter()
             .map(|m| m.validate(ctx))
@@ -393,12 +393,12 @@ impl<'a> ValidateInto<'a, Modifications> for ModificationsKdl {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-type ModificationEntry = (String, ModificationDescription);
+type ModificationEntry<'a> = (String, ModificationDescription<'a>);
 
-impl<'a> ValidateInto<'a, ModificationEntry> for ModificationKdl {
-    type Context = (&'a AtomicDatabase, &'a TargetIndex<'a>);
+impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
+    type Context = (&'a AtomicDatabase, &'t TargetIndex<'t>);
 
-    fn validate(self, ctx: Self::Context) -> ChemResult<ModificationEntry> {
+    fn validate(self, ctx: Self::Context) -> ChemResult<ModificationEntry<'a>> {
         let targets_and_spans: Vec<_> = self
             .targets
             .into_iter()
@@ -439,8 +439,8 @@ impl<'a> ValidateInto<'a, ModificationEntry> for ModificationKdl {
 
 type TargetEntry = (Target, Span);
 
-impl<'a> ValidateInto<'a, TargetEntry> for TargetKdl {
-    type Context = &'a TargetIndex<'a>;
+impl<'t> ValidateInto<'t, TargetEntry> for TargetKdl {
+    type Context = &'t TargetIndex<'t>;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<TargetEntry> {
         let span = self.span;
@@ -452,7 +452,7 @@ impl<'a> ValidateInto<'a, TargetEntry> for TargetKdl {
 
 type Targets<'a> = Vec<Target<&'a str>>;
 
-impl<'a> From<&'a ResidueDescription> for Targets<'a> {
+impl<'a> From<&'a ResidueDescription<'a>> for Targets<'a> {
     fn from(value: &'a ResidueDescription) -> Self {
         value
             .functional_groups
@@ -500,7 +500,7 @@ impl Diagnostic for ChemistryError {
 
     fn labels(&self) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
         Some(Box::new(self.kind.labels().into_iter().map(|(s, l)| {
-            LabeledSpan::new_with_span(Some(l.to_string()), s)
+            LabeledSpan::new_with_span(Some(l.to_owned()), *s)
         })))
     }
 
@@ -543,23 +543,23 @@ enum ChemistryErrorKind {
 }
 
 impl ChemistryErrorKind {
-    fn labels(&self) -> Vec<(Span, &'static str)> {
+    fn labels(&self) -> Vec<(&Span, &'static str)> {
         match self {
             Self::DuplicateResidueType(s1, s2, _)
             | Self::DuplicateFunctionalGroup(s1, s2, _, _) => {
-                vec![(*s1, "first defined here"), (*s2, "then again here")]
+                vec![(s1, "first defined here"), (s2, "then again here")]
             }
-            Self::UndefinedResidueType(s, _) => vec![(*s, "undefined residue type")],
-            Self::NonexistentTarget(s, _) => vec![(*s, "targets nothing")],
-            Self::OverlappingTargets(s1, ss, _) => iter::once((*s1, "this target"))
-                .chain(zip(ss.clone(), iter::repeat("overlaps with")))
+            Self::UndefinedResidueType(s, _) => vec![(s, "undefined residue type")],
+            Self::NonexistentTarget(s, _) => vec![(s, "targets nothing")],
+            Self::OverlappingTargets(s1, ss, _) => iter::once((s1, "this target"))
+                .chain(zip(ss, iter::repeat("overlaps with")))
                 .collect(),
-            Self::Composition(s, _) => vec![(*s, "invalid chemical composition")],
+            Self::Composition(s, _) => vec![(s, "invalid chemical composition")],
         }
     }
 
     fn finalize(self, file_name: impl AsRef<str>, kdl: impl AsRef<str>) -> ChemistryError {
-        let kdl = NamedSource::new(file_name, kdl.as_ref().to_string());
+        let kdl = NamedSource::new(file_name, kdl.as_ref().to_owned());
         ChemistryError { kdl, kind: self }
     }
 }

@@ -1,17 +1,26 @@
 use crate::Particle;
 
-use super::{atomic_database::AtomicDatabase, AtomicLookupError};
+use super::{
+    atomic_database::{AtomicDatabase, ParticleDescription},
+    AtomicLookupError,
+};
 
-impl Particle {
+impl<'a> Particle<'a> {
     pub(super) fn new(
-        db: &AtomicDatabase,
+        db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
     ) -> std::result::Result<Self, AtomicLookupError> {
         let symbol = symbol.as_ref();
-        db.particles
-            .get(symbol)
-            .cloned()
-            .ok_or_else(|| AtomicLookupError::Particle(symbol.to_owned()))
+        let (symbol, ParticleDescription { name, mass, charge }) = db
+            .particles
+            .get_key_value(symbol)
+            .ok_or_else(|| AtomicLookupError::Particle(symbol.to_owned()))?;
+        Ok(Self {
+            symbol,
+            name,
+            mass,
+            charge,
+        })
     }
 }
 

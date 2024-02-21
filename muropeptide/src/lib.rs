@@ -1,51 +1,52 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 
-use polychem::{Modification, Residue};
+// FIXME: Uncomment all of this, and decide if having two lifetime parameters for Residue is stupid...
+// use polychem::{Modification, Residue};
 
-pub struct Muropeptide {
-    monomers: Vec<Monomer>,
-    connections: Vec<Connection>,
-    modifications: Vec<Modification>,
-}
+// pub struct Muropeptide {
+//     monomers: Vec<Monomer>,
+//     connections: Vec<Connection>,
+//     modifications: Vec<Modification>,
+// }
 
-struct Monomer {
-    glycan: Vec<Monosaccharide>,
-    peptide: Vec<AminoAcid>,
-}
+// struct Monomer {
+//     glycan: Vec<Monosaccharide>,
+//     peptide: Vec<AminoAcid>,
+// }
 
-type Connection = Vec<ConnectionKind>;
+// type Connection = Vec<ConnectionKind>;
 
-type Monosaccharide = Residue;
+// type Monosaccharide = Residue;
 
-struct AminoAcid {
-    residue: Residue,
-    lateral_chain: Option<LateralChain>,
-}
+// struct AminoAcid {
+//     residue: Residue,
+//     lateral_chain: Option<LateralChain>,
+// }
 
-enum ConnectionKind {
-    GlycosidicBond,
-    Crosslink(Vec<CrosslinkDescriptor>),
-}
+// enum ConnectionKind {
+//     GlycosidicBond,
+//     Crosslink(Vec<CrosslinkDescriptor>),
+// }
 
-struct LateralChain {
-    direction: PeptideDirection,
-    peptide: Vec<UnbranchedAminoAcid>,
-}
+// struct LateralChain {
+//     direction: PeptideDirection,
+//     peptide: Vec<UnbranchedAminoAcid>,
+// }
 
-enum CrosslinkDescriptor {
-    DonorAcceptor(Position, Position),
-    AcceptorDonor(Position, Position),
-}
+// enum CrosslinkDescriptor {
+//     DonorAcceptor(Position, Position),
+//     AcceptorDonor(Position, Position),
+// }
 
-enum PeptideDirection {
-    Unspecified,
-    CToN,
-    NToC,
-}
+// enum PeptideDirection {
+//     Unspecified,
+//     CToN,
+//     NToC,
+// }
 
-type UnbranchedAminoAcid = Residue;
+// type UnbranchedAminoAcid = Residue;
 
-type Position = u8;
+// type Position = u8;
 
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)

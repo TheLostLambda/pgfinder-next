@@ -26,10 +26,10 @@ use crate::{
 
 pub(crate) type CompositionError = LabeledError<CompositionErrorKind>;
 
-impl ChemicalComposition {
-    pub fn new(db: &AtomicDatabase, formula: impl AsRef<str>) -> Result<Self> {
-        let formula = formula.as_ref();
-        final_parser(chemical_composition(db))(formula).map_err(crate::Error::from)
+impl<'a> ChemicalComposition<'a> {
+    pub fn new(db: &'a AtomicDatabase, formula: impl AsRef<str>) -> Result<Self> {
+        let mut parser = final_parser(chemical_composition(db));
+        parser(formula.as_ref()).map_err(crate::Error::from)
     }
 
     pub fn monoisotopic_mass(&self) -> Result<Decimal> {
@@ -57,9 +57,9 @@ impl ChemicalComposition {
 ///   = { Atomic Offset }- , [ Offset Kind , Particle Offset ]
 ///   | Particle Offset
 ///   ;
-pub fn chemical_composition<'a>(
+pub fn chemical_composition<'a, 's>(
     db: &'a AtomicDatabase,
-) -> impl FnMut(&'a str) -> ParseResult<ChemicalComposition> {
+) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {
     let chemical_formula = many1(atomic_offset(db));
     let optional_particle_offset = opt(pair(offset_kind, cut(particle_offset(db))));
     let atoms_and_particles = map(
@@ -87,8 +87,8 @@ pub fn chemical_composition<'a>(
 
 // Private Helper Methods ==============================================================================================
 
-impl ChemicalComposition {
-    fn mass(&self, accessor: impl Fn(&Element) -> Result<Decimal>) -> Result<Decimal> {
+impl<'a> ChemicalComposition<'a> {
+    fn mass(&self, accessor: impl Fn(&Element<'a>) -> Result<Decimal>) -> Result<Decimal> {
         // NOTE: Not using iterators makes using `?` possible, but might shut me out of `rayon` optimizations
         let mut mass = Decimal::zero();
 
@@ -107,9 +107,9 @@ impl ChemicalComposition {
 // Private Sub-Parsers =================================================================================================
 
 /// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
-fn atomic_offset<'a>(
+fn atomic_offset<'a, 's>(
     db: &'a AtomicDatabase,
-) -> impl FnMut(&'a str) -> ParseResult<(Element, Count)> {
+) -> impl FnMut(&'s str) -> ParseResult<(Element<'a>, Count)> {
     let element_or_isotope = alt((element(db), isotope(db)));
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     let parser = pair(element_or_isotope, optional_count);
@@ -126,9 +126,9 @@ fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
 }
 
 /// Particle Offset = [ Count ] , Particle ;
-fn particle_offset<'a>(
+fn particle_offset<'a, 's>(
     db: &'a AtomicDatabase,
-) -> impl FnMut(&'a str) -> ParseResult<(Count, Particle)> {
+) -> impl FnMut(&'s str) -> ParseResult<(Count, Particle<'a>)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     let parser = pair(optional_count, particle(db));
     wrap_err(parser, CompositionErrorKind::ExpectedParticleOffset)
@@ -137,12 +137,12 @@ fn particle_offset<'a>(
 // ---------------------------------------------------------------------------------------------------------------------
 
 /// Element = uppercase , [ lowercase ] ;
-fn element<'a>(db: &'a AtomicDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
+fn element<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<Element<'a>> {
     map_res(element_symbol, |symbol| Element::new(db, symbol))
 }
 
 /// Isotope = "[" , Count , Element , "]" ;
-fn isotope<'a>(db: &'a AtomicDatabase) -> impl FnMut(&'a str) -> ParseResult<Element> {
+fn isotope<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<Element<'a>> {
     map_res(isotope_expr, |(mass_number, symbol)| {
         Element::new_isotope(db, symbol, mass_number)
     })
@@ -159,7 +159,7 @@ fn count(i: &str) -> ParseResult<Count> {
 }
 
 /// Particle = lowercase ;
-fn particle<'a>(db: &'a AtomicDatabase) -> impl FnMut(&'a str) -> ParseResult<Particle> {
+fn particle<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<Particle<'a>> {
     map_res(particle_symbol, |symbol| Particle::new(db, symbol))
 }
 
@@ -417,7 +417,7 @@ mod tests {
             ($input:literal, $output:literal, $name:literal) => {
                 assert_eq!(
                     element($input).map(|(r, e)| (r, e.name)),
-                    Ok(($output, $name.to_string()))
+                    Ok(($output, $name))
                 );
             };
         }
@@ -466,7 +466,7 @@ mod tests {
                 assert_eq!(
                     isotope($input)
                         .map(|(r, e)| (r, format!("{}-{}", e.name, e.mass_number.unwrap()))),
-                    Ok(($output, $name.to_string()))
+                    Ok(($output, $name.to_owned()))
                 );
             };
         }
@@ -500,7 +500,7 @@ mod tests {
             ($input:literal, $output:literal, $name:literal) => {
                 assert_eq!(
                     particle($input).map(|(r, e)| (r, e.name)),
-                    Ok(($output, $name.to_string()))
+                    Ok(($output, $name))
                 );
             };
         }
@@ -544,7 +544,7 @@ mod tests {
             ($input:literal, $output:literal, $count:literal, $name:literal ) => {
                 assert_eq!(
                     particle_offset($input).map(|(r, (c, p))| (r, (c, p.name))),
-                    Ok(($output, ($count, $name.to_string())))
+                    Ok(($output, ($count, $name)))
                 );
             };
         }
@@ -586,11 +586,11 @@ mod tests {
                         let name = if let Some(a) = e.mass_number {
                             format!("{}-{a}", e.name)
                         } else {
-                            e.name
+                            e.name.to_owned()
                         };
                         (r, (name, c))
                     }),
-                    Ok(($output, ($name.to_string(), $count)))
+                    Ok(($output, ($name.to_owned(), $count)))
                 );
             };
         }
@@ -654,7 +654,7 @@ mod tests {
                         let name = if let Some(a) = e.mass_number {
                             format!("{}-{a}", e.name)
                         } else {
-                            e.name.clone()
+                            e.name.to_owned()
                         };
                         (name, c)
                     })
