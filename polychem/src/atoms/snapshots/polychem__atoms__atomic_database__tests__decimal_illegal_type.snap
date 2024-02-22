@@ -11,4 +11,3 @@ Error:   × no type for Decimal, found pi
    ·          ──┬─
    ·            ╰── unexpected type name
    ╰────
-

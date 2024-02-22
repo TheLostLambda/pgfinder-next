@@ -1,8 +1,8 @@
 use divan::{black_box, AllocProfiler};
 use once_cell::sync::Lazy;
 use polychem::{
-    atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-    ChemicalComposition,
+    atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase, Charged,
+    ChemicalComposition, Massive,
 };
 
 #[global_allocator]
@@ -57,14 +57,14 @@ mod atoms {
     #[divan::bench]
     fn calculate_monoisotopic_masses() {
         for composition in COMPOSITIONS.iter() {
-            black_box(composition.monoisotopic_mass().unwrap());
+            black_box(composition.monoisotopic_mass());
         }
     }
 
     #[divan::bench]
     fn calculate_average_masses() {
         for composition in COMPOSITIONS.iter() {
-            black_box(composition.average_mass().unwrap());
+            black_box(composition.average_mass());
         }
     }
 

@@ -13,4 +13,3 @@ Error:   × duplicate node `composition`, single node expected
    ·          ╰── unexpected node
  7 │ }
    ╰────
-

@@ -13,4 +13,3 @@ Error:   × expected string scalar, found null
    ·              ╰── unexpected null
  5 │ }
    ╰────
-

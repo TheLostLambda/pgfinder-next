@@ -6,7 +6,7 @@ pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
 
-use atoms::{chemical_composition::CompositionError, AtomicLookupError};
+use atoms::chemical_composition::CompositionError;
 use serde::Serialize;
 
 // Standard Library Imports
@@ -140,6 +140,27 @@ struct BondTarget<'p> {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+pub trait Massive {
+    fn monoisotopic_mass(&self) -> Decimal;
+    fn average_mass(&self) -> Decimal;
+}
+
+pub trait Charged {
+    fn charge(&self) -> Charge;
+}
+
+pub trait Mz: Massive + Charged {
+    fn monoisotopic_mz(&self) -> Option<Decimal> {
+        let charge = self.charge().abs();
+        (charge != 0).then(|| self.monoisotopic_mass() / Decimal::from(charge))
+    }
+
+    fn average_mz(&self) -> Option<Decimal> {
+        let charge = self.charge().abs();
+        (charge != 0).then(|| self.average_mass() / Decimal::from(charge))
+    }
+}
+
 // FIXME: These OffsetKind impls probably need a better home?
 impl From<&OffsetKind> for Decimal {
     fn from(value: &OffsetKind) -> Self {
@@ -167,7 +188,7 @@ impl<E: Into<PolychemError>> From<E> for Error {
     }
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 // FIXME: Maybe there are too many layers of things being wrapped here!
 // FIXME: Maybe just rename this to be `Error`?
@@ -179,20 +200,5 @@ enum PolychemError {
     Composition(#[from] CompositionError),
 
     #[error("the residue {0:?} could not be found in the supplied polymer database")]
-    Residue(String),
-
-    // FIXME: Oof, are these even different enough to warrant different errors?
-    #[error("failed to fetch isotope abundances for monoisotopic mass calculation")]
-    MonoisotopicMass(
-        #[source]
-        #[diagnostic_source]
-        AtomicLookupError,
-    ),
-
-    #[error("failed to fetch isotope abundances for average mass calculation")]
-    AverageMass(
-        #[source]
-        #[diagnostic_source]
-        AtomicLookupError,
-    ),
+    ResidueLookup(String),
 }

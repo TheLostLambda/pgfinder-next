@@ -5,7 +5,7 @@ test:
   cargo test --workspace
 
 review:
-  cargo insta test --workspace --review
+  (cd polychem; cargo insta test --review)
 
 bench:
   cargo bench --workspace

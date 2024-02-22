@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 
-use crate::{GroupState, PolychemError, Residue, Result};
+use crate::{GroupState, Massive, PolychemError, Residue, Result};
 
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
 
@@ -17,7 +17,7 @@ impl<'a, 'p> Residue<'a, 'p> {
         ) = db
             .residues
             .get_key_value(abbr)
-            .ok_or_else(|| PolychemError::Residue(abbr.to_owned()))?;
+            .ok_or_else(|| PolychemError::ResidueLookup(abbr.to_owned()))?;
         let functional_groups = functional_groups
             .iter()
             .map(|fg| (fg, GroupState::default()))
@@ -31,11 +31,16 @@ impl<'a, 'p> Residue<'a, 'p> {
             offset_modifications: Vec::new(),
         })
     }
+}
 
-    // FIXME: Should these mass functions be made into a trait? I think they probably should be...
-    // FIXME: I also don't like using Report anywhere... (with Result<T>) I need to move to module error enums again
-    pub fn monoisotopic_mass(&self) -> Result<Decimal> {
+// FIXME: These need to take into account offset modifications and functional groups!
+impl Massive for Residue<'_, '_> {
+    fn monoisotopic_mass(&self) -> Decimal {
         self.composition.monoisotopic_mass()
+    }
+
+    fn average_mass(&self) -> Decimal {
+        self.composition.average_mass()
     }
 }
 
@@ -46,7 +51,7 @@ mod tests {
 
     use crate::{
         atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-        Residue,
+        Massive, Residue,
     };
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
@@ -70,6 +75,6 @@ mod tests {
     #[test]
     fn residue_construction() {
         let alanine = Residue::new(&POLYMER_DB, "A", 0).unwrap();
-        assert_eq!(alanine.monoisotopic_mass().unwrap(), dec!(89.04767846918));
+        assert_eq!(alanine.monoisotopic_mass(), dec!(89.04767846918));
     }
 }

@@ -9,7 +9,7 @@ impl<'a> Particle<'a> {
     pub(super) fn new(
         db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
-    ) -> std::result::Result<Self, AtomicLookupError> {
+    ) -> Result<Self, AtomicLookupError> {
         let symbol = symbol.as_ref();
         let (symbol, ParticleDescription { name, mass, charge }) = db
             .particles

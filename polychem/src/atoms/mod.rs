@@ -16,14 +16,18 @@ pub enum AtomicLookupError {
     #[error("the element {0:?} could not be found in the supplied atomic database")]
     Element(String),
 
-    #[error("the isotope \"{0}-{1}\" could not be found in the supplied atomic database, though the following {2} isotopes were found: {3:?}")]
+    #[error(
+        "the isotope \"{0}-{1}\" could not be found in the supplied atomic database, though the following {2} \
+        isotopes were found: {3:?}"
+    )]
     Isotope(String, MassNumber, String, Vec<MassNumber>),
 
     #[error("the particle {0:?} could not be found in the supplied atomic database")]
     Particle(String),
 
-    // FIXME: Unforuntately, this error probably doesn't belong here... All of the other errors can be
-    // encountered at parse time, but this one is only triggered by a mass calculation...
     #[error("no natural abundance data could be found for {0} ({1}), though the following isotopes were found: {2:?}")]
+    #[diagnostic(help(
+        "consider explicitly selecting the isotope to be used in mass calculations — e.g. [{}{}]", .2[0], .1
+    ))]
     Abundance(String, String, Vec<MassNumber>),
 }

@@ -13,4 +13,3 @@ Error:   × duplicate node `to`, single node expected
    ·      ╰── unexpected node
  4 │ }
    ╰────
-

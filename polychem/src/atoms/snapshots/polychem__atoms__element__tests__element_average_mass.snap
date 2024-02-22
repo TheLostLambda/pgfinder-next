@@ -1,11 +1,9 @@
 ---
 source: polychem/src/atoms/element.rs
-description: "Element::new(&DB, \"Po\")?.average_mass()"
+description: "Element::new(&DB, \"Po\")"
 expression: out
 ---
-  × failed to fetch isotope abundances for average mass calculation
-  ╰─▶   × no natural abundance data could be found for Polonium (Po), though
-      the
-        │ following isotopes were found: [209, 210]
-      
-
+  × no natural abundance data could be found for Polonium (Po), though the
+  │ following isotopes were found: [209, 210]
+  help: consider explicitly selecting the isotope to be used in mass
+        calculations — e.g. [209Po]
