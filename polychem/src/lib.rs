@@ -67,7 +67,7 @@ struct Element<'a> {
 type Count = u32;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-enum OffsetKind {
+pub enum OffsetKind {
     Add,
     Remove,
 }
@@ -162,14 +162,14 @@ pub trait Mz: Massive + Charged {
 }
 
 // FIXME: These OffsetKind impls probably need a better home?
-impl From<&OffsetKind> for Decimal {
-    fn from(value: &OffsetKind) -> Self {
+impl From<OffsetKind> for Decimal {
+    fn from(value: OffsetKind) -> Self {
         Charge::from(value).into()
     }
 }
 
-impl From<&OffsetKind> for Charge {
-    fn from(value: &OffsetKind) -> Self {
+impl From<OffsetKind> for Charge {
+    fn from(value: OffsetKind) -> Self {
         match value {
             OffsetKind::Add => 1,
             OffsetKind::Remove => -1,

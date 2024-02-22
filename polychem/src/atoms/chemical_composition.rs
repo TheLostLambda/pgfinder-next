@@ -83,7 +83,7 @@ impl Charged for ChemicalComposition<'_> {
         self.particle_offset
             .as_ref()
             .map(|(k, c, p)| {
-                let sign: Charge = k.into();
+                let sign = Charge::from(*k);
                 let c = Charge::from(*c);
                 sign * c * p.charge()
             })
@@ -106,7 +106,7 @@ impl<'a> ChemicalComposition<'a> {
             .particle_offset
             .iter()
             .map(|(offset_kind, count, particle)| {
-                Decimal::from(offset_kind) * Decimal::from(*count) * particle.mass
+                Decimal::from(*offset_kind) * Decimal::from(*count) * particle.mass
             });
 
         element_masses.chain(particle_masses).sum()
