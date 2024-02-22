@@ -97,17 +97,19 @@ impl Mz for ChemicalComposition<'_> {}
 
 impl<'a> ChemicalComposition<'a> {
     fn mass(&self, accessor: impl Fn(&Element<'a>) -> Decimal) -> Decimal {
-        let mut mass = Decimal::zero();
+        let element_masses = self
+            .chemical_formula
+            .iter()
+            .map(|(element, count)| Decimal::from(*count) * accessor(element));
 
-        for (element, count) in &self.chemical_formula {
-            mass += Decimal::from(*count) * accessor(element);
-        }
+        let particle_masses = self
+            .particle_offset
+            .iter()
+            .map(|(offset_kind, count, particle)| {
+                Decimal::from(offset_kind) * Decimal::from(*count) * particle.mass
+            });
 
-        if let Some((offset_kind, count, particle)) = &self.particle_offset {
-            mass += Decimal::from(offset_kind) * Decimal::from(*count) * particle.mass;
-        }
-
-        mass
+        element_masses.chain(particle_masses).sum()
     }
 }
 
