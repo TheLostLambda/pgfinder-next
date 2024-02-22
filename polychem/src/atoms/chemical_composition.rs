@@ -13,7 +13,7 @@ use nom_miette::{
     expect, final_parser, map_res, wrap_err, FromExternalError, LabeledError, LabeledErrorKind,
     LabeledParseError,
 };
-use rust_decimal::{prelude::Zero, Decimal};
+use rust_decimal::Decimal;
 use thiserror::Error;
 
 // Local Crate Imports
@@ -85,7 +85,7 @@ impl Charged for ChemicalComposition<'_> {
             .map(|(k, c, p)| {
                 let sign: Charge = k.into();
                 let c = Charge::from(*c);
-                sign * c * p.charge
+                sign * c * p.charge()
             })
             .unwrap_or_default()
     }

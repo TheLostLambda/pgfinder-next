@@ -1,4 +1,6 @@
-use crate::Particle;
+use rust_decimal::Decimal;
+
+use crate::{Charge, Charged, Massive, Mz, Particle};
 
 use super::{
     atomic_database::{AtomicDatabase, ParticleDescription},
@@ -23,6 +25,24 @@ impl<'a> Particle<'a> {
         })
     }
 }
+
+impl Massive for Particle<'_> {
+    fn monoisotopic_mass(&self) -> Decimal {
+        *self.mass
+    }
+
+    fn average_mass(&self) -> Decimal {
+        *self.mass
+    }
+}
+
+impl Charged for Particle<'_> {
+    fn charge(&self) -> Charge {
+        *self.charge
+    }
+}
+
+impl Mz for Particle<'_> {}
 
 #[cfg(test)]
 mod tests {
