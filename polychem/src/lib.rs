@@ -132,7 +132,7 @@ struct Bond<'a, 'p> {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 struct BondTarget<'p> {
     residue: Id,
     group_location: &'p str,
@@ -204,4 +204,7 @@ enum PolychemError {
 
     #[error("the modification {0:?} could not be found in the supplied polymer database")]
     ModificationLookup(String),
+
+    #[error("the bond kind {0:?} could not be found in the supplied polymer database")]
+    BondLookup(String),
 }

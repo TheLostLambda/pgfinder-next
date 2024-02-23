@@ -31,6 +31,7 @@ impl<'a, 'p> Residue<'a, 'p> {
             offset_modifications: Vec::new(),
         })
     }
+    // TODO: Write named_modifications and bonds
 }
 
 // FIXME: These need to take into account offset modifications and functional groups!
