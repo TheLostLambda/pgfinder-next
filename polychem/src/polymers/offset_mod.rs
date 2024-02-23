@@ -50,7 +50,7 @@ mod tests {
     });
 
     #[test]
-    fn offset_mod_construction() {
+    fn errors() {
         let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H[2O]");
         assert_miette_snapshot!(water_gained);
         let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H[2O]");
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn offset_mod_monoisotopic_mass() {
+    fn monoisotopic_mass() {
         // Masses checked against https://www.unimod.org/modifications_list.php
         let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.monoisotopic_mass(), dec!(18.01056468403));
@@ -72,7 +72,7 @@ mod tests {
     }
 
     #[test]
-    fn offset_mod_average_mass() {
+    fn average_mass() {
         // Masses checked against https://www.unimod.org/modifications_list.php
         let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.average_mass(), dec!(18.01528643242983260));
@@ -86,7 +86,7 @@ mod tests {
     }
 
     #[test]
-    fn offset_mod_charge() {
+    fn charge() {
         let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.charge(), 0);
         let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
@@ -98,7 +98,7 @@ mod tests {
     }
 
     #[test]
-    fn offset_monoisotopic_mz() {
+    fn monoisotopic_mz() {
         let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.monoisotopic_mz(), None);
         let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
@@ -107,5 +107,17 @@ mod tests {
         assert_eq!(ca_gained.monoisotopic_mz(), Some(dec!(19.980746851590935)));
         let ca_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap();
         assert_eq!(ca_lost.monoisotopic_mz(), Some(dec!(-19.980746851590935)));
+    }
+
+    #[test]
+    fn average_mz() {
+        let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
+        assert_eq!(water_gained.average_mz(), None);
+        let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
+        assert_eq!(water_lost.average_mz(), None);
+        let ca_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap();
+        assert_eq!(ca_gained.average_mz(), Some(dec!(20.0384626755998)));
+        let ca_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap();
+        assert_eq!(ca_lost.average_mz(), Some(dec!(-20.0384626755998)));
     }
 }

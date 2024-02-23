@@ -6,7 +6,7 @@ use polychem::{AnyModification, Residue};
 pub struct Muropeptide<'a> {
     monomers: Vec<Monomer<'a>>,
     connections: Vec<Connection>,
-    modifications: Vec<AnyModification<'a>>,
+    modifications: Vec<AnyModification<'a, 'a>>,
 }
 
 struct Monomer<'a> {

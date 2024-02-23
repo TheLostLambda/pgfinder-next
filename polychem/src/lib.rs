@@ -84,25 +84,25 @@ struct Particle<'a> {
 enum GroupState<'a, 'p> {
     #[default]
     Free,
-    Modified(Modification<&'p NamedMod<'a>>),
+    Modified(Modification<NamedMod<'a, 'p>>),
     Donor(Bond<'a, 'p>),
     Acceptor,
 }
 
 // FIXME: Move these "Any" types to their own section, after the main tree of data structures, since they are only used
 // *outside* of this crate!
-pub type AnyModification<'a> = Modification<AnyMod<'a>>;
-pub enum AnyMod<'a> {
-    Named(NamedMod<'a>),
+pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
+pub enum AnyMod<'a, 'p> {
+    Named(NamedMod<'a, 'p>),
     Offset(OffsetMod<'a>),
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-pub struct NamedMod<'a> {
-    abbr: String,
-    name: String,
-    lost: ChemicalComposition<'a>,
-    gained: ChemicalComposition<'a>,
+pub struct NamedMod<'a, 'p> {
+    abbr: &'p str,
+    name: &'p str,
+    lost: &'p ChemicalComposition<'a>,
+    gained: &'p ChemicalComposition<'a>,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
@@ -201,4 +201,7 @@ enum PolychemError {
 
     #[error("the residue {0:?} could not be found in the supplied polymer database")]
     ResidueLookup(String),
+
+    #[error("the modification {0:?} could not be found in the supplied polymer database")]
+    ModificationLookup(String),
 }
