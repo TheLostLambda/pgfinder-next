@@ -49,7 +49,7 @@ pub struct FunctionalGroup {
 
 // FIXME: Ensure that K implements the Mass and Charge traits!
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-pub struct Modification<K> {
+pub struct Modification<K: Mz> {
     multiplier: Count,
     kind: K,
 }
@@ -92,6 +92,7 @@ enum GroupState<'a, 'p> {
 // FIXME: Move these "Any" types to their own section, after the main tree of data structures, since they are only used
 // *outside* of this crate!
 pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
+#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
 pub enum AnyMod<'a, 'p> {
     Named(NamedMod<'a, 'p>),
     Offset(OffsetMod<'a>),
