@@ -47,9 +47,8 @@ pub struct FunctionalGroup {
     location: String,
 }
 
-// FIXME: Ensure that K implements the Mass and Charge traits!
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-pub struct Modification<K: Mz> {
+pub struct Modification<K> {
     multiplier: Count,
     kind: K,
 }
@@ -84,7 +83,7 @@ struct Particle<'a> {
 enum GroupState<'a, 'p> {
     #[default]
     Free,
-    Modified(Modification<NamedMod<'a, 'p>>),
+    Modified(NamedMod<'a, 'p>),
     Donor(Bond<'a, 'p>),
     Acceptor,
 }
