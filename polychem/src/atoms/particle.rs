@@ -47,10 +47,10 @@ impl Mz for Particle<'_> {}
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use miette::Result;
     use once_cell::sync::Lazy;
+    use rust_decimal_macros::dec;
 
-    use crate::testing_tools::assert_miette_snapshot;
+    use crate::{testing_tools::assert_miette_snapshot, Charged, Massive};
 
     use super::{AtomicDatabase, Particle};
 
@@ -63,12 +63,34 @@ mod tests {
     });
 
     #[test]
-    fn new_particle() -> Result<()> {
+    fn new_particle() {
         // Sucessfully lookup particles that exist
-        assert_debug_snapshot!(Particle::new(&DB, "p")?);
-        assert_debug_snapshot!(Particle::new(&DB, "e")?);
+        assert_debug_snapshot!(Particle::new(&DB, "p").unwrap());
+        assert_debug_snapshot!(Particle::new(&DB, "e").unwrap());
         // Fail to lookup particles that don't exist
         assert_miette_snapshot!(Particle::new(&DB, "m"));
-        Ok(())
+    }
+
+    #[test]
+    fn particle_masses() {
+        let proton = Particle::new(&DB, "p").unwrap();
+        assert_eq!(*proton.mass, dec!(1.007276466621));
+        assert_eq!(proton.monoisotopic_mass(), *proton.mass);
+        assert_eq!(proton.average_mass(), *proton.mass);
+        let electron = Particle::new(&DB, "e").unwrap();
+        assert_eq!(*electron.mass, dec!(0.000548579909065));
+        assert_eq!(electron.monoisotopic_mass(), *electron.mass);
+        assert_eq!(electron.average_mass(), *electron.mass);
+    }
+
+    #[test]
+    fn particle_charges() {
+        let proton = Particle::new(&DB, "p").unwrap();
+        assert_eq!(proton.charge(), 1);
+        let electron = Particle::new(&DB, "e").unwrap();
+        assert_eq!(*electron.mass, dec!(0.000548579909065));
+        assert_eq!(electron.charge(), -1);
+
+        assert_eq!(proton.charge(), -electron.charge());
     }
 }
