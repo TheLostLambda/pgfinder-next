@@ -135,7 +135,7 @@ struct Bond<'a, 'p> {
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 struct BondTarget<'p> {
     residue: Id,
-    group_location: &'p str,
+    group: &'p FunctionalGroup,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

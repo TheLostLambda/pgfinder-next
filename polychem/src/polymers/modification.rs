@@ -3,6 +3,8 @@ use rust_decimal::prelude::Decimal;
 use crate::{Charge, Charged, Count, Massive, Modification, Mz};
 
 impl<K> Modification<K> {
+    // FIXME: Maybe make this `new_with_multiplier`, and make `new(k)` = `new_with_multiplier(1, k)` — depends on if
+    // this code ends up as public API (usable outside of the crate)!
     pub const fn new(multiplier: Count, kind: K) -> Self {
         Self { multiplier, kind }
     }

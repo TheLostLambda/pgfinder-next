@@ -49,12 +49,8 @@ mod tests {
 
     use crate::{
         atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-        testing_tools::assert_miette_snapshot, Bond, BondTarget, Charged, Massive, Mz,
-    };
-
-    const EMPTY_TARGET: BondTarget = BondTarget {
-        residue: 0,
-        group_location: "",
+        testing_tools::assert_miette_snapshot, Bond, BondTarget, Charged, FunctionalGroup, Massive,
+        Mz,
     };
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
@@ -74,56 +70,66 @@ mod tests {
         .unwrap()
     });
 
+    static EMPTY_GROUP: Lazy<FunctionalGroup> = Lazy::new(|| FunctionalGroup {
+        name: String::new(),
+        location: String::new(),
+    });
+
+    static EMPTY_TARGET: Lazy<BondTarget> = Lazy::new(|| BondTarget {
+        residue: 0,
+        group: &EMPTY_GROUP,
+    });
+
     #[test]
     fn errors() {
-        let disulfide = Bond::new(&POLYMER_DB, "Disulfide", EMPTY_TARGET);
+        let disulfide = Bond::new(&POLYMER_DB, "Disulfide", *EMPTY_TARGET);
         assert_miette_snapshot!(disulfide);
-        let ionic = Bond::new(&POLYMER_DB, "Ionic", EMPTY_TARGET);
+        let ionic = Bond::new(&POLYMER_DB, "Ionic", *EMPTY_TARGET);
         assert_miette_snapshot!(ionic);
     }
 
     #[test]
     fn monoisotopic_mass() {
         // TODO: It's worth creating a database file for these tests that contains some bonds with different losses!
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", EMPTY_TARGET).unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.monoisotopic_mass(), dec!(-18.01056468403));
-        let stem = Bond::new(&POLYMER_DB, "Stem", EMPTY_TARGET).unwrap();
+        let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.monoisotopic_mass(), dec!(-18.01056468403));
     }
 
     #[test]
     fn average_mass() {
         // TODO: It's worth creating a database file for these tests that contains some bonds with different losses!
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", EMPTY_TARGET).unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.average_mass(), dec!(-18.01528643242983260));
-        let stem = Bond::new(&POLYMER_DB, "Stem", EMPTY_TARGET).unwrap();
+        let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.average_mass(), dec!(-18.01528643242983260));
     }
 
     #[test]
     fn charge() {
         // TODO: It's probably worth creating a database file for these tests that contains some charged bond losses!
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", EMPTY_TARGET).unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.charge(), 0);
-        let stem = Bond::new(&POLYMER_DB, "Stem", EMPTY_TARGET).unwrap();
+        let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.charge(), 0);
     }
 
     #[test]
     fn monoisotopic_mz() {
         // TODO: It's probably worth creating a database file for these tests that contains some charged bond losses!
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", EMPTY_TARGET).unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.monoisotopic_mz(), None);
-        let stem = Bond::new(&POLYMER_DB, "Stem", EMPTY_TARGET).unwrap();
+        let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.monoisotopic_mz(), None);
     }
 
     #[test]
     fn average_mz() {
         // TODO: It's probably worth creating a database file for these tests that contains some charged bond losses!
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", EMPTY_TARGET).unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.average_mz(), None);
-        let stem = Bond::new(&POLYMER_DB, "Stem", EMPTY_TARGET).unwrap();
+        let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.average_mz(), None);
     }
 }
