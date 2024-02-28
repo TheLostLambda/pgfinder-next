@@ -150,6 +150,8 @@ fn element<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult
     map_res(element_symbol, |symbol| Element::new(db, symbol))
 }
 
+// NOTE: These are not meant to be links, it's just EBNF
+#[allow(clippy::doc_link_with_quotes)]
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<Element<'a>> {
     map_res(isotope_expr, |(mass_number, symbol)| {
@@ -180,6 +182,8 @@ fn element_symbol(i: &str) -> ParseResult<&str> {
     wrap_err(parser, CompositionErrorKind::ExpectedElementSymbol)(i)
 }
 
+// NOTE: These are not meant to be links, it's just EBNF
+#[allow(clippy::doc_link_with_quotes)]
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
     let opening_bracket = expect(char('['), CompositionErrorKind::ExpectedIsotopeStart);
@@ -586,6 +590,9 @@ mod tests {
     }
 
     #[test]
+    // NOTE: Complexity comes from the macro confusing clippy — converting to a function, however, adds real complexity
+    // since borrow-checker issues crop up when writing a closure that captures `atomic_offset`
+    #[allow(clippy::cognitive_complexity)]
     fn test_atomic_offset() {
         let mut atomic_offset = atomic_offset(&DB);
         macro_rules! assert_atomic_offset {
@@ -645,6 +652,9 @@ mod tests {
     }
 
     #[test]
+    // NOTE: Complexity comes from the macro confusing clippy — converting to a function, however, adds real complexity
+    // since borrow-checker issues crop up when writing a closure that captures `chemical_composition`
+    #[allow(clippy::cognitive_complexity)]
     fn test_chemical_composition() {
         let mut chemical_composition = chemical_composition(&DB);
         macro_rules! check_composition_snapshot {
