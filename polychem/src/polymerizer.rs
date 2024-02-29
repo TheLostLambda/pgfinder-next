@@ -11,32 +11,74 @@ use crate::{
 pub struct Polymerizer<'a, 'p> {
     atomic_db: &'a AtomicDatabase,
     polymer_db: &'p PolymerDatabase<'a>,
-}
-
-pub struct PolymerBuilder<'z, 'a, 'p> {
-    polymerizer: &'z Polymerizer<'a, 'p>,
-    residue_idx: usize,
+    residue_counter: usize,
 }
 
 impl<'a, 'p> Polymerizer<'a, 'p> {
+    #[must_use]
     pub const fn new(atomic_db: &'a AtomicDatabase, polymer_db: &'p PolymerDatabase<'a>) -> Self {
         Self {
             atomic_db,
             polymer_db,
+            residue_counter: 0,
         }
     }
 
-    pub fn new_polymer(&self) -> PolymerBuilder<'_, 'a, 'p> {
-        PolymerBuilder {
-            polymerizer: self,
-            residue_idx: 0,
-        }
+    // FIXME: Should this just be reset(&mut self)?
+    #[must_use]
+    pub const fn reset(self) -> Self {
+        Self::new(self.atomic_db, self.polymer_db)
+    }
+
+    pub fn new_residue(&mut self, abbr: impl AsRef<str>) -> Result<Residue<'a, 'p>> {
+        self.residue_counter += 1;
+        Residue::new(self.polymer_db, abbr, self.residue_counter)
     }
 }
 
-impl<'z, 'a, 'p> PolymerBuilder<'z, 'a, 'p> {
-    pub fn new_residue(&mut self, abbr: impl AsRef<str>) -> Result<Residue> {
-        self.residue_idx += 1;
-        Residue::new(self.polymerizer.polymer_db, abbr, self.residue_idx)
+#[cfg(test)]
+mod tests {
+    use insta::assert_ron_snapshot;
+    use once_cell::sync::Lazy;
+
+    use crate::{
+        atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
+    };
+
+    use super::Polymerizer;
+
+    const STEM_RESIDUES: [&str; 4] = ["A", "E", "J", "A"];
+
+    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
+        AtomicDatabase::from_kdl(
+            "atomic_database.kdl",
+            include_str!("../atomic_database.kdl"),
+        )
+        .unwrap()
+    });
+
+    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+        PolymerDatabase::from_kdl(
+            &ATOMIC_DB,
+            "muropeptide_chemistry.kdl",
+            include_str!("../muropeptide_chemistry.kdl"),
+        )
+        .unwrap()
+    });
+
+    #[test]
+    fn residue_construction() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let residues = STEM_RESIDUES.map(|abbr| polymerizer.new_residue(abbr).unwrap());
+        assert_ron_snapshot!(residues, {
+            ".**.isotopes, .**.functional_groups" => insta::sorted_redaction()
+        });
+
+        let residues = STEM_RESIDUES.map(|abbr| polymerizer.new_residue(abbr).unwrap().id());
+        assert_eq!(residues, [5, 6, 7, 8]);
+
+        let mut polymerizer = polymerizer.reset();
+        let residues = STEM_RESIDUES.map(|abbr| polymerizer.new_residue(abbr).unwrap().id());
+        assert_eq!(residues, [1, 2, 3, 4]);
     }
 }

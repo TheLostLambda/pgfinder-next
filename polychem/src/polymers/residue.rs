@@ -2,7 +2,7 @@ use std::iter;
 
 use rust_decimal::Decimal;
 
-use crate::{Charge, Charged, GroupState, Massive, Mz, PolychemError, Residue, Result};
+use crate::{Charge, Charged, GroupState, Id, Massive, Mz, PolychemError, Residue, Result};
 
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
 
@@ -32,6 +32,11 @@ impl<'a, 'p> Residue<'a, 'p> {
             functional_groups,
             offset_modifications: Vec::new(),
         })
+    }
+
+    #[must_use]
+    pub const fn id(&self) -> Id {
+        self.id
     }
 }
 
@@ -107,6 +112,16 @@ mod tests {
         assert_miette_snapshot!(sucrose);
         let super_amino = Residue::new(&POLYMER_DB, "Sa", 0);
         assert_miette_snapshot!(super_amino);
+    }
+
+    #[test]
+    fn id() {
+        let alanine = Residue::new(&POLYMER_DB, "A", 0).unwrap();
+        assert_eq!(alanine.id(), 0);
+        let alanine = Residue::new(&POLYMER_DB, "A", 42).unwrap();
+        assert_eq!(alanine.id(), 42);
+        let alanine = Residue::new(&POLYMER_DB, "A", 1).unwrap();
+        assert_eq!(alanine.id(), 1);
     }
 
     static N_TERMINAL: Lazy<FunctionalGroup> = Lazy::new(|| FunctionalGroup {
