@@ -7,9 +7,14 @@ use crate::{
 // the scope of that value determine the range in which numbering is unique? I think it might be... But for now,
 // the `Polymerizer` is Copy, so I could just create a new one each time... I think, however, once I get to
 // building cache-mappings, I won't want to just blow this whole struct away...
-struct Polymerizer<'a, 'p> {
+#[derive(Copy, Clone)]
+pub struct Polymerizer<'a, 'p> {
     atomic_db: &'a AtomicDatabase,
     polymer_db: &'p PolymerDatabase<'a>,
+}
+
+pub struct PolymerBuilder<'z, 'a, 'p> {
+    polymerizer: &'z Polymerizer<'a, 'p>,
     residue_idx: usize,
 }
 
@@ -18,12 +23,20 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Self {
             atomic_db,
             polymer_db,
+        }
+    }
+
+    pub fn new_polymer(&self) -> PolymerBuilder<'_, 'a, 'p> {
+        PolymerBuilder {
+            polymerizer: self,
             residue_idx: 0,
         }
     }
-    // FIXME: Maybe just call this function `residue`?
+}
+
+impl<'z, 'a, 'p> PolymerBuilder<'z, 'a, 'p> {
     pub fn new_residue(&mut self, abbr: impl AsRef<str>) -> Result<Residue> {
         self.residue_idx += 1;
-        Residue::new(self.polymer_db, abbr, self.residue_idx)
+        Residue::new(self.polymerizer.polymer_db, abbr, self.residue_idx)
     }
 }
