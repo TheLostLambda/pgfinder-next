@@ -370,7 +370,7 @@ impl<'t> ValidateInto<'t, Target> for TargetKdl {
     fn validate(self, ctx: Self::Context) -> ChemResult<Target> {
         let target = Target::new(self.group, self.location, self.residue);
 
-        if ctx.contains_target(&target) {
+        if ctx.contains_key(&target) {
             Ok(target)
         } else {
             Err(ChemistryErrorKind::NonexistentTarget(self.span, target))

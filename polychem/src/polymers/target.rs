@@ -2,10 +2,9 @@
 use std::{
     collections::{hash_map::Entry, HashMap, HashSet},
     fmt::{Display, Formatter},
+    iter,
     ops::Deref,
 };
-
-use super::residue;
 
 // Public API ==========================================================================================================
 
@@ -66,43 +65,19 @@ impl<'a, V> TargetIndex<'a, V> {
             .entry(residue)
     }
 
-    pub(crate) fn contains_target(&self, target: impl Into<Target<&'a str>>) -> bool {
-        let Target {
-            group,
-            location,
-            residue,
-        } = target.into();
-        let Some(locations) = self.index.get(group) else {
-            return false;
-        };
-        if location.is_none() {
-            return true;
-        }
-        let Some(residues) = locations.get(&location) else {
-            return false;
-        };
-        if residue.is_none() {
-            return true;
-        }
-        residues.contains_key(&residue)
+    pub(crate) fn contains_key(&self, target: impl Into<Target<&'a str>>) -> bool {
+        // PERF: Could be further optimized, see commit 9044078
+        !self.get_key_value(target).is_empty()
     }
 
     pub(crate) fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
-        self.get_entries(target)
+        self.get_key_value(target)
             .into_iter()
             .map(|(_, v)| v)
             .collect()
     }
 
-    // FIXME: Change to get_targets
-    pub(crate) fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
-        self.get_entries(target)
-            .into_iter()
-            .filter_map(|(t, _)| t.residue)
-            .collect()
-    }
-
-    pub(crate) fn get_entries(
+    pub(crate) fn get_key_value(
         &self,
         target: impl Into<Target<&'a str>>,
     ) -> Vec<(Target<&'a str>, &V)> {
@@ -136,13 +111,6 @@ impl<'a, V> TargetIndex<'a, V> {
         residues.get(&residue).map_or_else(Vec::new, |entry| {
             vec![(Target::new(group, location, residue), entry)]
         })
-    }
-}
-
-impl<'a> TargetIndex<'a> {
-    // FIXME: Maybe get rid of this? Especially after adding get_with_targets()
-    pub(crate) fn insert_residue(&mut self, target: impl Into<Target<&'a str>>) -> bool {
-        self.insert(target, ()).is_some()
     }
 }
 
@@ -185,11 +153,7 @@ impl<'a, V, K: Into<Target<&'a str>>> FromIterator<(K, V)> for TargetIndex<'a, V
 
 impl<'a, K: Into<Target<&'a str>>> FromIterator<K> for TargetIndex<'a> {
     fn from_iter<T: IntoIterator<Item = K>>(iter: T) -> Self {
-        let mut index = Self::new();
-        for k in iter {
-            index.insert_residue(k);
-        }
-        index
+        iter.into_iter().zip(iter::repeat(())).collect()
     }
 }
 
@@ -203,6 +167,8 @@ type ResidueMap<'a, T> = HashMap<Option<&'a str>, T>;
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use once_cell::sync::Lazy;
 
     use super::{Target, TargetIndex};
@@ -318,11 +284,22 @@ mod tests {
         ]
     });
 
+    impl<'a, V> TargetIndex<'a, V> {
+        // NOTE: Probably not super useful public API, but it does make the logic of `TargetIndex::get_key_value` way
+        // easier to test — it it does end up being useful outside of these tests, it can be made public again
+        fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
+            self.get_key_value(target)
+                .into_iter()
+                .filter_map(|(t, _)| t.residue)
+                .collect()
+        }
+    }
+
     #[test]
     fn construct_residue_index() {
         let mut for_index = TargetIndex::new();
         for &residue in RESIDUE_LIST.iter() {
-            for_index.insert_residue(residue);
+            for_index.insert(residue, ());
         }
         let iter_index: TargetIndex = RESIDUE_LIST.iter().copied().collect();
         assert_eq!(for_index, iter_index);

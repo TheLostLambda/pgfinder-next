@@ -133,7 +133,7 @@ pub struct Bond<'a, 'p> {
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-struct BondTarget<'p> {
+pub struct BondTarget<'p> {
     residue: Id,
     group: &'p FunctionalGroup,
 }
