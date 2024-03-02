@@ -1,12 +1,14 @@
 use std::collections::HashSet;
 
+use itertools::Itertools;
+
 use crate::{
     atoms::atomic_database::AtomicDatabase,
     polymers::{
         polymer_database::{BondDescription, ModificationDescription, PolymerDatabase},
         target::{Target, TargetIndex},
     },
-    Bond, FunctionalGroup, Id, NamedMod, PolychemError, Residue, Result,
+    Bond, FunctionalGroup, GroupState, Id, NamedMod, PolychemError, Residue, Result,
 };
 
 #[derive(Clone)]
@@ -62,7 +64,6 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         target: &mut Residue<'a, 'p>,
         target_group: &FunctionalGroup,
     ) -> Result<()> {
-        let target_state = target.group_state_mut(target_group)?;
         let (
             abbr,
             ModificationDescription {
@@ -72,6 +73,43 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
                 targets,
             },
         ) = NamedMod::lookup_description(self.polymer_db, abbr)?;
+
+        // FIXME: Messy split into the let statement and if...
+        let valid_targets: Vec<_> = targets
+            .iter()
+            .flat_map(|t| self.free_group_index.get_key_value(t))
+            .collect();
+
+        // FIXME: Abstract into that update_group method?
+        if !valid_targets.iter().any(
+            |&(
+                Target {
+                    group,
+                    location,
+                    residue,
+                },
+                ids,
+            )| {
+                group == target_group.name
+                    && location == Some(&target_group.location)
+                    && residue == Some(target.name)
+                    && ids.contains(&target.id())
+            },
+        ) {
+            panic!("No valid targets!")
+        }
+
+        // SAFETY: The TargetIndex told us that this group exists and is free, so unwrap() is safe
+        let target_state = target.group_state_mut(target_group).unwrap();
+
+        *target_state = GroupState::Modified(NamedMod {
+            abbr,
+            name,
+            lost,
+            gained,
+        });
+
+        // FIXME: Need to update the free_group_index!
 
         Ok(())
     }
@@ -119,9 +157,11 @@ impl<'a> Target<&'a str> {
 mod tests {
     use insta::assert_ron_snapshot;
     use once_cell::sync::Lazy;
+    use rust_decimal_macros::dec;
 
     use crate::{
         atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
+        FunctionalGroup, GroupState, Massive,
     };
 
     use super::Polymerizer;
@@ -159,5 +199,26 @@ mod tests {
         let mut polymerizer = polymerizer.reset();
         let residues = STEM_RESIDUES.map(|abbr| polymerizer.new_residue(abbr).unwrap().id());
         assert_eq!(residues, [1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn modify_group() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut murnac = polymerizer.new_residue("m").unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
+
+        let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
+        polymerizer
+            .modify_group("Anh", &mut murnac, &reducing_end)
+            .unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(275.10050188933));
+        assert!(matches!(
+            murnac.group_state(&reducing_end).unwrap(),
+            GroupState::Modified(_)
+        ));
+
+        polymerizer
+            .modify_group("Ac", &mut murnac, &reducing_end)
+            .unwrap();
     }
 }

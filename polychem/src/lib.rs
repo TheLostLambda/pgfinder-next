@@ -211,6 +211,10 @@ enum PolychemError {
     #[error("the functional group {0} could not be found on the residue {1} ({2})")]
     GroupLookup(FunctionalGroup, String, String),
 
+    // FIXME: Oh dear...
+    // #[error("")]
+    // NoValidGroup()
+
     // FIXME: Destroy me
     #[error(
         "the functional group {0} of {1}-{2} was already {3}, but must be free for modification"

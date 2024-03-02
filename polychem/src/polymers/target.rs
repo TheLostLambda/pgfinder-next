@@ -11,9 +11,9 @@ use std::{
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub(crate) struct Target<S: Deref<Target = str> = String> {
-    group: S,
-    location: Option<S>,
-    residue: Option<S>,
+    pub(crate) group: S,
+    pub(crate) location: Option<S>,
+    pub(crate) residue: Option<S>,
 }
 
 impl<S: Deref<Target = str>> Target<S> {
