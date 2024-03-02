@@ -5,24 +5,29 @@ use crate::{Charge, Charged, Massive, Mz, NamedMod, PolychemError, Result};
 use super::polymer_database::{ModificationDescription, PolymerDatabase};
 
 impl<'a, 'p> NamedMod<'a, 'p> {
-    // TODO: Write new_with_targets that returns a (Self, &Vec<Target>) for Polymerizer to use
     pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>) -> Result<Self> {
-        let abbr = abbr.as_ref();
         let (
             abbr,
             ModificationDescription {
                 name, lost, gained, ..
             },
-        ) = db
-            .modifications
-            .get_key_value(abbr)
-            .ok_or_else(|| PolychemError::ModificationLookup(abbr.to_owned()))?;
+        ) = Self::lookup_description(db, abbr)?;
         Ok(Self {
             abbr,
             name,
             lost,
             gained,
         })
+    }
+
+    pub(crate) fn lookup_description(
+        db: &'p PolymerDatabase<'a>,
+        abbr: impl AsRef<str>,
+    ) -> Result<(&'p String, &'p ModificationDescription<'a>)> {
+        let abbr = abbr.as_ref();
+        db.modifications
+            .get_key_value(abbr)
+            .ok_or_else(|| PolychemError::modification_lookup(abbr).into())
     }
 }
 

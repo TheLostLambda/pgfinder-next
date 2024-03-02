@@ -1,8 +1,7 @@
 // Standard Library Imports
 use std::{
-    collections::{HashMap, HashSet},
-    fmt::Display,
-    iter,
+    collections::{hash_map::Entry, HashMap, HashSet},
+    fmt::{Display, Formatter},
     ops::Deref,
 };
 
@@ -10,14 +9,14 @@ use std::{
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub(super) struct Target<S: Deref<Target = str> = String> {
+pub(crate) struct Target<S: Deref<Target = str> = String> {
     group: S,
     location: Option<S>,
     residue: Option<S>,
 }
 
 impl<S: Deref<Target = str>> Target<S> {
-    pub(super) const fn new(group: S, location: Option<S>, residue: Option<S>) -> Self {
+    pub(crate) const fn new(group: S, location: Option<S>, residue: Option<S>) -> Self {
         Self {
             group,
             location,
@@ -27,18 +26,31 @@ impl<S: Deref<Target = str>> Target<S> {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub(super) struct TargetIndex<'a, V = ()> {
+pub(crate) struct TargetIndex<'a, V = ()> {
     index: GroupMap<'a, V>,
 }
 
 impl<'a, V> TargetIndex<'a, V> {
-    pub(super) fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             index: HashMap::new(),
         }
     }
 
-    pub(super) fn insert(&mut self, target: impl Into<Target<&'a str>>, value: V) -> Option<V> {
+    pub(crate) fn insert(&mut self, target: impl Into<Target<&'a str>>, value: V) -> Option<V> {
+        match self.entry(target) {
+            Entry::Occupied(mut e) => Some(e.insert(value)),
+            Entry::Vacant(e) => {
+                e.insert(value);
+                None
+            }
+        }
+    }
+
+    pub(crate) fn entry(
+        &mut self,
+        target: impl Into<Target<&'a str>>,
+    ) -> Entry<Option<&'a str>, V> {
         let Target {
             group,
             location,
@@ -49,17 +61,18 @@ impl<'a, V> TargetIndex<'a, V> {
             .or_default()
             .entry(location)
             .or_default()
-            .insert(residue, value)
+            .entry(residue)
     }
 
-    pub(super) fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
+    pub(crate) fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
         self.get_entries(target)
             .into_iter()
             .map(|(_, v)| v)
             .collect()
     }
 
-    pub(super) fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
+    // FIXME: Maybe get rid of this? Especially after adding get_with_targets()
+    pub(crate) fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
         self.get_entries(target)
             .into_iter()
             .filter_map(|(&r, _)| r)
@@ -68,7 +81,8 @@ impl<'a, V> TargetIndex<'a, V> {
 }
 
 impl<'a> TargetIndex<'a> {
-    pub(super) fn insert_residue(&mut self, target: impl Into<Target<&'a str>>) -> bool {
+    // FIXME: Maybe get rid of this? Especially after adding get_with_targets()
+    pub(crate) fn insert_residue(&mut self, target: impl Into<Target<&'a str>>) -> bool {
         self.insert(target, ()).is_some()
     }
 }
@@ -76,7 +90,7 @@ impl<'a> TargetIndex<'a> {
 // Target Printing and Borrowing =======================================================================================
 
 impl<S: Deref<Target = str>> Display for Target<S> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", &*self.group)?;
         if let Some(location) = self.location.as_deref() {
             write!(f, " at={location:?}")?;
@@ -112,7 +126,11 @@ impl<'a, V, K: Into<Target<&'a str>>> FromIterator<(K, V)> for TargetIndex<'a, V
 
 impl<'a, K: Into<Target<&'a str>>> FromIterator<K> for TargetIndex<'a> {
     fn from_iter<T: IntoIterator<Item = K>>(iter: T) -> Self {
-        iter.into_iter().zip(iter::repeat(())).collect()
+        let mut index = Self::new();
+        for k in iter {
+            index.insert_residue(k);
+        }
+        index
     }
 }
 
@@ -192,6 +210,35 @@ mod tests {
         }
         let iter_index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         assert_eq!(for_index, iter_index);
+    }
+
+    #[test]
+    fn insert_duplicate_target() {
+        let mut iter_index: TargetIndex<_> = TARGET_LIST.iter().take(2).copied().collect();
+        assert_eq!(
+            iter_index.insert(TARGET_LIST[0].0, "new group"),
+            Some("group")
+        );
+        assert_eq!(
+            iter_index.insert(TARGET_LIST[1].0, "new group-location"),
+            Some("group-location")
+        );
+        assert_eq!(
+            iter_index.insert(TARGET_LIST[2].0, "first group-location-residue"),
+            None
+        );
+        assert_eq!(
+            iter_index.insert(TARGET_LIST[0].0, "final group"),
+            Some("new group")
+        );
+        assert_eq!(
+            iter_index.insert(TARGET_LIST[1].0, "final group-location"),
+            Some("new group-location")
+        );
+        assert_eq!(
+            iter_index.insert(TARGET_LIST[2].0, "new group-location-residue"),
+            Some("first group-location-residue")
+        );
     }
 
     #[test]

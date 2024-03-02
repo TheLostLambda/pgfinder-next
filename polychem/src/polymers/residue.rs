@@ -2,7 +2,9 @@ use std::iter;
 
 use rust_decimal::Decimal;
 
-use crate::{Charge, Charged, GroupState, Id, Massive, Mz, PolychemError, Residue, Result};
+use crate::{
+    Charge, Charged, FunctionalGroup, GroupState, Id, Massive, Mz, PolychemError, Residue, Result,
+};
 
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
 
@@ -19,7 +21,7 @@ impl<'a, 'p> Residue<'a, 'p> {
         ) = db
             .residues
             .get_key_value(abbr)
-            .ok_or_else(|| PolychemError::ResidueLookup(abbr.to_owned()))?;
+            .ok_or_else(|| PolychemError::residue_lookup(abbr))?;
         let functional_groups = functional_groups
             .iter()
             .map(|fg| (fg, GroupState::default()))
@@ -37,6 +39,23 @@ impl<'a, 'p> Residue<'a, 'p> {
     #[must_use]
     pub const fn id(&self) -> Id {
         self.id
+    }
+
+    pub fn group_state(&self, functional_group: &FunctionalGroup) -> Result<&GroupState<'a, 'p>> {
+        self.functional_groups.get(functional_group).ok_or_else(|| {
+            PolychemError::group_lookup(functional_group, self.name, self.abbr).into()
+        })
+    }
+
+    pub fn group_state_mut(
+        &mut self,
+        functional_group: &FunctionalGroup,
+    ) -> Result<&mut GroupState<'a, 'p>> {
+        self.functional_groups
+            .get_mut(functional_group)
+            .ok_or_else(|| {
+                PolychemError::group_lookup(functional_group, self.name, self.abbr).into()
+            })
     }
 }
 
@@ -124,15 +143,47 @@ mod tests {
         assert_eq!(alanine.id(), 1);
     }
 
-    static N_TERMINAL: Lazy<FunctionalGroup> = Lazy::new(|| FunctionalGroup {
-        name: "Amino".into(),
-        location: "N-Terminal".into(),
-    });
+    static N_TERMINAL: Lazy<FunctionalGroup> =
+        Lazy::new(|| FunctionalGroup::new("Amino", "N-Terminal"));
 
-    static C_TERMINAL: Lazy<FunctionalGroup> = Lazy::new(|| FunctionalGroup {
-        name: "Carboxyl".into(),
-        location: "C-Terminal".into(),
-    });
+    static C_TERMINAL: Lazy<FunctionalGroup> =
+        Lazy::new(|| FunctionalGroup::new("Carboxyl", "C-Terminal"));
+
+    #[test]
+    fn group_state() {
+        let lysine = Residue::new(&POLYMER_DB, "K", 0).unwrap();
+        let alanine = Residue::new(&POLYMER_DB, "A", 0).unwrap();
+        let sidechain_amino = FunctionalGroup::new("Amino", "Sidechain");
+
+        // Sucessfully lookup functional groups that exist
+        assert!(lysine.group_state(&N_TERMINAL).is_ok());
+        assert!(lysine.group_state(&C_TERMINAL).is_ok());
+        assert!(lysine.group_state(&sidechain_amino).is_ok());
+
+        assert!(alanine.group_state(&N_TERMINAL).is_ok());
+        assert!(alanine.group_state(&C_TERMINAL).is_ok());
+
+        // Fail to lookup functional groups that don't exist
+        assert_miette_snapshot!(alanine.group_state(&sidechain_amino));
+    }
+
+    #[test]
+    fn group_state_mut() {
+        let mut lysine = Residue::new(&POLYMER_DB, "K", 0).unwrap();
+        let mut alanine = Residue::new(&POLYMER_DB, "A", 0).unwrap();
+        let sidechain_amino = FunctionalGroup::new("Amino", "Sidechain");
+
+        // Sucessfully lookup functional groups that exist
+        assert!(lysine.group_state_mut(&N_TERMINAL).is_ok());
+        assert!(lysine.group_state_mut(&C_TERMINAL).is_ok());
+        assert!(lysine.group_state_mut(&sidechain_amino).is_ok());
+
+        assert!(alanine.group_state_mut(&N_TERMINAL).is_ok());
+        assert!(alanine.group_state_mut(&C_TERMINAL).is_ok());
+
+        // Fail to lookup functional groups that don't exist
+        assert_miette_snapshot!(alanine.group_state_mut(&sidechain_amino));
+    }
 
     static RESIDUE_SERIES: Lazy<Vec<Residue<'static, 'static>>> = Lazy::new(|| {
         let mut snapshots = Vec::new();

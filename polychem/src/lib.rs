@@ -80,7 +80,7 @@ struct Particle<'a> {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Default, Serialize)]
-enum GroupState<'a, 'p> {
+pub enum GroupState<'a, 'p> {
     #[default]
     Free,
     Modified(NamedMod<'a, 'p>),
@@ -124,7 +124,7 @@ struct Isotope {
 type Charge = i64;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-struct Bond<'a, 'p> {
+pub struct Bond<'a, 'p> {
     kind: &'p str,
     lost: &'p ChemicalComposition<'a>,
     acceptor: BondTarget<'p>,
@@ -177,7 +177,7 @@ impl From<OffsetKind> for Charge {
     }
 }
 
-#[derive(Debug, Diagnostic, Clone, Error)]
+#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 #[error(transparent)]
 #[diagnostic(transparent)]
 pub struct Error(PolychemError);
@@ -207,4 +207,58 @@ enum PolychemError {
 
     #[error("the bond kind {0:?} could not be found in the supplied polymer database")]
     BondLookup(String),
+
+    #[error("the functional group {0} could not be found on the residue {1} ({2})")]
+    GroupLookup(FunctionalGroup, String, String),
+
+    // FIXME: Destroy me
+    #[error(
+        "the functional group {0} of {1}-{2} was already {3}, but must be free for modification"
+    )]
+    ModificationGroupOccupied(FunctionalGroup, String, Id, String),
+
+    // FIXME: Destroy me
+    #[error(
+        "the functional group {0} of {1}-{2} was already {3}, but must be free for bond formation"
+    )]
+    BondGroupOccupied(FunctionalGroup, String, Id, String),
+}
+
+// FIXME: Move this to it's own errors.rs module? Bring the enum along too?
+impl PolychemError {
+    fn residue_lookup(abbr: &str) -> Self {
+        Self::ResidueLookup(abbr.to_owned())
+    }
+
+    fn modification_lookup(abbr: &str) -> Self {
+        Self::ModificationLookup(abbr.to_owned())
+    }
+
+    fn bond_lookup(kind: &str) -> Self {
+        Self::BondLookup(kind.to_owned())
+    }
+
+    fn group_lookup(functional_group: &FunctionalGroup, name: &str, abbr: &str) -> Self {
+        Self::GroupLookup(functional_group.clone(), name.to_owned(), abbr.to_owned())
+    }
+
+    // FIXME: Destroy me
+    fn modification_group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
+        Self::ModificationGroupOccupied(
+            group.clone(),
+            residue.name.to_owned(),
+            residue.id,
+            residue.group_state(group).unwrap().to_string(),
+        )
+    }
+
+    // FIXME: Destroy me
+    fn bond_group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
+        Self::BondGroupOccupied(
+            group.clone(),
+            residue.name.to_owned(),
+            residue.id,
+            residue.group_state(group).unwrap().to_string(),
+        )
+    }
 }

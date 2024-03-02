@@ -21,9 +21,9 @@ use crate::{atoms::atomic_database::AtomicDatabase, ChemicalComposition, Functio
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct PolymerDatabase<'a> {
-    pub(super) bonds: Bonds<'a>,
-    pub(super) modifications: Modifications<'a>,
-    pub(super) residues: Residues<'a>,
+    pub(crate) bonds: Bonds<'a>,
+    pub(crate) modifications: Modifications<'a>,
+    pub(crate) residues: Residues<'a>,
 }
 
 impl<'a> PolymerDatabase<'a> {
@@ -49,27 +49,27 @@ type Residues<'a> = HashMap<String, ResidueDescription<'a>>;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub(super) struct BondDescription<'a> {
-    pub(super) from: Target,
-    pub(super) to: Target,
-    pub(super) lost: ChemicalComposition<'a>,
+pub(crate) struct BondDescription<'a> {
+    pub(crate) from: Target,
+    pub(crate) to: Target,
+    pub(crate) lost: ChemicalComposition<'a>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub(super) struct ModificationDescription<'a> {
-    pub(super) name: String,
-    pub(super) lost: ChemicalComposition<'a>,
-    pub(super) gained: ChemicalComposition<'a>,
-    pub(super) targets: Vec<Target>,
+pub(crate) struct ModificationDescription<'a> {
+    pub(crate) name: String,
+    pub(crate) lost: ChemicalComposition<'a>,
+    pub(crate) gained: ChemicalComposition<'a>,
+    pub(crate) targets: Vec<Target>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub(super) struct ResidueDescription<'a> {
-    pub(super) name: String,
-    pub(super) composition: ChemicalComposition<'a>,
-    pub(super) functional_groups: Vec<FunctionalGroup>,
+pub(crate) struct ResidueDescription<'a> {
+    pub(crate) name: String,
+    pub(crate) composition: ChemicalComposition<'a>,
+    pub(crate) functional_groups: Vec<FunctionalGroup>,
 }
 
 // KDL File Schema =====================================================================================================
@@ -472,13 +472,7 @@ type FunctionalGroupEntry = (FunctionalGroup, Span);
 
 impl From<FunctionalGroupKdl> for FunctionalGroupEntry {
     fn from(value: FunctionalGroupKdl) -> Self {
-        (
-            FunctionalGroup {
-                name: value.name,
-                location: value.location,
-            },
-            value.span,
-        )
+        (FunctionalGroup::new(value.name, value.location), value.span)
     }
 }
 

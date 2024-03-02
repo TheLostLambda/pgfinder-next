@@ -1,26 +1,33 @@
 use rust_decimal::Decimal;
 
-use crate::{Bond, BondTarget, Charge, Charged, Massive, Mz, PolychemError, Result};
+use crate::{
+    Bond, BondTarget, Charge, Charged, ChemicalComposition, Massive, Mz, PolychemError, Result,
+};
 
 use super::polymer_database::{BondDescription, PolymerDatabase};
 
 impl<'a, 'p> Bond<'a, 'p> {
-    // TODO: Write new_with_targets that returns a (Self, &Target, &Target) for Polymerizer to use
     pub fn new(
         db: &'p PolymerDatabase<'a>,
         kind: impl AsRef<str>,
         acceptor: BondTarget<'p>,
     ) -> Result<Self> {
-        let kind = kind.as_ref();
-        let (kind, BondDescription { lost, .. }) = db
-            .bonds
-            .get_key_value(kind)
-            .ok_or_else(|| PolychemError::BondLookup(kind.to_owned()))?;
+        let (kind, BondDescription { lost, .. }) = Self::lookup_description(db, kind)?;
         Ok(Self {
             kind,
             lost,
             acceptor,
         })
+    }
+
+    pub(crate) fn lookup_description(
+        db: &'p PolymerDatabase<'a>,
+        kind: impl AsRef<str>,
+    ) -> Result<(&'p String, &'p BondDescription<'a>)> {
+        let kind = kind.as_ref();
+        db.bonds
+            .get_key_value(kind)
+            .ok_or_else(|| PolychemError::bond_lookup(kind).into())
     }
 }
 
@@ -70,10 +77,8 @@ mod tests {
         .unwrap()
     });
 
-    static EMPTY_GROUP: Lazy<FunctionalGroup> = Lazy::new(|| FunctionalGroup {
-        name: String::new(),
-        location: String::new(),
-    });
+    static EMPTY_GROUP: Lazy<FunctionalGroup> =
+        Lazy::new(|| FunctionalGroup::new(String::new(), String::new()));
 
     static EMPTY_TARGET: Lazy<BondTarget> = Lazy::new(|| BondTarget {
         residue: 0,
