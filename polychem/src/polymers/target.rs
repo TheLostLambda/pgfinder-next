@@ -5,6 +5,8 @@ use std::{
     ops::Deref,
 };
 
+use super::residue;
+
 // Public API ==========================================================================================================
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -64,6 +66,27 @@ impl<'a, V> TargetIndex<'a, V> {
             .entry(residue)
     }
 
+    pub(crate) fn contains_target(&self, target: impl Into<Target<&'a str>>) -> bool {
+        let Target {
+            group,
+            location,
+            residue,
+        } = target.into();
+        let Some(locations) = self.index.get(group) else {
+            return false;
+        };
+        if location.is_none() {
+            return true;
+        }
+        let Some(residues) = locations.get(&location) else {
+            return false;
+        };
+        if residue.is_none() {
+            return true;
+        }
+        residues.contains_key(&residue)
+    }
+
     pub(crate) fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
         self.get_entries(target)
             .into_iter()
@@ -71,12 +94,48 @@ impl<'a, V> TargetIndex<'a, V> {
             .collect()
     }
 
-    // FIXME: Maybe get rid of this? Especially after adding get_with_targets()
+    // FIXME: Change to get_targets
     pub(crate) fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
         self.get_entries(target)
             .into_iter()
-            .filter_map(|(&r, _)| r)
+            .filter_map(|(t, _)| t.residue)
             .collect()
+    }
+
+    pub(crate) fn get_entries(
+        &self,
+        target: impl Into<Target<&'a str>>,
+    ) -> Vec<(Target<&'a str>, &V)> {
+        let Target {
+            group,
+            location,
+            residue,
+        } = target.into();
+
+        // NOTE: Although this approach repeats Vec::new, it avoids the nesting of the equivalent if-let approach
+        let Some(locations) = self.index.get(group) else {
+            return Vec::new();
+        };
+
+        if location.is_none() {
+            return locations
+                .iter()
+                .flat_map(|(&l, rs)| rs.iter().map(move |(&r, v)| (Target::new(group, l, r), v)))
+                .collect();
+        }
+        let Some(residues) = locations.get(&location) else {
+            return Vec::new();
+        };
+
+        if residue.is_none() {
+            return residues
+                .iter()
+                .map(|(&r, v)| (Target::new(group, location, r), v))
+                .collect();
+        }
+        residues.get(&residue).map_or_else(Vec::new, |entry| {
+            vec![(Target::new(group, location, residue), entry)]
+        })
     }
 }
 
@@ -134,41 +193,11 @@ impl<'a, K: Into<Target<&'a str>>> FromIterator<K> for TargetIndex<'a> {
     }
 }
 
-// Private Types and Methods ===========================================================================================
+// Private Types =======================================================================================================
 
 type GroupMap<'a, T> = HashMap<&'a str, LocationMap<'a, T>>;
 type LocationMap<'a, T> = HashMap<Option<&'a str>, ResidueMap<'a, T>>;
 type ResidueMap<'a, T> = HashMap<Option<&'a str>, T>;
-
-impl<'a, V> TargetIndex<'a, V> {
-    // NOTE: Is this is ever made public, I should actually apply this lint — ignoring it for now keeps the code for
-    // this function simpler and just adds one `&` to `.get_residues()`
-    #[allow(clippy::ref_option_ref)]
-    fn get_entries(&self, target: impl Into<Target<&'a str>>) -> Vec<(&Option<&str>, &V)> {
-        let Target {
-            group,
-            location,
-            residue,
-        } = target.into();
-
-        // NOTE: Although this approach repeats Vec::new, it avoids the nesting of the equivalent if-let approach
-        let Some(locations) = self.index.get(group) else {
-            return Vec::new();
-        };
-        if location.is_none() {
-            return locations.values().flatten().collect();
-        }
-        let Some(residues) = locations.get(&location) else {
-            return Vec::new();
-        };
-        if residue.is_none() {
-            return residues.iter().collect();
-        }
-        residues
-            .get_key_value(&residue)
-            .map_or_else(Vec::new, |entry| vec![entry])
-    }
-}
 
 // Module Tests ========================================================================================================
 
