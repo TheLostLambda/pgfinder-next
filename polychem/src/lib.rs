@@ -215,7 +215,7 @@ enum PolychemError {
     // #[error("")]
     // NoValidGroup()
 
-    // FIXME: Destroy me
+    // FIXME: Destroy me, unless...?
     #[error(
         "the functional group {0} of {1}-{2} was already {3}, but must be free for modification"
     )]

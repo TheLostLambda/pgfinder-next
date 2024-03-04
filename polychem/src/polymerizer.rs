@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
 
@@ -16,7 +16,7 @@ pub struct Polymerizer<'a, 'p> {
     atomic_db: &'a AtomicDatabase,
     polymer_db: &'p PolymerDatabase<'a>,
     residue_counter: usize,
-    free_group_index: TargetIndex<'p, HashSet<Id>>,
+    free_group_index: TargetIndex<'p, HashMap<Id, bool>>,
 }
 
 impl<'a, 'p> Polymerizer<'a, 'p> {
@@ -50,7 +50,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             self.free_group_index
                 .entry(target)
                 .or_default()
-                .insert(residue.id);
+                .insert(residue.id, true);
         }
 
         Ok(residue)
@@ -59,10 +59,10 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
     // FIXME: TODO: Add update_group method that handles adding and removing residue ids to the free-groups index and
     // is also in charge of the actual mutation. This avoids me needing to update that free-groups index everywhere!
     pub fn modify_group(
-        &self,
+        &mut self,
         abbr: impl AsRef<str>,
         target: &mut Residue<'a, 'p>,
-        target_group: &FunctionalGroup,
+        target_group: &'p FunctionalGroup,
     ) -> Result<()> {
         let (
             abbr,
@@ -77,28 +77,39 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         // FIXME: Messy split into the let statement and if...
         let valid_targets: Vec<_> = targets
             .iter()
-            .flat_map(|t| self.free_group_index.get_key_value(t))
+            .flat_map(|t| self.free_group_index.matches_with_targets(t))
             .collect();
 
-        // FIXME: Abstract into that update_group method?
-        if !valid_targets.iter().any(
-            |&(
-                Target {
-                    group,
-                    location,
-                    residue,
-                },
-                ids,
-            )| {
-                group == target_group.name
-                    && location == Some(&target_group.location)
-                    && residue == Some(target.name)
-                    && ids.contains(&target.id())
-            },
-        ) {
-            panic!("No valid targets!")
+        // FIXME: Abstract into that update_group method? Take the list of valid targets
+        let current_target = Target::from_residue_and_group(target, target_group);
+        let target_is_valid = valid_targets.iter().find_map(|&(possible_target, ids)| {
+            if current_target == possible_target {
+                ids.get(&target.id())
+            } else {
+                None
+            }
+        });
+
+        // FIXME: Convert panics to proper errors!
+        if let Some(target_is_free) = target_is_valid {
+            if !target_is_free {
+                panic!("Modification is valid, but group is not free")
+            }
+        } else {
+            let theoretically_possible = targets
+                .iter()
+                .any(|possible_target| current_target.matches(&possible_target.into()));
+            if theoretically_possible {
+                panic!("Residue does not belong to the current polymer");
+            } else {
+                panic!("Requested modification was chemically invalid");
+            }
         }
 
+        self.free_group_index
+            .get_mut(current_target)
+            .unwrap()
+            .insert(target.id(), false);
         // SAFETY: The TargetIndex told us that this group exists and is free, so unwrap() is safe
         let target_state = target.group_state_mut(target_group).unwrap();
 
@@ -108,8 +119,6 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             lost,
             gained,
         });
-
-        // FIXME: Need to update the free_group_index!
 
         Ok(())
     }
@@ -217,6 +226,13 @@ mod tests {
             GroupState::Modified(_)
         ));
 
+        polymerizer
+            .modify_group("Anh", &mut murnac, &reducing_end)
+            .unwrap();
+        let mut polymerizer = polymerizer.reset();
+        polymerizer
+            .modify_group("Anh", &mut murnac, &reducing_end)
+            .unwrap();
         polymerizer
             .modify_group("Ac", &mut murnac, &reducing_end)
             .unwrap();

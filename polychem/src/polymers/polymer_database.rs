@@ -370,7 +370,7 @@ impl<'t> ValidateInto<'t, Target> for TargetKdl {
     fn validate(self, ctx: Self::Context) -> ChemResult<Target> {
         let target = Target::new(self.group, self.location, self.residue);
 
-        if ctx.contains_key(&target) {
+        if ctx.contains_target(&target) {
             Ok(target)
         } else {
             Err(ChemistryErrorKind::NonexistentTarget(self.span, target))
@@ -408,7 +408,7 @@ impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
         let target_index: TargetIndex<_> = targets_and_spans.iter().map(|(t, s)| (t, *s)).collect();
         for (target, span) in &targets_and_spans {
             let overlapping_targets: Vec<_> = target_index
-                .get(target)
+                .matches(target)
                 .into_iter()
                 .copied()
                 .filter(|s| s != span)

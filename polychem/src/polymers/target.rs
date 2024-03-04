@@ -26,6 +26,14 @@ impl<S: Deref<Target = str>> Target<S> {
     }
 }
 
+impl<S: Deref<Target = str> + Eq> Target<S> {
+    pub(crate) fn matches(&self, other: &Self) -> bool {
+        self.group == other.group
+            && (other.location.is_none() || self.location == other.location)
+            && (other.residue.is_none() || self.residue == other.residue)
+    }
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub(crate) struct TargetIndex<'a, V = ()> {
     index: GroupMap<'a, V>,
@@ -65,19 +73,32 @@ impl<'a, V> TargetIndex<'a, V> {
             .entry(residue)
     }
 
-    pub(crate) fn contains_key(&self, target: impl Into<Target<&'a str>>) -> bool {
-        // PERF: Could be further optimized, see commit 9044078
-        !self.get_key_value(target).is_empty()
+    pub(crate) fn get_mut(&mut self, target: impl Into<Target<&'a str>>) -> Option<&mut V> {
+        let Target {
+            group,
+            location,
+            residue,
+        } = target.into();
+        self.index
+            .get_mut(group)
+            .and_then(|ls| ls.get_mut(&location))
+            .and_then(|rs| rs.get_mut(&residue))
     }
 
-    pub(crate) fn get(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
-        self.get_key_value(target)
+    pub(crate) fn contains_target(&self, target: impl Into<Target<&'a str>>) -> bool {
+        // PERF: Could be further optimized, see commit 9044078
+        !self.matches_with_targets(target).is_empty()
+    }
+
+    pub(crate) fn matches(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
+        // PERF: Could also be faster if I never constructed the Targets I'm throwing away here
+        self.matches_with_targets(target)
             .into_iter()
             .map(|(_, v)| v)
             .collect()
     }
 
-    pub(crate) fn get_key_value(
+    pub(crate) fn matches_with_targets(
         &self,
         target: impl Into<Target<&'a str>>,
     ) -> Vec<(Target<&'a str>, &V)> {
@@ -188,6 +209,27 @@ mod tests {
     });
 
     #[test]
+    fn match_targets() {
+        // More general targets match more specific ones
+        assert!(TARGET_LIST[2].0.matches(&TARGET_LIST[1].0));
+        assert!(TARGET_LIST[1].0.matches(&TARGET_LIST[0].0));
+
+        // But not the other way around
+        assert!(!TARGET_LIST[0].0.matches(&TARGET_LIST[1].0));
+        assert!(!TARGET_LIST[1].0.matches(&TARGET_LIST[2].0));
+
+        // Mismatched groups never match
+        let matchless = Target::new("Hydroxyl", None, None);
+        assert!(!TARGET_LIST[0].0.matches(&matchless));
+        assert!(!TARGET_LIST[1].0.matches(&matchless));
+        assert!(!TARGET_LIST[2].0.matches(&matchless));
+
+        assert!(!matchless.matches(&TARGET_LIST[0].0));
+        assert!(!matchless.matches(&TARGET_LIST[1].0));
+        assert!(!matchless.matches(&TARGET_LIST[2].0));
+    }
+
+    #[test]
     fn print_targets() {
         assert_eq!(TARGET_LIST[0].0.to_string(), r#""Amino""#);
         assert_eq!(TARGET_LIST[1].0.to_string(), r#""Amino" at="N-Terminal""#);
@@ -240,14 +282,14 @@ mod tests {
     fn get_nonexistent_group() {
         let index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Carboxyl", None, None);
-        assert!(index.get(amino).is_empty());
+        assert!(index.matches(amino).is_empty());
     }
 
     #[test]
     fn get_group() {
         let index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", None, None);
-        let mut values = index.get(amino);
+        let mut values = index.matches(amino);
         values.sort_unstable();
         assert_eq!(
             values,
@@ -259,7 +301,7 @@ mod tests {
     fn get_group_location() {
         let index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), None);
-        let mut values = index.get(amino);
+        let mut values = index.matches(amino);
         values.sort_unstable();
         assert_eq!(values, vec![&"group-location", &"group-location-residue"]);
     }
@@ -268,9 +310,23 @@ mod tests {
     fn get_group_location_residue() {
         let index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), Some("Alanine"));
-        let mut values = index.get(amino);
+        let mut values = index.matches(amino);
         values.sort_unstable();
         assert_eq!(values, vec![&"group-location-residue"]);
+    }
+
+    #[test]
+    fn update_values() {
+        let mut index: TargetIndex<_> = TARGET_LIST.iter().copied().collect();
+        let amino = Target::new("Amino", Some("N-Terminal"), Some("Alanine"));
+        let mut values = index.matches(amino);
+        values.sort_unstable();
+        assert_eq!(values, vec![&"group-location-residue"]);
+
+        *index.get_mut(amino).unwrap() = "residue-group-location?";
+        let mut values = index.matches(amino);
+        values.sort_unstable();
+        assert_eq!(values, vec![&"residue-group-location?"]);
     }
 
     static RESIDUE_LIST: Lazy<[Target<&str>; 6]> = Lazy::new(|| {
@@ -288,7 +344,7 @@ mod tests {
         // NOTE: Probably not super useful public API, but it does make the logic of `TargetIndex::get_key_value` way
         // easier to test — it it does end up being useful outside of these tests, it can be made public again
         fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
-            self.get_key_value(target)
+            self.matches_with_targets(target)
                 .into_iter()
                 .filter_map(|(t, _)| t.residue)
                 .collect()
