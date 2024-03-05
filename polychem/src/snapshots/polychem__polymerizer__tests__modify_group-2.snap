@@ -3,6 +3,9 @@ source: polychem/src/polymerizer.rs
 description: residue_from_wrong_polymer
 expression: out
 ---
-  × residue 1 (N-Acetylmuramic Acid) does not belong to the current polymer
-  help: the referenced residue was likely created by a different Polymerizer
-        instance
+  × failed to apply the modification 1,6-Anhydro (Anh) to residue 1 (N-
+  │ Acetylmuramic Acid)
+  ╰─▶   × residue 1 does not belong to the current polymer
+        help: the referenced residue was likely created by a different
+      Polymerizer
+              instance

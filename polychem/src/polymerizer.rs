@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
+use miette::Diagnostic;
+use thiserror::Error;
 
 use crate::{
     atoms::atomic_database::AtomicDatabase,
@@ -56,8 +58,56 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Ok(residue)
     }
 
-    // FIXME: TODO: Add update_group method that handles adding and removing residue ids to the free-groups index and
-    // is also in charge of the actual mutation. This avoids me needing to update that free-groups index everywhere!
+    // FIXME: Move to bottom of impl block
+    fn update_group(
+        &mut self,
+        valid_targets: &[Target],
+        target: &mut Residue<'a, 'p>,
+        target_group: &'p FunctionalGroup,
+        group_state: GroupState<'a, 'p>,
+    ) -> Result<(), PolymerizerError> {
+        let current_target = Target::from_residue_and_group(target, target_group);
+        let valid_groups: Vec<_> = valid_targets
+            .iter()
+            .flat_map(|t| self.free_group_index.matches_with_targets(t))
+            .collect();
+
+        let target_is_valid = valid_groups.iter().find_map(|&(possible_target, ids)| {
+            if current_target == possible_target {
+                ids.get(&target.id())
+            } else {
+                None
+            }
+        });
+
+        if let Some(target_is_free) = target_is_valid {
+            if !target_is_free {
+                return Err(PolymerizerError::group_occupied(target_group, target));
+            }
+        } else {
+            let theoretically_possible = valid_targets
+                .iter()
+                .any(|possible_target| current_target.matches(&possible_target.into()));
+            if theoretically_possible {
+                return Err(PolymerizerError::residue_not_in_polymer(target));
+            }
+            return Err(PolymerizerError::invalid_target(
+                &current_target,
+                valid_targets,
+            ));
+        }
+
+        self.free_group_index
+            .get_mut(current_target)
+            .unwrap()
+            .insert(target.id(), false);
+        // SAFETY: The TargetIndex told us that this group exists and is free, so unwrap() is safe
+        let target_state = target.group_state_mut(target_group).unwrap();
+
+        *target_state = group_state;
+        Ok(())
+    }
+
     pub fn modify_group(
         &mut self,
         abbr: impl AsRef<str>,
@@ -74,52 +124,15 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             },
         ) = NamedMod::lookup_description(self.polymer_db, abbr)?;
 
-        // FIXME: Messy split into the let statement and if...
-        let valid_targets: Vec<_> = targets
-            .iter()
-            .flat_map(|t| self.free_group_index.matches_with_targets(t))
-            .collect();
-
-        // FIXME: Abstract into that update_group method? Take the list of valid targets
-        let current_target = Target::from_residue_and_group(target, target_group);
-        let target_is_valid = valid_targets.iter().find_map(|&(possible_target, ids)| {
-            if current_target == possible_target {
-                ids.get(&target.id())
-            } else {
-                None
-            }
-        });
-
-        // FIXME: Convert panics to proper errors!
-        if let Some(target_is_free) = target_is_valid {
-            if !target_is_free {
-                return Err(PolychemError::group_occupied(target_group, target).into());
-            }
-        } else {
-            let theoretically_possible = targets
-                .iter()
-                .any(|possible_target| current_target.matches(&possible_target.into()));
-            if theoretically_possible {
-                return Err(PolychemError::residue_not_in_polymer(target).into());
-            }
-            return Err(PolychemError::invalid_target(&current_target, targets).into());
-        }
-
-        self.free_group_index
-            .get_mut(current_target)
-            .unwrap()
-            .insert(target.id(), false);
-        // SAFETY: The TargetIndex told us that this group exists and is free, so unwrap() is safe
-        let target_state = target.group_state_mut(target_group).unwrap();
-
-        *target_state = GroupState::Modified(NamedMod {
+        let modified_state = GroupState::Modified(NamedMod {
             abbr,
             name,
             lost,
             gained,
         });
 
-        Ok(())
+        self.update_group(targets, target, target_group, modified_state)
+            .map_err(|e| PolychemError::modification(name, abbr, target, e).into())
     }
 
     // FIXME: Finish this!
@@ -134,15 +147,15 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         let donor_state = donor.group_state_mut(donor_group)?;
         let acceptor_state = acceptor.group_state_mut(acceptor_group)?;
 
-        if !donor_state.is_free() {
-            return Err(PolychemError::bond_group_occupied(donor_group, donor).into());
-        }
-        if !acceptor_state.is_free() {
-            return Err(PolychemError::bond_group_occupied(acceptor_group, acceptor).into());
-        }
+        // if !donor_state.is_free() {
+        //     return Err(PolychemError::bond_group_occupied(donor_group, donor).into());
+        // }
+        // if !acceptor_state.is_free() {
+        //     return Err(PolychemError::bond_group_occupied(acceptor_group, acceptor).into());
+        // }
 
-        let (kind, BondDescription { from, to, lost }) =
-            Bond::lookup_description(self.polymer_db, kind)?;
+        // let (kind, BondDescription { from, to, lost }) =
+        //     Bond::lookup_description(self.polymer_db, kind)?;
         Ok(())
     }
 }
@@ -158,6 +171,40 @@ impl<'a> Target<&'a str> {
             Some(group.location.as_str()),
             Some(residue.name),
         )
+    }
+}
+
+#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
+pub(crate) enum PolymerizerError {
+    #[error("the functional group {0} of residue {1} was already {2}, but must be free")]
+    GroupOccupied(FunctionalGroup, Id, String),
+
+    #[error("residue {0} does not belong to the current polymer")]
+    #[diagnostic(help(
+        "the referenced residue was likely created by a different Polymerizer instance"
+    ))]
+    ResidueNotInPolymer(Id),
+
+    #[error("expected a target matching {0}, got {1}")]
+    InvalidTarget(String, Target),
+}
+
+impl PolymerizerError {
+    fn group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
+        Self::GroupOccupied(
+            group.clone(),
+            residue.id,
+            residue.group_state(group).unwrap().to_string(),
+        )
+    }
+
+    fn residue_not_in_polymer(residue: &Residue) -> Self {
+        Self::ResidueNotInPolymer(residue.id)
+    }
+
+    fn invalid_target(target: impl Into<Target>, valid_targets: &[Target]) -> Self {
+        let valid_targets = valid_targets.iter().join(", or");
+        Self::InvalidTarget(valid_targets, target.into())
     }
 }
 

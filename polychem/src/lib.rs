@@ -8,6 +8,7 @@ mod testing_tools;
 
 use atoms::chemical_composition::CompositionError;
 use itertools::Itertools;
+use polymerizer::PolymerizerError;
 use polymers::target::Target;
 use serde::Serialize;
 
@@ -213,24 +214,16 @@ enum PolychemError {
     #[error("the functional group {0} could not be found on the residue {1} ({2})")]
     GroupLookup(FunctionalGroup, String, String),
 
-    // FIXME: Wrap the group update errors in modification / specific bond errors
-    #[error("the functional group {0} of residue {1} ({2}) was already {3}, but must be free")]
-    GroupOccupied(FunctionalGroup, Id, String, String),
-
-    #[error("residue {0} ({1}) does not belong to the current polymer")]
-    #[diagnostic(help(
-        "the referenced residue was likely created by a different Polymerizer instance"
-    ))]
-    ResidueNotInPolymer(Id, String),
-
-    #[error("the target {0} does not match any chemically valid target: {1}")]
-    InvalidTarget(Target, String),
-
-    // FIXME: Destroy me
-    #[error(
-        "the functional group {0} of {1}-{2} was already {3}, but must be free for bond formation"
-    )]
-    BondGroupOccupied(FunctionalGroup, String, Id, String),
+    #[error("failed to apply the modification {0} ({1}) to residue {2} ({3})")]
+    Modification(
+        String,
+        String,
+        Id,
+        String,
+        #[source]
+        #[diagnostic_source]
+        PolymerizerError,
+    ),
 }
 
 // FIXME: Move this to it's own errors.rs module? Bring the enum along too?
@@ -251,31 +244,13 @@ impl PolychemError {
         Self::GroupLookup(functional_group.clone(), name.to_owned(), abbr.to_owned())
     }
 
-    fn group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
-        Self::GroupOccupied(
-            group.clone(),
-            residue.id,
+    fn modification(name: &str, abbr: &str, residue: &Residue, source: PolymerizerError) -> Self {
+        Self::Modification(
+            name.to_owned(),
+            abbr.to_owned(),
+            residue.id(),
             residue.name.to_owned(),
-            residue.group_state(group).unwrap().to_string(),
-        )
-    }
-
-    fn residue_not_in_polymer(residue: &Residue) -> Self {
-        Self::ResidueNotInPolymer(residue.id, residue.name.to_owned())
-    }
-
-    fn invalid_target(target: impl Into<Target>, valid_targets: &[Target]) -> Self {
-        let valid_targets = valid_targets.iter().join(", or");
-        Self::InvalidTarget(target.into(), valid_targets)
-    }
-
-    // FIXME: Destroy me
-    fn bond_group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
-        Self::BondGroupOccupied(
-            group.clone(),
-            residue.name.to_owned(),
-            residue.id,
-            residue.group_state(group).unwrap().to_string(),
+            source,
         )
     }
 }
