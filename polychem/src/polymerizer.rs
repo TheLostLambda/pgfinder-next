@@ -93,17 +93,16 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         // FIXME: Convert panics to proper errors!
         if let Some(target_is_free) = target_is_valid {
             if !target_is_free {
-                panic!("Modification is valid, but group is not free")
+                return Err(PolychemError::group_occupied(target_group, target).into());
             }
         } else {
             let theoretically_possible = targets
                 .iter()
                 .any(|possible_target| current_target.matches(&possible_target.into()));
             if theoretically_possible {
-                panic!("Residue does not belong to the current polymer");
-            } else {
-                panic!("Requested modification was chemically invalid");
+                return Err(PolychemError::residue_not_in_polymer(target).into());
             }
+            return Err(PolychemError::invalid_target(&current_target, targets).into());
         }
 
         self.free_group_index
@@ -170,7 +169,7 @@ mod tests {
 
     use crate::{
         atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-        FunctionalGroup, GroupState, Massive,
+        testing_tools::assert_miette_snapshot, FunctionalGroup, GroupState, Massive,
     };
 
     use super::Polymerizer;
@@ -226,15 +225,16 @@ mod tests {
             GroupState::Modified(_)
         ));
 
-        polymerizer
-            .modify_group("Anh", &mut murnac, &reducing_end)
-            .unwrap();
+        let modify_non_free_group = polymerizer.modify_group("Anh", &mut murnac, &reducing_end);
+        assert_miette_snapshot!(modify_non_free_group);
+
+        // Start a new polymer by resetting the polymerizer
         let mut polymerizer = polymerizer.reset();
-        polymerizer
-            .modify_group("Anh", &mut murnac, &reducing_end)
-            .unwrap();
-        polymerizer
-            .modify_group("Ac", &mut murnac, &reducing_end)
-            .unwrap();
+        let residue_from_wrong_polymer =
+            polymerizer.modify_group("Anh", &mut murnac, &reducing_end);
+        assert_miette_snapshot!(residue_from_wrong_polymer);
+
+        let invalid_group = polymerizer.modify_group("Ac", &mut murnac, &reducing_end);
+        assert_miette_snapshot!(invalid_group);
     }
 }

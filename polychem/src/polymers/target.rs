@@ -160,6 +160,16 @@ impl<'a> From<&'a Target> for Target<&'a str> {
     }
 }
 
+impl<'a> From<&'a Target<&'a str>> for Target {
+    fn from(value: &'a Target<&'a str>) -> Self {
+        Target::new(
+            value.group.to_owned(),
+            value.location.map(ToOwned::to_owned),
+            value.residue.map(ToOwned::to_owned),
+        )
+    }
+}
+
 // Collecting an Iterator of Targets Into a TargetIndex ================================================================
 
 impl<'a, V, K: Into<Target<&'a str>>> FromIterator<(K, V)> for TargetIndex<'a, V> {

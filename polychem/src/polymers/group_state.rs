@@ -14,10 +14,10 @@ impl Display for GroupState<'_, '_> {
             f,
             "{}",
             match self {
-                GroupState::Free => "Free",
-                GroupState::Modified(_) => "Modified",
-                GroupState::Donor(_) => "Donor",
-                GroupState::Acceptor => "Acceptor",
+                GroupState::Free => "free",
+                GroupState::Modified(_) => "modified",
+                GroupState::Donor(_) => "a donor",
+                GroupState::Acceptor => "an acceptor",
             }
         )
     }

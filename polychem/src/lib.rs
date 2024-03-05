@@ -7,6 +7,8 @@ pub mod polymers;
 mod testing_tools;
 
 use atoms::chemical_composition::CompositionError;
+use itertools::Itertools;
+use polymers::target::Target;
 use serde::Serialize;
 
 // Standard Library Imports
@@ -211,15 +213,18 @@ enum PolychemError {
     #[error("the functional group {0} could not be found on the residue {1} ({2})")]
     GroupLookup(FunctionalGroup, String, String),
 
-    // FIXME: Oh dear...
-    // #[error("")]
-    // NoValidGroup()
+    // FIXME: Wrap the group update errors in modification / specific bond errors
+    #[error("the functional group {0} of residue {1} ({2}) was already {3}, but must be free")]
+    GroupOccupied(FunctionalGroup, Id, String, String),
 
-    // FIXME: Destroy me, unless...?
-    #[error(
-        "the functional group {0} of {1}-{2} was already {3}, but must be free for modification"
-    )]
-    ModificationGroupOccupied(FunctionalGroup, String, Id, String),
+    #[error("residue {0} ({1}) does not belong to the current polymer")]
+    #[diagnostic(help(
+        "the referenced residue was likely created by a different Polymerizer instance"
+    ))]
+    ResidueNotInPolymer(Id, String),
+
+    #[error("the target {0} does not match any chemically valid target: {1}")]
+    InvalidTarget(Target, String),
 
     // FIXME: Destroy me
     #[error(
@@ -246,14 +251,22 @@ impl PolychemError {
         Self::GroupLookup(functional_group.clone(), name.to_owned(), abbr.to_owned())
     }
 
-    // FIXME: Destroy me
-    fn modification_group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
-        Self::ModificationGroupOccupied(
+    fn group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
+        Self::GroupOccupied(
             group.clone(),
-            residue.name.to_owned(),
             residue.id,
+            residue.name.to_owned(),
             residue.group_state(group).unwrap().to_string(),
         )
+    }
+
+    fn residue_not_in_polymer(residue: &Residue) -> Self {
+        Self::ResidueNotInPolymer(residue.id, residue.name.to_owned())
+    }
+
+    fn invalid_target(target: impl Into<Target>, valid_targets: &[Target]) -> Self {
+        let valid_targets = valid_targets.iter().join(", or");
+        Self::InvalidTarget(target.into(), valid_targets)
     }
 
     // FIXME: Destroy me

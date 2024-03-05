@@ -1,0 +1,7 @@
+---
+source: polychem/src/polymerizer.rs
+description: invalid_group
+expression: out
+---
+  × the target "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid" does not
+  │ match any chemically valid target: "Hydroxyl" at="6-Position"

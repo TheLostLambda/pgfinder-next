@@ -1,0 +1,7 @@
+---
+source: polychem/src/polymerizer.rs
+description: modify_non_free_group
+expression: out
+---
+  × the functional group "Hydroxyl" at="Reducing End" of residue 1 (N-
+  │ Acetylmuramic Acid) was already modified, but must be free
