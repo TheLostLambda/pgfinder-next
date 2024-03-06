@@ -1,8 +1,6 @@
 use rust_decimal::Decimal;
 
-use crate::{
-    Bond, BondTarget, Charge, Charged, ChemicalComposition, Massive, Mz, PolychemError, Result,
-};
+use crate::{Bond, BondTarget, Charge, Charged, Massive, Mz, PolychemError, Result};
 
 use super::polymer_database::{BondDescription, PolymerDatabase};
 

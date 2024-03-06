@@ -1,0 +1,6 @@
+---
+source: polychem/src/polymerizer.rs
+description: nonexistent_bond
+expression: out
+---
+  × the bond kind "Super" could not be found in the supplied polymer database

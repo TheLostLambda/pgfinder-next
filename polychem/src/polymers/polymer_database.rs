@@ -13,7 +13,7 @@ use miette::{Diagnostic, LabeledSpan, NamedSource, Result};
 use thiserror::Error;
 
 // Local Crate Imports
-use super::target::{Target, TargetIndex};
+use super::target::{Index, Target};
 use crate::{atoms::atomic_database::AtomicDatabase, ChemicalComposition, FunctionalGroup};
 
 // Public API ==========================================================================================================
@@ -216,7 +216,7 @@ impl<'a> ValidateInto<'a, PolymerDatabase<'a>> for PolymerDatabaseKdl {
 
     fn validate(self, ctx: Self::Context) -> ChemResult<PolymerDatabase<'a>> {
         let residues = self.residues.validate(ctx)?;
-        let target_index: TargetIndex = residues.values().flat_map(Targets::from).collect();
+        let target_index: Index = residues.values().flat_map(Targets::from).collect();
         let ctx = (ctx, &target_index);
         Ok(PolymerDatabase {
             bonds: self.bonds.validate(ctx)?,
@@ -336,7 +336,7 @@ impl<'a> ValidateInto<'a, ChemicalComposition<'a>> for ChemicalCompositionKdl {
 // Validate Bonds ======================================================================================================
 
 impl<'a: 't, 't> ValidateInto<'t, Bonds<'a>> for BondsKdl {
-    type Context = (&'a AtomicDatabase, &'t TargetIndex<'t>);
+    type Context = (&'a AtomicDatabase, &'t Index<'t>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<Bonds<'a>> {
         self.bonds.into_iter().map(|b| b.validate(ctx)).collect()
@@ -348,7 +348,7 @@ impl<'a: 't, 't> ValidateInto<'t, Bonds<'a>> for BondsKdl {
 type BondEntry<'a> = (String, BondDescription<'a>);
 
 impl<'a: 't, 't> ValidateInto<'t, BondEntry<'a>> for BondKdl {
-    type Context = (&'a AtomicDatabase, &'t TargetIndex<'t>);
+    type Context = (&'a AtomicDatabase, &'t Index<'t>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<BondEntry<'a>> {
         Ok((
@@ -365,7 +365,7 @@ impl<'a: 't, 't> ValidateInto<'t, BondEntry<'a>> for BondKdl {
 // ---------------------------------------------------------------------------------------------------------------------
 
 impl<'t> ValidateInto<'t, Target> for TargetKdl {
-    type Context = &'t TargetIndex<'t>;
+    type Context = &'t Index<'t>;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<Target> {
         let target = Target::new(self.group, self.location, self.residue);
@@ -381,7 +381,7 @@ impl<'t> ValidateInto<'t, Target> for TargetKdl {
 // Validate Modifications ==============================================================================================
 
 impl<'a: 't, 't> ValidateInto<'t, Modifications<'a>> for ModificationsKdl {
-    type Context = (&'a AtomicDatabase, &'t TargetIndex<'t>);
+    type Context = (&'a AtomicDatabase, &'t Index<'t>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<Modifications<'a>> {
         self.modifications
@@ -396,7 +396,7 @@ impl<'a: 't, 't> ValidateInto<'t, Modifications<'a>> for ModificationsKdl {
 type ModificationEntry<'a> = (String, ModificationDescription<'a>);
 
 impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
-    type Context = (&'a AtomicDatabase, &'t TargetIndex<'t>);
+    type Context = (&'a AtomicDatabase, &'t Index<'t>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<ModificationEntry<'a>> {
         let targets_and_spans: Vec<_> = self
@@ -405,7 +405,7 @@ impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
             .map(|t| t.validate(ctx.1))
             .collect::<Result<_, _>>()?;
 
-        let target_index: TargetIndex<_> = targets_and_spans.iter().map(|(t, s)| (t, *s)).collect();
+        let target_index: Index<_> = targets_and_spans.iter().map(|(t, s)| (t, *s)).collect();
         for (target, span) in &targets_and_spans {
             let overlapping_targets: Vec<_> = target_index
                 .matches(target)
@@ -440,7 +440,7 @@ impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
 type TargetEntry = (Target, Span);
 
 impl<'t> ValidateInto<'t, TargetEntry> for TargetKdl {
-    type Context = &'t TargetIndex<'t>;
+    type Context = &'t Index<'t>;
 
     fn validate(self, ctx: Self::Context) -> ChemResult<TargetEntry> {
         let span = self.span;
@@ -569,7 +569,7 @@ mod tests {
     use thiserror::Error;
 
     use crate::{
-        atoms::atomic_database::AtomicDatabase, polymers::target::TargetIndex,
+        atoms::atomic_database::AtomicDatabase, polymers::target::Index,
         testing_tools::assert_miette_snapshot,
     };
 
@@ -805,7 +805,7 @@ mod tests {
         parse_residues(residues_kdl).unwrap()
     });
 
-    static RESIDUE_INDEX: Lazy<TargetIndex> =
+    static RESIDUE_INDEX: Lazy<Index> =
         Lazy::new(|| RESIDUES.values().flat_map(Targets::from).collect());
 
     fn parse_modifications(kdl: &str) -> Result<Modifications, ChemistryError> {

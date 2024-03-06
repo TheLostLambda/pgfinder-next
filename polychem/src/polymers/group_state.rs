@@ -3,7 +3,8 @@ use std::fmt::{Display, Formatter};
 use crate::GroupState;
 
 impl GroupState<'_, '_> {
-    pub fn is_free(&self) -> bool {
+    #[must_use]
+    pub const fn is_free(&self) -> bool {
         matches!(self, Self::Free)
     }
 }

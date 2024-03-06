@@ -7,9 +7,7 @@ pub mod polymers;
 mod testing_tools;
 
 use atoms::chemical_composition::CompositionError;
-use itertools::Itertools;
 use polymerizer::PolymerizerError;
-use polymers::target::Target;
 use serde::Serialize;
 
 // Standard Library Imports
@@ -224,6 +222,19 @@ enum PolychemError {
         #[diagnostic_source]
         PolymerizerError,
     ),
+
+    #[error("failed to form {0:?} bond between residue {1} ({2}) and residue {3} ({4}) due to an issue with the {5}")]
+    Bond(
+        String,
+        Id,
+        String,
+        Id,
+        String,
+        String,
+        #[source]
+        #[diagnostic_source]
+        PolymerizerError,
+    ),
 }
 
 // FIXME: Move this to it's own errors.rs module? Bring the enum along too?
@@ -250,6 +261,24 @@ impl PolychemError {
             abbr.to_owned(),
             residue.id(),
             residue.name.to_owned(),
+            source,
+        )
+    }
+
+    fn bond(
+        kind: &str,
+        donor: &Residue,
+        acceptor: &Residue,
+        error_with: &str,
+        source: PolymerizerError,
+    ) -> Self {
+        Self::Bond(
+            kind.to_owned(),
+            donor.id(),
+            donor.name.to_owned(),
+            acceptor.id(),
+            acceptor.name.to_owned(),
+            error_with.to_owned(),
             source,
         )
     }
