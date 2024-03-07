@@ -28,7 +28,7 @@ pub struct Residue<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
     composition: &'p ChemicalComposition<'a>,
-    functional_groups: HashMap<&'p FunctionalGroup, GroupState<'a, 'p>>,
+    functional_groups: HashMap<FunctionalGroup<'p>, GroupState<'a, 'p>>,
     offset_modifications: Vec<Modification<OffsetMod<'a>>>,
 }
 
@@ -42,10 +42,11 @@ pub struct ChemicalComposition<'a> {
     particle_offset: Option<(OffsetKind, Count, Particle<'a>)>,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub struct FunctionalGroup {
-    name: String,
-    location: String,
+// FIXME: Ensure all of the derives in this file derive as much as possible!
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+pub struct FunctionalGroup<'p> {
+    name: &'p str,
+    location: &'p str,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
@@ -136,7 +137,7 @@ pub struct Bond<'a, 'p> {
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct BondTarget<'p> {
     residue: Id,
-    group: &'p FunctionalGroup,
+    group: FunctionalGroup<'p>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -210,7 +211,7 @@ enum PolychemError {
     BondLookup(String),
 
     #[error("the functional group {0} could not be found on the residue {1} ({2})")]
-    GroupLookup(FunctionalGroup, String, String),
+    GroupLookup(String, String, String),
 
     #[error("failed to apply the modification {0} ({1}) to residue {2} ({3})")]
     Modification(
@@ -251,8 +252,12 @@ impl PolychemError {
         Self::BondLookup(kind.to_owned())
     }
 
-    fn group_lookup(functional_group: &FunctionalGroup, name: &str, abbr: &str) -> Self {
-        Self::GroupLookup(functional_group.clone(), name.to_owned(), abbr.to_owned())
+    fn group_lookup(functional_group: FunctionalGroup, name: &str, abbr: &str) -> Self {
+        Self::GroupLookup(
+            functional_group.to_string(),
+            name.to_owned(),
+            abbr.to_owned(),
+        )
     }
 
     fn modification(name: &str, abbr: &str, residue: &Residue, source: PolymerizerError) -> Self {

@@ -14,7 +14,7 @@ use thiserror::Error;
 
 // Local Crate Imports
 use super::target::{Index, Target};
-use crate::{atoms::atomic_database::AtomicDatabase, ChemicalComposition, FunctionalGroup};
+use crate::{atoms::atomic_database::AtomicDatabase, ChemicalComposition};
 
 // Public API ==========================================================================================================
 
@@ -69,7 +69,14 @@ pub(crate) struct ModificationDescription<'a> {
 pub(crate) struct ResidueDescription<'a> {
     pub(crate) name: String,
     pub(crate) composition: ChemicalComposition<'a>,
-    pub(crate) functional_groups: Vec<FunctionalGroup>,
+    pub(crate) functional_groups: Vec<FunctionalGroupDescription>,
+}
+
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
+pub(crate) struct FunctionalGroupDescription {
+    pub(crate) name: String,
+    pub(crate) location: String,
 }
 
 // KDL File Schema =====================================================================================================
@@ -468,11 +475,17 @@ impl<'a> From<&'a ResidueDescription<'a>> for Targets<'a> {
     }
 }
 
-type FunctionalGroupEntry = (FunctionalGroup, Span);
+type FunctionalGroupEntry = (FunctionalGroupDescription, Span);
 
 impl From<FunctionalGroupKdl> for FunctionalGroupEntry {
     fn from(value: FunctionalGroupKdl) -> Self {
-        (FunctionalGroup::new(value.name, value.location), value.span)
+        (
+            FunctionalGroupDescription {
+                name: value.name,
+                location: value.location,
+            },
+            value.span,
+        )
     }
 }
 

@@ -756,11 +756,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -846,15 +846,15 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "Sidechain",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -963,11 +963,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -1053,15 +1053,15 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "Sidechain",
         ),
@@ -1147,15 +1147,15 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "Sidechain",
         ),
@@ -1241,11 +1241,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -1331,11 +1331,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -1421,11 +1421,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -1511,11 +1511,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -1601,19 +1601,19 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "Sidechain",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "Sidechain",
         ),
@@ -1699,15 +1699,15 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "Sidechain",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -1793,11 +1793,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -1906,11 +1906,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -1996,15 +1996,15 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "Sidechain",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2090,15 +2090,15 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "Sidechain",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2184,11 +2184,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2274,15 +2274,15 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "Sidechain",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2368,11 +2368,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2458,11 +2458,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2548,11 +2548,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2638,11 +2638,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2728,11 +2728,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2818,11 +2818,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2835,11 +2835,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -2925,11 +2925,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -3015,11 +3015,11 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Amino",
           location: "N-Terminal",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "C-Terminal",
         ),
@@ -3105,19 +3105,19 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Acetyl",
           location: "Secondary Amide",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Hydroxyl",
           location: "6-Position",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Hydroxyl",
           location: "Nonreducing End",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Hydroxyl",
           location: "Reducing End",
         ),
@@ -3203,23 +3203,23 @@ PolymerDatabase(
         particle_offset: None,
       ),
       functional_groups: [
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Acetyl",
           location: "Secondary Amide",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Carboxyl",
           location: "Lactyl Ether",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Hydroxyl",
           location: "6-Position",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Hydroxyl",
           location: "Nonreducing End",
         ),
-        FunctionalGroup(
+        FunctionalGroupDescription(
           name: "Hydroxyl",
           location: "Reducing End",
         ),

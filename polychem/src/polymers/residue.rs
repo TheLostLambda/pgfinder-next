@@ -24,7 +24,7 @@ impl<'a, 'p> Residue<'a, 'p> {
             .ok_or_else(|| PolychemError::residue_lookup(abbr))?;
         let functional_groups = functional_groups
             .iter()
-            .map(|fg| (fg, GroupState::default()))
+            .map(|fg| (fg.into(), GroupState::default()))
             .collect();
         Ok(Self {
             id,
@@ -41,20 +41,23 @@ impl<'a, 'p> Residue<'a, 'p> {
         self.id
     }
 
-    pub fn group_state(&self, functional_group: &FunctionalGroup) -> Result<&GroupState<'a, 'p>> {
+    pub fn group_state(
+        &self,
+        functional_group: &FunctionalGroup<'p>,
+    ) -> Result<&GroupState<'a, 'p>> {
         self.functional_groups.get(functional_group).ok_or_else(|| {
-            PolychemError::group_lookup(functional_group, self.name, self.abbr).into()
+            PolychemError::group_lookup(*functional_group, self.name, self.abbr).into()
         })
     }
 
     pub fn group_state_mut(
         &mut self,
-        functional_group: &FunctionalGroup,
+        functional_group: &FunctionalGroup<'p>,
     ) -> Result<&mut GroupState<'a, 'p>> {
         self.functional_groups
             .get_mut(functional_group)
             .ok_or_else(|| {
-                PolychemError::group_lookup(functional_group, self.name, self.abbr).into()
+                PolychemError::group_lookup(*functional_group, self.name, self.abbr).into()
             })
     }
 }
@@ -143,11 +146,9 @@ mod tests {
         assert_eq!(alanine.id(), 1);
     }
 
-    static N_TERMINAL: Lazy<FunctionalGroup> =
-        Lazy::new(|| FunctionalGroup::new("Amino", "N-Terminal"));
+    static N_TERMINAL: FunctionalGroup = FunctionalGroup::new("Amino", "N-Terminal");
 
-    static C_TERMINAL: Lazy<FunctionalGroup> =
-        Lazy::new(|| FunctionalGroup::new("Carboxyl", "C-Terminal"));
+    static C_TERMINAL: FunctionalGroup = FunctionalGroup::new("Carboxyl", "C-Terminal");
 
     #[test]
     fn group_state() {
@@ -200,28 +201,28 @@ mod tests {
         snapshots.push(alanine.clone());
 
         // Add an amidation named modification to the C-terminal
-        assert!(alanine.functional_groups.contains_key(&*C_TERMINAL));
+        assert!(alanine.functional_groups.contains_key(&C_TERMINAL));
         alanine.functional_groups.insert(
-            &C_TERMINAL,
+            C_TERMINAL,
             GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap()),
         );
         snapshots.push(alanine.clone());
 
         // Add an amidation named modification to the N-terminal (ignoring that that's impossible)
-        assert!(alanine.functional_groups.contains_key(&*N_TERMINAL));
+        assert!(alanine.functional_groups.contains_key(&N_TERMINAL));
         alanine.functional_groups.insert(
-            &N_TERMINAL,
+            N_TERMINAL,
             GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap()),
         );
         snapshots.push(alanine.clone());
 
         // Out of functional groups, so adding more amidations changes nothing
         alanine.functional_groups.insert(
-            &N_TERMINAL,
+            N_TERMINAL,
             GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap()),
         );
         alanine.functional_groups.insert(
-            &C_TERMINAL,
+            C_TERMINAL,
             GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap()),
         );
         snapshots.push(alanine.clone());
@@ -232,13 +233,13 @@ mod tests {
             "Peptide",
             BondTarget {
                 residue: 0,
-                group: &C_TERMINAL,
+                group: C_TERMINAL,
             },
         )
         .unwrap();
         alanine
             .functional_groups
-            .insert(&N_TERMINAL, GroupState::Donor(peptide_bond));
+            .insert(N_TERMINAL, GroupState::Donor(peptide_bond));
         snapshots.push(alanine.clone());
 
         // Residues can be protonated

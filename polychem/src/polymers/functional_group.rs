@@ -2,15 +2,25 @@ use std::fmt::{Display, Formatter};
 
 use crate::FunctionalGroup;
 
-impl FunctionalGroup {
-    pub fn new(name: impl Into<String>, location: impl Into<String>) -> Self {
-        let name = name.into();
-        let location = location.into();
+use super::polymer_database::FunctionalGroupDescription;
+
+impl<'p> FunctionalGroup<'p> {
+    #[must_use]
+    pub const fn new(name: &'p str, location: &'p str) -> Self {
         Self { name, location }
     }
 }
 
-impl Display for FunctionalGroup {
+impl<'p> From<&'p FunctionalGroupDescription> for FunctionalGroup<'p> {
+    fn from(value: &'p FunctionalGroupDescription) -> Self {
+        FunctionalGroup {
+            name: value.name.as_str(),
+            location: value.location.as_str(),
+        }
+    }
+}
+
+impl Display for FunctionalGroup<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} at={:?}", self.name, self.location)
     }

@@ -75,12 +75,11 @@ mod tests {
         .unwrap()
     });
 
-    static EMPTY_GROUP: Lazy<FunctionalGroup> =
-        Lazy::new(|| FunctionalGroup::new(String::new(), String::new()));
+    static EMPTY_GROUP: FunctionalGroup = FunctionalGroup::new("", "");
 
     static EMPTY_TARGET: Lazy<BondTarget> = Lazy::new(|| BondTarget {
         residue: 0,
-        group: &EMPTY_GROUP,
+        group: EMPTY_GROUP,
     });
 
     #[test]

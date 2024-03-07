@@ -83,15 +83,15 @@ expression: residues.unwrap()
       particle_offset: None,
     ),
     functional_groups: [
-      FunctionalGroup(
+      FunctionalGroupDescription(
         name: "Amino",
         location: "N-terminal",
       ),
-      FunctionalGroup(
+      FunctionalGroupDescription(
         name: "Amino",
         location: "Sidechain",
       ),
-      FunctionalGroup(
+      FunctionalGroupDescription(
         name: "Carboxyl",
         location: "C-terminal",
       ),
