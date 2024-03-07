@@ -1,0 +1,13 @@
+---
+source: polychem/src/polymerizer.rs
+assertion_line: 442
+description: modify_non_free_group
+expression: out
+---
+  × failed to apply the modification 1,6-Anhydro (Anh) to residue 1 (N-
+  │ Acetylmuramic Acid)
+  ╰─▶   × the functional group "Hydroxyl" at="Reducing End" of residue 1 was
+      already
+        │ modified, but must be free
+      
+
