@@ -9,7 +9,7 @@ use crate::{
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
 
 impl<'a, 'p> Residue<'a, 'p> {
-    pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>, id: usize) -> Result<Self> {
+    pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>, id: Id) -> Result<Self> {
         let abbr = abbr.as_ref();
         let (
             abbr,

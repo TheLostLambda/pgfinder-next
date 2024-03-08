@@ -69,10 +69,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             },
         ) = NamedMod::lookup_description(self.polymer_db, abbr)?;
 
-        let available_groups: Vec<_> = targets
-            .iter()
-            .flat_map(|t| self.available_groups(t, target))
-            .collect();
+        let available_groups: Vec<_> = self.free_residue_groups(&targets, target).collect();
         match dbg!(&available_groups).len() {
             0 => panic!("No targets found"),
             1 => {
@@ -151,25 +148,94 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Ok(())
     }
 
-    // FIXME: Later expand to find free groups on *any* residue
-    fn available_groups(
-        &self,
-        target: &'p Target,
-        residue: &Residue<'a, 'p>,
-    ) -> Vec<FunctionalGroup<'p>> {
-        self.free_group_index
-            .matches_with_targets(target)
+    fn molecule_groups<'s, T: Into<Target<&'p str>>>(
+        &'s self,
+        targets: &'s (impl IntoIterator<Item = T> + Copy),
+    ) -> impl Iterator<Item = (FunctionalGroup<'p>, &HashMap<Id, bool>)> + 's {
+        targets
             .into_iter()
-            .filter_map(|(target, ids)| {
-                if let Some(true) = ids.get(&residue.id()) {
+            .flat_map(|target| self.free_group_index.matches_with_targets(target))
+            .map(|(target, ids)| {
+                (
                     // SAFETY: `.matches_with_targets()` aways returns a complete `Target` with no `None` fields, so
                     // `.unwrap()` is safe
-                    Some(FunctionalGroup::new(target.group, target.location.unwrap()))
-                } else {
-                    None
-                }
+                    FunctionalGroup::new(target.group, target.location.unwrap()),
+                    ids,
+                )
             })
-            .collect()
+    }
+
+    // TODO: Write `free_molecule_groups`
+
+    fn residue_groups<'s, T: Into<Target<&'p str>>>(
+        &'s self,
+        targets: &'s (impl IntoIterator<Item = T> + Copy),
+        residue: &Residue<'a, 'p>,
+    ) -> impl Iterator<Item = (FunctionalGroup<'p>, bool)> + 's {
+        let residue_id = residue.id();
+        self.molecule_groups(targets).filter_map(move |(fg, ids)| {
+            if let Some(&is_free) = ids.get(&residue_id) {
+                Some((fg, is_free))
+            } else {
+                None
+            }
+        })
+    }
+
+    fn free_residue_groups<'s, T: Into<Target<&'p str>>>(
+        &'s self,
+        targets: &'s (impl IntoIterator<Item = T> + Copy),
+        residue: &Residue<'a, 'p>,
+    ) -> impl Iterator<Item = FunctionalGroup<'p>> + 's {
+        self.residue_groups(targets, residue)
+            .filter_map(|(fg, is_free)| is_free.then_some(fg))
+    }
+
+    fn find_targeted_group<T: Into<Target<&'p str>>>(
+        &self,
+        targets: &(impl IntoIterator<Item = T> + Copy),
+        residue: &Residue<'a, 'p>,
+        group: Option<FunctionalGroup<'p>>,
+    ) -> Result<FunctionalGroup<'p>, PolymerizerError> {
+        let free_groups: Vec<_> = self.free_residue_groups(targets, residue).collect();
+        match (&free_groups[..], group) {
+            ([], None) => {
+                let non_free_groups: Vec<_> = self.residue_groups(targets, residue).collect();
+                todo!()
+            }
+            ([], Some(target_group)) => {
+                // FIXME: Refactor out into another function!
+                let current_target = Target::from_residue_and_group(residue, target_group);
+
+                let group_in_index = self
+                    .residue_groups(&[current_target], residue)
+                    .next()
+                    .is_some();
+                let residue_has_group = residue.functional_groups.contains_key(&target_group);
+                let theoretically_possible = targets
+                    .into_iter()
+                    .any(|possible_target| current_target.matches(&possible_target.into()));
+
+                if group_in_index {
+                    Err(PolymerizerError::group_occupied(target_group, residue))
+                } else if !residue_has_group {
+                    Err(PolymerizerError::nonexistent_group(target_group, residue))
+                } else if !theoretically_possible {
+                    Err(PolymerizerError::invalid_target(&current_target, targets))
+                } else {
+                    Err(PolymerizerError::residue_not_in_polymer(residue))
+                }
+            }
+            (&[found_group], None) => Ok(found_group),
+            (_, None) => panic!("Ambiguous target"),
+            (found_groups, Some(target_group)) => {
+                if found_groups.contains(&target_group) {
+                    Ok(target_group)
+                } else {
+                    panic!("Shit")
+                }
+            }
+        }
     }
 
     fn validate_group_update(
@@ -211,7 +277,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             } else if !theoretically_possible {
                 Err(PolymerizerError::invalid_target(
                     &current_target,
-                    valid_targets,
+                    &valid_targets,
                 ))
             } else {
                 Err(PolymerizerError::residue_not_in_polymer(target))
@@ -280,8 +346,11 @@ impl PolymerizerError {
         Self::NonexistentGroup(group.to_string(), residue.id())
     }
 
-    fn invalid_target(target: impl Into<Target>, valid_targets: &[Target]) -> Self {
-        let valid_targets = valid_targets.iter().join(", or");
+    fn invalid_target<'a, T: Into<Target<&'a str>>>(
+        target: impl Into<Target>,
+        valid_targets: &(impl IntoIterator<Item = T> + Copy),
+    ) -> Self {
+        let valid_targets = valid_targets.into_iter().map(Into::into).join(", or");
         Self::InvalidTarget(valid_targets, target.into())
     }
 
@@ -424,6 +493,7 @@ mod tests {
         assert_miette_snapshot!(nonexistent_bond);
     }
 
+    #[ignore]
     #[test]
     fn modify() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);

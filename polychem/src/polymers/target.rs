@@ -126,8 +126,8 @@ impl<'a, V> Index<'a, V> {
                 .map(|(&r, v)| (Target::new(group, location, r), v))
                 .collect();
         }
-        residues.get(&residue).map_or_else(Vec::new, |entry| {
-            vec![(Target::new(group, location, residue), entry)]
+        residues.get(&residue).map_or_else(Vec::new, |v| {
+            vec![(Target::new(group, location, residue), v)]
         })
     }
 }
