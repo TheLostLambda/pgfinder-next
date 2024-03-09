@@ -1,0 +1,9 @@
+---
+source: polychem/src/polymerizer.rs
+description: no_matching_groups
+expression: out
+---
+  × failed to form "Peptide" bond between residue 1 (Alanine) and residue 2
+  │ (N-Acetylglucosamine) due to an issue with the acceptor
+  ╰─▶   × no functional groups on residue 2 matched the target "Amino" at="N-
+        │ Terminal"

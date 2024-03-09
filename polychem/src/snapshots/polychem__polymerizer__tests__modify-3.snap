@@ -1,0 +1,9 @@
+---
+source: polychem/src/polymerizer.rs
+description: no_matching_groups
+expression: out
+---
+  × failed to apply the modification Amidation (Am) to residue 1 (N-
+  │ Acetylmuramic Acid)
+  ╰─▶   × no functional groups on residue 1 matched the target "Carboxyl"
+        │ at="Sidechain"

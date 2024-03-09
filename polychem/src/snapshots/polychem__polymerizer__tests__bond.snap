@@ -1,0 +1,9 @@
+---
+source: polychem/src/polymerizer.rs
+description: all_groups_occupied
+expression: out
+---
+  × failed to form "Stem" bond between residue 1 (N-Acetylmuramic Acid) and
+  │ residue 2 (Alanine) due to an issue with the donor
+  ╰─▶   × no functional groups on residue 1 matching the target were free:
+        │ "Carboxyl" at="Lactyl Ether" is a donor

@@ -597,17 +597,13 @@ mod tests {
             polymerizer.bond_groups("Peptide", &mut alanine, c_terminal, &mut glcnac, n_terminal);
         assert_miette_snapshot!(invalid_bond);
         // When bonding fails due to the acceptor, make sure that the donor remains untouched
-        assert!(matches!(
-            alanine.group_state(&c_terminal).unwrap(),
-            GroupState::Free
-        ));
+        assert!(alanine.group_state(&c_terminal).unwrap().is_free());
 
         let nonexistent_bond =
             polymerizer.bond_groups("Super", &mut murnac, lactyl, &mut alanine, n_terminal);
         assert_miette_snapshot!(nonexistent_bond);
     }
 
-    // FIXME: Needs finishing!
     #[test]
     fn modify() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
@@ -622,20 +618,20 @@ mod tests {
             GroupState::Modified(_)
         ));
 
-        // let modify_non_free_group = polymerizer.modify("Anh", &mut murnac);
-        // assert_miette_snapshot!(modify_non_free_group);
+        let all_groups_occupied = polymerizer.modify("Anh", &mut murnac);
+        assert_miette_snapshot!(all_groups_occupied);
 
-        // // FIXME: When no targets are found, simply report the functional groups and states on the target
+        // Start a new polymer by resetting the polymerizer
+        let mut polymerizer = polymerizer.reset();
+        let residue_not_in_polymer = polymerizer.modify("Anh", &mut murnac);
+        assert_miette_snapshot!(residue_not_in_polymer);
 
-        // // Start a new polymer by resetting the polymerizer
-        // // FIXME: I can make this work, by enumerating the functional groups from the residue provided, looking them
-        // // up in the index, and seeing if they contain the right ID
-        // let mut polymerizer = polymerizer.reset();
-        // let residue_from_wrong_polymer = polymerizer.modify("Anh", &mut murnac);
-        // assert_miette_snapshot!(residue_from_wrong_polymer);
+        let mut murnac = polymerizer.new_residue("m").unwrap();
+        let no_matching_groups = polymerizer.modify("Am", &mut murnac);
+        assert_miette_snapshot!(no_matching_groups);
 
-        // let nonexistent_modification = polymerizer.modify("Arg", &mut murnac);
-        // assert_miette_snapshot!(nonexistent_modification);
+        let nonexistent_modification = polymerizer.modify("Arg", &mut murnac);
+        assert_miette_snapshot!(nonexistent_modification);
     }
 
     // FIXME: Needs finishing!
@@ -665,23 +661,23 @@ mod tests {
             GroupState::Acceptor
         ));
 
-        // let groups_not_free =
-        //     polymerizer.bond_groups("Stem", &mut murnac, lactyl, &mut alanine, n_terminal);
-        // assert_miette_snapshot!(groups_not_free);
+        let all_groups_occupied = polymerizer.bond("Stem", &mut murnac, &mut alanine);
+        assert_miette_snapshot!(all_groups_occupied);
 
-        // let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
-        // let mut glcnac = polymerizer.new_residue("g").unwrap();
-        // let invalid_bond =
-        //     polymerizer.bond_groups("Peptide", &mut alanine, c_terminal, &mut glcnac, n_terminal);
-        // assert_miette_snapshot!(invalid_bond);
-        // // When bonding fails due to the acceptor, make sure that the donor remains untouched
-        // assert!(matches!(
-        //     alanine.group_state(&c_terminal).unwrap(),
-        //     GroupState::Free
-        // ));
+        // Start a new polymer by resetting the polymerizer
+        let mut polymerizer = polymerizer.reset();
+        let residue_not_in_polymer = polymerizer.bond("Stem", &mut murnac, &mut alanine);
+        assert_miette_snapshot!(residue_not_in_polymer);
 
-        // let nonexistent_bond =
-        //     polymerizer.bond_groups("Super", &mut murnac, lactyl, &mut alanine, n_terminal);
-        // assert_miette_snapshot!(nonexistent_bond);
+        let mut alanine = polymerizer.new_residue("A").unwrap();
+        let mut glcnac = polymerizer.new_residue("g").unwrap();
+        let no_matching_groups = polymerizer.bond("Peptide", &mut alanine, &mut glcnac);
+        assert_miette_snapshot!(no_matching_groups);
+        // When bonding fails due to the acceptor, make sure that the donor remains untouched
+        let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
+        assert!(alanine.group_state(&c_terminal).unwrap().is_free());
+
+        let nonexistent_bond = polymerizer.bond("Super", &mut murnac, &mut alanine);
+        assert_miette_snapshot!(nonexistent_bond);
     }
 }
