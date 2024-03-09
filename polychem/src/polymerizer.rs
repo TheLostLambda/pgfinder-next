@@ -36,7 +36,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Self::new(self.atomic_db, self.polymer_db)
     }
 
-    pub fn new_residue(&mut self, abbr: impl AsRef<str>) -> Result<Residue<'a, 'p>> {
+    pub fn residue(&mut self, abbr: impl AsRef<str>) -> Result<Residue<'a, 'p>> {
         self.residue_counter += 1;
         let residue = Residue::new(self.polymer_db, abbr, self.residue_counter)?;
 
@@ -437,26 +437,26 @@ mod tests {
     #[test]
     fn residue_construction() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let residues = STEM_RESIDUES.map(|abbr| polymerizer.new_residue(abbr).unwrap());
+        let residues = STEM_RESIDUES.map(|abbr| polymerizer.residue(abbr).unwrap());
         assert_ron_snapshot!(residues, {
             ".**.isotopes, .**.functional_groups" => insta::sorted_redaction()
         });
 
-        let residues = STEM_RESIDUES.map(|abbr| polymerizer.new_residue(abbr).unwrap().id());
+        let residues = STEM_RESIDUES.map(|abbr| polymerizer.residue(abbr).unwrap().id());
         assert_eq!(residues, [5, 6, 7, 8]);
 
         let mut polymerizer = polymerizer.reset();
-        let residues = STEM_RESIDUES.map(|abbr| polymerizer.new_residue(abbr).unwrap().id());
+        let residues = STEM_RESIDUES.map(|abbr| polymerizer.residue(abbr).unwrap().id());
         assert_eq!(residues, [1, 2, 3, 4]);
 
-        let nonexistent_residue = polymerizer.new_residue("?");
+        let nonexistent_residue = polymerizer.residue("?");
         assert_miette_snapshot!(nonexistent_residue);
     }
 
     #[test]
     fn find_free_group() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut murnac = polymerizer.new_residue("m").unwrap();
+        let mut murnac = polymerizer.residue("m").unwrap();
 
         let carboxyl = Target::new("Carboxyl", None, None);
         let carboxyl_group = polymerizer
@@ -483,7 +483,7 @@ mod tests {
         let residue_not_in_polymer = polymerizer.find_free_group(&[hydroxyl], &murnac, None);
         assert_miette_snapshot!(residue_not_in_polymer);
 
-        let mut murnac = polymerizer.new_residue("m").unwrap();
+        let mut murnac = polymerizer.residue("m").unwrap();
         let amino = Target::new("Amino", None, None);
         let crazy = Target::new("Crazy", None, None);
         let no_matching_groups = polymerizer.find_free_group(&[amino, crazy], &murnac, None);
@@ -513,7 +513,7 @@ mod tests {
             polymerizer.find_free_group(&[hydroxyl], &murnac, Some(nonreducing_end));
         assert_miette_snapshot!(residue_not_in_polymer);
 
-        let alanine = polymerizer.new_residue("A").unwrap();
+        let alanine = polymerizer.residue("A").unwrap();
         let nonexistent_group =
             polymerizer.find_free_group(&[hydroxyl], &alanine, Some(nonreducing_end));
         assert_miette_snapshot!(nonexistent_group);
@@ -522,7 +522,7 @@ mod tests {
     #[test]
     fn modify_group() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut murnac = polymerizer.new_residue("m").unwrap();
+        let mut murnac = polymerizer.residue("m").unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
 
         let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
@@ -546,7 +546,7 @@ mod tests {
         let invalid_group = polymerizer.modify_group("Ac", &mut murnac, reducing_end);
         assert_miette_snapshot!(invalid_group);
 
-        let mut alanine = polymerizer.new_residue("A").unwrap();
+        let mut alanine = polymerizer.residue("A").unwrap();
         let nonexistent_group = polymerizer.modify_group("Red", &mut alanine, reducing_end);
         assert_miette_snapshot!(nonexistent_group);
 
@@ -557,8 +557,8 @@ mod tests {
     #[test]
     fn bond_groups() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut murnac = polymerizer.new_residue("m").unwrap();
-        let mut alanine = polymerizer.new_residue("A").unwrap();
+        let mut murnac = polymerizer.residue("m").unwrap();
+        let mut alanine = polymerizer.residue("A").unwrap();
         assert_eq!(
             murnac.monoisotopic_mass() + alanine.monoisotopic_mass(),
             dec!(382.15874504254)
@@ -587,7 +587,7 @@ mod tests {
         assert_miette_snapshot!(groups_not_free);
 
         let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
-        let mut glcnac = polymerizer.new_residue("g").unwrap();
+        let mut glcnac = polymerizer.residue("g").unwrap();
         let invalid_bond =
             polymerizer.bond_groups("Peptide", &mut alanine, c_terminal, &mut glcnac, n_terminal);
         assert_miette_snapshot!(invalid_bond);
@@ -602,7 +602,7 @@ mod tests {
     #[test]
     fn modify() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut murnac = polymerizer.new_residue("m").unwrap();
+        let mut murnac = polymerizer.residue("m").unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
 
         polymerizer.modify("Anh", &mut murnac).unwrap();
@@ -621,7 +621,7 @@ mod tests {
         let residue_not_in_polymer = polymerizer.modify("Anh", &mut murnac);
         assert_miette_snapshot!(residue_not_in_polymer);
 
-        let mut murnac = polymerizer.new_residue("m").unwrap();
+        let mut murnac = polymerizer.residue("m").unwrap();
         let no_matching_groups = polymerizer.modify("Am", &mut murnac);
         assert_miette_snapshot!(no_matching_groups);
 
@@ -633,8 +633,8 @@ mod tests {
     #[test]
     fn bond() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut murnac = polymerizer.new_residue("m").unwrap();
-        let mut alanine = polymerizer.new_residue("A").unwrap();
+        let mut murnac = polymerizer.residue("m").unwrap();
+        let mut alanine = polymerizer.residue("A").unwrap();
         assert_eq!(
             murnac.monoisotopic_mass() + alanine.monoisotopic_mass(),
             dec!(382.15874504254)
@@ -664,8 +664,8 @@ mod tests {
         let residue_not_in_polymer = polymerizer.bond("Stem", &mut murnac, &mut alanine);
         assert_miette_snapshot!(residue_not_in_polymer);
 
-        let mut alanine = polymerizer.new_residue("A").unwrap();
-        let mut glcnac = polymerizer.new_residue("g").unwrap();
+        let mut alanine = polymerizer.residue("A").unwrap();
+        let mut glcnac = polymerizer.residue("g").unwrap();
         let no_matching_groups = polymerizer.bond("Peptide", &mut alanine, &mut glcnac);
         assert_miette_snapshot!(no_matching_groups);
         // When bonding fails due to the acceptor, make sure that the donor remains untouched
