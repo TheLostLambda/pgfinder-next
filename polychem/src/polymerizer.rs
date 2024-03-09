@@ -40,14 +40,8 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         self.residue_counter += 1;
         let residue = Residue::new(self.polymer_db, abbr, self.residue_counter)?;
 
-        // FIXME: Maybe get rid of this... All of the groups should start free...
-        let free_groups = residue
-            .functional_groups
-            .iter()
-            .filter_map(|(&fg, gs)| gs.is_free().then_some(fg));
-
-        // FIXME: And maybe move this to it's own function? But it could be fine here...
-        for group in free_groups {
+        // NOTE: This assumes that all functional groups returned by `Residue::new()` start free!
+        for &group in residue.functional_groups.keys() {
             let target = Target::from_residue_and_group(&residue, group);
             self.free_group_index
                 .entry(target)
@@ -71,6 +65,75 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         target_group: FunctionalGroup<'p>,
     ) -> Result<()> {
         self.modify_with_optional_group(abbr, target, Some(target_group))
+    }
+
+    pub fn bond(
+        &mut self,
+        kind: impl AsRef<str>,
+        donor: &mut Residue<'a, 'p>,
+        acceptor: &mut Residue<'a, 'p>,
+    ) -> Result<()> {
+        self.bond_with_optional_groups(kind, donor, None, acceptor, None)
+    }
+
+    // PERF: Could create an `_unchecked` version for when you've already called `self.free_*_groups()` — skip straight
+    // to `self.update_group()`!
+    pub fn bond_groups(
+        &mut self,
+        kind: impl AsRef<str>,
+        donor: &mut Residue<'a, 'p>,
+        donor_group: FunctionalGroup<'p>,
+        acceptor: &mut Residue<'a, 'p>,
+        acceptor_group: FunctionalGroup<'p>,
+    ) -> Result<()> {
+        self.bond_with_optional_groups(
+            kind,
+            donor,
+            Some(donor_group),
+            acceptor,
+            Some(acceptor_group),
+        )
+    }
+}
+
+// FIXME: Add header for private section!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+impl<'a, 'p> Polymerizer<'a, 'p> {
+    fn find_free_group<T: Into<Target<&'p str>>>(
+        &self,
+        targets: &(impl IntoIterator<Item = T> + Copy),
+        residue: &Residue<'a, 'p>,
+        group: Option<FunctionalGroup<'p>>,
+    ) -> Result<FunctionalGroup<'p>, PolymerizerError> {
+        let free_groups: Vec<_> = self.free_residue_groups(targets, residue).collect();
+        match (group, &free_groups[..]) {
+            (None, []) => Err(self.diagnose_missing_target(targets, residue)),
+            (None, &[found_group]) => Ok(found_group),
+            (None, found_groups) => Err(PolymerizerError::ambiguous_group(residue, found_groups)),
+            (Some(target_group), found_groups) if found_groups.contains(&target_group) => {
+                Ok(target_group)
+            }
+            (Some(target_group), _) => {
+                Err(self.diagnose_missing_target_group(targets, residue, target_group))
+            }
+        }
+    }
+
+    fn update_group(
+        &mut self,
+        target: &mut Residue<'a, 'p>,
+        target_group: FunctionalGroup<'p>,
+        group_state: GroupState<'a, 'p>,
+    ) {
+        let current_target = Target::from_residue_and_group(target, target_group);
+
+        // SAFETY: These `.unwrap()`s might panic if the target hasn't first been validated by `self.find_free_group()`!
+        self.free_group_index
+            .get_mut(current_target)
+            .unwrap()
+            .insert(target.id(), group_state.is_free());
+
+        let target_state = target.group_state_mut(&target_group).unwrap();
+        *target_state = group_state;
     }
 
     fn modify_with_optional_group(
@@ -102,34 +165,6 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         self.update_group(target, target_group, modified_state);
 
         Ok(())
-    }
-
-    pub fn bond(
-        &mut self,
-        kind: impl AsRef<str>,
-        donor: &mut Residue<'a, 'p>,
-        acceptor: &mut Residue<'a, 'p>,
-    ) -> Result<()> {
-        self.bond_with_optional_groups(kind, donor, None, acceptor, None)
-    }
-
-    // PERF: Could create an `_unchecked` version for when you've already called `self.free_*_groups()` — skip straight
-    // to `self.update_group()`!
-    pub fn bond_groups(
-        &mut self,
-        kind: impl AsRef<str>,
-        donor: &mut Residue<'a, 'p>,
-        donor_group: FunctionalGroup<'p>,
-        acceptor: &mut Residue<'a, 'p>,
-        acceptor_group: FunctionalGroup<'p>,
-    ) -> Result<()> {
-        self.bond_with_optional_groups(
-            kind,
-            donor,
-            Some(donor_group),
-            acceptor,
-            Some(acceptor_group),
-        )
     }
 
     fn bond_with_optional_groups(
@@ -165,6 +200,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Ok(())
     }
 
+    // FIXME: Of these group-fetching methods, `*_groups()`, some should be made public!
     fn molecule_groups<'s, T: Into<Target<&'p str>>>(
         &'s self,
         targets: &'s (impl IntoIterator<Item = T> + Copy),
@@ -206,26 +242,6 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
     ) -> impl Iterator<Item = FunctionalGroup<'p>> + 's {
         self.residue_groups(targets, residue)
             .filter_map(|(fg, is_free)| is_free.then_some(fg))
-    }
-
-    fn find_free_group<T: Into<Target<&'p str>>>(
-        &self,
-        targets: &(impl IntoIterator<Item = T> + Copy),
-        residue: &Residue<'a, 'p>,
-        group: Option<FunctionalGroup<'p>>,
-    ) -> Result<FunctionalGroup<'p>, PolymerizerError> {
-        let free_groups: Vec<_> = self.free_residue_groups(targets, residue).collect();
-        match (group, &free_groups[..]) {
-            (None, []) => Err(self.diagnose_missing_target(targets, residue)),
-            (None, &[found_group]) => Ok(found_group),
-            (None, found_groups) => Err(PolymerizerError::ambiguous_group(residue, found_groups)),
-            (Some(target_group), found_groups) if found_groups.contains(&target_group) => {
-                Ok(target_group)
-            }
-            (Some(target_group), _) => {
-                Err(self.diagnose_missing_target_group(targets, residue, target_group))
-            }
-        }
     }
 
     fn diagnose_missing_target<T: Into<Target<&'p str>>>(
@@ -277,27 +293,6 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         } else {
             PolymerizerError::nonexistent_group(group, residue)
         }
-    }
-
-    fn update_group(
-        &mut self,
-        target: &mut Residue<'a, 'p>,
-        target_group: FunctionalGroup<'p>,
-        group_state: GroupState<'a, 'p>,
-    ) {
-        let current_target = Target::from_residue_and_group(target, target_group);
-
-        // FIXME: Update comment
-        // SAFETY: This .unwrap() might panic if this update hasn't been pre-validated by self.validate_group_update()!
-        self.free_group_index
-            .get_mut(current_target)
-            .unwrap()
-            .insert(target.id(), group_state.is_free());
-
-        // FIXME: Update comment
-        // SAFETY: This .unwrap() might panic if this update hasn't been pre-validated by self.validate_group_update()!
-        let target_state = target.group_state_mut(&target_group).unwrap();
-        *target_state = group_state;
     }
 }
 
