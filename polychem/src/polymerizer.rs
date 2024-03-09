@@ -52,6 +52,32 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Ok(residue)
     }
 
+    pub fn chain(
+        &mut self,
+        abbrs: &[impl AsRef<str>],
+        bond_kind: impl AsRef<str>,
+    ) -> Result<Vec<Residue<'a, 'p>>> {
+        let bond_kind = bond_kind.as_ref();
+        let mut residues: Vec<_> = abbrs
+            .iter()
+            .map(|abbr| self.residue(abbr))
+            .collect::<Result<_, _>>()?;
+
+        // NOTE: Doing this properly requires a `windows_mut()` method, which is blocked on lending iterators, but GATs
+        // have now been stabilized, so the way is clear for those. Keep an eye out for standard library updates! For
+        // now, this manual indexing and pattern-matching is a work-around!
+        for i in 0..residues.len() - 1 {
+            // SAFETY: The `unreachable!()` is safe, since `residues[i..=i + 1]` will always have two items in it
+            let [donor, acceptor] = &mut residues[i..=i + 1] else {
+                unreachable!()
+            };
+
+            self.bond(bond_kind, donor, acceptor)?;
+        }
+
+        Ok(residues)
+    }
+
     pub fn modify(&mut self, abbr: impl AsRef<str>, target: &mut Residue<'a, 'p>) -> Result<()> {
         self.modify_with_optional_group(abbr, target, None)
     }
@@ -404,13 +430,14 @@ mod tests {
     use insta::assert_ron_snapshot;
     use itertools::Itertools;
     use once_cell::sync::Lazy;
+    use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
 
     use crate::{
         atoms::atomic_database::AtomicDatabase,
         polymers::{polymer_database::PolymerDatabase, target::Target},
         testing_tools::assert_miette_snapshot,
-        FunctionalGroup, GroupState, Massive,
+        FunctionalGroup, GroupState, Massive, Modification, OffsetKind, OffsetMod,
     };
 
     use super::Polymerizer;
@@ -451,6 +478,37 @@ mod tests {
 
         let nonexistent_residue = polymerizer.residue("?");
         assert_miette_snapshot!(nonexistent_residue);
+    }
+
+    #[test]
+    fn chain() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let residues = polymerizer.chain(&STEM_RESIDUES, "Peptide").unwrap();
+        assert_ron_snapshot!(residues, {
+            ".**.composition, .**.lost" => "<FORMULA>",
+            ".**.functional_groups" => insta::sorted_redaction()
+        });
+        assert_eq!(
+            residues
+                .iter()
+                .map(Massive::monoisotopic_mass)
+                .sum::<Decimal>(),
+            STEM_RESIDUES
+                .iter()
+                .map(|abbr| polymerizer.residue(abbr).unwrap().monoisotopic_mass())
+                .sum::<Decimal>()
+                + Modification::new(
+                    u32::try_from(residues.len() - 1).unwrap(),
+                    OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap()
+                )
+                .monoisotopic_mass()
+        );
+
+        let nonexistent_residue = polymerizer.chain(&["?"], "Peptide");
+        assert_miette_snapshot!(nonexistent_residue);
+
+        let nonexistent_bond = polymerizer.chain(&STEM_RESIDUES, "?");
+        assert_miette_snapshot!(nonexistent_bond);
     }
 
     #[test]
@@ -629,7 +687,6 @@ mod tests {
         assert_miette_snapshot!(nonexistent_modification);
     }
 
-    // FIXME: Needs finishing!
     #[test]
     fn bond() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);

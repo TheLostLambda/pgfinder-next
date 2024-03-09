@@ -1,0 +1,116 @@
+---
+source: polychem/src/polymerizer.rs
+expression: residues
+---
+[
+  Residue(
+    id: 1,
+    abbr: "A",
+    name: "Alanine",
+    composition: "<FORMULA>",
+    functional_groups: {
+      FunctionalGroup(
+        name: "Amino",
+        location: "N-Terminal",
+      ): Free,
+      FunctionalGroup(
+        name: "Carboxyl",
+        location: "C-Terminal",
+      ): Donor(Bond(
+        kind: "Peptide",
+        lost: "<FORMULA>",
+        acceptor: BondTarget(
+          residue: 2,
+          group: FunctionalGroup(
+            name: "Amino",
+            location: "N-Terminal",
+          ),
+        ),
+      )),
+    },
+    offset_modifications: [],
+  ),
+  Residue(
+    id: 2,
+    abbr: "E",
+    name: "Glutamic Acid",
+    composition: "<FORMULA>",
+    functional_groups: {
+      FunctionalGroup(
+        name: "Amino",
+        location: "N-Terminal",
+      ): Acceptor,
+      FunctionalGroup(
+        name: "Carboxyl",
+        location: "C-Terminal",
+      ): Donor(Bond(
+        kind: "Peptide",
+        lost: "<FORMULA>",
+        acceptor: BondTarget(
+          residue: 3,
+          group: FunctionalGroup(
+            name: "Amino",
+            location: "N-Terminal",
+          ),
+        ),
+      )),
+      FunctionalGroup(
+        name: "Carboxyl",
+        location: "Sidechain",
+      ): Free,
+    },
+    offset_modifications: [],
+  ),
+  Residue(
+    id: 3,
+    abbr: "J",
+    name: "Diaminopimelic Acid",
+    composition: "<FORMULA>",
+    functional_groups: {
+      FunctionalGroup(
+        name: "Amino",
+        location: "N-Terminal",
+      ): Acceptor,
+      FunctionalGroup(
+        name: "Amino",
+        location: "Sidechain",
+      ): Free,
+      FunctionalGroup(
+        name: "Carboxyl",
+        location: "C-Terminal",
+      ): Donor(Bond(
+        kind: "Peptide",
+        lost: "<FORMULA>",
+        acceptor: BondTarget(
+          residue: 4,
+          group: FunctionalGroup(
+            name: "Amino",
+            location: "N-Terminal",
+          ),
+        ),
+      )),
+      FunctionalGroup(
+        name: "Carboxyl",
+        location: "Sidechain",
+      ): Free,
+    },
+    offset_modifications: [],
+  ),
+  Residue(
+    id: 4,
+    abbr: "A",
+    name: "Alanine",
+    composition: "<FORMULA>",
+    functional_groups: {
+      FunctionalGroup(
+        name: "Amino",
+        location: "N-Terminal",
+      ): Acceptor,
+      FunctionalGroup(
+        name: "Carboxyl",
+        location: "C-Terminal",
+      ): Free,
+    },
+    offset_modifications: [],
+  ),
+]
