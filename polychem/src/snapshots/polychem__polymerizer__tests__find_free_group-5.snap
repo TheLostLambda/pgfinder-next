@@ -1,0 +1,7 @@
+---
+source: polychem/src/polymerizer.rs
+description: invalid_target
+expression: out
+---
+  × expected a target matching "Crazy", got "Hydroxyl" at="Nonreducing End"
+  │ of="N-Acetylmuramic Acid"

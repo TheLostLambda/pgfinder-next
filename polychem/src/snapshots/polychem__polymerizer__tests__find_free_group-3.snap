@@ -1,0 +1,8 @@
+---
+source: polychem/src/polymerizer.rs
+description: residue_not_in_polymer
+expression: out
+---
+  × residue 1 does not belong to the current polymer
+  help: the referenced residue was likely created by a different Polymerizer
+        instance

@@ -3,7 +3,6 @@ source: polychem/src/polymerizer.rs
 description: nonexistent_group
 expression: out
 ---
-  × failed to apply the modification O-Acetylation (Ac) to residue 1 (N-
-  │ Acetylmuramic Acid)
-  ╰─▶   × the functional group "Amino" at="N-Terminal" does not exist on
-      residue 1
+  × failed to apply the modification Reduced (Red) to residue 1 (Alanine)
+  ╰─▶   × the functional group "Hydroxyl" at="Reducing End" does not exist on
+        │ residue 1

@@ -1,0 +1,7 @@
+---
+source: polychem/src/polymerizer.rs
+description: nonexistent_group
+expression: out
+---
+  × the functional group "Hydroxyl" at="Nonreducing End" does not exist on
+  │ residue 1

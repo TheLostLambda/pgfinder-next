@@ -1,0 +1,6 @@
+---
+source: polychem/src/polymerizer.rs
+description: no_matching_groups
+expression: out
+---
+  × no functional groups on residue 1 matched the target "Amino" or "Crazy"

@@ -1,6 +1,6 @@
 ---
 source: polychem/src/atoms/particle.rs
-expression: "Particle::new(&DB, \"p\")?"
+expression: "Particle::new(&DB, \"p\").unwrap()"
 ---
 Particle {
     symbol: "p",
