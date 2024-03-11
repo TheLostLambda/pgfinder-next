@@ -20,7 +20,7 @@ fn main() {
         rl.add_history_entry(&formula).unwrap();
         match molecule_info(&formula) {
             Ok(info) => print!("{info}"),
-            Err(diagnostic) => render_error(diagnostic),
+            Err(diagnostic) => render_error(*diagnostic),
         }
     }
 }

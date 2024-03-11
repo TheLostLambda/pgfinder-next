@@ -128,7 +128,9 @@ pub trait LabeledErrorKind: Diagnostic + Clone + From<nom::error::ErrorKind> {
 
 pub trait FromExternalError<'a, E> {
     const FATAL: bool = false;
-    fn from_external_error(input: &'a str, error: E) -> Self;
+    fn from_external_error(input: &'a str, error: E) -> LabeledParseError<'a, Self>
+    where
+        Self: Sized;
 }
 
 impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
@@ -226,10 +228,9 @@ pub fn map_res<'a, O1, O2, E1, E2, F, G>(
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O2, LabeledParseError<'a, E1>>
 where
     O1: Clone,
-    E1: LabeledErrorKind,
+    E1: LabeledErrorKind + FromExternalError<'a, E2>,
     F: Copy + Parser<&'a str, O1, LabeledParseError<'a, E1>>,
     G: Copy + FnMut(O1) -> Result<O2, E2>,
-    LabeledParseError<'a, E1>: FromExternalError<'a, E2>,
 {
     move |input| {
         let i = input;
@@ -237,12 +238,12 @@ where
         match f(o1) {
             Ok(o2) => Ok((input, o2)),
             Err(e) => {
-                let mut e = LabeledParseError::from_external_error(i, e);
+                let mut e = E1::from_external_error(i, e);
                 if let LabeledParseError::Node { length, .. } = &mut e {
                     *length = consumed.len();
                 }
 
-                Err(if LabeledParseError::FATAL {
+                Err(if E1::FATAL {
                     Err::Failure(e)
                 } else {
                     Err::Error(e)

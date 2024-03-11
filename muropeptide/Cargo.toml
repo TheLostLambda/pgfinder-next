@@ -4,7 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+miette = { git = "https://github.com/TheLostLambda/miette" }
+nom = "7.1.3"
+nom-miette = { path = "../nom-miette" }
 polychem = { path = "../polychem" }
+thiserror = "1.0.57"
 
 [lints.rust]
 # FIXME: Uncomment this!

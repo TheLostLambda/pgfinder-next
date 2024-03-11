@@ -330,6 +330,11 @@ impl<'p> Target<&'p str> {
     }
 }
 
+#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
+#[error(transparent)]
+#[diagnostic(transparent)]
+pub struct Error(#[from] PolymerizerError);
+
 // FIXME: Should probably break this error handling out into a sub-module...
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 pub(crate) enum PolymerizerError {

@@ -179,24 +179,13 @@ impl From<OffsetKind> for Charge {
     }
 }
 
-#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-#[error(transparent)]
-#[diagnostic(transparent)]
-pub struct Error(PolychemError);
-
-impl<E: Into<PolychemError>> From<E> for Error {
-    fn from(value: E) -> Self {
-        Self(value.into())
-    }
-}
-
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+pub type Result<T, E = Box<PolychemError>> = std::result::Result<T, E>;
 
 // FIXME: Maybe there are too many layers of things being wrapped here!
 // FIXME: Maybe just rename this to be `Error`?
 // FIXME: Check all of the errors returned from public API are wrapped in this!
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-enum PolychemError {
+pub enum PolychemError {
     #[error(transparent)]
     #[diagnostic(transparent)]
     Composition(#[from] CompositionError),
@@ -221,7 +210,7 @@ enum PolychemError {
         String,
         #[source]
         #[diagnostic_source]
-        PolymerizerError,
+        polymerizer::Error,
     ),
 
     #[error("failed to form {0:?} bond between residue {1} ({2}) and residue {3} ({4}) due to an issue with the {5}")]
@@ -234,7 +223,7 @@ enum PolychemError {
         String,
         #[source]
         #[diagnostic_source]
-        PolymerizerError,
+        polymerizer::Error,
     ),
 }
 
@@ -266,7 +255,7 @@ impl PolychemError {
             abbr.to_owned(),
             residue.id(),
             residue.name.to_owned(),
-            source,
+            source.into(),
         )
     }
 
@@ -284,7 +273,7 @@ impl PolychemError {
             acceptor.id(),
             acceptor.name.to_owned(),
             error_with.to_owned(),
-            source,
+            source.into(),
         )
     }
 }

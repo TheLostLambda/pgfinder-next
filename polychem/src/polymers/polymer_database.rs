@@ -336,7 +336,7 @@ impl<'a> ValidateInto<'a, ChemicalComposition<'a>> for ChemicalCompositionKdl {
 
     fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition<'a>> {
         ChemicalComposition::new(ctx, &self)
-            .map_err(|e| ChemistryErrorKind::Composition(*self.span(), e))
+            .map_err(|e| ChemistryErrorKind::Composition(*self.span(), *e))
     }
 }
 
@@ -545,7 +545,7 @@ enum ChemistryErrorKind {
         Span,
         #[source]
         #[diagnostic_source]
-        crate::Error,
+        crate::PolychemError,
     ),
 }
 

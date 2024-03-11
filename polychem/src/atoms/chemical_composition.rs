@@ -30,7 +30,7 @@ pub(crate) type CompositionError = LabeledError<CompositionErrorKind>;
 impl<'a> ChemicalComposition<'a> {
     pub fn new(db: &'a AtomicDatabase, formula: impl AsRef<str>) -> Result<Self> {
         let mut parser = final_parser(chemical_composition(db));
-        parser(formula.as_ref()).map_err(crate::Error::from)
+        parser(formula.as_ref()).map_err(|e| Box::new(e.into()))
     }
 }
 
@@ -319,11 +319,11 @@ impl LabeledErrorKind for CompositionErrorKind {
     }
 }
 
-impl<'a> FromExternalError<'a, AtomicLookupError> for LabeledParseError<'a, CompositionErrorKind> {
+impl<'a> FromExternalError<'a, AtomicLookupError> for CompositionErrorKind {
     const FATAL: bool = true;
 
-    fn from_external_error(input: &'a str, e: AtomicLookupError) -> Self {
-        Self::new(input, CompositionErrorKind::LookupError(e))
+    fn from_external_error(input: &'a str, e: AtomicLookupError) -> LabeledParseError<'_, Self> {
+        LabeledParseError::new(input, Self::LookupError(e))
     }
 }
 
