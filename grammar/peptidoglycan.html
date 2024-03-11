@@ -486,11 +486,7 @@ svg.railroad-diagram g.diagram-text:hover path.diagram-text {
   <h4 id="Monomer">Monomer</h4>
   <div class="diagram-container"><svg class="railroad-diagram" width="369" style="max-height: 100px;" viewBox="0 0 369 100"><g transform="translate(.5 .5)"><g><path d="M20 29v20m0 -10h20"></path></g><g><path d="M40 39h0"></path><path d="M329 39h0"></path><path d="M40 39h20"></path><g><path d="M60 39h0"></path><path d="M309 39h0"></path><g class="non-terminal"><path d="M60 39h0"></path><path d="M131 39h0"></path><rect x="60" y="28" width="71" height="22"></rect><a xlink:href="#Glycan"><text x="95.5" y="43">Glycan</text></a></g><path d="M131 39h10"></path><g><path d="M141 39h0"></path><path d="M309 39h0"></path><path d="M141 39a10 10 0 0 0 10 -10v0a10 10 0 0 1 10 -10"></path><g><path d="M161 19h128"></path></g><path d="M289 19a10 10 0 0 1 10 10v0a10 10 0 0 0 10 10"></path><path d="M141 39h20"></path><g><path d="M161 39h0"></path><path d="M289 39h0"></path><g class="terminal"><path d="M161 39h0"></path><path d="M189.5 39h0"></path><rect x="161" y="28" width="28.5" height="22" rx="10" ry="10"></rect><text x="175.25" y="43">-</text></g><path d="M189.5 39h10"></path><path d="M199.5 39h10"></path><g class="non-terminal"><path d="M209.5 39h0"></path><path d="M289 39h0"></path><rect x="209.5" y="28" width="79.5" height="22"></rect><a xlink:href="#Peptide"><text x="249.25" y="43">Peptide</text></a></g></g><path d="M289 39h20"></path></g></g><path d="M309 39h20"></path><path d="M40 39a10 10 0 0 1 10 10v10a10 10 0 0 0 10 10"></path><g class="non-terminal"><path d="M60 69h84.75"></path><path d="M224.25 69h84.75"></path><rect x="144.75" y="58" width="79.5" height="22"></rect><a xlink:href="#Peptide"><text x="184.5" y="73">Peptide</text></a></g><path d="M309 69a10 10 0 0 0 10 -10v-10a10 10 0 0 1 10 -10"></path></g><path d="M 329 39 h 20 m 0 -10 v 20"></path></g></svg>
 </div>
-  <code class="ebnf"><span class="ebnf-identifier">Monomer</span>
-  = <a class="ebnf-non-terminal" href="#Glycan">Glycan</a>
-  | <a class="ebnf-non-terminal" href="#Peptide">Peptide</a>
-  | <a class="ebnf-non-terminal" href="#Glycan">Glycan</a> , <span class="ebnf-terminal">"-"</span> , <a class="ebnf-non-terminal" href="#Peptide">Peptide</a>
-  <span class="ebnf-end">;</span></code>
+  <code class="ebnf"><span class="ebnf-identifier">Monomer</span> = <a class="ebnf-non-terminal" href="#Glycan">Glycan</a> , [ <span class="ebnf-terminal">"-"</span> , <a class="ebnf-non-terminal" href="#Peptide">Peptide</a> ] | <a class="ebnf-non-terminal" href="#Peptide">Peptide</a> <span class="ebnf-end">;</span></code>
   <p>Items referencing <strong>Monomer</strong>:<p>
 <ul>
 <li><a href="#Muropeptide">Muropeptide</a></li>
@@ -868,7 +864,7 @@ svg.railroad-diagram g.diagram-text:hover path.diagram-text {
 
   </article>
   <footer>
-    <p>Date: 2024-02-02T02:59 - <a href="?theme=dark" data-theme="dark">Dark</a> - <a href="?theme=light" data-theme="light">Light</a></p>
+    <p>Date: 2024-03-11T22:24 - <a href="?theme=dark" data-theme="dark">Dark</a> - <a href="?theme=light" data-theme="light">Light</a></p>
   </footer>
   </main>
   <script type="text/javascript">
