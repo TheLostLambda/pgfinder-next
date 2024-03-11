@@ -52,16 +52,13 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Ok(residue)
     }
 
-    pub fn chain(
+    // FIXME: Do I want a version that creates the residues too? I used to have that in c98f58e! Also naming?
+    pub fn bond_chain(
         &mut self,
-        abbrs: &[impl AsRef<str>],
+        residues: &mut [Residue<'a, 'p>],
         bond_kind: impl AsRef<str>,
-    ) -> Result<Vec<Residue<'a, 'p>>> {
+    ) -> Result<()> {
         let bond_kind = bond_kind.as_ref();
-        let mut residues: Vec<_> = abbrs
-            .iter()
-            .map(|abbr| self.residue(abbr))
-            .collect::<Result<_, _>>()?;
 
         // NOTE: Doing this properly requires a `windows_mut()` method, which is blocked on lending iterators, but GATs
         // have now been stabilized, so the way is clear for those. Keep an eye out for standard library updates! For
@@ -75,7 +72,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             self.bond(bond_kind, donor, acceptor)?;
         }
 
-        Ok(residues)
+        Ok(())
     }
 
     pub fn modify(&mut self, abbr: impl AsRef<str>, target: &mut Residue<'a, 'p>) -> Result<()> {
@@ -483,7 +480,8 @@ mod tests {
     #[test]
     fn chain() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let residues = polymerizer.chain(&STEM_RESIDUES, "Peptide").unwrap();
+        let mut residues = STEM_RESIDUES.map(|abbr| polymerizer.residue(abbr).unwrap());
+        polymerizer.bond_chain(&mut residues, "Peptide").unwrap();
         assert_ron_snapshot!(residues, {
             ".**.composition, .**.lost" => "<FORMULA>",
             ".**.functional_groups" => insta::sorted_redaction()
@@ -504,10 +502,7 @@ mod tests {
                 .monoisotopic_mass()
         );
 
-        let nonexistent_residue = polymerizer.chain(&["?"], "Peptide");
-        assert_miette_snapshot!(nonexistent_residue);
-
-        let nonexistent_bond = polymerizer.chain(&STEM_RESIDUES, "?");
+        let nonexistent_bond = polymerizer.bond_chain(&mut residues, "?");
         assert_miette_snapshot!(nonexistent_bond);
     }
 

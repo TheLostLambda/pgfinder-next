@@ -1,6 +1,6 @@
 ---
 source: polychem/src/polymerizer.rs
-description: nonexistent_residue
+description: nonexistent_bond
 expression: out
 ---
-  × the residue "?" could not be found in the supplied polymer database
+  × the bond kind "?" could not be found in the supplied polymer database
