@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use crate::MassNumber;
 
-pub mod atomic_database;
+pub(crate) mod atomic_database;
 pub mod chemical_composition;
 mod element;
 mod particle;

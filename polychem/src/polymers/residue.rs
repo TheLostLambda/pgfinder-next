@@ -41,6 +41,16 @@ impl<'a, 'p> Residue<'a, 'p> {
         self.id
     }
 
+    #[must_use]
+    pub const fn abbr(&self) -> &'p str {
+        self.abbr
+    }
+
+    #[must_use]
+    pub const fn name(&self) -> &'p str {
+        self.name
+    }
+
     pub fn group_state(
         &self,
         functional_group: &FunctionalGroup<'p>,

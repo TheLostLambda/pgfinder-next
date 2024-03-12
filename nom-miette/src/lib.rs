@@ -229,12 +229,13 @@ pub fn map_res<'a, O1, O2, E1, E2, F, G>(
 where
     O1: Clone,
     E1: LabeledErrorKind + FromExternalError<'a, E2>,
-    F: Copy + Parser<&'a str, O1, LabeledParseError<'a, E1>>,
-    G: Copy + FnMut(O1) -> Result<O2, E2>,
+    F: Parser<&'a str, O1, LabeledParseError<'a, E1>>,
+    G: FnMut(O1) -> Result<O2, E2>,
 {
+    let mut consuming_parser = consumed(parser);
     move |input| {
         let i = input;
-        let (input, (consumed, o1)) = consumed(parser)(input)?;
+        let (input, (consumed, o1)) = consuming_parser(input)?;
         match f(o1) {
             Ok(o2) => Ok((input, o2)),
             Err(e) => {

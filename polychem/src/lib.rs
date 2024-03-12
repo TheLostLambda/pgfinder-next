@@ -18,6 +18,10 @@ use miette::Diagnostic;
 use rust_decimal::Decimal;
 use thiserror::Error;
 
+// FIXME: Work on what's publicly exported / part of the API!
+pub use atoms::atomic_database::AtomicDatabase;
+pub use polymers::polymer_database::PolymerDatabase;
+
 // FIXME: Blocks here need reordering!
 
 // NOTE: For the types in this module, 'a lifetimes indicate references to the AtomicDatabase, whilst 'p lifetimes
