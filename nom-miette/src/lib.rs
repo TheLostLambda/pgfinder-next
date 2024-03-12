@@ -151,6 +151,32 @@ impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
         }
     }
 
+    // FIXME: Most of this is untested! Especially need to check the second branch!
+    fn map_kind<E2: LabeledErrorKind>(
+        self,
+        f: impl Clone + Fn(E) -> E2,
+    ) -> LabeledParseError<'a, E2> {
+        match self {
+            LabeledParseError::Node {
+                input,
+                length,
+                kind,
+                source,
+            } => LabeledParseError::Node {
+                input,
+                length,
+                kind: f(kind),
+                source: source.map(|e| Box::new(e.map_kind(f))),
+            },
+            LabeledParseError::Branch(alternatives) => LabeledParseError::Branch(
+                alternatives
+                    .into_iter()
+                    .map(|e| e.map_kind(f.clone()))
+                    .collect(),
+            ),
+        }
+    }
+
     fn into_final_error(self, full_input: &str) -> LabeledError<E> {
         fn convert_node<E: LabeledErrorKind>(
             node: LabeledParseError<E>,
@@ -254,6 +280,23 @@ where
     }
 }
 
+pub fn map_err<'a, P, F, O, E1, E2>(
+    mut parser: P,
+    f: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, LabeledParseError<'a, E2>>
+where
+    P: Parser<&'a str, O, LabeledParseError<'a, E1>>,
+    F: Clone + Fn(E1) -> E2,
+    E1: LabeledErrorKind,
+    E2: LabeledErrorKind,
+{
+    move |i| {
+        parser
+            .parse(i)
+            .map_err(|e| e.map(|e| e.map_kind(f.clone())))
+    }
+}
+
 // FIXME: Check if I'm being consistent about using `impl` or generics...
 // FIXME: See if this signature can be simplified (elide lifetimes?)
 // FIXME: Standardize the order of all of these generic arguments!
@@ -275,17 +318,13 @@ where
 }
 
 pub fn expect<'a, O, E: LabeledErrorKind + Clone, F>(
-    mut parser: F,
+    parser: F,
     kind: E,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, LabeledParseError<'a, E>>
 where
     F: Parser<&'a str, O, LabeledParseError<'a, E>>,
 {
-    move |i| {
-        parser
-            .parse(i)
-            .map_err(|e| e.map(|_| LabeledParseError::new(i, kind.clone())))
-    }
+    map_err(parser, move |_| kind.clone())
 }
 
 // FIXME: Eventually, I should make everything generic over the input type again... So you'd be able to use this
