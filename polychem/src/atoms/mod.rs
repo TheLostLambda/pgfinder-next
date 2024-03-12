@@ -13,21 +13,24 @@ mod particle;
 // doesn't end up becoming SemVer nightmare...
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 pub enum AtomicLookupError {
+    #[diagnostic(help("double-check for typos, or add a new entry to the atomic database"))]
     #[error("the element {0:?} could not be found in the supplied atomic database")]
     Element(String),
 
+    #[diagnostic(help("double-check for typos, or add a new entry to the atomic database"))]
     #[error(
         "the isotope \"{0}-{1}\" could not be found in the supplied atomic database, though the following {2} \
         isotopes were found: {3:?}"
     )]
     Isotope(String, MassNumber, String, Vec<MassNumber>),
 
+    #[diagnostic(help("double-check for typos, or add a new entry to the atomic database"))]
     #[error("the particle {0:?} could not be found in the supplied atomic database")]
     Particle(String),
 
-    #[error("no natural abundance data could be found for {0} ({1}), though the following isotopes were found: {2:?}")]
     #[diagnostic(help(
         "consider explicitly selecting the isotope to be used in mass calculations — e.g. [{}{}]", .2[0], .1
     ))]
+    #[error("no natural abundance data could be found for {0} ({1}), though the following isotopes were found: {2:?}")]
     Abundance(String, String, Vec<MassNumber>),
 }

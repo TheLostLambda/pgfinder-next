@@ -281,9 +281,9 @@ pub enum CompositionErrorKind {
     #[error("expected a lowercase ASCII letter")]
     ExpectedLowercase,
 
-    #[diagnostic(help("double-check for typos, or add a new entry to the atomic database"))]
+    #[diagnostic(transparent)]
     #[error(transparent)]
-    LookupError(AtomicLookupError),
+    LookupError(Box<AtomicLookupError>),
 
     #[diagnostic(help(
         "this is an internal error that you shouldn't ever see! If you have gotten this error, \
@@ -302,9 +302,12 @@ pub enum CompositionErrorKind {
 impl LabeledErrorKind for CompositionErrorKind {
     fn label(&self) -> Option<&'static str> {
         Some(match self {
-            Self::LookupError(AtomicLookupError::Element(_)) => "element not found",
-            Self::LookupError(AtomicLookupError::Isotope(_, _, _, _)) => "isotope not found",
-            Self::LookupError(AtomicLookupError::Particle(_)) => "particle not found",
+            Self::LookupError(e) => match **e {
+                AtomicLookupError::Element(_) => "element not found",
+                AtomicLookupError::Isotope(_, _, _, _) => "isotope not found",
+                AtomicLookupError::Particle(_) => "particle not found",
+                AtomicLookupError::Abundance(_, _, _) => "no natural abundance",
+            },
             Self::ExpectedUppercase => "expected uppercase",
             Self::ExpectedLowercase => "expected lowercase",
             Self::ExpectedDigit => "expected digit",
@@ -323,7 +326,7 @@ impl<'a> FromExternalError<'a, AtomicLookupError> for CompositionErrorKind {
     const FATAL: bool = true;
 
     fn from_external_error(input: &'a str, e: AtomicLookupError) -> LabeledParseError<'_, Self> {
-        LabeledParseError::new(input, Self::LookupError(e))
+        LabeledParseError::new(input, Self::LookupError(Box::new(e)))
     }
 }
 
@@ -739,6 +742,9 @@ mod tests {
         assert_miette_snapshot!(chemical_composition("eH2O"));
         // Check that multiple labels are reported for errors with different spans
         assert_miette_snapshot!(chemical_composition("2H2"));
+        // Report elements lacking any natural abundance data
+        assert_miette_snapshot!(chemical_composition("HTcN"));
+        assert_miette_snapshot!(chemical_composition("C12H6PoS"));
     }
 
     #[test]

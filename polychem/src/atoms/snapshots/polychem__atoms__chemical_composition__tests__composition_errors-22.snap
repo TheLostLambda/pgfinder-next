@@ -1,0 +1,21 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+description: "chemical_composition(\"C12H6PoS\")"
+expression: out
+---
+  × expected a chemical formula (optionally followed by a '+' or '-' and a
+  │ particle offset), or a standalone particle offset
+  ├─▶   × expected an element (like Au) or an isotope (like [15N]) optionally
+  │     │ followed by a number
+  │   
+  ╰─▶   × no natural abundance data could be found for Polonium (Po), though
+      the
+        │ following isotopes were found: [209, 210]
+        help: consider explicitly selecting the isotope to be used in mass
+              calculations — e.g. [209Po]
+      
+   ╭────
+ 1 │ C12H6PoS 
+   ·      ─┬
+   ·       ╰── no natural abundance
+   ╰────

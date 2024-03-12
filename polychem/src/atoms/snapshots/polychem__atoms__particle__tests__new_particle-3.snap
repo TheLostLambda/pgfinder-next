@@ -4,3 +4,4 @@ description: "Particle::new(&DB, \"m\")"
 expression: out
 ---
   × the particle "m" could not be found in the supplied atomic database
+  help: double-check for typos, or add a new entry to the atomic database

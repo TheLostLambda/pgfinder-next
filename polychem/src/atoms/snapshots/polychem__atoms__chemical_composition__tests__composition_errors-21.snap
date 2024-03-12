@@ -1,0 +1,21 @@
+---
+source: polychem/src/atoms/chemical_composition.rs
+description: "chemical_composition(\"HTcN\")"
+expression: out
+---
+  × expected a chemical formula (optionally followed by a '+' or '-' and a
+  │ particle offset), or a standalone particle offset
+  ├─▶   × expected an element (like Au) or an isotope (like [15N]) optionally
+  │     │ followed by a number
+  │   
+  ╰─▶   × no natural abundance data could be found for Technetium (Tc), though
+      the
+        │ following isotopes were found: [97, 98, 99]
+        help: consider explicitly selecting the isotope to be used in mass
+              calculations — e.g. [97Tc]
+      
+   ╭────
+ 1 │ HTcN 
+   ·  ─┬
+   ·   ╰── no natural abundance
+   ╰────

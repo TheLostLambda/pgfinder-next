@@ -5,3 +5,4 @@ expression: out
 ---
   × the isotope "C-15" could not be found in the supplied atomic database,
   │ though the following Carbon isotopes were found: [12, 13, 14]
+  help: double-check for typos, or add a new entry to the atomic database
