@@ -302,6 +302,10 @@ pub enum CompositionErrorKind {
 impl LabeledErrorKind for CompositionErrorKind {
     fn label(&self) -> Option<&'static str> {
         Some(match self {
+            // NOTE: Stuck with this nested match until either `box_patterns` or `deref_patterns` are stabilized.
+            // Keep an eye on:
+            //   1) https://github.com/rust-lang/rust/issues/29641
+            //   2) https://github.com/rust-lang/rust/issues/87121
             Self::LookupError(e) => match **e {
                 AtomicLookupError::Element(_) => "element not found",
                 AtomicLookupError::Isotope(_, _, _, _) => "isotope not found",
