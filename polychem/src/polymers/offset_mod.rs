@@ -11,6 +11,10 @@ impl<'a> OffsetMod<'a> {
         let composition = ChemicalComposition::new(db, formula)?;
         Ok(Self { kind, composition })
     }
+
+    pub fn new_with_composition(kind: OffsetKind, composition: ChemicalComposition<'a>) -> Self {
+        Self { kind, composition }
+    }
 }
 
 impl Massive for OffsetMod<'_> {

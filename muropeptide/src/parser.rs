@@ -2,9 +2,9 @@ use miette::Diagnostic;
 use nom::{
     branch::alt,
     character::complete::{char, satisfy},
-    combinator::recognize,
+    combinator::{map, opt, recognize},
     error::ErrorKind,
-    sequence::terminated,
+    sequence::{terminated, tuple},
     IResult,
 };
 use nom_miette::{
@@ -74,7 +74,7 @@ fn amino_acid<'a, 's>(
 ///   | Chemical Offset
 ///   ) } , ")" ;
 fn modifications<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
+    polymerizer: &'a Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<AnyModification<'a, 'a>>> {
     |_| todo!()
 }
@@ -100,7 +100,7 @@ fn lateral_chain<'a, 's>(
 /// Predefined Modification = [ Multiplier ] , letter ,
 ///   { letter | digit | "_" } ;
 fn predefined_modification<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
+    polymerizer: &'a Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Modification<NamedMod<'a, 'a>>> {
     |_| todo!()
 }
@@ -108,9 +108,19 @@ fn predefined_modification<'a, 's>(
 /// Chemical Offset = Offset Kind , [ Multiplier ] ,
 ///   Chemical Composition ;
 fn chemical_offset<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
+    polymerizer: &'a Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Modification<OffsetMod<'a>>> {
-    |_| todo!()
+    let parser = tuple((
+        offset_kind,
+        opt(multiplier),
+        chemical_composition(polymerizer),
+    ));
+    map(parser, |(kind, multiplier, composition)| {
+        Modification::new(
+            multiplier.unwrap_or(1),
+            OffsetMod::new_with_composition(kind, composition),
+        )
+    })
 }
 
 // =
@@ -124,7 +134,7 @@ pub fn multiplier(i: &str) -> ParseResult<Count> {
 // Adapted parsers =
 
 fn chemical_composition<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
+    polymerizer: &'a Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {
     into(chemical_composition::chemical_composition(
         polymerizer.atomic_db(),
@@ -208,7 +218,9 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
-    use polychem::{AtomicDatabase, PolymerDatabase};
+    use polychem::{AtomicDatabase, Charged, Massive, PolymerDatabase};
+    use rust_decimal::Decimal;
+    use rust_decimal_macros::dec;
 
     use super::*;
 
@@ -251,6 +263,53 @@ mod tests {
         // Multiple Multipliers
         assert_eq!(multiplier("1xOH"), Ok(("OH", 1)));
         assert_eq!(multiplier("42xHeH"), Ok(("HeH", 42)));
+    }
+
+    #[test]
+    // NOTE: Complexity comes from the macro confusing clippy — converting to a function, however, adds real complexity
+    // since borrow-checker issues crop up when writing a closure that captures `chemical_offset`
+    #[allow(clippy::cognitive_complexity)]
+    fn test_chemical_offset() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut chemical_offset = chemical_offset(&mut polymerizer);
+        macro_rules! assert_offset_mz {
+            ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
+                let (rest, modification) = chemical_offset($input).unwrap();
+                assert_eq!(rest, $output);
+                assert_eq!(modification.monoisotopic_mass(), $mass);
+                assert_eq!(modification.charge(), $charge);
+            };
+        }
+        // Valid Chemical Offsets
+        assert_offset_mz!("+H2O", "", dec!(18.01056468403), 0);
+        assert_offset_mz!("-H2O", "", dec!(-18.01056468403), 0);
+        assert_offset_mz!("+2xH2O", "", dec!(36.02112936806), 0);
+        assert_offset_mz!("-4xH2O", "", dec!(-72.04225873612), 0);
+        assert_offset_mz!("-2p", "", dec!(-2.014552933242), -2);
+        assert_offset_mz!("+H", "", dec!(1.00782503223), 0);
+        assert_offset_mz!("+C2H2O-2e", "", dec!(42.009467524211870), 2);
+        assert_offset_mz!("-3xC2H2O-2e", "", dec!(-126.02840257263561), -6);
+        assert_offset_mz!("+NH3+p", "", dec!(18.033825567741), 1);
+        assert_offset_mz!("+2xD2O", "", dec!(40.04623635162), 0);
+        assert_offset_mz!("-2x[2H]2O", "", dec!(-40.04623635162), 0);
+        assert_offset_mz!("+[37Cl]5-2p", "", dec!(182.814960076758), -2);
+        assert_offset_mz!("-NH2[99Tc]", "", dec!(-114.92497486889), 0);
+        // Invalid Chemical Offsets
+        assert!(chemical_offset(" ").is_err());
+        assert!(chemical_offset("H2O").is_err());
+        assert!(chemical_offset("(-H2O)").is_err());
+        assert!(chemical_offset("+0xH2O").is_err());
+        assert!(chemical_offset("2xH2O").is_err());
+        assert!(chemical_offset("-2x3xH2O").is_err());
+        assert!(chemical_offset("-2x+H2O").is_err());
+        assert!(chemical_offset("+2[2H]").is_err());
+        assert!(chemical_offset("-[H+p]O").is_err());
+        assert!(chemical_offset("+NH2[100Tc]").is_err());
+        // Multiple Chemical Offsets
+        assert_offset_mz!("+[37Cl]5-2p10", "10", dec!(182.814960076758), -2);
+        assert_offset_mz!("+[2H]2O*H2O", "*H2O", dec!(20.02311817581), 0);
+        assert_offset_mz!("+NH2{100Tc", "{100Tc", dec!(16.01872406889), 0);
+        assert_offset_mz!("+C11H12N2O2 H2O", " H2O", dec!(204.08987763476), 0);
     }
 
     #[test]
