@@ -4,7 +4,7 @@ use miette::{Diagnostic, LabeledSpan, SourceSpan};
 use nom::{
     combinator::{all_consuming, complete, consumed},
     error::ParseError,
-    Err, Finish, IResult, Parser,
+    Err, ErrorConvert, Finish, IResult, Parser,
 };
 use thiserror::Error;
 
@@ -110,7 +110,7 @@ impl<E: LabeledErrorKind> LabeledError<E> {
 
 // FIXME: Check that field ordering everywhere matches this!
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum LabeledParseError<'a, K> {
+pub enum LabeledParseError<'a, K: LabeledErrorKind> {
     Node {
         input: &'a str,
         length: usize,
@@ -130,7 +130,7 @@ pub trait FromExternalError<'a, E> {
     const FATAL: bool = false;
     fn from_external_error(input: &'a str, error: E) -> LabeledParseError<'a, Self>
     where
-        Self: Sized;
+        Self: Sized + LabeledErrorKind;
 }
 
 impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
@@ -148,32 +148,6 @@ impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
             length: 0,
             kind,
             source: source.map(Box::new),
-        }
-    }
-
-    // FIXME: Most of this is untested! Especially need to check the second branch!
-    fn map_kind<E2: LabeledErrorKind>(
-        self,
-        f: impl Clone + Fn(E) -> E2,
-    ) -> LabeledParseError<'a, E2> {
-        match self {
-            LabeledParseError::Node {
-                input,
-                length,
-                kind,
-                source,
-            } => LabeledParseError::Node {
-                input,
-                length,
-                kind: f(kind),
-                source: source.map(|e| Box::new(e.map_kind(f))),
-            },
-            LabeledParseError::Branch(alternatives) => LabeledParseError::Branch(
-                alternatives
-                    .into_iter()
-                    .map(|e| e.map_kind(f.clone()))
-                    .collect(),
-            ),
         }
     }
 
@@ -222,6 +196,30 @@ impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
         let mut final_error = convert_node(self, full_input);
         final_error.bubble_labels();
         final_error
+    }
+}
+
+impl<'a, E1: Into<E2> + LabeledErrorKind, E2: LabeledErrorKind>
+    ErrorConvert<LabeledParseError<'a, E2>> for LabeledParseError<'a, E1>
+{
+    // FIXME: Most of this is untested! Especially need to check the second branch!
+    fn convert(self) -> LabeledParseError<'a, E2> {
+        match self {
+            LabeledParseError::Node {
+                input,
+                length,
+                kind,
+                source,
+            } => LabeledParseError::Node {
+                input,
+                length,
+                kind: kind.into(),
+                source: source.map(|e| Box::new(e.convert())),
+            },
+            LabeledParseError::Branch(alternatives) => {
+                LabeledParseError::Branch(alternatives.into_iter().map(|e| e.convert()).collect())
+            }
+        }
     }
 }
 
@@ -286,22 +284,30 @@ pub fn map_err<'a, P, F, O, E1, E2>(
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, LabeledParseError<'a, E2>>
 where
     P: Parser<&'a str, O, LabeledParseError<'a, E1>>,
-    F: Clone + Fn(E1) -> E2,
+    F: Fn(&'a str, LabeledParseError<'a, E1>) -> LabeledParseError<'a, E2>,
     E1: LabeledErrorKind,
     E2: LabeledErrorKind,
 {
-    move |i| {
-        parser
-            .parse(i)
-            .map_err(|e| e.map(|e| e.map_kind(f.clone())))
-    }
+    move |i| parser.parse(i).map_err(|e| e.map(|e| f(i, e)))
+}
+
+pub fn into<'a, O1, O2, E1, E2, F>(
+    parser: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O2, LabeledParseError<'a, E2>>
+where
+    O1: Into<O2>,
+    E1: Into<E2> + LabeledErrorKind,
+    E2: LabeledErrorKind,
+    F: Parser<&'a str, O1, LabeledParseError<'a, E1>>,
+{
+    nom::combinator::into(map_err(parser, |_, e| e.convert()))
 }
 
 // FIXME: Check if I'm being consistent about using `impl` or generics...
 // FIXME: See if this signature can be simplified (elide lifetimes?)
 // FIXME: Standardize the order of all of these generic arguments!
 pub fn wrap_err<'a, O, P, E>(
-    mut parser: P,
+    parser: P,
     kind: E,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, LabeledParseError<'a, E>>
 where
@@ -309,12 +315,9 @@ where
     E: LabeledErrorKind + Clone,
     P: Parser<&'a str, O, LabeledParseError<'a, E>>,
 {
-    // FIXME: DRY with expect below!
-    move |i| {
-        parser
-            .parse(i)
-            .map_err(|e| e.map(|e| LabeledParseError::new_with_source(i, kind.clone(), Some(e))))
-    }
+    map_err(parser, move |i, e| {
+        LabeledParseError::new_with_source(i, kind.clone(), Some(e))
+    })
 }
 
 pub fn expect<'a, O, E: LabeledErrorKind + Clone, F>(
@@ -324,7 +327,7 @@ pub fn expect<'a, O, E: LabeledErrorKind + Clone, F>(
 where
     F: Parser<&'a str, O, LabeledParseError<'a, E>>,
 {
-    map_err(parser, move |_| kind.clone())
+    map_err(parser, move |i, _| LabeledParseError::new(i, kind.clone()))
 }
 
 // FIXME: Eventually, I should make everything generic over the input type again... So you'd be able to use this
