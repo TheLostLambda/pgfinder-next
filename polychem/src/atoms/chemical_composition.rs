@@ -66,6 +66,39 @@ pub fn chemical_composition<'a, 's>(
     wrap_err(parser, CompositionErrorKind::ExpectedChemicalComposition)
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+
+/// Offset Kind = "+" | "-" ;
+pub fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
+    map(one_of("+-"), |c| match c {
+        '+' => OffsetKind::Add,
+        '-' => OffsetKind::Remove,
+        _ => unreachable!(),
+    })(i)
+}
+
+/// uppercase
+///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
+///   | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+///   | "V" | "W" | "X" | "Y" | "Z"
+///   ;
+pub fn uppercase(i: &str) -> ParseResult<char> {
+    let parser = satisfy(|c| c.is_ascii_uppercase());
+    expect(parser, CompositionErrorKind::ExpectedUppercase)(i)
+}
+
+/// lowercase
+///   = "a" | "b" | "c" | "d" | "e" | "f" | "g"
+///   | "h" | "i" | "j" | "k" | "l" | "m" | "n"
+///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
+///   | "v" | "w" | "x" | "y" | "z"
+///   ;
+pub fn lowercase(i: &str) -> ParseResult<char> {
+    let parser = satisfy(|c| c.is_ascii_lowercase());
+    expect(parser, CompositionErrorKind::ExpectedLowercase)(i)
+}
+
 // Massive, Charged, and Mz Trait Implementations ======================================================================
 
 impl Massive for ChemicalComposition<'_> {
@@ -123,15 +156,6 @@ fn atomic_offset<'a, 's>(
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     let parser = pair(element_or_isotope, optional_count);
     wrap_err(parser, CompositionErrorKind::ExpectedAtomicOffset)
-}
-
-/// Offset Kind = "+" | "-" ;
-fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
-    map(one_of("+-"), |c| match c {
-        '+' => OffsetKind::Add,
-        '-' => OffsetKind::Remove,
-        _ => unreachable!(),
-    })(i)
 }
 
 /// Particle Offset = [ Count ] , Particle ;
@@ -200,30 +224,6 @@ fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
 fn particle_symbol(i: &str) -> ParseResult<&str> {
     let parser = recognize(lowercase);
     wrap_err(parser, CompositionErrorKind::ExpectedParticleSymbol)(i)
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-/// uppercase
-///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
-///   | "H" | "I" | "J" | "K" | "L" | "M" | "N"
-///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
-///   | "V" | "W" | "X" | "Y" | "Z"
-///   ;
-fn uppercase(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_uppercase());
-    expect(parser, CompositionErrorKind::ExpectedUppercase)(i)
-}
-
-/// lowercase
-///   = "a" | "b" | "c" | "d" | "e" | "f" | "g"
-///   | "h" | "i" | "j" | "k" | "l" | "m" | "n"
-///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
-///   | "v" | "w" | "x" | "y" | "z"
-///   ;
-fn lowercase(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_lowercase());
-    expect(parser, CompositionErrorKind::ExpectedLowercase)(i)
 }
 
 // Parse Error Types and Trait Implementations =========================================================================
