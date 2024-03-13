@@ -7,7 +7,9 @@ use nom::{
     sequence::terminated,
     IResult,
 };
-use nom_miette::{expect, into, map_res, FromExternalError, LabeledErrorKind, LabeledParseError};
+use nom_miette::{
+    expect, into, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError,
+};
 use polychem::{
     atoms::chemical_composition::{self, CompositionErrorKind},
     polymerizer::Polymerizer,
@@ -115,21 +117,8 @@ fn chemical_offset<'a, 's>(
 
 /// Multiplier = Count , "x" ;
 pub fn multiplier(i: &str) -> ParseResult<Count> {
-    terminated(count, char('x'))(i)
-}
-
-/// letter = uppercase | lowercase ;
-pub fn letter(i: &str) -> ParseResult<char> {
-    alt((uppercase, lowercase))(i)
-}
-
-/// digit
-///   = "0" | "1" | "2" | "3" | "4" | "5" | "6"
-///   | "7" | "8" | "9"
-///   ;
-pub fn digit(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_digit());
-    expect(parser, MuropeptideErrorKind::ExpectedDigit)(i)
+    let parser = terminated(count, char('x'));
+    wrap_err(parser, MuropeptideErrorKind::ExpectedMultiplier)(i)
 }
 
 // Adapted parsers =
@@ -163,8 +152,8 @@ type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideE
 
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
 pub enum MuropeptideErrorKind {
-    #[error("expected an ASCII digit (0-9)")]
-    ExpectedDigit,
+    #[error("expected a count followed by 'x'")]
+    ExpectedMultiplier,
 
     #[diagnostic(transparent)]
     #[error(transparent)]
@@ -241,33 +230,27 @@ mod tests {
     });
 
     #[test]
-    fn test_digit() {
-        // Ensure the complete set of ASCII digits is present
-        for c in '0'..='9' {
-            assert_eq!(digit(&c.to_string()), Ok(("", c)));
-        }
-        // Ensure the complete set of ASCII letters is absent
-        for c in ('a'..='z').chain('A'..='Z') {
-            assert!(digit(&c.to_string()).is_err());
-        }
-        // Ensure only one character is parsed
-        assert_eq!(digit("4g"), Ok(("g", '4')));
-        assert_eq!(digit("0G"), Ok(("G", '0')));
-    }
-
-    #[test]
-    fn test_letter() {
-        // Ensure the complete set of ASCII letters is present
-        for c in ('a'..='z').chain('A'..='Z') {
-            assert_eq!(letter(&c.to_string()), Ok(("", c)));
-        }
-        // Ensure the complete set of ASCII digits is absent
-        for c in '0'..='9' {
-            assert!(letter(&c.to_string()).is_err());
-        }
-        // Ensure only one character is parsed
-        assert_eq!(letter("g4"), Ok(("4", 'g')));
-        assert_eq!(letter("G0"), Ok(("0", 'G')));
+    fn test_multiplier() {
+        // Valid Multipliers
+        assert_eq!(multiplier("1x"), Ok(("", 1)));
+        assert_eq!(multiplier("10x"), Ok(("", 10)));
+        assert_eq!(multiplier("422x"), Ok(("", 422)));
+        assert_eq!(multiplier("9999x"), Ok(("", 9999)));
+        // Invalid Multipliers
+        assert!(multiplier("1").is_err());
+        assert!(multiplier("10").is_err());
+        assert!(multiplier("422").is_err());
+        assert!(multiplier("9999").is_err());
+        assert!(multiplier("0").is_err());
+        assert!(multiplier("01").is_err());
+        assert!(multiplier("00145").is_err());
+        assert!(multiplier("H").is_err());
+        assert!(multiplier("p").is_err());
+        assert!(multiplier("+H").is_err());
+        assert!(multiplier("[H]").is_err());
+        // Multiple Multipliers
+        assert_eq!(multiplier("1xOH"), Ok(("OH", 1)));
+        assert_eq!(multiplier("42xHeH"), Ok(("HeH", 42)));
     }
 
     #[test]
