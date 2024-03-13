@@ -1,6 +1,13 @@
 use miette::Diagnostic;
-use nom::{combinator::recognize, error::ErrorKind, IResult};
-use nom_miette::{into, map_res, FromExternalError, LabeledErrorKind, LabeledParseError};
+use nom::{
+    branch::alt,
+    character::complete::{char, satisfy},
+    combinator::recognize,
+    error::ErrorKind,
+    sequence::terminated,
+    IResult,
+};
+use nom_miette::{expect, into, map_res, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
     atoms::chemical_composition::{self, CompositionErrorKind},
     polymerizer::Polymerizer,
@@ -108,12 +115,12 @@ fn chemical_offset<'a, 's>(
 
 /// Multiplier = Count , "x" ;
 pub fn multiplier(i: &str) -> ParseResult<Count> {
-    todo!()
+    terminated(count, char('x'))(i)
 }
 
 /// letter = uppercase | lowercase ;
 pub fn letter(i: &str) -> ParseResult<char> {
-    todo!()
+    alt((uppercase, lowercase))(i)
 }
 
 /// digit
@@ -121,7 +128,8 @@ pub fn letter(i: &str) -> ParseResult<char> {
 ///   | "7" | "8" | "9"
 ///   ;
 pub fn digit(i: &str) -> ParseResult<char> {
-    todo!()
+    let parser = satisfy(|c| c.is_ascii_digit());
+    expect(parser, MuropeptideErrorKind::ExpectedDigit)(i)
 }
 
 // Adapted parsers =
@@ -155,6 +163,9 @@ type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideE
 
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
 pub enum MuropeptideErrorKind {
+    #[error("expected an ASCII digit (0-9)")]
+    ExpectedDigit,
+
     #[diagnostic(transparent)]
     #[error(transparent)]
     PolychemError(Box<PolychemError>),
@@ -228,6 +239,36 @@ mod tests {
         )
         .unwrap()
     });
+
+    #[test]
+    fn test_digit() {
+        // Ensure the complete set of ASCII digits is present
+        for c in '0'..='9' {
+            assert_eq!(digit(&c.to_string()), Ok(("", c)));
+        }
+        // Ensure the complete set of ASCII letters is absent
+        for c in ('a'..='z').chain('A'..='Z') {
+            assert!(digit(&c.to_string()).is_err());
+        }
+        // Ensure only one character is parsed
+        assert_eq!(digit("4g"), Ok(("g", '4')));
+        assert_eq!(digit("0G"), Ok(("G", '0')));
+    }
+
+    #[test]
+    fn test_letter() {
+        // Ensure the complete set of ASCII letters is present
+        for c in ('a'..='z').chain('A'..='Z') {
+            assert_eq!(letter(&c.to_string()), Ok(("", c)));
+        }
+        // Ensure the complete set of ASCII digits is absent
+        for c in '0'..='9' {
+            assert!(letter(&c.to_string()).is_err());
+        }
+        // Ensure only one character is parsed
+        assert_eq!(letter("g4"), Ok(("4", 'g')));
+        assert_eq!(letter("G0"), Ok(("0", 'G')));
+    }
 
     #[test]
     fn test_monosaccharide() {
