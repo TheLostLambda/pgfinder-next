@@ -257,7 +257,7 @@ pub enum CompositionErrorKind {
     #[error("counts cannot start with 0")]
     ExpectedNoLeadingZero,
 
-    #[error("expected a digit 1-9")]
+    #[error("expected an ASCII digit 1-9")]
     ExpectedDigit,
 
     #[error("expected an element symbol")]

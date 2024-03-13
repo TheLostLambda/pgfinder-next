@@ -10,7 +10,7 @@ expression: out
   │   
   ├─▶   × expected an isotopic mass number
   │   
-  ╰─▶   × expected a digit 1-9
+  ╰─▶   × expected an ASCII digit 1-9
          ╭────
        1 │ [H2O
          ·  ▲
