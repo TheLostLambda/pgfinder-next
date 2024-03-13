@@ -1,10 +1,12 @@
 use miette::Diagnostic;
 use nom::{
     branch::alt,
-    character::complete::{char, satisfy},
+    bytes::complete::tag,
+    character::complete::{alpha1, alphanumeric1, char, satisfy},
     combinator::{map, opt, recognize},
     error::ErrorKind,
-    sequence::{terminated, tuple},
+    multi::{many0, many0_count},
+    sequence::{pair, terminated, tuple},
     IResult,
 };
 use nom_miette::{
@@ -97,8 +99,7 @@ fn lateral_chain<'a, 's>(
 
 // =
 
-/// Predefined Modification = [ Multiplier ] , letter ,
-///   { letter | digit | "_" } ;
+/// Predefined Modification = [ Multiplier ] , Identifier
 fn predefined_modification<'a, 's>(
     polymerizer: &'a Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Modification<NamedMod<'a, 'a>>> {
@@ -126,9 +127,15 @@ fn chemical_offset<'a, 's>(
 // =
 
 /// Multiplier = Count , "x" ;
-pub fn multiplier(i: &str) -> ParseResult<Count> {
+fn multiplier(i: &str) -> ParseResult<Count> {
     let parser = terminated(count, char('x'));
     wrap_err(parser, MuropeptideErrorKind::ExpectedMultiplier)(i)
+}
+
+/// Identifier = letter , { letter | digit | "_" } ;
+fn identifier(i: &str) -> ParseResult<&str> {
+    let parser = recognize(pair(alpha1, many0_count(alt((alphanumeric1, tag("_"))))));
+    wrap_err(parser, MuropeptideErrorKind::ExpectedIdentifier)(i)
 }
 
 // Adapted parsers =
@@ -161,7 +168,10 @@ wrap_composition_parsers!(
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideErrorKind>>;
 
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
-pub enum MuropeptideErrorKind {
+enum MuropeptideErrorKind {
+    #[error("expected an ASCII letter, optionally followed by any number of ASCII letters, digits, and underscores")]
+    ExpectedIdentifier,
+
     #[error("expected a count followed by 'x'")]
     ExpectedMultiplier,
 
@@ -219,7 +229,6 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 mod tests {
     use once_cell::sync::Lazy;
     use polychem::{AtomicDatabase, Charged, Massive, PolymerDatabase};
-    use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
 
     use super::*;
@@ -310,6 +319,38 @@ mod tests {
         assert_offset_mz!("+[2H]2O*H2O", "*H2O", dec!(20.02311817581), 0);
         assert_offset_mz!("+NH2{100Tc", "{100Tc", dec!(16.01872406889), 0);
         assert_offset_mz!("+C11H12N2O2 H2O", " H2O", dec!(204.08987763476), 0);
+    }
+
+    #[test]
+    fn test_identifier() {
+        // Valid Identifiers
+        assert_eq!(identifier("Ac"), Ok(("", "Ac")));
+        assert_eq!(identifier("H2O"), Ok(("", "H2O")));
+        assert_eq!(identifier("Anh"), Ok(("", "Anh")));
+        assert_eq!(identifier("E2E"), Ok(("", "E2E")));
+        assert_eq!(identifier("no_way"), Ok(("", "no_way")));
+        assert_eq!(identifier("H"), Ok(("", "H")));
+        assert_eq!(identifier("p"), Ok(("", "p")));
+        // Invalid Identifiers
+        assert!(identifier(" H2O").is_err());
+        assert!(identifier("1").is_err());
+        assert!(identifier("9999").is_err());
+        assert!(identifier("0").is_err());
+        assert!(identifier("00145").is_err());
+        assert!(identifier("+H").is_err());
+        assert!(identifier("[H]").is_err());
+        assert!(identifier("Øof").is_err());
+        assert!(identifier("2xAc").is_err());
+        assert!(identifier("-Ac").is_err());
+        assert!(identifier("_Ac").is_err());
+        // Multiple Identifiers
+        assert_eq!(identifier("OH-p"), Ok(("-p", "OH")));
+        assert_eq!(identifier("HeH 2slow"), Ok((" 2slow", "HeH")));
+        assert_eq!(identifier("Gefählt"), Ok(("ählt", "Gef")));
+        // This is a weird unicode 6
+        assert!('𝟨'.is_numeric());
+        assert!(!'𝟨'.is_ascii_digit());
+        assert_eq!(identifier("C2H𝟨O"), Ok(("𝟨O", "C2H")));
     }
 
     #[test]
