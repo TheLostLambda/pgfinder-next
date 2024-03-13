@@ -50,6 +50,18 @@ impl Charged for AnyMod<'_, '_> {
 
 impl Mz for AnyMod<'_, '_> {}
 
+impl<'a, 'p> From<NamedMod<'a, 'p>> for AnyMod<'a, 'p> {
+    fn from(value: NamedMod<'a, 'p>) -> Self {
+        Self::Named(value)
+    }
+}
+
+impl<'a, 'p> From<OffsetMod<'a>> for AnyMod<'a, 'p> {
+    fn from(value: OffsetMod<'a>) -> Self {
+        Self::Offset(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;

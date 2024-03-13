@@ -8,6 +8,14 @@ impl<K> Modification<K> {
     pub const fn new(multiplier: Count, kind: K) -> Self {
         Self { multiplier, kind }
     }
+
+    // NOTE: This can't exist as a From impl since it overlaps with `impl From<T> for T` in the standard library. This
+    // is awfully annoying, so keep an eye out for specialization, which should make that sort of overlap possible:
+    // https://github.com/rust-lang/rust/issues/31844
+    pub fn convert<K2: From<K>>(self) -> Modification<K2> {
+        let Self { multiplier, kind } = self;
+        Modification::new(multiplier, kind.into())
+    }
 }
 
 impl<K: Massive> Massive for Modification<K> {
