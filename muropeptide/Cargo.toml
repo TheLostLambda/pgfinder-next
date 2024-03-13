@@ -18,5 +18,3 @@ once_cell = "1.19.0"
 [lints.rust]
 # FIXME: Uncomment this!
 # missing_docs = "warn"
-# FIXME: Get rid of this!
-dead_code = "allow"
