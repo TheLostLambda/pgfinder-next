@@ -36,6 +36,17 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Self::new(self.atomic_db, self.polymer_db)
     }
 
+    #[must_use]
+    pub fn atomic_db(&self) -> &'a AtomicDatabase {
+        self.atomic_db
+    }
+
+    // FIXME: Will I ever need this? Should be it removed from the public API?
+    #[must_use]
+    pub fn polymer_db(&self) -> &'p PolymerDatabase<'a> {
+        self.polymer_db
+    }
+
     pub fn residue(&mut self, abbr: impl AsRef<str>) -> Result<Residue<'a, 'p>> {
         self.residue_counter += 1;
         let residue = Residue::new(self.polymer_db, abbr, self.residue_counter)?;

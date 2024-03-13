@@ -1,3 +1,4 @@
+// FIXME: Split this module back into two parts: the parser and the `new` / impls
 // External Crate Imports
 use miette::Diagnostic;
 use nom::{
@@ -67,6 +68,16 @@ pub fn chemical_composition<'a, 's>(
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+
+/// Count = digit - "0" , { digit } ;
+pub fn count(i: &str) -> ParseResult<Count> {
+    let not_zero = expect(
+        cut(not(char('0'))),
+        CompositionErrorKind::ExpectedNoLeadingZero,
+    );
+    let digits = expect(u32, CompositionErrorKind::ExpectedDigit);
+    preceded(not_zero, digits)(i)
+}
 
 /// Offset Kind = "+" | "-" ;
 pub fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
@@ -181,16 +192,6 @@ fn isotope<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult
     map_res(isotope_expr, |(mass_number, symbol)| {
         Element::new_isotope(db, symbol, mass_number)
     })
-}
-
-/// Count = digit - "0" , { digit } ;
-fn count(i: &str) -> ParseResult<Count> {
-    let not_zero = expect(
-        cut(not(char('0'))),
-        CompositionErrorKind::ExpectedNoLeadingZero,
-    );
-    let digits = expect(u32, CompositionErrorKind::ExpectedDigit);
-    preceded(not_zero, digits)(i)
 }
 
 /// Particle = lowercase ;

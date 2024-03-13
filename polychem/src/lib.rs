@@ -69,7 +69,7 @@ struct Element<'a> {
     isotopes: &'a HashMap<MassNumber, Isotope>,
 }
 
-type Count = u32;
+pub type Count = u32;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub enum OffsetKind {

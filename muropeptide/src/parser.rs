@@ -1,18 +1,17 @@
-// FIXME: Not 100% sold on have this as it's own module...
-
 use miette::Diagnostic;
-use nom::{character::complete::satisfy, combinator::recognize, error::ErrorKind, IResult};
-use nom_miette::{
-    expect, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError,
-};
+use nom::{combinator::recognize, error::ErrorKind, IResult};
+use nom_miette::{into, map_res, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
-    polymerizer::{self, Polymerizer},
-    AnyModification, PolychemError, Residue,
+    atoms::chemical_composition::{self, CompositionErrorKind},
+    polymerizer::Polymerizer,
+    AnyModification, ChemicalComposition, Count, Modification, NamedMod, OffsetKind, OffsetMod,
+    PolychemError,
 };
 use thiserror::Error;
 
-use crate::{AminoAcid, Monomer, Monosaccharide};
+use crate::{AminoAcid, LateralChain, Monomer, Monosaccharide, UnbranchedAminoAcid};
 
+// FIXME: Paste all of these EBNF comments into another file and make sure they are valid!
 /// Monomer = Glycan , [ "-" , Peptide ] | Peptide ;
 fn monomer<'a, 's>(
     polymerizer: &mut Polymerizer<'a, 'a>,
@@ -25,14 +24,14 @@ fn monomer<'a, 's>(
 /// Glycan = { Monosaccharide }- ;
 fn glycan<'a, 's>(
     polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<Residue<'a, 'a>>> {
+) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide<'a>>> {
     |_| todo!()
 }
 
 /// Peptide = { Amino Acid }- ;
 fn peptide<'a, 's>(
     polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<AminoAcid<'a>> {
+) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid<'a>>> {
     |_| todo!()
 }
 
@@ -49,18 +48,15 @@ fn monosaccharide<'a, 's>(
     map_res(parser, |abbr| polymerizer.residue(abbr))
 }
 
-// FIXME: Add modifications and lateral chains
-/// Amino Acid = uppercase , [ Modifications ] , [ Lateral Chain ]
+/// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
 fn amino_acid<'a, 's>(
     polymerizer: &'a mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Residue<'a, 'a>> {
-    let parser = recognize(uppercase);
-    map_res(parser, |abbr| polymerizer.residue(abbr))
+) -> impl FnMut(&'s str) -> ParseResult<AminoAcid<'a>> {
+    |_| todo!()
 }
 
 // =
 
-// FIXME: Can this EBNF be made simpler? Or not with comma separators...
 /// Modifications = "(" ,
 ///   ( Predefined Modification
 ///   | Chemical Offset
@@ -74,41 +70,98 @@ fn modifications<'a, 's>(
     |_| todo!()
 }
 
-/// uppercase
-///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
-///   | "H" | "I" | "J" | "K" | "L" | "M" | "N"
-///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
-///   | "V" | "W" | "X" | "Y" | "Z"
-///   ;
-fn uppercase(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_uppercase());
-    expect(parser, MuropeptideErrorKind::ExpectedUppercase)(i)
+/// Unbranched Amino Acid = uppercase , [ Modifications ] ;
+fn unbranched_amino_acid<'a, 's>(
+    polymerizer: &'a mut Polymerizer<'a, 'a>,
+) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid<'a>> {
+    let parser = recognize(uppercase);
+    map_res(parser, |abbr| polymerizer.residue(abbr))
 }
 
-/// lowercase
-///   = "a" | "b" | "c" | "d" | "e" | "f" | "g"
-///   | "h" | "i" | "j" | "k" | "l" | "m" | "n"
-///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
-///   | "v" | "w" | "x" | "y" | "z"
-///   ;
-fn lowercase(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_lowercase());
-    expect(parser, MuropeptideErrorKind::ExpectedLowercase)(i)
+/// Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
+///   { Unbranched Amino Acid }- , "]" ;
+fn lateral_chain<'a, 's>(
+    polymerizer: &'a mut Polymerizer<'a, 'a>,
+) -> impl FnMut(&'s str) -> ParseResult<LateralChain> {
+    |_| todo!()
 }
+
+// =
+
+/// Predefined Modification = [ Multiplier ] , letter ,
+///   { letter | digit | "_" } ;
+fn predefined_modification<'a, 's>(
+    polymerizer: &'a mut Polymerizer<'a, 'a>,
+) -> impl FnMut(&'s str) -> ParseResult<Modification<NamedMod<'a, 'a>>> {
+    |_| todo!()
+}
+
+/// Chemical Offset = Offset Kind , [ Multiplier ] ,
+///   Chemical Composition ;
+fn chemical_offset<'a, 's>(
+    polymerizer: &'a mut Polymerizer<'a, 'a>,
+) -> impl FnMut(&'s str) -> ParseResult<Modification<OffsetMod<'a>>> {
+    |_| todo!()
+}
+
+// =
+
+/// Multiplier = Count , "x" ;
+pub fn multiplier(i: &str) -> ParseResult<Count> {
+    todo!()
+}
+
+/// letter = uppercase | lowercase ;
+pub fn letter(i: &str) -> ParseResult<char> {
+    todo!()
+}
+
+/// digit
+///   = "0" | "1" | "2" | "3" | "4" | "5" | "6"
+///   | "7" | "8" | "9"
+///   ;
+pub fn digit(i: &str) -> ParseResult<char> {
+    todo!()
+}
+
+// Adapted parsers =
+
+fn chemical_composition<'a, 's>(
+    polymerizer: &'a mut Polymerizer<'a, 'a>,
+) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {
+    into(chemical_composition::chemical_composition(
+        polymerizer.atomic_db(),
+    ))
+}
+
+macro_rules! wrap_composition_parsers {
+    ($($f:ident -> $t:ty),+ $(,)?) => {
+        $(
+            fn $f(i: &str) -> ParseResult<$t> {
+                into(chemical_composition::$f)(i)
+            }
+        )+
+    };
+}
+
+wrap_composition_parsers!(
+    count -> Count,
+    offset_kind -> OffsetKind,
+    uppercase -> char,
+    lowercase -> char,
+);
 
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideErrorKind>>;
 
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
 pub enum MuropeptideErrorKind {
-    #[error("expected an uppercase ASCII letter")]
-    ExpectedUppercase,
-
-    #[error("expected a lowercase ASCII letter")]
-    ExpectedLowercase,
-
-    #[diagnostic(help("double-check for typos, or add a new entry to the polymer database"))]
+    #[diagnostic(transparent)]
     #[error(transparent)]
-    LookupError(Box<PolychemError>),
+    PolychemError(Box<PolychemError>),
+
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    CompositionError(#[from] CompositionErrorKind),
 
     #[diagnostic(help(
         "this is an internal error that you shouldn't ever see! If you have gotten this error, \
@@ -127,10 +180,7 @@ pub enum MuropeptideErrorKind {
 impl LabeledErrorKind for MuropeptideErrorKind {
     fn label(&self) -> Option<&'static str> {
         Some(match self {
-            // FIXME: Replace with `PolychemError`s
-            // Self::LookupError(AtomicLookupError::Element(_)) => "element not found",
-            // Self::LookupError(AtomicLookupError::Isotope(_, _, _, _)) => "isotope not found",
-            // Self::LookupError(AtomicLookupError::Particle(_)) => "particle not found",
+            // FIXME: Need to add branches for passing labels through the transparent errors?
             Self::Incomplete => "input was valid up until this point",
             Self::NomError(_) => "the region that triggered this bug!",
             _ => return None,
@@ -142,7 +192,7 @@ impl<'a> FromExternalError<'a, Box<PolychemError>> for MuropeptideErrorKind {
     const FATAL: bool = true;
 
     fn from_external_error(input: &'a str, e: Box<PolychemError>) -> LabeledParseError<'_, Self> {
-        LabeledParseError::new(input, Self::LookupError(e))
+        LabeledParseError::new(input, Self::PolychemError(e))
     }
 }
 
@@ -180,36 +230,6 @@ mod tests {
     });
 
     #[test]
-    fn test_uppercase() {
-        // Ensure the complete uppercase ASCII alphabet is present
-        for c in 'A'..='Z' {
-            assert_eq!(uppercase(&c.to_string()), Ok(("", c)));
-        }
-        // Ensure the complete lowercase ASCII alphabet is absent
-        for c in 'a'..='z' {
-            assert!(uppercase(&c.to_string()).is_err());
-        }
-        // Ensure only one character is parsed
-        assert_eq!(uppercase("Hg"), Ok(("g", 'H')));
-        assert_eq!(uppercase("HG"), Ok(("G", 'H')));
-    }
-
-    #[test]
-    fn test_lowercase() {
-        // Ensure the complete lowercase ASCII alphabet is present
-        for c in 'a'..='z' {
-            assert_eq!(lowercase(&c.to_string()), Ok(("", c)));
-        }
-        // Ensure the complete uppercase ASCII alphabet is absent
-        for c in 'A'..='Z' {
-            assert!(lowercase(&c.to_string()).is_err());
-        }
-        // Ensure only one character is parsed
-        assert_eq!(lowercase("hg"), Ok(("g", 'h')));
-        assert_eq!(lowercase("hG"), Ok(("G", 'h')));
-    }
-
-    #[test]
     fn test_monosaccharide() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
         let mut monosaccharide = monosaccharide(&mut polymerizer);
@@ -238,4 +258,6 @@ mod tests {
         assert_monosaccharide_name!("gm", "m", "N-Acetylglucosamine");
         assert_monosaccharide_name!("m-A", "-A", "N-Acetylmuramic Acid");
     }
+
+    // FIXME: Add a test that checks all of the errors using `assert_miette_snapshot`! Maybe make that a crate?
 }
