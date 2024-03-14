@@ -127,7 +127,7 @@ struct Isotope {
     abundance: Option<Decimal>,
 }
 
-type Charge = i64;
+pub type Charge = i64;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
 pub struct Bond<'a, 'p> {
