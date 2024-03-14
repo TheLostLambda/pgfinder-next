@@ -2,16 +2,14 @@ use miette::Diagnostic;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, alphanumeric1, char, satisfy},
+    character::complete::{alpha1, alphanumeric1, char, space0},
     combinator::{map, opt, recognize},
     error::ErrorKind,
-    multi::{many0, many0_count},
-    sequence::{pair, terminated, tuple},
+    multi::{many0, separated_list1},
+    sequence::{delimited, pair, terminated, tuple},
     IResult,
 };
-use nom_miette::{
-    expect, into, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError,
-};
+use nom_miette::{into, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
     atoms::chemical_composition::{self, CompositionErrorKind},
     polymerizer::Polymerizer,
@@ -78,9 +76,15 @@ fn amino_acid<'a, 's>(
 fn modifications<'a, 's>(
     polymerizer: &'a Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<AnyModification<'a, 'a>>> {
-    |_| todo!()
+    let separator = delimited(space0, char(','), space0);
+    let any_mod = alt((
+        map(predefined_modification(polymerizer), Modification::convert),
+        map(chemical_offset(polymerizer), Modification::convert),
+    ));
+    delimited(char('('), separated_list1(separator, any_mod), char(')'))
 }
 
+// FIXME: Add modifications
 /// Unbranched Amino Acid = uppercase , [ Modifications ] ;
 fn unbranched_amino_acid<'a, 's>(
     polymerizer: &'a mut Polymerizer<'a, 'a>,
@@ -141,7 +145,8 @@ fn multiplier(i: &str) -> ParseResult<Count> {
 
 /// Identifier = letter , { letter | digit | "_" } ;
 fn identifier(i: &str) -> ParseResult<&str> {
-    let parser = recognize(pair(alpha1, many0_count(alt((alphanumeric1, tag("_"))))));
+    // PERF: Could maybe avoid allocations by using `many0_count` instead, but needs benchmarking
+    let parser = recognize(pair(alpha1, many0(alt((alphanumeric1, tag("_"))))));
     wrap_err(parser, MuropeptideErrorKind::ExpectedIdentifier)(i)
 }
 
@@ -235,7 +240,8 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
-    use polychem::{AtomicDatabase, Charged, Massive, PolymerDatabase};
+    use polychem::{AtomicDatabase, Charge, Charged, Massive, PolymerDatabase};
+    use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
 
     use super::*;
@@ -365,7 +371,6 @@ mod tests {
         assert!(predefined_modification("(Am)").is_err());
         assert!(predefined_modification("-4xH2O").is_err());
         assert!(predefined_modification("-2p").is_err());
-        assert!(predefined_modification("+H").is_err());
         assert!(predefined_modification("+C2H2O-2e").is_err());
         assert!(predefined_modification("-3xC2H2O-2e").is_err());
         assert!(predefined_modification("+NH3+p").is_err());
@@ -379,6 +384,85 @@ mod tests {
         // Multiple Predefined Modifications
         assert_offset_mass!("Anh, Am", ", Am", dec!(-18.01056468403));
         assert_offset_mass!("1xAm)JAA", ")JAA", dec!(-0.98401558291));
+    }
+
+    #[test]
+    fn test_modifications() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut modifications = modifications(&mut polymerizer);
+        macro_rules! assert_offset_mz {
+            ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
+                let (rest, modification) = modifications($input).unwrap();
+                assert_eq!(rest, $output);
+                let net_mass: Decimal = modification.iter().map(|m| m.monoisotopic_mass()).sum();
+                assert_eq!(net_mass, $mass);
+                let net_charge: Charge = modification.iter().map(|m| m.charge()).sum();
+                assert_eq!(net_charge, $charge);
+            };
+        }
+        // Valid Modifications
+        assert_offset_mz!("(-H2O)", "", dec!(-18.01056468403), 0);
+        assert_offset_mz!("(+2xH2O)", "", dec!(36.02112936806), 0);
+        assert_offset_mz!("(-2p)", "", dec!(-2.014552933242), -2);
+        assert_offset_mz!("(-3xC2H2O-2e)", "", dec!(-126.02840257263561), -6);
+        assert_offset_mz!("(+[37Cl]5-2p)", "", dec!(182.814960076758), -2);
+        assert_offset_mz!("(Red)", "", dec!(2.01565006446), 0);
+        assert_offset_mz!("(Anh)", "", dec!(-18.01056468403), 0);
+        assert_offset_mz!("(1xAm)", "", dec!(-0.98401558291), 0);
+        assert_offset_mz!("(2xRed)", "", dec!(4.03130012892), 0);
+        assert_offset_mz!("(-OH, +NH2)", "", dec!(-0.98401558291), 0);
+        assert_offset_mz!("(-H2, +Ca)", "", dec!(37.94694079854), 0);
+        assert_offset_mz!("(Anh, +H2O)", "", dec!(0), 0);
+        assert_offset_mz!("(Anh,+H2O)", "", dec!(0), 0);
+        assert_offset_mz!("(Anh   ,+H2O)", "", dec!(0), 0);
+        assert_offset_mz!("(Anh  ,  +H2O)", "", dec!(0), 0);
+        assert_offset_mz!("(2xAnh, +3xH2O)", "", dec!(18.01056468403), 0);
+        assert_offset_mz!("(Anh, Anh, +3xH2O)", "", dec!(18.01056468403), 0);
+        // There is a super small mass defect (13.6 eV, or ~1e-8 u) stored in the binding energy between a proton and
+        // electon — that's why this result is slightly different from the one above!
+        assert_offset_mz!("(-2p, +Ca-2e)", "", dec!(37.946940769939870), 0);
+        assert_offset_mz!("(+2p, -2p, +Ca-2e)", "", dec!(39.961493703181870), 2);
+        // Invalid Modifications
+        assert!(modifications(" ").is_err());
+        assert!(modifications("H2O").is_err());
+        assert!(modifications("(-H2O").is_err());
+        assert!(modifications("(+0xH2O)").is_err());
+        assert!(modifications("(2xH2O)").is_err());
+        assert!(modifications("(-2x3xH2O)").is_err());
+        assert!(modifications("(-2x+H2O)").is_err());
+        assert!(modifications("(+2[2H])").is_err());
+        assert!(modifications("(-[H+p]O)").is_err());
+        assert!(modifications("(+NH2[100Tc])").is_err());
+        assert!(modifications("( H2O)").is_err());
+        assert!(modifications("(1)").is_err());
+        assert!(modifications("(9999)").is_err());
+        assert!(modifications("(0)").is_err());
+        assert!(modifications("(00145)").is_err());
+        assert!(modifications("([H])").is_err());
+        assert!(modifications("(Øof)").is_err());
+        assert!(modifications("(-Ac)").is_err());
+        assert!(modifications("(_Ac)").is_err());
+        assert!(modifications("(+Am)").is_err());
+        assert!(modifications("(-2xAm)").is_err());
+        assert!(modifications("((Am))").is_err());
+        assert!(modifications("(Anh +H2O)").is_err());
+        assert!(modifications("(Anh; +H2O)").is_err());
+        // Non-Existent Modifications
+        assert!(modifications("(Blue)").is_err());
+        assert!(modifications("(Hydro)").is_err());
+        assert!(modifications("(1xAm2)").is_err());
+        assert!(modifications("(2xR_ed)").is_err());
+        // Multiple Modifications
+        assert_offset_mz!("(+[37Cl]5-2p)10", "10", dec!(182.814960076758), -2);
+        assert_offset_mz!("(+[2H]2O)*H2O", "*H2O", dec!(20.02311817581), 0);
+        assert_offset_mz!("(+NH2){100Tc", "{100Tc", dec!(16.01872406889), 0);
+        assert_offset_mz!("(+C11H12N2O2) H2O", " H2O", dec!(204.08987763476), 0);
+        assert_offset_mz!(
+            "(2xAnh, +3xH2O)AA=gm-AEJA",
+            "AA=gm-AEJA",
+            dec!(18.01056468403),
+            0
+        );
     }
 
     #[test]
