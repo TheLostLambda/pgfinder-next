@@ -20,6 +20,11 @@ impl<'a, 'p> NamedMod<'a, 'p> {
         })
     }
 
+    #[must_use]
+    pub const fn abbr(&self) -> &'p str {
+        self.abbr
+    }
+
     pub(crate) fn lookup_description(
         db: &'p PolymerDatabase<'a>,
         abbr: impl AsRef<str>,

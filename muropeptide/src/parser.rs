@@ -12,7 +12,7 @@ use nom::{
 use nom_miette::{into, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
     atoms::chemical_composition::{self, CompositionErrorKind},
-    polymerizer::Polymerizer,
+    polymerizer::{self, Polymerizer},
     AnyModification, ChemicalComposition, Count, Modification, NamedMod, OffsetKind, OffsetMod,
     PolychemError,
 };
@@ -59,7 +59,7 @@ fn monosaccharide<'a, 's>(
 
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
 fn amino_acid<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
+    polymerizer: &mut Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<AminoAcid<'a>> {
     |_| todo!()
 }
@@ -74,7 +74,7 @@ fn amino_acid<'a, 's>(
 ///   | Chemical Offset
 ///   ) } , ")" ;
 fn modifications<'a, 's>(
-    polymerizer: &'a Polymerizer<'a, 'a>,
+    polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<AnyModification<'a, 'a>>> {
     let separator = delimited(space0, char(','), space0);
     let any_mod = alt((
@@ -84,19 +84,31 @@ fn modifications<'a, 's>(
     delimited(char('('), separated_list1(separator, any_mod), char(')'))
 }
 
-// FIXME: Add modifications
+// FIXME: Make private again!
+// FIXME: Switch to a more efficient modification application API
 /// Unbranched Amino Acid = uppercase , [ Modifications ] ;
-fn unbranched_amino_acid<'a, 's>(
+pub fn unbranched_amino_acid<'a, 's>(
     polymerizer: &'a mut Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid<'a>> {
-    let parser = recognize(uppercase);
-    map_res(parser, |abbr| polymerizer.residue(abbr))
+    let parser = pair(recognize(uppercase), opt(modifications(polymerizer)));
+    map_res(parser, |(abbr, modifications)| {
+        let mut amino_acid = polymerizer.residue(abbr)?;
+        for modification in modifications.iter().flatten() {
+            for _ in 0..modification.multiplier {
+                match &modification.kind {
+                    polychem::AnyMod::Named(m) => polymerizer.modify(m.abbr(), &mut amino_acid)?,
+                    polychem::AnyMod::Offset(_) => todo!(),
+                }
+            }
+        }
+        Ok(amino_acid)
+    })
 }
 
 /// Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
 ///   { Unbranched Amino Acid }- , "]" ;
 fn lateral_chain<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
+    polymerizer: &mut Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<LateralChain> {
     |_| todo!()
 }
@@ -106,11 +118,10 @@ fn lateral_chain<'a, 's>(
 // FIXME: I probably need to add a lot of `wrap_err`s around these parsers!
 /// Predefined Modification = [ Multiplier ] , Identifier
 fn predefined_modification<'a, 's>(
-    polymerizer: &'a Polymerizer<'a, 'a>,
+    polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Modification<NamedMod<'a, 'a>>> {
-    let named_mod = map_res(identifier, |abbr| {
-        NamedMod::new(polymerizer.polymer_db(), abbr)
-    });
+    let polymer_db = polymerizer.polymer_db();
+    let named_mod = map_res(identifier, |abbr| NamedMod::new(polymer_db, abbr));
     let parser = pair(opt(multiplier), named_mod);
     map(parser, |(multiplier, named_mod)| {
         Modification::new(multiplier.unwrap_or(1), named_mod)
@@ -120,7 +131,7 @@ fn predefined_modification<'a, 's>(
 /// Chemical Offset = Offset Kind , [ Multiplier ] ,
 ///   Chemical Composition ;
 fn chemical_offset<'a, 's>(
-    polymerizer: &'a Polymerizer<'a, 'a>,
+    polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Modification<OffsetMod<'a>>> {
     let parser = tuple((
         offset_kind,
@@ -153,7 +164,7 @@ fn identifier(i: &str) -> ParseResult<&str> {
 // Adapted parsers =
 
 fn chemical_composition<'a, 's>(
-    polymerizer: &'a Polymerizer<'a, 'a>,
+    polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {
     into(chemical_composition::chemical_composition(
         polymerizer.atomic_db(),
@@ -180,7 +191,7 @@ wrap_composition_parsers!(
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideErrorKind>>;
 
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
-enum MuropeptideErrorKind {
+pub enum MuropeptideErrorKind {
     #[error("expected an ASCII letter, optionally followed by any number of ASCII letters, digits, and underscores")]
     ExpectedIdentifier,
 
@@ -525,6 +536,38 @@ mod tests {
         // Multiple Monosaccharides
         assert_monosaccharide_name!("gm", "m", "N-Acetylglucosamine");
         assert_monosaccharide_name!("m-A", "-A", "N-Acetylmuramic Acid");
+    }
+
+    // FIXME: Unfininshed! Needs modification support — same with monosaccharide!
+    #[ignore]
+    #[test]
+    fn test_unbranched_amino_acid() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut unbranched_amino_acid = unbranched_amino_acid(&mut polymerizer);
+        macro_rules! assert_unbranched_aa_name {
+            ($input:literal, $output:literal, $name:literal) => {
+                assert_eq!(
+                    unbranched_amino_acid($input).map(|(r, e)| (r, e.name())),
+                    Ok(($output, $name))
+                );
+            };
+        }
+        // Valid Unbranched Amino Acids
+        assert_unbranched_aa_name!("g", "", "N-Acetylglucosamine");
+        assert_unbranched_aa_name!("m", "", "N-Acetylmuramic Acid");
+        // Invalid Unbranched Amino Acids
+        assert!(unbranched_amino_acid("P").is_err());
+        assert!(unbranched_amino_acid("EP").is_err());
+        assert!(unbranched_amino_acid("1h").is_err());
+        assert!(unbranched_amino_acid("+m").is_err());
+        assert!(unbranched_amino_acid("-g").is_err());
+        assert!(unbranched_amino_acid("[h]").is_err());
+        // Non-Existent Unbranched Amino Acids
+        assert!(unbranched_amino_acid("s").is_err());
+        assert!(unbranched_amino_acid("f").is_err());
+        // Multiple Unbranched Amino Acids
+        assert_unbranched_aa_name!("gm", "m", "N-Acetylglucosamine");
+        assert_unbranched_aa_name!("m-A", "-A", "N-Acetylmuramic Acid");
     }
 
     // FIXME: Add a test that checks all of the errors using `assert_miette_snapshot`! Maybe make that a crate?

@@ -1,6 +1,7 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 
-mod parser;
+// FIXME: Probably make private again...
+pub mod parser;
 
 // FIXME: Blocks need separating and reordering!
 use polychem::{AnyModification, Residue};

@@ -53,10 +53,13 @@ pub struct FunctionalGroup<'p> {
     location: &'p str,
 }
 
+// FIXME: These fields are public because there are no internal invariants to uphold (it's just a straightforward tuple)
+// and there are no read-only fields. It makes perfect sense for users to change either field. Be sure to apply this
+// reasoning consistently to all of the other structs! Making more public where everything should be read-write!
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
 pub struct Modification<K> {
-    multiplier: Count,
-    kind: K,
+    pub multiplier: Count,
+    pub kind: K,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
