@@ -12,7 +12,7 @@ use nom::{
 use nom_miette::{into, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
     atoms::chemical_composition::{self, CompositionErrorKind},
-    polymerizer::{self, Polymerizer},
+    polymerizer::Polymerizer,
     AnyModification, ChemicalComposition, Count, Modification, NamedMod, OffsetKind, OffsetMod,
     PolychemError,
 };

@@ -5,14 +5,17 @@ edition = "2021"
 
 [workspace]
 members = [
-  "polychem",
   "muropeptide",
+  "nom-miette",
+  "polychem",
 ]
 
 # FIXME: Does this actually apply to this base-level crate?
 [workspace.lints.rust]
 # FIXME: Uncomment this!
 # missing_docs = "warn"
+# FIXME: Delete this!
+dead_code = "allow"
 
 [dependencies]
 miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
