@@ -93,13 +93,8 @@ pub fn unbranched_amino_acid<'a, 's>(
     let parser = pair(recognize(uppercase), opt(modifications(polymerizer)));
     map_res(parser, |(abbr, modifications)| {
         let mut amino_acid = polymerizer.residue(abbr)?;
-        for modification in modifications.iter().flatten() {
-            for _ in 0..modification.multiplier {
-                match &modification.kind {
-                    polychem::AnyMod::Named(m) => polymerizer.modify(m.abbr(), &mut amino_acid)?,
-                    polychem::AnyMod::Offset(_) => todo!(),
-                }
-            }
+        for modification in modifications.into_iter().flatten() {
+            polymerizer.apply_modification(modification, &mut amino_acid)?;
         }
         Ok(amino_acid)
     })

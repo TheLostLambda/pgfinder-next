@@ -9,7 +9,8 @@ use crate::{
         polymer_database::{BondDescription, ModificationDescription, PolymerDatabase},
         target::{Index, Target},
     },
-    Bond, BondTarget, FunctionalGroup, GroupState, Id, NamedMod, PolychemError, Residue, Result,
+    AnyMod, AnyModification, Bond, BondTarget, FunctionalGroup, GroupState, Id, NamedMod,
+    PolychemError, Residue, Result,
 };
 
 #[derive(Clone)]
@@ -84,6 +85,18 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         }
 
         Ok(())
+    }
+
+    pub fn apply_modification(
+        &mut self,
+        modification: AnyModification<'a, 'p>,
+        target: &mut Residue<'a, 'p>,
+    ) -> Result<()> {
+        // FIXME: Don't forget to be clever about the multiplier!
+        match modification.kind {
+            AnyMod::Named(m) => self.modify_with_optional_group(m.abbr(), target, None),
+            AnyMod::Offset(_) => todo!(),
+        }
     }
 
     pub fn modify(&mut self, abbr: impl AsRef<str>, target: &mut Residue<'a, 'p>) -> Result<()> {
