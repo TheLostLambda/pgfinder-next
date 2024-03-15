@@ -9,7 +9,8 @@ members = [
   "muropeptide",
 ]
 
-[lints.rust]
+# FIXME: Does this actually apply to this base-level crate?
+[workspace.lints.rust]
 # FIXME: Uncomment this!
 # missing_docs = "warn"
 

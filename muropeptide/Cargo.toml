@@ -22,6 +22,5 @@ rust_decimal_macros = "1.34.2"
 name = "api"
 harness = false
 
-[lints.rust]
-# FIXME: Uncomment this!
-# missing_docs = "warn"
+[lints]
+workspace = true
