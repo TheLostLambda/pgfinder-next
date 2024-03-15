@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fmt};
+use std::fmt;
 
+use ahash::{HashMap, HashMapExt};
 use miette::{Diagnostic, LabeledSpan, SourceSpan};
 use nom::{
     combinator::{all_consuming, complete, consumed},

@@ -10,10 +10,8 @@ use atoms::chemical_composition::CompositionError;
 use polymerizer::PolymerizerError;
 use serde::Serialize;
 
-// Standard Library Imports
-use std::collections::HashMap;
-
 // External Crate Imports
+use ahash::HashMap;
 use miette::Diagnostic;
 use rust_decimal::Decimal;
 use thiserror::Error;

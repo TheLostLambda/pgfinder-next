@@ -1,7 +1,8 @@
 // Standard Library Imports
-use std::{collections::HashMap, ops::Deref, str::FromStr};
+use std::{ops::Deref, str::FromStr};
 
 // External Crate Imports
+use ahash::HashMap;
 use knuffel::{
     ast::{self, Integer, Literal, Radix, TypeName},
     decode::{Context, Kind},

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+ahash = "0.8.11"
 # miette = "6.0.1"
 miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"

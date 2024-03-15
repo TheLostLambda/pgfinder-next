@@ -1,10 +1,11 @@
 // Standard Library Imports
 use std::{
-    collections::{hash_map::Entry, HashMap},
+    collections::hash_map::Entry,
     iter::{self, zip},
 };
 
 // External Crate Imports
+use ahash::{HashMap, HashMapExt};
 use knuffel::{
     span::{Span, Spanned},
     Decode,

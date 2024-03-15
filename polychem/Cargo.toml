@@ -5,6 +5,7 @@ edition = "2021"
 
 # FIXME: Set up justfile and CI to check direct-minimal-versions
 [dependencies]
+ahash = "0.8.11"
 itertools = "0.12.1"
 knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
 miette = { git = "https://github.com/TheLostLambda/miette" }

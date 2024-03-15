@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fmt::Display, slice};
+use std::{fmt::Display, slice};
 
+use ahash::HashMap;
 use miette::Diagnostic;
 use thiserror::Error;
 

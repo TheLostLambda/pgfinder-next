@@ -1,10 +1,13 @@
 // Standard Library Imports
 use std::{
-    collections::{hash_map::Entry, HashMap},
+    collections::hash_map::Entry,
     fmt::{Display, Formatter},
     iter,
     ops::Deref,
 };
+
+// External Crate Imports
+use ahash::{HashMap, HashMapExt};
 
 // Public API ==========================================================================================================
 
@@ -195,7 +198,7 @@ type ResidueMap<'a, T> = HashMap<Option<&'a str>, T>;
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
+    use ahash::HashSet;
 
     use once_cell::sync::Lazy;
 
