@@ -87,11 +87,13 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Ok(())
     }
 
+    // FIXME: Might want to call this `modify` and either delete or rename the other, less-useful `modify`
     pub fn apply_modification(
         &mut self,
-        modification: AnyModification<'a, 'p>,
+        modification: impl Into<AnyModification<'a, 'p>>,
         target: &mut Residue<'a, 'p>,
     ) -> Result<()> {
+        let modification = modification.into();
         // FIXME: Don't forget to be clever about the multiplier!
         match modification.kind {
             AnyMod::Named(m) => self.modify_with_optional_group(m.abbr(), target, None),
