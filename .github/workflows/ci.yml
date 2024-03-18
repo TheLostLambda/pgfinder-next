@@ -8,6 +8,7 @@ env:
 
 jobs:
   build_and_test:
+    name: Build & Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
