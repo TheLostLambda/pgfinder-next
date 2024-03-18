@@ -75,7 +75,7 @@ mod tests {
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
         AtomicDatabase::from_kdl(
             "atomic_database.kdl",
-            include_str!("../../atomic_database.kdl"),
+            include_str!("../../data/atomic_database.kdl"),
         )
         .unwrap()
     });
@@ -83,8 +83,8 @@ mod tests {
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
         PolymerDatabase::from_kdl(
             &ATOMIC_DB,
-            "muropeptide_chemistry.kdl",
-            include_str!("../../muropeptide_chemistry.kdl"),
+            "polymer_database.kdl",
+            include_str!("../../tests/data/polymer_database.kdl"),
         )
         .unwrap()
     });

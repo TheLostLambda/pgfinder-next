@@ -272,7 +272,7 @@ mod tests {
 
     use crate::testing_tools::assert_miette_snapshot;
 
-    const KDL: &str = include_str!("../../atomic_database.kdl");
+    const KDL: &str = include_str!("../../data/atomic_database.kdl");
 
     #[test]
     fn parse_default_atomic_database() {

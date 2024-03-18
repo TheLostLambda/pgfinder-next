@@ -5,8 +5,8 @@ use polychem::{AtomicDatabase, Charged, ChemicalComposition, Massive, PolymerDat
 #[global_allocator]
 static ALLOC: AllocProfiler = AllocProfiler::system();
 
-const ATOMIC_KDL: &str = include_str!("../atomic_database.kdl");
-const POLYMER_KDL: &str = include_str!("../muropeptide_chemistry.kdl");
+const ATOMIC_KDL: &str = include_str!("../data/atomic_database.kdl");
+const POLYMER_KDL: &str = include_str!("../tests/data/polymer_database.kdl");
 const FORMULAS: [&str; 5] = [
     "C2H5NO2",
     "C5H9NO2",
@@ -19,7 +19,7 @@ static ATOMIC_DB: Lazy<AtomicDatabase> =
     Lazy::new(|| AtomicDatabase::from_kdl("atomic_database.kdl", ATOMIC_KDL).unwrap());
 
 static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
-    PolymerDatabase::from_kdl(&ATOMIC_DB, "muropeptide_chemistry.kdl", POLYMER_KDL).unwrap()
+    PolymerDatabase::from_kdl(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
 });
 
 static COMPOSITIONS: Lazy<Vec<ChemicalComposition>> = Lazy::new(|| {
@@ -81,7 +81,7 @@ mod polymers {
 
     #[divan::bench]
     fn build_polymer_database() -> PolymerDatabase<'static> {
-        PolymerDatabase::from_kdl(&ATOMIC_DB, "muropeptide_chemistry.kdl", POLYMER_KDL).unwrap()
+        PolymerDatabase::from_kdl(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
     }
 
     #[divan::bench]

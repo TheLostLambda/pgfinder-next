@@ -7,7 +7,7 @@ use std::fmt::Write;
 static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
     AtomicDatabase::from_kdl(
         "atomic_database.kdl",
-        include_str!("../polychem/atomic_database.kdl"),
+        include_str!("../polychem/data/atomic_database.kdl"),
     )
     .unwrap()
 });

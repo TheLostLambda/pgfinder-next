@@ -595,22 +595,22 @@ mod tests {
     static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
         AtomicDatabase::from_kdl(
             "atomic_database.kdl",
-            include_str!("../../atomic_database.kdl"),
+            include_str!("../../data/atomic_database.kdl"),
         )
         .unwrap()
     });
 
-    const KDL: &str = include_str!("../../muropeptide_chemistry.kdl");
+    const KDL: &str = include_str!("../../tests/data/polymer_database.kdl");
 
     #[test]
     fn parse_muropeptide_chemistry() {
-        let db: PolymerDatabaseKdl = knuffel::parse("muropeptide_chemistry.kdl", KDL).unwrap();
+        let db: PolymerDatabaseKdl = knuffel::parse("polymer_database.kdl", KDL).unwrap();
         assert_debug_snapshot!(db);
     }
 
     #[test]
     fn build_muropeptide_chemistry() {
-        let db = PolymerDatabase::from_kdl(&DB, "muropeptide_chemistry.kdl", KDL).unwrap();
+        let db = PolymerDatabase::from_kdl(&DB, "polymer_database.kdl", KDL).unwrap();
         assert_ron_snapshot!(db, {
             ".bonds, .modifications, .residues" => insta::sorted_redaction(),
             ".**.isotopes, .**.functional_groups" => insta::sorted_redaction()

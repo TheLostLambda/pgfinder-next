@@ -5,15 +5,15 @@ use polychem::{AtomicDatabase, PolymerDatabase};
 #[global_allocator]
 static ALLOC: AllocProfiler = AllocProfiler::system();
 
-const ATOMIC_KDL: &str = include_str!("../../polychem/atomic_database.kdl");
-const POLYMER_KDL: &str = include_str!("../../polychem/muropeptide_chemistry.kdl");
+const ATOMIC_KDL: &str = include_str!("../../polychem/data/atomic_database.kdl");
+const POLYMER_KDL: &str = include_str!("../data/polymer_database.kdl");
 const AMINO_ACIDS: [&str; 3] = ["D(Am)", "E(Am)", "J(Am)"];
 
 static ATOMIC_DB: Lazy<AtomicDatabase> =
     Lazy::new(|| AtomicDatabase::from_kdl("atomic_database.kdl", ATOMIC_KDL).unwrap());
 
 static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
-    PolymerDatabase::from_kdl(&ATOMIC_DB, "muropeptide_chemistry.kdl", POLYMER_KDL).unwrap()
+    PolymerDatabase::from_kdl(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
 });
 
 fn main() {
