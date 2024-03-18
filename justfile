@@ -6,8 +6,8 @@ test:
 
 # FIXME: The --workspace flag appears to be broken at the moment: https://github.com/mitsuhiko/insta/issues/396
 review:
-  (cd polychem; cargo insta test --review)
-  (cd muropeptide; cargo insta test --review)
+  (cd crates/polychem; cargo insta test --review)
+  (cd crates/muropeptide; cargo insta test --review)
 
 bench:
   cargo bench --workspace

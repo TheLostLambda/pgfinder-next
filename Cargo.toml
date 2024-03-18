@@ -5,9 +5,9 @@ edition = "2021"
 
 [workspace]
 members = [
-  "muropeptide",
-  "nom-miette",
-  "polychem",
+  "crates/muropeptide",
+  "crates/nom-miette",
+  "crates/polychem",
 ]
 
 # FIXME: Does this actually apply to this base-level crate?
@@ -20,7 +20,7 @@ dead_code = "allow"
 [dependencies]
 miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
 once_cell = "1.19.0"
-polychem = { path = "polychem/" }
+polychem = { path = "crates/polychem/" }
 rustyline = "13.0.0"
 
 # FIXME: This is just a list of nice libraries, but should eventually be deleted!

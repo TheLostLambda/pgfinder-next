@@ -1,5 +1,5 @@
 ---
-source: polychem/src/polymers/polymer_database.rs
+source: crates/polychem/src/polymers/polymer_database.rs
 expression: db
 ---
 PolymerDatabaseKdl {
@@ -186,8 +186,8 @@ PolymerDatabaseKdl {
                 lost: Some(
                     Spanned {
                         span: Span(
-                            701,
-                            704,
+                            700,
+                            703,
                         ),
                         value: "H",
                     },
@@ -195,8 +195,8 @@ PolymerDatabaseKdl {
                 gained: Some(
                     Spanned {
                         span: Span(
-                            720,
-                            727,
+                            719,
+                            726,
                         ),
                         value: "C2H3O",
                     },
@@ -205,7 +205,7 @@ PolymerDatabaseKdl {
                     TargetKdl {
                         span: Span(
                             650,
-                            688,
+                            687,
                         ),
                         group: "Hydroxyl",
                         location: Some(
@@ -221,8 +221,8 @@ PolymerDatabaseKdl {
                 lost: Some(
                     Spanned {
                         span: Span(
-                            826,
-                            829,
+                            825,
+                            828,
                         ),
                         value: "H",
                     },
@@ -230,8 +230,8 @@ PolymerDatabaseKdl {
                 gained: Some(
                     Spanned {
                         span: Span(
-                            845,
-                            850,
+                            844,
+                            849,
                         ),
                         value: "PO3",
                     },
@@ -239,8 +239,8 @@ PolymerDatabaseKdl {
                 targets: [
                     TargetKdl {
                         span: Span(
-                            776,
-                            813,
+                            775,
+                            812,
                         ),
                         group: "Hydroxyl",
                         location: Some(
@@ -256,8 +256,8 @@ PolymerDatabaseKdl {
                 lost: Some(
                     Spanned {
                         span: Span(
-                            949,
-                            956,
+                            947,
+                            954,
                         ),
                         value: "C2H3O",
                     },
@@ -265,8 +265,8 @@ PolymerDatabaseKdl {
                 gained: Some(
                     Spanned {
                         span: Span(
-                            972,
-                            975,
+                            970,
+                            973,
                         ),
                         value: "H",
                     },
@@ -274,8 +274,8 @@ PolymerDatabaseKdl {
                 targets: [
                     TargetKdl {
                         span: Span(
-                            895,
-                            936,
+                            894,
+                            934,
                         ),
                         group: "Acetyl",
                         location: Some(
@@ -292,8 +292,8 @@ PolymerDatabaseKdl {
                 gained: Some(
                     Spanned {
                         span: Span(
-                            1065,
-                            1069,
+                            1062,
+                            1066,
                         ),
                         value: "H2",
                     },
@@ -301,8 +301,8 @@ PolymerDatabaseKdl {
                 targets: [
                     TargetKdl {
                         span: Span(
-                            1010,
-                            1050,
+                            1008,
+                            1047,
                         ),
                         group: "Hydroxyl",
                         location: Some(
@@ -318,8 +318,8 @@ PolymerDatabaseKdl {
                 lost: Some(
                     Spanned {
                         span: Span(
-                            1187,
-                            1192,
+                            1183,
+                            1188,
                         ),
                         value: "H2O",
                     },
@@ -328,8 +328,8 @@ PolymerDatabaseKdl {
                 targets: [
                     TargetKdl {
                         span: Span(
-                            1108,
-                            1174,
+                            1105,
+                            1170,
                         ),
                         group: "Hydroxyl",
                         location: Some(
@@ -347,39 +347,39 @@ PolymerDatabaseKdl {
         types: [
             ResidueTypeKdl {
                 span: Span(
-                    1233,
-                    1494,
+                    1229,
+                    1490,
                 ),
                 name: "Monosaccharide",
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            1262,
-                            1308,
+                            1258,
+                            1304,
                         ),
                         name: "Hydroxyl",
                         location: "Reducing End",
                     },
                     FunctionalGroupKdl {
                         span: Span(
-                            1320,
-                            1369,
+                            1316,
+                            1365,
                         ),
                         name: "Hydroxyl",
                         location: "Nonreducing End",
                     },
                     FunctionalGroupKdl {
                         span: Span(
-                            1381,
-                            1425,
+                            1377,
+                            1421,
                         ),
                         name: "Hydroxyl",
                         location: "6-Position",
                     },
                     FunctionalGroupKdl {
                         span: Span(
-                            1437,
-                            1484,
+                            1433,
+                            1480,
                         ),
                         name: "Acetyl",
                         location: "Secondary Amide",
@@ -388,23 +388,23 @@ PolymerDatabaseKdl {
             },
             ResidueTypeKdl {
                 span: Span(
-                    1503,
-                    1634,
+                    1499,
+                    1630,
                 ),
                 name: "AminoAcid",
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            1527,
-                            1568,
+                            1523,
+                            1564,
                         ),
                         name: "Amino",
                         location: "N-Terminal",
                     },
                     FunctionalGroupKdl {
                         span: Span(
-                            1580,
-                            1624,
+                            1576,
+                            1620,
                         ),
                         name: "Carboxyl",
                         location: "C-Terminal",
@@ -415,8 +415,8 @@ PolymerDatabaseKdl {
         residues: [
             ResidueKdl {
                 span: Span(
-                    1645,
-                    1725,
+                    1641,
+                    1721,
                 ),
                 residue_type: "Monosaccharide",
                 abbr: "g",
@@ -424,8 +424,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            1708,
-                            1718,
+                            1704,
+                            1714,
                         ),
                         value: "C8H15NO6",
                     },
@@ -434,8 +434,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    1729,
-                    1865,
+                    1725,
+                    1861,
                 ),
                 residue_type: "Monosaccharide",
                 abbr: "m",
@@ -443,8 +443,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            1793,
-                            1804,
+                            1789,
+                            1800,
                         ),
                         value: "C11H19NO8",
                     },
@@ -452,8 +452,8 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            1813,
-                            1859,
+                            1809,
+                            1855,
                         ),
                         name: "Carboxyl",
                         location: "Lactyl Ether",
@@ -462,8 +462,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    1870,
-                    1932,
+                    1866,
+                    1928,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "A",
@@ -471,8 +471,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            1916,
-                            1925,
+                            1912,
+                            1921,
                         ),
                         value: "C3H7NO2",
                     },
@@ -481,8 +481,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    1936,
-                    2060,
+                    1932,
+                    2056,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "B",
@@ -490,8 +490,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            1994,
-                            2005,
+                            1990,
+                            2001,
                         ),
                         value: "C4H10N2O2",
                     },
@@ -499,8 +499,8 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            2014,
-                            2054,
+                            2010,
+                            2050,
                         ),
                         name: "Amino",
                         location: "Sidechain",
@@ -509,8 +509,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2064,
-                    2128,
+                    2060,
+                    2124,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "C",
@@ -518,8 +518,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2111,
-                            2121,
+                            2107,
+                            2117,
                         ),
                         value: "C3H7NO2S",
                     },
@@ -528,8 +528,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2132,
-                    2251,
+                    2128,
+                    2247,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "D",
@@ -537,8 +537,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2184,
-                            2193,
+                            2180,
+                            2189,
                         ),
                         value: "C4H7NO4",
                     },
@@ -546,8 +546,8 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            2202,
-                            2245,
+                            2198,
+                            2241,
                         ),
                         name: "Carboxyl",
                         location: "Sidechain",
@@ -556,8 +556,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2255,
-                    2374,
+                    2251,
+                    2370,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "E",
@@ -565,8 +565,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2307,
-                            2316,
+                            2303,
+                            2312,
                         ),
                         value: "C5H9NO4",
                     },
@@ -574,8 +574,8 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            2325,
-                            2368,
+                            2321,
+                            2364,
                         ),
                         name: "Carboxyl",
                         location: "Sidechain",
@@ -584,8 +584,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2378,
-                    2447,
+                    2374,
+                    2443,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "F",
@@ -593,8 +593,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2430,
-                            2440,
+                            2426,
+                            2436,
                         ),
                         value: "C9H11NO2",
                     },
@@ -603,8 +603,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2451,
-                    2513,
+                    2447,
+                    2509,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "G",
@@ -612,8 +612,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2497,
-                            2506,
+                            2493,
+                            2502,
                         ),
                         value: "C2H5NO2",
                     },
@@ -622,8 +622,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2517,
-                    2582,
+                    2513,
+                    2578,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "H",
@@ -631,8 +631,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2565,
-                            2575,
+                            2561,
+                            2571,
                         ),
                         value: "C6H9N3O2",
                     },
@@ -641,8 +641,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2586,
-                    2652,
+                    2582,
+                    2648,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "I",
@@ -650,8 +650,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2635,
-                            2645,
+                            2631,
+                            2641,
                         ),
                         value: "C6H13NO2",
                     },
@@ -660,8 +660,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2656,
-                    2831,
+                    2652,
+                    2827,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "J",
@@ -669,8 +669,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2714,
-                            2725,
+                            2710,
+                            2721,
                         ),
                         value: "C7H14N2O4",
                     },
@@ -678,16 +678,16 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            2734,
-                            2774,
+                            2730,
+                            2770,
                         ),
                         name: "Amino",
                         location: "Sidechain",
                     },
                     FunctionalGroupKdl {
                         span: Span(
-                            2782,
-                            2825,
+                            2778,
+                            2821,
                         ),
                         name: "Carboxyl",
                         location: "Sidechain",
@@ -696,8 +696,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2835,
-                    2946,
+                    2831,
+                    2942,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "K",
@@ -705,8 +705,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2880,
-                            2891,
+                            2876,
+                            2887,
                         ),
                         value: "C6H14N2O2",
                     },
@@ -714,8 +714,8 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            2900,
-                            2940,
+                            2896,
+                            2936,
                         ),
                         name: "Amino",
                         location: "Sidechain",
@@ -724,8 +724,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    2950,
-                    3013,
+                    2946,
+                    3009,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "L",
@@ -733,8 +733,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            2996,
-                            3006,
+                            2992,
+                            3002,
                         ),
                         value: "C6H13NO2",
                     },
@@ -743,8 +743,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3017,
-                    3084,
+                    3013,
+                    3080,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "M",
@@ -752,8 +752,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3066,
-                            3077,
+                            3062,
+                            3073,
                         ),
                         value: "C5H11NO2S",
                     },
@@ -762,8 +762,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3088,
-                    3202,
+                    3084,
+                    3198,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "N",
@@ -771,8 +771,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3137,
-                            3147,
+                            3133,
+                            3143,
                         ),
                         value: "C4H8N2O3",
                     },
@@ -780,8 +780,8 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            3156,
-                            3196,
+                            3152,
+                            3192,
                         ),
                         name: "Amino",
                         location: "Sidechain",
@@ -790,8 +790,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3206,
-                    3320,
+                    3202,
+                    3316,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "O",
@@ -799,8 +799,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3254,
-                            3265,
+                            3250,
+                            3261,
                         ),
                         value: "C5H12N2O2",
                     },
@@ -808,8 +808,8 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            3274,
-                            3314,
+                            3270,
+                            3310,
                         ),
                         name: "Amino",
                         location: "Sidechain",
@@ -818,8 +818,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3324,
-                    3386,
+                    3320,
+                    3382,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "P",
@@ -827,8 +827,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3370,
-                            3379,
+                            3366,
+                            3375,
                         ),
                         value: "C5H9NO2",
                     },
@@ -837,8 +837,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3390,
-                    3504,
+                    3386,
+                    3500,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "Q",
@@ -846,8 +846,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3438,
-                            3449,
+                            3434,
+                            3445,
                         ),
                         value: "C5H10N2O3",
                     },
@@ -855,8 +855,8 @@ PolymerDatabaseKdl {
                 functional_groups: [
                     FunctionalGroupKdl {
                         span: Span(
-                            3458,
-                            3498,
+                            3454,
+                            3494,
                         ),
                         name: "Amino",
                         location: "Sidechain",
@@ -865,8 +865,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3508,
-                    3573,
+                    3504,
+                    3569,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "R",
@@ -874,8 +874,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3555,
-                            3566,
+                            3551,
+                            3562,
                         ),
                         value: "C6H14N4O2",
                     },
@@ -884,8 +884,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3577,
-                    3638,
+                    3573,
+                    3634,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "S",
@@ -893,8 +893,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3622,
-                            3631,
+                            3618,
+                            3627,
                         ),
                         value: "C3H7NO3",
                     },
@@ -903,8 +903,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3642,
-                    3706,
+                    3638,
+                    3702,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "T",
@@ -912,8 +912,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3690,
-                            3699,
+                            3686,
+                            3695,
                         ),
                         value: "C4H9NO3",
                     },
@@ -922,8 +922,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3710,
-                    3775,
+                    3706,
+                    3771,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "U",
@@ -931,8 +931,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3759,
-                            3768,
+                            3755,
+                            3764,
                         ),
                         value: "C4H9NO3",
                     },
@@ -941,8 +941,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3779,
-                    3841,
+                    3775,
+                    3837,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "V",
@@ -950,8 +950,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3824,
-                            3834,
+                            3820,
+                            3830,
                         ),
                         value: "C5H11NO2",
                     },
@@ -960,8 +960,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3845,
-                    3913,
+                    3841,
+                    3909,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "W",
@@ -969,8 +969,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            3894,
-                            3906,
+                            3890,
+                            3902,
                         ),
                         value: "C11H12N2O2",
                     },
@@ -979,8 +979,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3917,
-                    3985,
+                    3913,
+                    3981,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "X",
@@ -990,8 +990,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    3989,
-                    4053,
+                    3985,
+                    4049,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "Y",
@@ -999,8 +999,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            4036,
-                            4046,
+                            4032,
+                            4042,
                         ),
                         value: "C9H11NO3",
                     },
@@ -1009,8 +1009,8 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: Span(
-                    4057,
-                    4140,
+                    4053,
+                    4136,
                 ),
                 residue_type: "AminoAcid",
                 abbr: "Z",
@@ -1018,8 +1018,8 @@ PolymerDatabaseKdl {
                 composition: Some(
                     Spanned {
                         span: Span(
-                            4124,
-                            4133,
+                            4120,
+                            4129,
                         ),
                         value: "C5H9NO5",
                     },
