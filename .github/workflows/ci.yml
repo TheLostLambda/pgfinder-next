@@ -23,3 +23,6 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
 
       - run: just test
+      - run: just bench
+      - run: just lint
+      - run: just annoy
