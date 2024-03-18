@@ -39,13 +39,12 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
     }
 
     #[must_use]
-    pub fn atomic_db(&self) -> &'a AtomicDatabase {
+    pub const fn atomic_db(&self) -> &'a AtomicDatabase {
         self.atomic_db
     }
 
-    // FIXME: Will I ever need this? Should be it removed from the public API?
     #[must_use]
-    pub fn polymer_db(&self) -> &'p PolymerDatabase<'a> {
+    pub const fn polymer_db(&self) -> &'p PolymerDatabase<'a> {
         self.polymer_db
     }
 

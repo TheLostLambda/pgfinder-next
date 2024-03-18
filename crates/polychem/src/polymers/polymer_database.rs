@@ -22,9 +22,9 @@ use crate::{atoms::atomic_database::AtomicDatabase, ChemicalComposition};
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct PolymerDatabase<'a> {
-    pub(crate) bonds: Bonds<'a>,
-    pub(crate) modifications: Modifications<'a>,
-    pub(crate) residues: Residues<'a>,
+    pub bonds: Bonds<'a>,
+    pub modifications: Modifications<'a>,
+    pub residues: Residues<'a>,
 }
 
 impl<'a> PolymerDatabase<'a> {
@@ -50,34 +50,34 @@ type Residues<'a> = HashMap<String, ResidueDescription<'a>>;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub(crate) struct BondDescription<'a> {
-    pub(crate) from: Target,
-    pub(crate) to: Target,
-    pub(crate) lost: ChemicalComposition<'a>,
+pub struct BondDescription<'a> {
+    pub from: Target,
+    pub to: Target,
+    pub lost: ChemicalComposition<'a>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub(crate) struct ModificationDescription<'a> {
-    pub(crate) name: String,
-    pub(crate) lost: ChemicalComposition<'a>,
-    pub(crate) gained: ChemicalComposition<'a>,
-    pub(crate) targets: Vec<Target>,
+pub struct ModificationDescription<'a> {
+    pub name: String,
+    pub lost: ChemicalComposition<'a>,
+    pub gained: ChemicalComposition<'a>,
+    pub targets: Vec<Target>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub(crate) struct ResidueDescription<'a> {
-    pub(crate) name: String,
-    pub(crate) composition: ChemicalComposition<'a>,
-    pub(crate) functional_groups: Vec<FunctionalGroupDescription>,
+pub struct ResidueDescription<'a> {
+    pub name: String,
+    pub composition: ChemicalComposition<'a>,
+    pub functional_groups: Vec<FunctionalGroupDescription>,
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub(crate) struct FunctionalGroupDescription {
-    pub(crate) name: String,
-    pub(crate) location: String,
+pub struct FunctionalGroupDescription {
+    pub name: String,
+    pub location: String,
 }
 
 // KDL File Schema =====================================================================================================

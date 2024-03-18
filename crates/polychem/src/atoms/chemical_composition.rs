@@ -597,8 +597,6 @@ mod tests {
     }
 
     #[test]
-    // NOTE: Complexity comes from the macro confusing clippy — converting to a function, however, adds real complexity
-    // since borrow-checker issues crop up when writing a closure that captures `atomic_offset`
     #[allow(clippy::cognitive_complexity)]
     fn test_atomic_offset() {
         let mut atomic_offset = atomic_offset(&DB);
@@ -659,8 +657,6 @@ mod tests {
     }
 
     #[test]
-    // NOTE: Complexity comes from the macro confusing clippy — converting to a function, however, adds real complexity
-    // since borrow-checker issues crop up when writing a closure that captures `chemical_composition`
     #[allow(clippy::cognitive_complexity)]
     fn test_chemical_composition() {
         let mut chemical_composition = chemical_composition(&DB);

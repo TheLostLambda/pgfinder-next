@@ -100,6 +100,8 @@ pub fn unbranched_amino_acid<'a, 's>(
     })
 }
 
+// NOTE: These are not meant to be links, it's just EBNF
+#[allow(clippy::doc_link_with_quotes)]
 /// Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
 ///   { Unbranched Amino Acid }- , "]" ;
 fn lateral_chain<'a, 's>(
@@ -294,12 +296,10 @@ mod tests {
     }
 
     #[test]
-    // NOTE: Complexity comes from the macro confusing clippy — converting to a function, however, adds real complexity
-    // since borrow-checker issues crop up when writing a closure that captures `chemical_offset`
     #[allow(clippy::cognitive_complexity)]
     fn test_chemical_offset() {
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut chemical_offset = chemical_offset(&mut polymerizer);
+        let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut chemical_offset = chemical_offset(&polymerizer);
         macro_rules! assert_offset_mz {
             ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
                 let (rest, modification) = chemical_offset($input).unwrap();
@@ -341,9 +341,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn test_predefined_modification() {
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut predefined_modification = predefined_modification(&mut polymerizer);
+        let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut predefined_modification = predefined_modification(&polymerizer);
         macro_rules! assert_offset_mass {
             ($input:literal, $output:literal, $mass:expr) => {
                 let (rest, modification) = predefined_modification($input).unwrap();
@@ -393,9 +394,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn test_modifications() {
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut modifications = modifications(&mut polymerizer);
+        let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut modifications = modifications(&polymerizer);
         macro_rules! assert_offset_mz {
             ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
                 let (rest, modification) = modifications($input).unwrap();

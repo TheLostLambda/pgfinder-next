@@ -12,7 +12,11 @@ impl<'a> OffsetMod<'a> {
         Ok(Self { kind, composition })
     }
 
-    pub fn new_with_composition(kind: OffsetKind, composition: ChemicalComposition<'a>) -> Self {
+    #[must_use]
+    pub const fn new_with_composition(
+        kind: OffsetKind,
+        composition: ChemicalComposition<'a>,
+    ) -> Self {
         Self { kind, composition }
     }
 }

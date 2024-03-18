@@ -217,9 +217,12 @@ impl<'a, E1: Into<E2> + LabeledErrorKind, E2: LabeledErrorKind>
                 kind: kind.into(),
                 source: source.map(|e| Box::new(e.convert())),
             },
-            LabeledParseError::Branch(alternatives) => {
-                LabeledParseError::Branch(alternatives.into_iter().map(|e| e.convert()).collect())
-            }
+            LabeledParseError::Branch(alternatives) => LabeledParseError::Branch(
+                alternatives
+                    .into_iter()
+                    .map(ErrorConvert::convert)
+                    .collect(),
+            ),
         }
     }
 }
