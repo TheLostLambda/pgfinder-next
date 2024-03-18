@@ -577,7 +577,7 @@ impl ChemistryErrorKind {
 #[cfg(test)]
 mod tests {
     use indoc::indoc;
-    use insta::{assert_debug_snapshot, assert_ron_snapshot};
+    use insta::{assert_debug_snapshot, assert_ron_snapshot, with_settings};
     use miette::{Diagnostic, Report, Result};
     use once_cell::sync::Lazy;
     use thiserror::Error;
@@ -605,7 +605,11 @@ mod tests {
     #[test]
     fn parse_muropeptide_chemistry() {
         let db: PolymerDatabaseKdl = knuffel::parse("polymer_database.kdl", KDL).unwrap();
-        assert_debug_snapshot!(db);
+        with_settings!({filters => vec![
+            (r"Span\([^)]*\)", "<SPAN>"),
+        ]}, {
+            assert_debug_snapshot!(db);
+        });
     }
 
     #[test]

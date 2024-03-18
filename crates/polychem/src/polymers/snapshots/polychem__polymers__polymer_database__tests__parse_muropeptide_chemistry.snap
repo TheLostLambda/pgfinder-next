@@ -8,10 +8,7 @@ PolymerDatabaseKdl {
             BondKdl {
                 kind: "Glycosidic",
                 from: TargetKdl {
-                    span: Span(
-                        33,
-                        67,
-                    ),
+                    span: <SPAN>,
                     group: "Hydroxyl",
                     location: Some(
                         "Reducing End",
@@ -19,10 +16,7 @@ PolymerDatabaseKdl {
                     residue: None,
                 },
                 to: TargetKdl {
-                    span: Span(
-                        75,
-                        110,
-                    ),
+                    span: <SPAN>,
                     group: "Hydroxyl",
                     location: Some(
                         "Nonreducing End",
@@ -31,10 +25,7 @@ PolymerDatabaseKdl {
                 },
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            123,
-                            128,
-                        ),
+                        span: <SPAN>,
                         value: "H2O",
                     },
                 ),
@@ -42,10 +33,7 @@ PolymerDatabaseKdl {
             BondKdl {
                 kind: "Peptide",
                 from: TargetKdl {
-                    span: Span(
-                        157,
-                        189,
-                    ),
+                    span: <SPAN>,
                     group: "Carboxyl",
                     location: Some(
                         "C-Terminal",
@@ -53,10 +41,7 @@ PolymerDatabaseKdl {
                     residue: None,
                 },
                 to: TargetKdl {
-                    span: Span(
-                        197,
-                        224,
-                    ),
+                    span: <SPAN>,
                     group: "Amino",
                     location: Some(
                         "N-Terminal",
@@ -65,10 +50,7 @@ PolymerDatabaseKdl {
                 },
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            237,
-                            242,
-                        ),
+                        span: <SPAN>,
                         value: "H2O",
                     },
                 ),
@@ -76,10 +58,7 @@ PolymerDatabaseKdl {
             BondKdl {
                 kind: "Stem",
                 from: TargetKdl {
-                    span: Span(
-                        268,
-                        328,
-                    ),
+                    span: <SPAN>,
                     group: "Carboxyl",
                     location: Some(
                         "Lactyl Ether",
@@ -89,10 +68,7 @@ PolymerDatabaseKdl {
                     ),
                 },
                 to: TargetKdl {
-                    span: Span(
-                        336,
-                        363,
-                    ),
+                    span: <SPAN>,
                     group: "Amino",
                     location: Some(
                         "N-Terminal",
@@ -101,10 +77,7 @@ PolymerDatabaseKdl {
                 },
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            376,
-                            381,
-                        ),
+                        span: <SPAN>,
                         value: "H2O",
                     },
                 ),
@@ -112,10 +85,7 @@ PolymerDatabaseKdl {
             BondKdl {
                 kind: "Crosslink",
                 from: TargetKdl {
-                    span: Span(
-                        412,
-                        444,
-                    ),
+                    span: <SPAN>,
                     group: "Carboxyl",
                     location: Some(
                         "C-Terminal",
@@ -123,20 +93,14 @@ PolymerDatabaseKdl {
                     residue: None,
                 },
                 to: TargetKdl {
-                    span: Span(
-                        452,
-                        463,
-                    ),
+                    span: <SPAN>,
                     group: "Amino",
                     location: None,
                     residue: None,
                 },
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            476,
-                            481,
-                        ),
+                        span: <SPAN>,
                         value: "H2O",
                     },
                 ),
@@ -150,28 +114,19 @@ PolymerDatabaseKdl {
                 name: "Amidation",
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            585,
-                            589,
-                        ),
+                        span: <SPAN>,
                         value: "OH",
                     },
                 ),
                 gained: Some(
                     Spanned {
-                        span: Span(
-                            605,
-                            610,
-                        ),
+                        span: <SPAN>,
                         value: "NH2",
                     },
                 ),
                 targets: [
                     TargetKdl {
-                        span: Span(
-                            536,
-                            572,
-                        ),
+                        span: <SPAN>,
                         group: "Carboxyl",
                         location: Some(
                             "Sidechain",
@@ -185,28 +140,19 @@ PolymerDatabaseKdl {
                 name: "O-Acetylation",
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            700,
-                            703,
-                        ),
+                        span: <SPAN>,
                         value: "H",
                     },
                 ),
                 gained: Some(
                     Spanned {
-                        span: Span(
-                            719,
-                            726,
-                        ),
+                        span: <SPAN>,
                         value: "C2H3O",
                     },
                 ),
                 targets: [
                     TargetKdl {
-                        span: Span(
-                            650,
-                            687,
-                        ),
+                        span: <SPAN>,
                         group: "Hydroxyl",
                         location: Some(
                             "6-Position",
@@ -220,28 +166,19 @@ PolymerDatabaseKdl {
                 name: "Wall Polymer Linkage",
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            825,
-                            828,
-                        ),
+                        span: <SPAN>,
                         value: "H",
                     },
                 ),
                 gained: Some(
                     Spanned {
-                        span: Span(
-                            844,
-                            849,
-                        ),
+                        span: <SPAN>,
                         value: "PO3",
                     },
                 ),
                 targets: [
                     TargetKdl {
-                        span: Span(
-                            775,
-                            812,
-                        ),
+                        span: <SPAN>,
                         group: "Hydroxyl",
                         location: Some(
                             "6-Position",
@@ -255,28 +192,19 @@ PolymerDatabaseKdl {
                 name: "De-N-Acetylation",
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            947,
-                            954,
-                        ),
+                        span: <SPAN>,
                         value: "C2H3O",
                     },
                 ),
                 gained: Some(
                     Spanned {
-                        span: Span(
-                            970,
-                            973,
-                        ),
+                        span: <SPAN>,
                         value: "H",
                     },
                 ),
                 targets: [
                     TargetKdl {
-                        span: Span(
-                            894,
-                            934,
-                        ),
+                        span: <SPAN>,
                         group: "Acetyl",
                         location: Some(
                             "Secondary Amide",
@@ -291,19 +219,13 @@ PolymerDatabaseKdl {
                 lost: None,
                 gained: Some(
                     Spanned {
-                        span: Span(
-                            1062,
-                            1066,
-                        ),
+                        span: <SPAN>,
                         value: "H2",
                     },
                 ),
                 targets: [
                     TargetKdl {
-                        span: Span(
-                            1008,
-                            1047,
-                        ),
+                        span: <SPAN>,
                         group: "Hydroxyl",
                         location: Some(
                             "Reducing End",
@@ -317,20 +239,14 @@ PolymerDatabaseKdl {
                 name: "1,6-Anhydro",
                 lost: Some(
                     Spanned {
-                        span: Span(
-                            1183,
-                            1188,
-                        ),
+                        span: <SPAN>,
                         value: "H2O",
                     },
                 ),
                 gained: None,
                 targets: [
                     TargetKdl {
-                        span: Span(
-                            1105,
-                            1170,
-                        ),
+                        span: <SPAN>,
                         group: "Hydroxyl",
                         location: Some(
                             "Reducing End",
@@ -346,66 +262,42 @@ PolymerDatabaseKdl {
     residues: ResiduesKdl {
         types: [
             ResidueTypeKdl {
-                span: Span(
-                    1229,
-                    1490,
-                ),
+                span: <SPAN>,
                 name: "Monosaccharide",
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            1258,
-                            1304,
-                        ),
+                        span: <SPAN>,
                         name: "Hydroxyl",
                         location: "Reducing End",
                     },
                     FunctionalGroupKdl {
-                        span: Span(
-                            1316,
-                            1365,
-                        ),
+                        span: <SPAN>,
                         name: "Hydroxyl",
                         location: "Nonreducing End",
                     },
                     FunctionalGroupKdl {
-                        span: Span(
-                            1377,
-                            1421,
-                        ),
+                        span: <SPAN>,
                         name: "Hydroxyl",
                         location: "6-Position",
                     },
                     FunctionalGroupKdl {
-                        span: Span(
-                            1433,
-                            1480,
-                        ),
+                        span: <SPAN>,
                         name: "Acetyl",
                         location: "Secondary Amide",
                     },
                 ],
             },
             ResidueTypeKdl {
-                span: Span(
-                    1499,
-                    1630,
-                ),
+                span: <SPAN>,
                 name: "AminoAcid",
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            1523,
-                            1564,
-                        ),
+                        span: <SPAN>,
                         name: "Amino",
                         location: "N-Terminal",
                     },
                     FunctionalGroupKdl {
-                        span: Span(
-                            1576,
-                            1620,
-                        ),
+                        span: <SPAN>,
                         name: "Carboxyl",
                         location: "C-Terminal",
                     },
@@ -414,574 +306,391 @@ PolymerDatabaseKdl {
         ],
         residues: [
             ResidueKdl {
-                span: Span(
-                    1641,
-                    1721,
-                ),
+                span: <SPAN>,
                 residue_type: "Monosaccharide",
                 abbr: "g",
                 name: "N-Acetylglucosamine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            1704,
-                            1714,
-                        ),
+                        span: <SPAN>,
                         value: "C8H15NO6",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    1725,
-                    1861,
-                ),
+                span: <SPAN>,
                 residue_type: "Monosaccharide",
                 abbr: "m",
                 name: "N-Acetylmuramic Acid",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            1789,
-                            1800,
-                        ),
+                        span: <SPAN>,
                         value: "C11H19NO8",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            1809,
-                            1855,
-                        ),
+                        span: <SPAN>,
                         name: "Carboxyl",
                         location: "Lactyl Ether",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    1866,
-                    1928,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "A",
                 name: "Alanine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            1912,
-                            1921,
-                        ),
+                        span: <SPAN>,
                         value: "C3H7NO2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    1932,
-                    2056,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "B",
                 name: "Diaminobutyric Acid",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            1990,
-                            2001,
-                        ),
+                        span: <SPAN>,
                         value: "C4H10N2O2",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            2010,
-                            2050,
-                        ),
+                        span: <SPAN>,
                         name: "Amino",
                         location: "Sidechain",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    2060,
-                    2124,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "C",
                 name: "Cysteine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2107,
-                            2117,
-                        ),
+                        span: <SPAN>,
                         value: "C3H7NO2S",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    2128,
-                    2247,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "D",
                 name: "Aspartic Acid",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2180,
-                            2189,
-                        ),
+                        span: <SPAN>,
                         value: "C4H7NO4",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            2198,
-                            2241,
-                        ),
+                        span: <SPAN>,
                         name: "Carboxyl",
                         location: "Sidechain",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    2251,
-                    2370,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "E",
                 name: "Glutamic Acid",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2303,
-                            2312,
-                        ),
+                        span: <SPAN>,
                         value: "C5H9NO4",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            2321,
-                            2364,
-                        ),
+                        span: <SPAN>,
                         name: "Carboxyl",
                         location: "Sidechain",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    2374,
-                    2443,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "F",
                 name: "Phenylalanine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2426,
-                            2436,
-                        ),
+                        span: <SPAN>,
                         value: "C9H11NO2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    2447,
-                    2509,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "G",
                 name: "Glycine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2493,
-                            2502,
-                        ),
+                        span: <SPAN>,
                         value: "C2H5NO2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    2513,
-                    2578,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "H",
                 name: "Histidine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2561,
-                            2571,
-                        ),
+                        span: <SPAN>,
                         value: "C6H9N3O2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    2582,
-                    2648,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "I",
                 name: "Isoleucine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2631,
-                            2641,
-                        ),
+                        span: <SPAN>,
                         value: "C6H13NO2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    2652,
-                    2827,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "J",
                 name: "Diaminopimelic Acid",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2710,
-                            2721,
-                        ),
+                        span: <SPAN>,
                         value: "C7H14N2O4",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            2730,
-                            2770,
-                        ),
+                        span: <SPAN>,
                         name: "Amino",
                         location: "Sidechain",
                     },
                     FunctionalGroupKdl {
-                        span: Span(
-                            2778,
-                            2821,
-                        ),
+                        span: <SPAN>,
                         name: "Carboxyl",
                         location: "Sidechain",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    2831,
-                    2942,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "K",
                 name: "Lysine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2876,
-                            2887,
-                        ),
+                        span: <SPAN>,
                         value: "C6H14N2O2",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            2896,
-                            2936,
-                        ),
+                        span: <SPAN>,
                         name: "Amino",
                         location: "Sidechain",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    2946,
-                    3009,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "L",
                 name: "Leucine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            2992,
-                            3002,
-                        ),
+                        span: <SPAN>,
                         value: "C6H13NO2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3013,
-                    3080,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "M",
                 name: "Methionine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3062,
-                            3073,
-                        ),
+                        span: <SPAN>,
                         value: "C5H11NO2S",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3084,
-                    3198,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "N",
                 name: "Asparagine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3133,
-                            3143,
-                        ),
+                        span: <SPAN>,
                         value: "C4H8N2O3",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            3152,
-                            3192,
-                        ),
+                        span: <SPAN>,
                         name: "Amino",
                         location: "Sidechain",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    3202,
-                    3316,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "O",
                 name: "Ornithine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3250,
-                            3261,
-                        ),
+                        span: <SPAN>,
                         value: "C5H12N2O2",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            3270,
-                            3310,
-                        ),
+                        span: <SPAN>,
                         name: "Amino",
                         location: "Sidechain",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    3320,
-                    3382,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "P",
                 name: "Proline",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3366,
-                            3375,
-                        ),
+                        span: <SPAN>,
                         value: "C5H9NO2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3386,
-                    3500,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "Q",
                 name: "Glutamine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3434,
-                            3445,
-                        ),
+                        span: <SPAN>,
                         value: "C5H10N2O3",
                     },
                 ),
                 functional_groups: [
                     FunctionalGroupKdl {
-                        span: Span(
-                            3454,
-                            3494,
-                        ),
+                        span: <SPAN>,
                         name: "Amino",
                         location: "Sidechain",
                     },
                 ],
             },
             ResidueKdl {
-                span: Span(
-                    3504,
-                    3569,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "R",
                 name: "Arginine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3551,
-                            3562,
-                        ),
+                        span: <SPAN>,
                         value: "C6H14N4O2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3573,
-                    3634,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "S",
                 name: "Serine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3618,
-                            3627,
-                        ),
+                        span: <SPAN>,
                         value: "C3H7NO3",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3638,
-                    3702,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "T",
                 name: "Threonine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3686,
-                            3695,
-                        ),
+                        span: <SPAN>,
                         value: "C4H9NO3",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3706,
-                    3771,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "U",
                 name: "Homoserine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3755,
-                            3764,
-                        ),
+                        span: <SPAN>,
                         value: "C4H9NO3",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3775,
-                    3837,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "V",
                 name: "Valine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3820,
-                            3830,
-                        ),
+                        span: <SPAN>,
                         value: "C5H11NO2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3841,
-                    3909,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "W",
                 name: "Tryptophan",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            3890,
-                            3902,
-                        ),
+                        span: <SPAN>,
                         value: "C11H12N2O2",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3913,
-                    3981,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "X",
                 name: "Unknown Amino Acid",
@@ -989,38 +698,26 @@ PolymerDatabaseKdl {
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    3985,
-                    4049,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "Y",
                 name: "Tyrosine",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            4032,
-                            4042,
-                        ),
+                        span: <SPAN>,
                         value: "C9H11NO3",
                     },
                 ),
                 functional_groups: [],
             },
             ResidueKdl {
-                span: Span(
-                    4053,
-                    4136,
-                ),
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "Z",
                 name: "Threo-3-Hydroxyglutamic Acid",
                 composition: Some(
                     Spanned {
-                        span: Span(
-                            4120,
-                            4129,
-                        ),
+                        span: <SPAN>,
                         value: "C5H9NO5",
                     },
                 ),
