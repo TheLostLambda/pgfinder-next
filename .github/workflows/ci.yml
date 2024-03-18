@@ -24,5 +24,15 @@ jobs:
 
       - run: just test
       - run: just bench
+
+  format_and_lint:
+    name: Format & Lint
+    run-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v2
+      - uses: dtolnay/rust-toolchain@stable
+
       - run: just lint
       - run: just annoy

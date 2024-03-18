@@ -13,6 +13,7 @@ bench:
   cargo bench --workspace
 
 lint:
+  cargo fmt --check
   cargo clippy --workspace --tests
 
 # FIXME: Get rid of these -A flags
