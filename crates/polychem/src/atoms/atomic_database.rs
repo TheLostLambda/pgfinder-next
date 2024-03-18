@@ -264,7 +264,7 @@ impl From<ParticleKdl> for ParticleEntry {
 mod tests {
     use indoc::indoc;
     use insta::assert_debug_snapshot;
-    use knuffel::{self, Decode};
+    use knuffel::Decode;
     use miette::Result;
     use rust_decimal_macros::dec;
 

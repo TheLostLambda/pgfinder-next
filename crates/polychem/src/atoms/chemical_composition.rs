@@ -349,7 +349,6 @@ impl From<ErrorKind> for CompositionErrorKind {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use nom_miette::final_parser;
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
