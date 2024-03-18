@@ -23,7 +23,7 @@ use crate::{AminoAcid, LateralChain, Monomer, Monosaccharide, UnbranchedAminoAci
 // FIXME: Paste all of these EBNF comments into another file and make sure they are valid!
 /// Monomer = Glycan , [ "-" , Peptide ] | Peptide ;
 fn monomer<'a, 's>(
-    polymerizer: &mut Polymerizer<'a, 'a>,
+    _polymerizer: &mut Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Monomer<'a>> {
     |_| todo!()
 }
@@ -32,14 +32,14 @@ fn monomer<'a, 's>(
 
 /// Glycan = { Monosaccharide }- ;
 fn glycan<'a, 's>(
-    polymerizer: &mut Polymerizer<'a, 'a>,
+    _polymerizer: &mut Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide<'a>>> {
     |_| todo!()
 }
 
 /// Peptide = { Amino Acid }- ;
 fn peptide<'a, 's>(
-    polymerizer: &mut Polymerizer<'a, 'a>,
+    _polymerizer: &mut Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid<'a>>> {
     |_| todo!()
 }
@@ -59,7 +59,7 @@ fn monosaccharide<'a, 's>(
 
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
 fn amino_acid<'a, 's>(
-    polymerizer: &mut Polymerizer<'a, 'a>,
+    _polymerizer: &mut Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<AminoAcid<'a>> {
     |_| todo!()
 }
@@ -103,7 +103,7 @@ pub fn unbranched_amino_acid<'a, 's>(
 /// Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
 ///   { Unbranched Amino Acid }- , "]" ;
 fn lateral_chain<'a, 's>(
-    polymerizer: &mut Polymerizer<'a, 'a>,
+    _polymerizer: &mut Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<LateralChain> {
     |_| todo!()
 }
