@@ -1,10 +1,10 @@
 ---
-source: crates/polychem/src/polymerizer.rs
+source: crates/polychem/src/polymerizer/mod.rs
 description: residue_not_in_polymer
 expression: out
 ---
-  × failed to apply the modification 1,6-Anhydro (Anh) to residue 1 (N-
-  │ Acetylmuramic Acid)
+  × failed to form "Stem" bond between residue 1 (N-Acetylmuramic Acid) and
+  │ residue 2 (Alanine) due to an issue with the donor
   ╰─▶   × residue 1 does not belong to the current polymer
         help: the referenced residue was likely created by a different
       Polymerizer

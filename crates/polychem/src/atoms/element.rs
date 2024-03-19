@@ -7,7 +7,7 @@ use crate::{Element, Isotope, MassNumber, Massive, Result};
 
 use super::{
     atomic_database::{AtomicDatabase, ElementDescription},
-    AtomicLookupError,
+    errors::AtomicLookupError,
 };
 
 impl<'a> Element<'a> {

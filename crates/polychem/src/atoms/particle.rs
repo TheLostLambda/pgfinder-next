@@ -4,7 +4,7 @@ use crate::{Charge, Charged, Massive, Mz, Particle};
 
 use super::{
     atomic_database::{AtomicDatabase, ParticleDescription},
-    AtomicLookupError,
+    errors::AtomicLookupError,
 };
 
 impl<'a> Particle<'a> {

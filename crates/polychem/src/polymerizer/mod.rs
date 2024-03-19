@@ -1,8 +1,9 @@
-use std::{fmt::Display, slice};
+mod errors;
+pub(crate) use errors::{Error, PolymerizerError};
+
+use std::slice;
 
 use ahash::HashMap;
-use miette::Diagnostic;
-use thiserror::Error;
 
 use crate::{
     atoms::atomic_database::AtomicDatabase,
@@ -356,103 +357,6 @@ impl<'p> Target<&'p str> {
     }
 }
 
-#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-#[error(transparent)]
-#[diagnostic(transparent)]
-pub struct Error(#[from] PolymerizerError);
-
-// FIXME: Should probably break this error handling out into a sub-module...
-#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-pub(crate) enum PolymerizerError {
-    #[error("no functional groups on residue {0} matching the target were free: {1}")]
-    AllGroupsOccupied(Id, String),
-
-    #[error("the functional group {0} of residue {1} was already {2}, but must be free")]
-    GroupOccupied(String, Id, String),
-
-    #[error("no functional groups on residue {0} matched the target {1}")]
-    NoMatchingGroups(Id, String),
-
-    #[error("the functional group {0} does not exist on residue {1}")]
-    NonexistentGroup(String, Id),
-
-    #[error("expected a target matching {0}, got {1}")]
-    InvalidTarget(String, Target),
-
-    #[error("residue {0} does not belong to the current polymer")]
-    #[diagnostic(help(
-        "the referenced residue was likely created by a different Polymerizer instance"
-    ))]
-    ResidueNotInPolymer(Id),
-
-    #[error("residue {0} contains more than one free target group: {1}")]
-    #[diagnostic(help("to resolve this ambiguity, specify an exact functional group to modify"))]
-    AmbiguousGroup(Id, String),
-}
-
-impl PolymerizerError {
-    fn all_groups_occupied(residue: &Residue, groups: &[(FunctionalGroup, bool)]) -> Self {
-        let groups_with_states = Self::comma_list(
-            groups.iter().map(|(fg, _)| {
-                let fg_state = residue.group_state(fg).unwrap();
-                format!("{fg} is {fg_state}")
-            }),
-            "and",
-        );
-        Self::AllGroupsOccupied(residue.id(), groups_with_states)
-    }
-
-    fn group_occupied(group: FunctionalGroup, residue: &Residue) -> Self {
-        Self::GroupOccupied(
-            group.to_string(),
-            residue.id(),
-            residue.group_state(&group).unwrap().to_string(),
-        )
-    }
-
-    fn no_matching_groups<'a, T: Into<Target<&'a str>>>(
-        residue: &Residue,
-        valid_targets: &(impl IntoIterator<Item = T> + Copy),
-    ) -> Self {
-        let valid_targets = Self::comma_list(valid_targets.into_iter().map(Into::into), "or");
-        Self::NoMatchingGroups(residue.id(), valid_targets)
-    }
-
-    fn nonexistent_group(group: FunctionalGroup, residue: &Residue) -> Self {
-        Self::NonexistentGroup(group.to_string(), residue.id())
-    }
-
-    fn invalid_target<'a, T: Into<Target<&'a str>>>(
-        valid_targets: &(impl IntoIterator<Item = T> + Copy),
-        target: impl Into<Target>,
-    ) -> Self {
-        let valid_targets = Self::comma_list(valid_targets.into_iter().map(Into::into), "or");
-        Self::InvalidTarget(valid_targets, target.into())
-    }
-
-    const fn residue_not_in_polymer(residue: &Residue) -> Self {
-        Self::ResidueNotInPolymer(residue.id())
-    }
-
-    fn ambiguous_group(residue: &Residue, groups: &[FunctionalGroup]) -> Self {
-        let groups = Self::comma_list(groups, "and");
-        Self::AmbiguousGroup(residue.id(), groups)
-    }
-
-    // FIXME: No clue where this belongs...
-    fn comma_list<I: Display>(items: impl IntoIterator<Item = I>, final_sep: &str) -> String {
-        let mut items: Vec<_> = items.into_iter().map(|i| i.to_string()).collect();
-        let len = items.len();
-        if len > 1 {
-            items.sort_unstable();
-            let last = format!("{final_sep} {}", items.last().unwrap());
-            *items.last_mut().unwrap() = last;
-        }
-        let sep = if len > 2 { ", " } else { " " };
-        items.join(sep)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use insta::assert_ron_snapshot;
@@ -475,7 +379,7 @@ mod tests {
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
         AtomicDatabase::from_kdl(
             "atomic_database.kdl",
-            include_str!("../data/atomic_database.kdl"),
+            include_str!("../../data/atomic_database.kdl"),
         )
         .unwrap()
     });
@@ -484,7 +388,7 @@ mod tests {
         PolymerDatabase::from_kdl(
             &ATOMIC_DB,
             "polymer_database.kdl",
-            include_str!("../tests/data/polymer_database.kdl"),
+            include_str!("../../tests/data/polymer_database.kdl"),
         )
         .unwrap()
     });

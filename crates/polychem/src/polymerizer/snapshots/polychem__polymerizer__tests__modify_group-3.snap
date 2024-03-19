@@ -1,5 +1,5 @@
 ---
-source: crates/polychem/src/polymerizer.rs
+source: crates/polychem/src/polymerizer/mod.rs
 description: invalid_group
 expression: out
 ---

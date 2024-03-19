@@ -1,5 +1,5 @@
 ---
-source: crates/polychem/src/polymerizer.rs
+source: crates/polychem/src/polymerizer/mod.rs
 description: all_groups_occupied
 expression: out
 ---

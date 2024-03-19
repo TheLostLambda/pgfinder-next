@@ -1,5 +1,5 @@
 ---
-source: crates/polychem/src/polymerizer.rs
+source: crates/polychem/src/polymerizer/mod.rs
 description: residue_from_wrong_polymer
 expression: out
 ---

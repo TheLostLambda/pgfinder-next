@@ -16,7 +16,7 @@ use nom_miette::{
 use thiserror::Error;
 
 // Local Crate Imports
-use super::{atomic_database::AtomicDatabase, AtomicLookupError};
+use super::{atomic_database::AtomicDatabase, errors::AtomicLookupError};
 use crate::{ChemicalComposition, Count, Element, MassNumber, OffsetKind, Particle};
 
 // Public API ==========================================================================================================
