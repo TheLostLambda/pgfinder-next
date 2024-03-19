@@ -1,5 +1,5 @@
 ---
-source: polychem/src/polymerizer.rs
+source: crates/polychem/src/polymerizer.rs
 description: residue_not_in_polymer
 expression: out
 ---

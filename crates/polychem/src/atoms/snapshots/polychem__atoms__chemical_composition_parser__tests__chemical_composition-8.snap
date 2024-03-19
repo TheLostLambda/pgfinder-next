@@ -1,11 +1,11 @@
 ---
-source: polychem/src/atoms/chemical_composition.rs
+source: crates/polychem/src/atoms/chemical_composition_parser.rs
 expression: "(chemical_formula, particle_offset)"
 ---
 (
     [
         (
-            "Hydrogen",
+            "Deuterium",
             2,
         ),
         (

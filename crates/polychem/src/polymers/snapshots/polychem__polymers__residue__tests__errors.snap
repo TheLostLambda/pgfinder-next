@@ -1,5 +1,5 @@
 ---
-source: polychem/src/polymers/residue.rs
+source: crates/polychem/src/polymers/residue.rs
 description: sucrose
 expression: out
 ---

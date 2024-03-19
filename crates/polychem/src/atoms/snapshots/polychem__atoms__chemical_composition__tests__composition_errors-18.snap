@@ -1,5 +1,5 @@
 ---
-source: polychem/src/atoms/chemical_composition.rs
+source: crates/polychem/src/atoms/chemical_composition.rs
 description: "chemical_composition(\"NH2[99Tc]O,4-2e+3p\")"
 expression: out
 ---

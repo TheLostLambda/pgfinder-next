@@ -1,5 +1,5 @@
 ---
-source: polychem/src/atoms/particle.rs
+source: crates/polychem/src/atoms/particle.rs
 expression: "Particle::new(&DB, \"e\").unwrap()"
 ---
 Particle {

@@ -11,7 +11,7 @@ use nom::{
 };
 use nom_miette::{into, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
-    atoms::chemical_composition::{self, CompositionErrorKind},
+    atoms::chemical_composition_parser::{self, CompositionErrorKind},
     polymerizer::Polymerizer,
     AnyModification, ChemicalComposition, Count, Modification, NamedMod, OffsetKind, OffsetMod,
     PolychemError,
@@ -163,7 +163,7 @@ fn identifier(i: &str) -> ParseResult<&str> {
 fn chemical_composition<'a, 's>(
     polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {
-    into(chemical_composition::chemical_composition(
+    into(chemical_composition_parser::chemical_composition(
         polymerizer.atomic_db(),
     ))
 }
@@ -172,7 +172,7 @@ macro_rules! wrap_composition_parsers {
     ($($f:ident -> $t:ty),+ $(,)?) => {
         $(
             fn $f(i: &str) -> ParseResult<$t> {
-                into(chemical_composition::$f)(i)
+                into(chemical_composition_parser::$f)(i)
             }
         )+
     };

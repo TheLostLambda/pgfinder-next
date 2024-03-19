@@ -1,5 +1,5 @@
 ---
-source: polychem/src/polymers/polymer_database.rs
+source: crates/polychem/src/polymers/polymer_database.rs
 description: db.map_err(WrapErr)
 expression: out
 ---

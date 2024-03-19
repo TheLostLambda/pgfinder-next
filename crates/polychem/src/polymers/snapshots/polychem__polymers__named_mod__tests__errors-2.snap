@@ -1,5 +1,5 @@
 ---
-source: polychem/src/polymers/named_mod.rs
+source: crates/polychem/src/polymers/named_mod.rs
 description: potassium
 expression: out
 ---

@@ -1,5 +1,5 @@
 ---
-source: polychem/src/atoms/chemical_composition.rs
+source: crates/polychem/src/atoms/chemical_composition.rs
 description: "chemical_composition(\"C12H6PoS\")"
 expression: out
 ---

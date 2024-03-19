@@ -1,5 +1,5 @@
 ---
-source: polychem/src/atoms/element.rs
+source: crates/polychem/src/atoms/element.rs
 description: "Element::new_isotope(&DB, \"R\", 42)"
 expression: out
 ---

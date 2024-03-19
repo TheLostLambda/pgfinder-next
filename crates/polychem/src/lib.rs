@@ -6,7 +6,7 @@ pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
 
-use atoms::chemical_composition::CompositionError;
+use atoms::chemical_composition_parser::CompositionError;
 use polymerizer::PolymerizerError;
 use serde::Serialize;
 

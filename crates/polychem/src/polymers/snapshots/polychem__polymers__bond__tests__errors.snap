@@ -1,5 +1,5 @@
 ---
-source: polychem/src/polymers/bond.rs
+source: crates/polychem/src/polymers/bond.rs
 description: disulfide
 expression: out
 ---

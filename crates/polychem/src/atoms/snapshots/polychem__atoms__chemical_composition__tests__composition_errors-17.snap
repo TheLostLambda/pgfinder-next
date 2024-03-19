@@ -1,5 +1,5 @@
 ---
-source: polychem/src/atoms/chemical_composition.rs
+source: crates/polychem/src/atoms/chemical_composition.rs
 description: "chemical_composition(\"[37Cl]52p\")"
 expression: out
 ---

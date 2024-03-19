@@ -1,5 +1,5 @@
 ---
-source: polychem/src/polymers/polymer_database.rs
+source: crates/polychem/src/polymers/polymer_database.rs
 expression: modifications.unwrap()
 ---
 {}
