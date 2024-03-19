@@ -8,7 +8,7 @@ ahash = "0.8.11"
 # miette = "6.0.1"
 miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"
-thiserror = "1.0.57"
+thiserror = "1.0.58"
 
 [lints]
 workspace = true
