@@ -4,13 +4,7 @@ use polychem::{AtomicDatabase, Charged, ChemicalComposition, Massive, Mz, Result
 use rustyline::DefaultEditor;
 use std::fmt::Write;
 
-static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-    AtomicDatabase::new(
-        "atomic_database.kdl",
-        include_str!("../crates/polychem/data/atomic_database.kdl"),
-    )
-    .unwrap()
-});
+static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();

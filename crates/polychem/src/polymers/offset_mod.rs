@@ -49,13 +49,7 @@ mod tests {
         Massive, Mz, OffsetKind, OffsetMod,
     };
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-        AtomicDatabase::new(
-            "atomic_database.kdl",
-            include_str!("../../data/atomic_database.kdl"),
-        )
-        .unwrap()
-    });
+    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
     #[test]
     fn errors() {

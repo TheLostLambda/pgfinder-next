@@ -592,13 +592,7 @@ mod tests {
         PolymerDatabaseKdl, Residues, ResiduesKdl, Targets, ValidateInto,
     };
 
-    static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-        AtomicDatabase::new(
-            "atomic_database.kdl",
-            include_str!("../../data/atomic_database.kdl"),
-        )
-        .unwrap()
-    });
+    static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
     const KDL: &str = include_str!("../../tests/data/polymer_database.kdl");
 

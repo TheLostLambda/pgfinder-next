@@ -73,13 +73,7 @@ mod tests {
 
     use super::*;
 
-    static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-        AtomicDatabase::new(
-            "atomic_database.kdl",
-            include_str!("../../data/atomic_database.kdl"),
-        )
-        .unwrap()
-    });
+    static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
     #[test]
     fn test_composition_errors() {

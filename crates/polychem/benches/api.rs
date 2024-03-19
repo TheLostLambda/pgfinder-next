@@ -1,11 +1,13 @@
 use divan::{black_box, AllocProfiler};
 use once_cell::sync::Lazy;
-use polychem::{AtomicDatabase, Charged, ChemicalComposition, Massive, PolymerDatabase};
+use polychem::{
+    atoms::atomic_database, AtomicDatabase, Charged, ChemicalComposition, Massive, PolymerDatabase,
+};
 
 #[global_allocator]
 static ALLOC: AllocProfiler = AllocProfiler::system();
 
-const ATOMIC_KDL: &str = include_str!("../data/atomic_database.kdl");
+const ATOMIC_KDL: &str = atomic_database::DEFAULT_KDL;
 const POLYMER_KDL: &str = include_str!("../tests/data/polymer_database.kdl");
 const FORMULAS: [&str; 5] = [
     "C2H5NO2",
@@ -15,8 +17,7 @@ const FORMULAS: [&str; 5] = [
     "C3H7[15N]O2",
 ];
 
-static ATOMIC_DB: Lazy<AtomicDatabase> =
-    Lazy::new(|| AtomicDatabase::new("atomic_database.kdl", ATOMIC_KDL).unwrap());
+static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
 static POLYMER_DB: Lazy<PolymerDatabase> =
     Lazy::new(|| PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap());

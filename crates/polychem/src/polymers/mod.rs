@@ -5,6 +5,6 @@ mod group_state;
 mod modification;
 mod named_mod;
 mod offset_mod;
-pub(crate) mod polymer_database;
+pub mod polymer_database;
 mod residue;
 pub(crate) mod target;

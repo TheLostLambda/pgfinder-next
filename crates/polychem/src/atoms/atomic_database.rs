@@ -20,6 +20,8 @@ use crate::{Charge, Isotope, MassNumber};
 
 // Public API ==========================================================================================================
 
+pub const DEFAULT_KDL: &str = include_str!("../../data/atomic_database.kdl");
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct AtomicDatabase {
     pub(super) elements: HashMap<String, ElementDescription>,
@@ -43,6 +45,13 @@ impl AtomicDatabase {
             elements,
             particles,
         })
+    }
+}
+
+impl Default for AtomicDatabase {
+    fn default() -> Self {
+        // SAFETY: Since this is a built-in database, it should never fail to parse
+        Self::new("default_atomic_database.kdl", DEFAULT_KDL).unwrap()
     }
 }
 
@@ -268,15 +277,13 @@ mod tests {
     use miette::Result;
     use rust_decimal_macros::dec;
 
-    use super::{AtomicDatabase, AtomicDatabaseKdl, DecimalKdl, ElementKdl, ParticleKdl};
-
     use crate::testing_tools::assert_miette_snapshot;
 
-    const KDL: &str = include_str!("../../data/atomic_database.kdl");
+    use super::*;
 
     #[test]
     fn parse_default_atomic_database() {
-        let db: AtomicDatabaseKdl = knuffel::parse("atomic_database.kdl", KDL).unwrap();
+        let db: AtomicDatabaseKdl = knuffel::parse("atomic_database.kdl", DEFAULT_KDL).unwrap();
         // Basic property checking
         assert_eq!(db.elements.len(), 120); // 118 + 2 for deuterium and tritium
         assert_eq!(db.particles.len(), 2);
@@ -287,7 +294,7 @@ mod tests {
 
     #[test]
     fn build_default_atomic_database() {
-        let db = AtomicDatabase::new("atomic_database.kdl", KDL).unwrap();
+        let db = AtomicDatabase::new("atomic_database.kdl", DEFAULT_KDL).unwrap();
         // Basic property checking
         assert_eq!(db.elements.len(), 120); // 118 + 2 for deuterium and tritium
         assert_eq!(db.particles.len(), 2);

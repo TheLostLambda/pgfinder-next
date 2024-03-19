@@ -254,13 +254,7 @@ mod tests {
 
     use super::*;
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-        AtomicDatabase::new(
-            "atomic_database.kdl",
-            include_str!("../../polychem/data/atomic_database.kdl"),
-        )
-        .unwrap()
-    });
+    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
         PolymerDatabase::new(

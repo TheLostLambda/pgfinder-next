@@ -121,13 +121,7 @@ mod tests {
         GroupState, Massive, Modification, Mz, NamedMod, OffsetKind, OffsetMod, Residue,
     };
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-        AtomicDatabase::new(
-            "atomic_database.kdl",
-            include_str!("../../data/atomic_database.kdl"),
-        )
-        .unwrap()
-    });
+    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
         PolymerDatabase::new(
