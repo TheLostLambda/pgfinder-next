@@ -5,7 +5,7 @@ use rustyline::DefaultEditor;
 use std::fmt::Write;
 
 static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-    AtomicDatabase::from_kdl(
+    AtomicDatabase::new(
         "atomic_database.kdl",
         include_str!("../crates/polychem/data/atomic_database.kdl"),
     )

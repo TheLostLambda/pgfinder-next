@@ -295,7 +295,7 @@ mod tests {
     use super::*;
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-        AtomicDatabase::from_kdl(
+        AtomicDatabase::new(
             "atomic_database.kdl",
             include_str!("../../data/atomic_database.kdl"),
         )

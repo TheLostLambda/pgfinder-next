@@ -28,15 +28,15 @@ pub struct PolymerDatabase<'a> {
 }
 
 impl<'a> PolymerDatabase<'a> {
-    pub fn from_kdl(
-        db: &'a AtomicDatabase,
+    pub fn new(
+        atomic_db: &'a AtomicDatabase,
         file_name: impl AsRef<str>,
-        text: impl AsRef<str>,
+        kdl_text: impl AsRef<str>,
     ) -> Result<Self> {
-        let parsed_db: PolymerDatabaseKdl = knuffel::parse(file_name.as_ref(), text.as_ref())?;
+        let parsed_db: PolymerDatabaseKdl = knuffel::parse(file_name.as_ref(), kdl_text.as_ref())?;
         parsed_db
-            .validate(db)
-            .map_err(|e| e.finalize(file_name, text).into())
+            .validate(atomic_db)
+            .map_err(|e| e.finalize(file_name, kdl_text).into())
     }
 }
 
@@ -593,7 +593,7 @@ mod tests {
     };
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-        AtomicDatabase::from_kdl(
+        AtomicDatabase::new(
             "atomic_database.kdl",
             include_str!("../../data/atomic_database.kdl"),
         )
@@ -614,7 +614,7 @@ mod tests {
 
     #[test]
     fn build_muropeptide_chemistry() {
-        let db = PolymerDatabase::from_kdl(&DB, "polymer_database.kdl", KDL).unwrap();
+        let db = PolymerDatabase::new(&DB, "polymer_database.kdl", KDL).unwrap();
         assert_ron_snapshot!(db, {
             ".bonds, .modifications, .residues" => insta::sorted_redaction(),
             ".**.isotopes, .**.functional_groups" => insta::sorted_redaction()
@@ -1143,7 +1143,7 @@ mod tests {
                 }
             }
         "#};
-        let db = PolymerDatabase::from_kdl(&DB, "test", kdl);
+        let db = PolymerDatabase::new(&DB, "test", kdl);
         assert_miette_snapshot!(db.map_err(WrapErr));
     }
 
@@ -1179,7 +1179,7 @@ mod tests {
                 }
             }
         "#};
-        let db = PolymerDatabase::from_kdl(&DB, "test", kdl);
+        let db = PolymerDatabase::new(&DB, "test", kdl);
         assert_miette_snapshot!(db.map_err(WrapErr));
     }
 
@@ -1216,7 +1216,7 @@ mod tests {
                 }
             }
         "#};
-        let db = PolymerDatabase::from_kdl(&DB, "test", kdl);
+        let db = PolymerDatabase::new(&DB, "test", kdl);
         assert_miette_snapshot!(db.map_err(WrapErr));
     }
 
@@ -1252,7 +1252,7 @@ mod tests {
                 }
             }
         "#};
-        let db = PolymerDatabase::from_kdl(&DB, "test", kdl);
+        let db = PolymerDatabase::new(&DB, "test", kdl);
         assert_miette_snapshot!(db.map_err(WrapErr));
     }
 }

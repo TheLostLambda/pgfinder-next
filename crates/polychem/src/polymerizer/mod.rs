@@ -377,7 +377,7 @@ mod tests {
     const STEM_RESIDUES: [&str; 4] = ["A", "E", "J", "A"];
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(|| {
-        AtomicDatabase::from_kdl(
+        AtomicDatabase::new(
             "atomic_database.kdl",
             include_str!("../../data/atomic_database.kdl"),
         )
@@ -385,7 +385,7 @@ mod tests {
     });
 
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
-        PolymerDatabase::from_kdl(
+        PolymerDatabase::new(
             &ATOMIC_DB,
             "polymer_database.kdl",
             include_str!("../../tests/data/polymer_database.kdl"),

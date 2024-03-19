@@ -16,11 +16,10 @@ const FORMULAS: [&str; 5] = [
 ];
 
 static ATOMIC_DB: Lazy<AtomicDatabase> =
-    Lazy::new(|| AtomicDatabase::from_kdl("atomic_database.kdl", ATOMIC_KDL).unwrap());
+    Lazy::new(|| AtomicDatabase::new("atomic_database.kdl", ATOMIC_KDL).unwrap());
 
-static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
-    PolymerDatabase::from_kdl(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
-});
+static POLYMER_DB: Lazy<PolymerDatabase> =
+    Lazy::new(|| PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap());
 
 static COMPOSITIONS: Lazy<Vec<ChemicalComposition>> = Lazy::new(|| {
     FORMULAS
@@ -41,7 +40,7 @@ mod atoms {
 
     #[divan::bench]
     fn build_atomic_database() -> AtomicDatabase {
-        AtomicDatabase::from_kdl("atomic_database.kdl", ATOMIC_KDL).unwrap()
+        AtomicDatabase::new("atomic_database.kdl", ATOMIC_KDL).unwrap()
     }
 
     #[divan::bench]
@@ -81,7 +80,7 @@ mod polymers {
 
     #[divan::bench]
     fn build_polymer_database() -> PolymerDatabase<'static> {
-        PolymerDatabase::from_kdl(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
+        PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
     }
 
     #[divan::bench]

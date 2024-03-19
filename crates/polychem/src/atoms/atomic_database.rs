@@ -27,8 +27,8 @@ pub struct AtomicDatabase {
 }
 
 impl AtomicDatabase {
-    pub fn from_kdl(file_name: impl AsRef<str>, text: impl AsRef<str>) -> Result<Self> {
-        let parsed_db: AtomicDatabaseKdl = knuffel::parse(file_name.as_ref(), text.as_ref())?;
+    pub fn new(file_name: impl AsRef<str>, kdl_text: impl AsRef<str>) -> Result<Self> {
+        let parsed_db: AtomicDatabaseKdl = knuffel::parse(file_name.as_ref(), kdl_text.as_ref())?;
         let elements = parsed_db
             .elements
             .into_iter()
@@ -287,7 +287,7 @@ mod tests {
 
     #[test]
     fn build_default_atomic_database() {
-        let db = AtomicDatabase::from_kdl("atomic_database.kdl", KDL).unwrap();
+        let db = AtomicDatabase::new("atomic_database.kdl", KDL).unwrap();
         // Basic property checking
         assert_eq!(db.elements.len(), 120); // 118 + 2 for deuterium and tritium
         assert_eq!(db.particles.len(), 2);
