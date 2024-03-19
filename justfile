@@ -6,8 +6,8 @@ test:
 
 # FIXME: The --workspace flag appears to be broken at the moment: https://github.com/mitsuhiko/insta/issues/396
 review:
-  (cd crates/polychem; cargo insta test --review)
-  (cd crates/muropeptide; cargo insta test --review)
+  cargo insta test --review
+  sh -c 'for crate in `ls crates`; do (cd "crates/$crate" && cargo insta test --review); done'
 
 bench:
   cargo bench --workspace
@@ -22,6 +22,12 @@ annoy:
 
 cov:
   cargo llvm-cov --workspace --open
+
+ci-cov:
+  cargo llvm-cov --workspace --lcov --output-path lcov.info
+
+check-wasm:
+  sh -c 'for crate in `ls crates`; do (cd "crates/$crate" && cargo check --target wasm32-unknown-unknown); done'
 
 ebnf:
   ebnf2railroad grammar/peptidoglycan.ebnf -t PGLang --write-style

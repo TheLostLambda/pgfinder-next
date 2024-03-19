@@ -29,6 +29,17 @@ jobs:
       - run: just test
       - run: just bench
 
+  check_wasm_build:
+    name: Check WASM Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v2
+      - uses: dtolnay/rust-toolchain@stable
+
+      - run: just check-wasm
+
   format_and_lint:
     name: Format & Lint
     runs-on: ubuntu-latest
@@ -47,12 +58,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v2
       - uses: taiki-e/install-action@cargo-llvm-cov
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
 
-      - run: cargo llvm-cov --workspace --lcov --output-path lcov.info
+      - run: just ci-cov
 
       - uses: codecov/codecov-action@v4
         with:
