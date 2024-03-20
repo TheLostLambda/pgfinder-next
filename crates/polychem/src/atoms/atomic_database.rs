@@ -342,6 +342,18 @@ mod tests {
     }
 
     #[test]
+    fn double_lowercase_element_symbol() {
+        let kdl = indoc! {r#"
+            dt "Deuterium" {
+              isotope 2 2.01410177812 1
+            }
+        "#};
+        let res = knuffel::parse::<Vec<ElementKdl>>("test", kdl);
+        assert!(res.is_err());
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
     fn double_uppercase_element_symbol() {
         let kdl = indoc! {r#"
             DT "Deuterium" {
