@@ -21,7 +21,7 @@ annoy:
   cargo clippy --workspace --tests -- -W clippy::nursery -W clippy::pedantic -W clippy::cargo -A clippy::missing_errors_doc -A clippy::cargo_common_metadata -A clippy::multiple_crate_versions
 
 cov:
-  cargo llvm-cov --workspace --open
+  cargo llvm-cov --workspace --branch --open
 
 ci-cov:
   cargo llvm-cov --workspace --codecov --output-path codecov.json
