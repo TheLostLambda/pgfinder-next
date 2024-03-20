@@ -24,7 +24,7 @@ cov:
   cargo llvm-cov --workspace --open
 
 ci-cov:
-  cargo llvm-cov --workspace --lcov --output-path lcov.info
+  cargo llvm-cov --workspace --codecov --output-path codecov.json
 
 check-wasm:
   sh -c 'for crate in `ls crates`; do (cd "crates/$crate" && cargo check --target wasm32-unknown-unknown); done'
