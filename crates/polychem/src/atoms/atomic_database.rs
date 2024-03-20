@@ -274,7 +274,6 @@ mod tests {
     use indoc::indoc;
     use insta::assert_debug_snapshot;
     use knuffel::Decode;
-    use miette::Result;
     use rust_decimal_macros::dec;
 
     use crate::testing_tools::assert_miette_snapshot;
