@@ -1,6 +1,6 @@
 ---
 source: crates/polychem/src/polymers/any_mod.rs
-description: calcium
+description: magnesium
 expression: out
 ---
-  × the modification "Ca" could not be found in the supplied polymer database
+  × the modification "Mg" could not be found in the supplied polymer database

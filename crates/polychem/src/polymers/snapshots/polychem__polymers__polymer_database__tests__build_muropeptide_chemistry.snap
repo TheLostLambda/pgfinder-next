@@ -4,6 +4,27 @@ expression: db
 ---
 PolymerDatabase(
   bonds: {
+    "Charged": BondDescription(
+      from: Target(
+        group: "Hydroxyl",
+        location: Some("6-Position"),
+        residue: None,
+      ),
+      to: Target(
+        group: "Carboxyl",
+        location: None,
+        residue: None,
+      ),
+      lost: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: Some((Add, 2, Particle(
+          symbol: "p",
+          name: "Proton",
+          mass: "1.007276466621",
+          charge: 1,
+        ))),
+      ),
+    ),
     "Crosslink": BondDescription(
       from: Target(
         group: "Carboxyl",
@@ -471,6 +492,76 @@ PolymerDatabase(
         ),
       ],
     ),
+    "Ca": ModificationDescription(
+      name: "Calcium Adduct",
+      lost: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: Some((Add, 1, Particle(
+          symbol: "p",
+          name: "Proton",
+          mass: "1.007276466621",
+          charge: 1,
+        ))),
+      ),
+      gained: ChemicalComposition(
+        chemical_formula: [
+          (Element(
+            symbol: "Ca",
+            name: "Calcium",
+            mass_number: None,
+            isotopes: {
+              40: Isotope(
+                relative_mass: "39.962590863",
+                abundance: Some("0.96941"),
+              ),
+              42: Isotope(
+                relative_mass: "41.95861783",
+                abundance: Some("0.00647"),
+              ),
+              43: Isotope(
+                relative_mass: "42.95876644",
+                abundance: Some("0.00135"),
+              ),
+              44: Isotope(
+                relative_mass: "43.95548156",
+                abundance: Some("0.02086"),
+              ),
+              46: Isotope(
+                relative_mass: "45.9536890",
+                abundance: Some("0.00004"),
+              ),
+              48: Isotope(
+                relative_mass: "47.95252276",
+                abundance: Some("0.00187"),
+              ),
+            },
+          ), 1),
+        ],
+        particle_offset: Some((Remove, 2, Particle(
+          symbol: "e",
+          name: "Electron",
+          mass: "0.000548579909065",
+          charge: -1,
+        ))),
+      ),
+      targets: [
+        Target(
+          group: "Amino",
+          location: None,
+          residue: None,
+        ),
+        Target(
+          group: "Carboxyl",
+          location: None,
+          residue: None,
+        ),
+        Target(
+          group: "Hydroxyl",
+          location: None,
+          residue: None,
+        ),
+      ],
+    ),
     "DeAc": ModificationDescription(
       name: "De-N-Acetylation",
       lost: ChemicalComposition(
@@ -563,6 +654,83 @@ PolymerDatabase(
         Target(
           group: "Acetyl",
           location: Some("Secondary Amide"),
+          residue: None,
+        ),
+      ],
+    ),
+    "Met": ModificationDescription(
+      name: "O-Methylation",
+      lost: ChemicalComposition(
+        chemical_formula: [
+          (Element(
+            symbol: "H",
+            name: "Hydrogen",
+            mass_number: None,
+            isotopes: {
+              1: Isotope(
+                relative_mass: "1.00782503223",
+                abundance: Some("0.999885"),
+              ),
+              2: Isotope(
+                relative_mass: "2.01410177812",
+                abundance: Some("0.000115"),
+              ),
+              3: Isotope(
+                relative_mass: "3.0160492779",
+                abundance: None,
+              ),
+            },
+          ), 1),
+        ],
+        particle_offset: None,
+      ),
+      gained: ChemicalComposition(
+        chemical_formula: [
+          (Element(
+            symbol: "C",
+            name: "Carbon",
+            mass_number: None,
+            isotopes: {
+              12: Isotope(
+                relative_mass: "12.0000000",
+                abundance: Some("0.9893"),
+              ),
+              13: Isotope(
+                relative_mass: "13.00335483507",
+                abundance: Some("0.0107"),
+              ),
+              14: Isotope(
+                relative_mass: "14.0032419884",
+                abundance: None,
+              ),
+            },
+          ), 1),
+          (Element(
+            symbol: "H",
+            name: "Hydrogen",
+            mass_number: None,
+            isotopes: {
+              1: Isotope(
+                relative_mass: "1.00782503223",
+                abundance: Some("0.999885"),
+              ),
+              2: Isotope(
+                relative_mass: "2.01410177812",
+                abundance: Some("0.000115"),
+              ),
+              3: Isotope(
+                relative_mass: "3.0160492779",
+                abundance: None,
+              ),
+            },
+          ), 3),
+        ],
+        particle_offset: None,
+      ),
+      targets: [
+        Target(
+          group: "Hydroxyl",
+          location: None,
           residue: None,
         ),
       ],

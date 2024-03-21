@@ -77,8 +77,8 @@ mod tests {
 
     #[test]
     fn errors() {
-        let calcium = NamedMod::new(&POLYMER_DB, "Ca");
-        assert_miette_snapshot!(calcium);
+        let magnesium = NamedMod::new(&POLYMER_DB, "Mg");
+        assert_miette_snapshot!(magnesium);
         let potassium = NamedMod::new(&POLYMER_DB, "K");
         assert_miette_snapshot!(potassium);
     }
@@ -92,6 +92,8 @@ mod tests {
         assert_eq!(acetylation.monoisotopic_mass(), dec!(42.01056468403));
         let deacetylation = NamedMod::new(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.monoisotopic_mass(), dec!(-42.01056468403));
+        let calcium = NamedMod::new(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.monoisotopic_mass(), dec!(38.954217236560870));
     }
 
     #[test]
@@ -103,38 +105,43 @@ mod tests {
         assert_eq!(acetylation.average_mass(), dec!(42.03675822590033060));
         let deacetylation = NamedMod::new(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.average_mass(), dec!(-42.03675822590033060));
+        let calcium = NamedMod::new(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.average_mass(), dec!(39.069648884578600));
     }
 
     #[test]
     fn charge() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = NamedMod::new(&POLYMER_DB, "Am").unwrap();
         assert_eq!(amidation.charge(), 0);
         let acetylation = NamedMod::new(&POLYMER_DB, "Ac").unwrap();
         assert_eq!(acetylation.charge(), 0);
         let deacetylation = NamedMod::new(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.charge(), 0);
+        let calcium = NamedMod::new(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.charge(), 1);
     }
 
     #[test]
     fn monoisotopic_mz() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = NamedMod::new(&POLYMER_DB, "Am").unwrap();
         assert_eq!(amidation.monoisotopic_mz(), None);
         let acetylation = NamedMod::new(&POLYMER_DB, "Ac").unwrap();
         assert_eq!(acetylation.monoisotopic_mz(), None);
         let deacetylation = NamedMod::new(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.monoisotopic_mz(), None);
+        let calcium = NamedMod::new(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.monoisotopic_mz(), Some(dec!(38.954217236560870)));
     }
 
     #[test]
     fn average_mz() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = NamedMod::new(&POLYMER_DB, "Am").unwrap();
         assert_eq!(amidation.average_mz(), None);
         let acetylation = NamedMod::new(&POLYMER_DB, "Ac").unwrap();
         assert_eq!(acetylation.average_mz(), None);
         let deacetylation = NamedMod::new(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.average_mz(), None);
+        let calcium = NamedMod::new(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.average_mz(), Some(dec!(39.069648884578600)));
     }
 }

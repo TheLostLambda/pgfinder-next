@@ -105,6 +105,29 @@ PolymerDatabaseKdl {
                     },
                 ),
             },
+            BondKdl {
+                kind: "Charged",
+                from: TargetKdl {
+                    span: <SPAN>,
+                    group: "Hydroxyl",
+                    location: Some(
+                        "6-Position",
+                    ),
+                    residue: None,
+                },
+                to: TargetKdl {
+                    span: <SPAN>,
+                    group: "Carboxyl",
+                    location: None,
+                    residue: None,
+                },
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "2p",
+                    },
+                ),
+            },
         ],
     },
     modifications: ModificationsKdl {
@@ -254,6 +277,66 @@ PolymerDatabaseKdl {
                         residue: Some(
                             "N-Acetylmuramic Acid",
                         ),
+                    },
+                ],
+            },
+            ModificationKdl {
+                abbr: "Met",
+                name: "O-Methylation",
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "CH3",
+                    },
+                ),
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: None,
+                        residue: None,
+                    },
+                ],
+            },
+            ModificationKdl {
+                abbr: "Ca",
+                name: "Calcium Adduct",
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "p",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "Ca-2e",
+                    },
+                ),
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Amino",
+                        location: None,
+                        residue: None,
+                    },
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Carboxyl",
+                        location: None,
+                        residue: None,
+                    },
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: None,
+                        residue: None,
                     },
                 ],
             },

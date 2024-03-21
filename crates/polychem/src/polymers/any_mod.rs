@@ -85,8 +85,8 @@ mod tests {
 
     #[test]
     fn errors() {
-        let calcium = AnyMod::named(&POLYMER_DB, "Ca");
-        assert_miette_snapshot!(calcium);
+        let magnesium = AnyMod::named(&POLYMER_DB, "Mg");
+        assert_miette_snapshot!(magnesium);
         let potassium = AnyMod::named(&POLYMER_DB, "K");
         assert_miette_snapshot!(potassium);
         let water_gained = AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H[2O]");
@@ -104,6 +104,8 @@ mod tests {
         assert_eq!(acetylation.monoisotopic_mass(), dec!(42.01056468403));
         let deacetylation = AnyMod::named(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.monoisotopic_mass(), dec!(-42.01056468403));
+        let calcium = AnyMod::named(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.monoisotopic_mass(), dec!(38.954217236560870));
 
         let water_gained = AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.monoisotopic_mass(), dec!(18.01056468403));
@@ -125,6 +127,8 @@ mod tests {
         assert_eq!(acetylation.average_mass(), dec!(42.03675822590033060));
         let deacetylation = AnyMod::named(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.average_mass(), dec!(-42.03675822590033060));
+        let calcium = AnyMod::named(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.average_mass(), dec!(39.069648884578600));
 
         let water_gained = AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.average_mass(), dec!(18.01528643242983260));
@@ -139,13 +143,14 @@ mod tests {
 
     #[test]
     fn charge() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = AnyMod::named(&POLYMER_DB, "Am").unwrap();
         assert_eq!(amidation.charge(), 0);
         let acetylation = AnyMod::named(&POLYMER_DB, "Ac").unwrap();
         assert_eq!(acetylation.charge(), 0);
         let deacetylation = AnyMod::named(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.charge(), 0);
+        let calcium = AnyMod::named(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.charge(), 1);
 
         let water_gained = AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.charge(), 0);
@@ -159,13 +164,14 @@ mod tests {
 
     #[test]
     fn monoisotopic_mz() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = AnyMod::named(&POLYMER_DB, "Am").unwrap();
         assert_eq!(amidation.monoisotopic_mz(), None);
         let acetylation = AnyMod::named(&POLYMER_DB, "Ac").unwrap();
         assert_eq!(acetylation.monoisotopic_mz(), None);
         let deacetylation = AnyMod::named(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.monoisotopic_mz(), None);
+        let calcium = AnyMod::named(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.monoisotopic_mz(), Some(dec!(38.954217236560870)));
 
         let water_gained = AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.monoisotopic_mz(), None);
@@ -179,13 +185,14 @@ mod tests {
 
     #[test]
     fn average_mz() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = AnyMod::named(&POLYMER_DB, "Am").unwrap();
         assert_eq!(amidation.average_mz(), None);
         let acetylation = AnyMod::named(&POLYMER_DB, "Ac").unwrap();
         assert_eq!(acetylation.average_mz(), None);
         let deacetylation = AnyMod::named(&POLYMER_DB, "DeAc").unwrap();
         assert_eq!(deacetylation.average_mz(), None);
+        let calcium = AnyMod::named(&POLYMER_DB, "Ca").unwrap();
+        assert_eq!(calcium.average_mz(), Some(dec!(39.069648884578600)));
 
         let water_gained = AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
         assert_eq!(water_gained.average_mz(), None);

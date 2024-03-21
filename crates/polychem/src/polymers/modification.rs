@@ -66,6 +66,8 @@ mod tests {
         assert_eq!(acetylation.monoisotopic_mass(), dec!(84.02112936806));
         let deacetylation = Modification::new(3, NamedMod::new(&POLYMER_DB, "DeAc").unwrap());
         assert_eq!(deacetylation.monoisotopic_mass(), dec!(-126.03169405209));
+        let calcium = Modification::new(4, NamedMod::new(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.monoisotopic_mass(), dec!(155.81686894624348));
 
         let water_gained = Modification::new(
             4,
@@ -90,12 +92,14 @@ mod tests {
         assert_eq!(ca_lost.monoisotopic_mass(), dec!(-39.961493703181870));
 
         // Masses checked against https://www.unimod.org/modifications_list.php
-        let amidation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Am").unwrap());
-        assert_eq!(amidation.monoisotopic_mass(), dec!(-2.95204674873));
-        let acetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
-        assert_eq!(acetylation.monoisotopic_mass(), dec!(84.02112936806));
-        let deacetylation = Modification::new(1, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
-        assert_eq!(deacetylation.monoisotopic_mass(), dec!(-42.01056468403));
+        let amidation = Modification::new(4, AnyMod::named(&POLYMER_DB, "Am").unwrap());
+        assert_eq!(amidation.monoisotopic_mass(), dec!(-3.93606233164));
+        let acetylation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
+        assert_eq!(acetylation.monoisotopic_mass(), dec!(126.03169405209));
+        let deacetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
+        assert_eq!(deacetylation.monoisotopic_mass(), dec!(-84.02112936806));
+        let calcium = Modification::new(1, AnyMod::named(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.monoisotopic_mass(), dec!(38.954217236560870));
 
         let water_gained = Modification::new(
             1,
@@ -129,6 +133,8 @@ mod tests {
         assert_eq!(acetylation.average_mass(), dec!(84.07351645180066120));
         let deacetylation = Modification::new(3, NamedMod::new(&POLYMER_DB, "DeAc").unwrap());
         assert_eq!(deacetylation.average_mass(), dec!(-126.11027467770099180));
+        let calcium = Modification::new(4, NamedMod::new(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.average_mass(), dec!(156.278595538314400));
 
         // Masses checked against https://www.unimod.org/modifications_list.php
         let water_gained = Modification::new(
@@ -154,12 +160,14 @@ mod tests {
         assert_eq!(ca_lost.average_mass(), dec!(-40.076925351199600));
 
         // Masses checked against https://www.unimod.org/modifications_list.php
-        let amidation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Am").unwrap());
-        assert_eq!(amidation.average_mass(), dec!(-2.95428287645010765));
-        let acetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
-        assert_eq!(acetylation.average_mass(), dec!(84.07351645180066120));
-        let deacetylation = Modification::new(1, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
-        assert_eq!(deacetylation.average_mass(), dec!(-42.03675822590033060));
+        let amidation = Modification::new(4, AnyMod::named(&POLYMER_DB, "Am").unwrap());
+        assert_eq!(amidation.average_mass(), dec!(-3.93904383526681020));
+        let acetylation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
+        assert_eq!(acetylation.average_mass(), dec!(126.11027467770099180));
+        let deacetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
+        assert_eq!(deacetylation.average_mass(), dec!(-84.07351645180066120));
+        let calcium = Modification::new(1, AnyMod::named(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.average_mass(), dec!(39.069648884578600));
 
         let water_gained = Modification::new(
             1,
@@ -186,13 +194,14 @@ mod tests {
 
     #[test]
     fn charge() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = Modification::new(1, NamedMod::new(&POLYMER_DB, "Am").unwrap());
         assert_eq!(amidation.charge(), 0);
         let acetylation = Modification::new(2, NamedMod::new(&POLYMER_DB, "Ac").unwrap());
         assert_eq!(acetylation.charge(), 0);
         let deacetylation = Modification::new(3, NamedMod::new(&POLYMER_DB, "DeAc").unwrap());
         assert_eq!(deacetylation.charge(), 0);
+        let calcium = Modification::new(4, NamedMod::new(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.charge(), 4);
 
         let water_gained = Modification::new(
             4,
@@ -215,13 +224,14 @@ mod tests {
         );
         assert_eq!(ca_lost.charge(), -2);
 
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
-        let amidation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Am").unwrap());
+        let amidation = Modification::new(4, AnyMod::named(&POLYMER_DB, "Am").unwrap());
         assert_eq!(amidation.charge(), 0);
-        let acetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
+        let acetylation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
         assert_eq!(acetylation.charge(), 0);
-        let deacetylation = Modification::new(1, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
+        let deacetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
         assert_eq!(deacetylation.charge(), 0);
+        let calcium = Modification::new(1, AnyMod::named(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.charge(), 1);
 
         let water_gained = Modification::new(
             1,
@@ -247,13 +257,14 @@ mod tests {
 
     #[test]
     fn monoisotopic_mz() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = Modification::new(1, NamedMod::new(&POLYMER_DB, "Am").unwrap());
         assert_eq!(amidation.monoisotopic_mz(), None);
         let acetylation = Modification::new(2, NamedMod::new(&POLYMER_DB, "Ac").unwrap());
         assert_eq!(acetylation.monoisotopic_mz(), None);
         let deacetylation = Modification::new(3, NamedMod::new(&POLYMER_DB, "DeAc").unwrap());
         assert_eq!(deacetylation.monoisotopic_mz(), None);
+        let calcium = Modification::new(4, NamedMod::new(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.monoisotopic_mz(), Some(dec!(38.954217236560870)));
 
         let water_gained = Modification::new(
             4,
@@ -276,13 +287,14 @@ mod tests {
         );
         assert_eq!(ca_lost.monoisotopic_mz(), Some(dec!(-19.980746851590935)));
 
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
-        let amidation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Am").unwrap());
+        let amidation = Modification::new(4, AnyMod::named(&POLYMER_DB, "Am").unwrap());
         assert_eq!(amidation.monoisotopic_mz(), None);
-        let acetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
+        let acetylation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
         assert_eq!(acetylation.monoisotopic_mz(), None);
-        let deacetylation = Modification::new(1, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
+        let deacetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
         assert_eq!(deacetylation.monoisotopic_mz(), None);
+        let calcium = Modification::new(1, AnyMod::named(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.monoisotopic_mz(), Some(dec!(38.954217236560870)));
 
         let water_gained = Modification::new(
             1,
@@ -308,13 +320,14 @@ mod tests {
 
     #[test]
     fn average_mz() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
         let amidation = Modification::new(1, NamedMod::new(&POLYMER_DB, "Am").unwrap());
         assert_eq!(amidation.average_mz(), None);
         let acetylation = Modification::new(2, NamedMod::new(&POLYMER_DB, "Ac").unwrap());
         assert_eq!(acetylation.average_mz(), None);
         let deacetylation = Modification::new(3, NamedMod::new(&POLYMER_DB, "DeAc").unwrap());
         assert_eq!(deacetylation.average_mz(), None);
+        let calcium = Modification::new(4, NamedMod::new(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.average_mz(), Some(dec!(39.069648884578600)));
 
         let water_gained = Modification::new(
             4,
@@ -337,13 +350,14 @@ mod tests {
         );
         assert_eq!(ca_lost.average_mz(), Some(dec!(-20.0384626755998)));
 
-        // TODO: It's probably worth creating a database file for these tests that contains some charged modifications!
-        let amidation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Am").unwrap());
+        let amidation = Modification::new(4, AnyMod::named(&POLYMER_DB, "Am").unwrap());
         assert_eq!(amidation.average_mz(), None);
-        let acetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
+        let acetylation = Modification::new(3, AnyMod::named(&POLYMER_DB, "Ac").unwrap());
         assert_eq!(acetylation.average_mz(), None);
-        let deacetylation = Modification::new(1, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
+        let deacetylation = Modification::new(2, AnyMod::named(&POLYMER_DB, "DeAc").unwrap());
         assert_eq!(deacetylation.average_mz(), None);
+        let calcium = Modification::new(1, AnyMod::named(&POLYMER_DB, "Ca").unwrap());
+        assert_eq!(calcium.average_mz(), Some(dec!(39.069648884578600)));
 
         let water_gained = Modification::new(
             1,

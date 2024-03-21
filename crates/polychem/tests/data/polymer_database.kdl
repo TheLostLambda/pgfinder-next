@@ -19,6 +19,12 @@ bonds {
         to "Amino"
         lost "H2O"
     }
+    // NOTE: Modification added for testing only!
+    Charged {
+        from "Hydroxyl" at="6-Position"
+        to "Carboxyl"
+        lost "2p"
+    }
 }
 
 modifications {
@@ -49,6 +55,20 @@ modifications {
     Anh "1,6-Anhydro" {
         targeting "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid"
         lost "H2O"
+    }
+    // NOTE: Modification added for testing only!
+    Met "O-Methylation" {
+        targeting "Hydroxyl"
+        lost "H"
+        gained "CH3"
+    }
+    // NOTE: Modification added for testing only!
+    Ca "Calcium Adduct" {
+        targeting "Amino"
+        targeting "Carboxyl"
+        targeting "Hydroxyl"
+        lost "p"
+        gained "Ca-2e"
     }
 }
 

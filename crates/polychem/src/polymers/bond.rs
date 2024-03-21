@@ -86,46 +86,51 @@ mod tests {
 
     #[test]
     fn monoisotopic_mass() {
-        // TODO: It's worth creating a database file for these tests that contains some bonds with different losses!
         let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.monoisotopic_mass(), dec!(-18.01056468403));
         let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.monoisotopic_mass(), dec!(-18.01056468403));
+        let charged = Bond::new(&POLYMER_DB, "Charged", *EMPTY_TARGET).unwrap();
+        assert_eq!(charged.monoisotopic_mass(), dec!(-2.014552933242));
     }
 
     #[test]
     fn average_mass() {
-        // TODO: It's worth creating a database file for these tests that contains some bonds with different losses!
         let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.average_mass(), dec!(-18.01528643242983260));
         let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.average_mass(), dec!(-18.01528643242983260));
+        let charged = Bond::new(&POLYMER_DB, "Charged", *EMPTY_TARGET).unwrap();
+        assert_eq!(charged.average_mass(), dec!(-2.014552933242));
     }
 
     #[test]
     fn charge() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged bond losses!
         let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.charge(), 0);
         let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.charge(), 0);
+        let charged = Bond::new(&POLYMER_DB, "Charged", *EMPTY_TARGET).unwrap();
+        assert_eq!(charged.charge(), -2);
     }
 
     #[test]
     fn monoisotopic_mz() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged bond losses!
         let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.monoisotopic_mz(), None);
         let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.monoisotopic_mz(), None);
+        let charged = Bond::new(&POLYMER_DB, "Charged", *EMPTY_TARGET).unwrap();
+        assert_eq!(charged.monoisotopic_mz(), Some(dec!(-1.007276466621)));
     }
 
     #[test]
     fn average_mz() {
-        // TODO: It's probably worth creating a database file for these tests that contains some charged bond losses!
         let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic", *EMPTY_TARGET).unwrap();
         assert_eq!(glycosidic.average_mz(), None);
         let stem = Bond::new(&POLYMER_DB, "Stem", *EMPTY_TARGET).unwrap();
         assert_eq!(stem.average_mz(), None);
+        let charged = Bond::new(&POLYMER_DB, "Charged", *EMPTY_TARGET).unwrap();
+        assert_eq!(charged.average_mz(), Some(dec!(-1.007276466621)));
     }
 }
