@@ -11,7 +11,7 @@ use crate::{
         polymer_database::{BondDescription, ModificationDescription, PolymerDatabase},
         target::{Index, Target},
     },
-    AnyMod, AnyModification, Bond, BondTarget, FunctionalGroup, GroupState, Id, NamedMod,
+    AnyMod, AnyModification, Bond, BondTarget, Count, FunctionalGroup, GroupState, Id, NamedMod,
     PolychemError, Residue, Result,
 };
 
@@ -19,7 +19,7 @@ use crate::{
 pub struct Polymerizer<'a, 'p> {
     atomic_db: &'a AtomicDatabase,
     polymer_db: &'p PolymerDatabase<'a>,
-    residue_counter: usize,
+    residue_counter: Id,
     free_group_index: Index<'p, HashMap<Id, bool>>,
 }
 
@@ -97,13 +97,13 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         let modification = modification.into();
         // FIXME: Don't forget to be clever about the multiplier!
         match modification.kind {
-            AnyMod::Named(m) => self.modify_with_optional_group(m.abbr(), target, None),
+            AnyMod::Named(m) => self.modify_with_optional_groups(m.abbr(), target, &[]),
             AnyMod::Offset(_) => todo!(),
         }
     }
 
     pub fn modify(&mut self, abbr: impl AsRef<str>, target: &mut Residue<'a, 'p>) -> Result<()> {
-        self.modify_with_optional_group(abbr, target, None)
+        self.modify_with_optional_groups(abbr, target, &[])
     }
 
     // PERF: Could create an `_unchecked` version for when you've already called `self.free_*_groups()` — skip straight
@@ -114,8 +114,10 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         target: &mut Residue<'a, 'p>,
         target_group: FunctionalGroup<'p>,
     ) -> Result<()> {
-        self.modify_with_optional_group(abbr, target, Some(target_group))
+        self.modify_with_optional_groups(abbr, target, &[target_group])
     }
+
+    // TODO: Add modify_groups() which takes a slice of target groups
 
     pub fn bond(
         &mut self,
@@ -148,49 +150,75 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
 
 // FIXME: Add header for private section!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 impl<'a, 'p> Polymerizer<'a, 'p> {
-    fn find_free_group<T: Into<Target<&'p str>>>(
+    // FIXME: Needs a good look-over...
+    // FIXME: Make private again!
+    pub fn find_free_groups<T: Into<Target<&'p str>>>(
         &self,
         targets: &(impl IntoIterator<Item = T> + Copy),
         residue: &Residue<'a, 'p>,
-        group: Option<FunctionalGroup<'p>>,
-    ) -> Result<FunctionalGroup<'p>, PolymerizerError> {
+        count: Count,
+        groups: &[FunctionalGroup<'p>],
+    ) -> Result<Vec<FunctionalGroup<'p>>, PolymerizerError> {
+        // SAFETY: This could only possibly panic on platforms with pointers smaller than `Count` bits — currently a
+        // u32. If someone gets this program running on a 16-bit platform, they 1) deserve a medal and 2) will have
+        // much bigger problems than this panic...
+        let count = usize::try_from(count).unwrap();
         let free_groups: Vec<_> = self.free_residue_groups(targets, residue).collect();
-        match (group, &free_groups[..]) {
-            (None, []) => Err(self.diagnose_missing_target(targets, residue)),
-            (None, &[found_group]) => Ok(found_group),
-            (None, found_groups) => Err(PolymerizerError::ambiguous_group(residue, found_groups)),
-            (Some(target_group), found_groups) if found_groups.contains(&target_group) => {
-                Ok(target_group)
+        match (groups, free_groups.as_slice()) {
+            ([], []) => Err(self.diagnose_missing_target(targets, residue)),
+            ([], found_groups) => {
+                if found_groups.len() == count {
+                    Ok(free_groups)
+                } else {
+                    Err(PolymerizerError::ambiguous_groups(
+                        residue,
+                        count,
+                        found_groups,
+                    ))
+                }
             }
-            (Some(target_group), _) => {
-                Err(self.diagnose_missing_target_group(targets, residue, target_group))
+            (target_groups, found_groups) => {
+                let found_targeted_groups = found_groups
+                    .iter()
+                    .filter(|f| target_groups.contains(f))
+                    .copied()
+                    .collect();
+                // FIXME: They should... Proabably be sets, shouldn't they?
+                let missing_group = target_groups.iter().find(|t| !found_groups.contains(t));
+                if let Some(&missing_group) = missing_group {
+                    Err(self.diagnose_missing_target_group(targets, residue, missing_group))
+                } else {
+                    Ok(found_targeted_groups)
+                }
             }
         }
     }
 
-    fn update_group(
+    fn update_groups(
         &mut self,
         target: &mut Residue<'a, 'p>,
-        target_group: FunctionalGroup<'p>,
+        target_groups: &[FunctionalGroup<'p>],
         group_state: GroupState<'a, 'p>,
     ) {
-        let current_target = Target::from_residue_and_group(target, target_group);
+        for target_group in target_groups {
+            let current_target = Target::from_residue_and_group(target, *target_group);
 
-        // SAFETY: These `.unwrap()`s might panic if the target hasn't first been validated by `self.find_free_group()`!
-        self.free_group_index
-            .get_mut(current_target)
-            .unwrap()
-            .insert(target.id(), group_state.is_free());
+            // SAFETY: These `.unwrap()`s might panic if the target hasn't first been validated by `self.find_free_group()`!
+            self.free_group_index
+                .get_mut(current_target)
+                .unwrap()
+                .insert(target.id(), group_state.is_free());
 
-        let target_state = target.group_state_mut(&target_group).unwrap();
-        *target_state = group_state;
+            let target_state = target.group_state_mut(target_group).unwrap();
+            *target_state = group_state;
+        }
     }
 
-    fn modify_with_optional_group(
+    fn modify_with_optional_groups(
         &mut self,
         abbr: impl AsRef<str>,
         target: &mut Residue<'a, 'p>,
-        target_group: Option<FunctionalGroup<'p>>,
+        target_groups: &[FunctionalGroup<'p>],
     ) -> Result<()> {
         let (
             abbr,
@@ -202,8 +230,8 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             },
         ) = NamedMod::lookup_description(self.polymer_db, abbr)?;
 
-        let target_group = self
-            .find_free_group(&targets, target, target_group)
+        let target_groups = self
+            .find_free_groups(&targets, target, 1, target_groups)
             .map_err(|e| PolychemError::modification(name, abbr, target, e))?;
 
         let modified_state = GroupState::Modified(NamedMod {
@@ -212,7 +240,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             lost,
             gained,
         });
-        self.update_group(target, target_group, modified_state);
+        self.update_groups(target, &target_groups, modified_state);
 
         Ok(())
     }
@@ -229,11 +257,11 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             Bond::lookup_description(self.polymer_db, kind)?;
 
         // Avoid partial updates by performing validation of both group updates *before* updating either group
-        let donor_group = self
-            .find_free_group(&slice::from_ref(from), donor, donor_group)
+        let donor_groups = self
+            .find_free_groups(&slice::from_ref(from), donor, 1, donor_group.as_slice())
             .map_err(|e| PolychemError::bond(kind, donor, acceptor, "donor", e))?;
-        let acceptor_group = self
-            .find_free_group(&slice::from_ref(to), acceptor, acceptor_group)
+        let acceptor_groups = self
+            .find_free_groups(&slice::from_ref(to), acceptor, 1, acceptor_group.as_slice())
             .map_err(|e| PolychemError::bond(kind, donor, acceptor, "acceptor", e))?;
 
         let donor_state = GroupState::Donor(Bond {
@@ -241,11 +269,13 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             lost,
             acceptor: BondTarget {
                 residue: acceptor.id(),
-                group: acceptor_group,
+                // SAFETY: The `count` of 1 provided to `find_free_groups` ensures that `acceptor_groups` will contain
+                // at least one element
+                group: acceptor_groups[0],
             },
         });
-        self.update_group(donor, donor_group, donor_state);
-        self.update_group(acceptor, acceptor_group, GroupState::Acceptor);
+        self.update_groups(donor, &donor_groups, donor_state);
+        self.update_groups(acceptor, &acceptor_groups, GroupState::Acceptor);
 
         Ok(())
     }
@@ -436,68 +466,70 @@ mod tests {
     }
 
     #[test]
-    fn find_free_group() {
+    fn find_free_groups() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
         let mut murnac = polymerizer.residue("m").unwrap();
 
         let carboxyl = Target::new("Carboxyl", None, None);
         let carboxyl_group = polymerizer
-            .find_free_group(&[carboxyl], &murnac, None)
+            .find_free_groups(&[carboxyl], &murnac, 1, &[])
             .unwrap();
+        assert_eq!(carboxyl_group.len(), 1);
         assert_eq!(
-            carboxyl_group,
+            carboxyl_group[0],
             FunctionalGroup::new("Carboxyl", "Lactyl Ether")
         );
 
         let hydroxyl = Target::new("Hydroxyl", None, None);
-        let ambiguous_group = polymerizer.find_free_group(&[hydroxyl], &murnac, None);
+        let ambiguous_group = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[]);
         assert_miette_snapshot!(ambiguous_group);
 
         let murnac_groups = murnac.functional_groups.keys().copied().collect_vec();
         for group in murnac_groups {
-            polymerizer.update_group(&mut murnac, group, GroupState::Acceptor);
+            polymerizer.update_groups(&mut murnac, &[group], GroupState::Acceptor);
         }
-        let all_groups_occupied = polymerizer.find_free_group(&[hydroxyl], &murnac, None);
+        let all_groups_occupied = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[]);
         assert_miette_snapshot!(all_groups_occupied);
 
         // Start a new polymer by resetting the polymerizer
         let mut polymerizer = polymerizer.reset();
-        let residue_not_in_polymer = polymerizer.find_free_group(&[hydroxyl], &murnac, None);
+        let residue_not_in_polymer = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[]);
         assert_miette_snapshot!(residue_not_in_polymer);
 
         let mut murnac = polymerizer.residue("m").unwrap();
         let amino = Target::new("Amino", None, None);
         let crazy = Target::new("Crazy", None, None);
-        let no_matching_groups = polymerizer.find_free_group(&[amino, crazy], &murnac, None);
+        let no_matching_groups = polymerizer.find_free_groups(&[amino, crazy], &murnac, 1, &[]);
         assert_miette_snapshot!(no_matching_groups);
 
         let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
-        let invalid_target = polymerizer.find_free_group(&[crazy], &murnac, Some(nonreducing_end));
+        let invalid_target = polymerizer.find_free_groups(&[crazy], &murnac, 1, &[nonreducing_end]);
         assert_miette_snapshot!(invalid_target);
 
-        polymerizer.update_group(&mut murnac, nonreducing_end, GroupState::Acceptor);
+        polymerizer.update_groups(&mut murnac, &[nonreducing_end], GroupState::Acceptor);
         let group_occupied =
-            polymerizer.find_free_group(&[hydroxyl], &murnac, Some(nonreducing_end));
+            polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[nonreducing_end]);
         assert_miette_snapshot!(group_occupied);
 
-        polymerizer.update_group(&mut murnac, nonreducing_end, GroupState::Free);
+        polymerizer.update_groups(&mut murnac, &[nonreducing_end], GroupState::Free);
         let hydroxyl_group = polymerizer
-            .find_free_group(&[hydroxyl], &murnac, Some(nonreducing_end))
+            .find_free_groups(&[hydroxyl], &murnac, 1, &[nonreducing_end])
             .unwrap();
+        assert_eq!(hydroxyl_group.len(), 1);
         assert_eq!(
-            hydroxyl_group,
+            hydroxyl_group[0],
             FunctionalGroup::new("Hydroxyl", "Nonreducing End")
         );
 
         // Start a new polymer by resetting the polymerizer
         let mut polymerizer = polymerizer.reset();
         let residue_not_in_polymer =
-            polymerizer.find_free_group(&[hydroxyl], &murnac, Some(nonreducing_end));
+            polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[nonreducing_end]);
         assert_miette_snapshot!(residue_not_in_polymer);
 
         let alanine = polymerizer.residue("A").unwrap();
         let nonexistent_group =
-            polymerizer.find_free_group(&[hydroxyl], &alanine, Some(nonreducing_end));
+            polymerizer.find_free_groups(&[hydroxyl], &alanine, 1, &[nonreducing_end]);
         assert_miette_snapshot!(nonexistent_group);
     }
 

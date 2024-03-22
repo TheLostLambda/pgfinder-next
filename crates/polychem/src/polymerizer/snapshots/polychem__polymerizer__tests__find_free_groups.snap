@@ -3,8 +3,8 @@ source: crates/polychem/src/polymerizer/mod.rs
 description: ambiguous_group
 expression: out
 ---
-  × residue 1 contains more than one free target group: "Hydroxyl" at="6-
+  × residue 1 contains more than 1 free target group: "Hydroxyl" at="6-
   │ Position", "Hydroxyl" at="Nonreducing End", and "Hydroxyl" at="Reducing
   │ End"
-  help: to resolve this ambiguity, specify an exact functional group to
+  help: to resolve this ambiguity, specify the exact functional group to
         modify

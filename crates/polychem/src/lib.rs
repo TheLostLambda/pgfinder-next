@@ -86,7 +86,7 @@ struct Particle<'a> {
     charge: &'a Charge,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default, Serialize)]
 pub enum GroupState<'a, 'p> {
     #[default]
     Free,
@@ -104,7 +104,7 @@ pub enum AnyMod<'a, 'p> {
     Offset(OffsetMod<'a>),
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize)]
 pub struct NamedMod<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
@@ -130,7 +130,7 @@ struct Isotope {
 
 pub type Charge = i64;
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize)]
 pub struct Bond<'a, 'p> {
     kind: &'p str,
     lost: &'p ChemicalComposition<'a>,
