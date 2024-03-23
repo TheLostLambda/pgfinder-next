@@ -109,7 +109,7 @@ mod polymerizer {
         let carboxyl = Target::new("Carboxyl", None, None);
         bencher.bench_local(|| {
             polymerizer
-                .find_free_groups(&[carboxyl], &murnac, 1, &[])
+                .find_free_groups(&[carboxyl], &murnac, 1)
                 .unwrap()
         })
     }

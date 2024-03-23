@@ -98,6 +98,8 @@ impl<'a, V> Index<'a, V> {
             .collect()
     }
 
+    // FIXME: Should this be returning a HashSet? Probably not. Faster to collect into a Vec, and I know they will be
+    // unique already anyways!
     pub fn matches_with_targets(
         &self,
         target: impl Into<Target<&'a str>>,

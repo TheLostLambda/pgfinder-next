@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use ahash::HashSet;
 use miette::Diagnostic;
 use thiserror::Error;
 
@@ -40,6 +41,12 @@ pub enum PolymerizerError {
         if .1 != &1 { "s" } else { "" }
     ))]
     AmbiguousGroups(Id, usize, String),
+
+    #[error("attemped to find zero free groups, but you must look for at least one")]
+    ZeroGroupNumber,
+
+    #[error("received an empty group set, but you must provide at least one group to look for")]
+    EmptyGroupSet,
 }
 
 impl PolymerizerError {
@@ -91,11 +98,19 @@ impl PolymerizerError {
 
     pub(super) fn ambiguous_groups(
         residue: &Residue,
-        count: usize,
-        groups: &[FunctionalGroup],
+        number: usize,
+        groups: HashSet<FunctionalGroup>,
     ) -> Self {
         let groups = Self::comma_list(groups, "and");
-        Self::AmbiguousGroups(residue.id(), count, groups)
+        Self::AmbiguousGroups(residue.id(), number, groups)
+    }
+
+    pub(super) fn zero_group_number() -> Self {
+        Self::ZeroGroupNumber
+    }
+
+    pub(super) fn empty_group_set() -> Self {
+        Self::EmptyGroupSet
     }
 
     // FIXME: No clue where this belongs...
