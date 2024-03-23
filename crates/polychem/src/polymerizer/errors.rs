@@ -35,10 +35,10 @@ pub enum PolymerizerError {
     ))]
     ResidueNotInPolymer(Id),
 
-    #[error("residue {0} contains more than {1} free target group{}: {2}", if .1 != &1 { "s" } else { "" })]
+    #[error("residue {0} contains more than {1} free target group{}: {2}", if .1 == &1 { "" } else { "s" })]
     #[diagnostic(help(
         "to resolve this ambiguity, specify the exact functional group{} to modify",
-        if .1 != &1 { "s" } else { "" }
+        if .1 == &1 { "" } else { "s" }
     ))]
     AmbiguousGroups(Id, usize, String),
 
@@ -105,11 +105,11 @@ impl PolymerizerError {
         Self::AmbiguousGroups(residue.id(), number, groups)
     }
 
-    pub(super) fn zero_group_number() -> Self {
+    pub(super) const fn zero_group_number() -> Self {
         Self::ZeroGroupNumber
     }
 
-    pub(super) fn empty_group_set() -> Self {
+    pub(super) const fn empty_group_set() -> Self {
         Self::EmptyGroupSet
     }
 

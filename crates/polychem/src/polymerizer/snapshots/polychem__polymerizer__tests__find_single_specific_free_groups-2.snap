@@ -1,0 +1,7 @@
+---
+source: crates/polychem/src/polymerizer/mod.rs
+description: empty_groups
+expression: out
+---
+  × received an empty group set, but you must provide at least one group to
+  │ look for

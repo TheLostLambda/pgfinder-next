@@ -96,21 +96,5 @@ mod polymers {
 }
 
 mod polymerizer {
-    use divan::Bencher;
-    use polychem::{polymerizer::Polymerizer, polymers::target::Target};
-
-    use super::*;
-
-    #[divan::bench]
-    fn bench_find_free_groups(bencher: Bencher) {
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let murnac = polymerizer.residue("m").unwrap();
-
-        let carboxyl = Target::new("Carboxyl", None, None);
-        bencher.bench_local(|| {
-            polymerizer
-                .find_free_groups(&[carboxyl], &murnac, 1)
-                .unwrap()
-        })
-    }
+    // TODO: Benchmark some of the public api!
 }

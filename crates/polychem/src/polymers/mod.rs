@@ -7,5 +7,4 @@ mod named_mod;
 mod offset_mod;
 pub mod polymer_database;
 mod residue;
-// FIXME: Make more private
-pub mod target;
+pub(crate) mod target;

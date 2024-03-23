@@ -11,7 +11,7 @@ use crate::{
         polymer_database::{BondDescription, ModificationDescription, PolymerDatabase},
         target::{Index, Target},
     },
-    AnyMod, AnyModification, Bond, BondTarget, Count, FunctionalGroup, GroupState, Id, NamedMod,
+    AnyMod, AnyModification, Bond, BondTarget, FunctionalGroup, GroupState, Id, NamedMod,
     PolychemError, Residue, Result,
 };
 
@@ -161,17 +161,22 @@ impl Groups<'_> {
     fn validate(self) -> Result<Self, PolymerizerError> {
         match self {
             Groups::Any(number) if number < 1 => Err(PolymerizerError::zero_group_number()),
-            Groups::These(groups) if groups.len() < 1 => Err(PolymerizerError::empty_group_set()),
+            Groups::These(groups) if groups.is_empty() => Err(PolymerizerError::empty_group_set()),
             valid => Ok(valid),
         }
     }
 }
 
-impl From<Count> for Groups<'_> {
-    fn from(value: Count) -> Self {
-        // SAFETY: This could only possibly panic on platforms with pointers smaller than `Count` bits — currently a
-        // u32. If someone gets this program running on a 16-bit platform, they 1) deserve a medal and 2) will have
-        // much bigger problems than this panic...
+// NOTE: Since this will only panic on 16-bit platforms, I couldn't test a `TryFrom` impl if I wanted to — I don't want
+// to add an entire error-handling code path that could never possibly be run. I'm intentionally using `u32` instead of
+// the more semantically correct `Count` here so that I get a compilation error if the type of `Count` is ever changed,
+// so I can re-evaluate if this panic is still impossible on the hardware this program can actually be run on.
+#[allow(clippy::fallible_impl_from)]
+impl From<u32> for Groups<'_> {
+    fn from(value: u32) -> Self {
+        // SAFETY: This could only possibly panic on platforms with pointers smaller than 32 bits. If someone gets this
+        // program running on a 16-bit platform, they 1) deserve a medal and 2) will have much bigger problems than
+        // this panic...
         Self::Any(usize::try_from(value).unwrap())
     }
 }
@@ -180,6 +185,7 @@ impl From<Count> for Groups<'_> {
 // NOTE: I can't unify these two to take anything that impls IntoIterator, because Count (a u32) might someday implement
 // IntoIterator, and then that definition would overlap with the one above — this is, yet again, an ugly bit of code
 // that's waiting on the stabilization of specialization...
+// FIXME: This will need to be more flexible about the type it takes... I'll want to take Vec, slices, and HashSets?
 impl<'p, const N: usize> From<[FunctionalGroup<'p>; N]> for Groups<'p> {
     fn from(value: [FunctionalGroup<'p>; N]) -> Self {
         Self::These(HashSet::from_iter(value))
@@ -188,18 +194,15 @@ impl<'p, const N: usize> From<[FunctionalGroup<'p>; N]> for Groups<'p> {
 
 impl<'p> From<Option<FunctionalGroup<'p>>> for Groups<'p> {
     fn from(value: Option<FunctionalGroup<'p>>) -> Self {
-        match value {
-            // NOTE: Annoyingly, `HashSet::from` only works for the std `RandomState`? If I wanted to change `from_iter`
-            // into just `from` here, I would need to use `AHashSet` instead...
-            Some(value) => Self::These(HashSet::from_iter([value])),
-            None => Self::Any(1),
-        }
+        // NOTE: Annoyingly, `HashSet::from` only works for the std `RandomState`? If I wanted to change `from_iter`
+        // into just `from` here, I would need to use `AHashSet` instead...
+        value.map_or_else(|| Self::Any(1), |_| Self::These(HashSet::from_iter(value)))
     }
 }
 
 impl<'a, 'p> Polymerizer<'a, 'p> {
     // FIXME: Needs a good look-over...
-    pub fn find_free_groups<T: Into<Target<&'p str>>>(
+    fn find_free_groups<T: Into<Target<&'p str>>>(
         &self,
         targets: &(impl IntoIterator<Item = T> + Copy),
         residue: &Residue<'a, 'p>,
@@ -432,19 +435,15 @@ impl<'p> Target<&'p str> {
 #[cfg(test)]
 mod tests {
     use insta::assert_ron_snapshot;
-    use itertools::Itertools;
     use once_cell::sync::Lazy;
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
 
     use crate::{
-        atoms::atomic_database::AtomicDatabase,
-        polymers::{polymer_database::PolymerDatabase, target::Target},
-        testing_tools::assert_miette_snapshot,
-        FunctionalGroup, GroupState, Massive, Modification, OffsetKind, OffsetMod,
+        testing_tools::assert_miette_snapshot, Massive, Modification, OffsetKind, OffsetMod,
     };
 
-    use super::Polymerizer;
+    use super::*;
 
     const STEM_RESIDUES: [&str; 4] = ["A", "E", "J", "A"];
 
@@ -507,73 +506,86 @@ mod tests {
         assert_miette_snapshot!(nonexistent_bond);
     }
 
-    // #[test]
-    // fn find_free_groups() {
-    //     let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-    //     let mut murnac = polymerizer.residue("m").unwrap();
+    #[test]
+    fn find_single_unambiguous_free_groups() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut murnac = polymerizer.residue("m").unwrap();
 
-    //     let carboxyl = Target::new("Carboxyl", None, None);
-    //     let carboxyl_group = polymerizer
-    //         .find_free_groups(&[carboxyl], &murnac, 1, &[])
-    //         .unwrap();
-    //     assert_eq!(carboxyl_group.len(), 1);
-    //     assert_eq!(
-    //         carboxyl_group[0],
-    //         FunctionalGroup::new("Carboxyl", "Lactyl Ether")
-    //     );
+        let carboxyl = Target::new("Carboxyl", None, None);
+        let carboxyl_group = polymerizer
+            .find_free_groups(&[carboxyl], &murnac, 1)
+            .unwrap();
+        assert_eq!(carboxyl_group.len(), 1);
+        assert!(carboxyl_group.contains(&FunctionalGroup::new("Carboxyl", "Lactyl Ether")));
 
-    //     let hydroxyl = Target::new("Hydroxyl", None, None);
-    //     let ambiguous_group = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[]);
-    //     assert_miette_snapshot!(ambiguous_group);
+        let zero_groups = polymerizer.find_free_groups(&[carboxyl], &murnac, 0);
+        assert_miette_snapshot!(zero_groups);
 
-    //     let murnac_groups = murnac.functional_groups.keys().copied().collect_vec();
-    //     for group in murnac_groups {
-    //         polymerizer.update_groups(&mut murnac, &[group], GroupState::Acceptor);
-    //     }
-    //     let all_groups_occupied = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[]);
-    //     assert_miette_snapshot!(all_groups_occupied);
+        let hydroxyl = Target::new("Hydroxyl", None, None);
+        let ambiguous_group = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1);
+        assert_miette_snapshot!(ambiguous_group);
 
-    //     // Start a new polymer by resetting the polymerizer
-    //     let mut polymerizer = polymerizer.reset();
-    //     let residue_not_in_polymer = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[]);
-    //     assert_miette_snapshot!(residue_not_in_polymer);
+        let murnac_groups = murnac.functional_groups.keys().copied().collect();
+        polymerizer.update_groups(&mut murnac, &murnac_groups, GroupState::Acceptor);
+        let all_groups_occupied = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1);
+        assert_miette_snapshot!(all_groups_occupied);
 
-    //     let mut murnac = polymerizer.residue("m").unwrap();
-    //     let amino = Target::new("Amino", None, None);
-    //     let crazy = Target::new("Crazy", None, None);
-    //     let no_matching_groups = polymerizer.find_free_groups(&[amino, crazy], &murnac, 1, &[]);
-    //     assert_miette_snapshot!(no_matching_groups);
+        // Start a new polymer by resetting the polymerizer
+        let mut polymerizer = polymerizer.reset();
+        let residue_not_in_polymer = polymerizer.find_free_groups(&[hydroxyl], &murnac, 1);
+        assert_miette_snapshot!(residue_not_in_polymer);
 
-    //     let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
-    //     let invalid_target = polymerizer.find_free_groups(&[crazy], &murnac, 1, &[nonreducing_end]);
-    //     assert_miette_snapshot!(invalid_target);
+        let murnac = polymerizer.residue("m").unwrap();
+        let amino = Target::new("Amino", None, None);
+        let crazy = Target::new("Crazy", None, None);
+        let no_matching_groups = polymerizer.find_free_groups(&[amino, crazy], &murnac, 1);
+        assert_miette_snapshot!(no_matching_groups);
+    }
 
-    //     polymerizer.update_groups(&mut murnac, &[nonreducing_end], GroupState::Acceptor);
-    //     let group_occupied =
-    //         polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[nonreducing_end]);
-    //     assert_miette_snapshot!(group_occupied);
+    #[test]
+    fn find_single_specific_free_groups() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut murnac = polymerizer.residue("m").unwrap();
 
-    //     polymerizer.update_groups(&mut murnac, &[nonreducing_end], GroupState::Free);
-    //     let hydroxyl_group = polymerizer
-    //         .find_free_groups(&[hydroxyl], &murnac, 1, &[nonreducing_end])
-    //         .unwrap();
-    //     assert_eq!(hydroxyl_group.len(), 1);
-    //     assert_eq!(
-    //         hydroxyl_group[0],
-    //         FunctionalGroup::new("Hydroxyl", "Nonreducing End")
-    //     );
+        let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
+        let hydroxyl = Target::new("Hydroxyl", None, None);
+        polymerizer.update_groups(
+            &mut murnac,
+            &HashSet::from_iter([nonreducing_end]),
+            GroupState::Acceptor,
+        );
+        let group_occupied = polymerizer.find_free_groups(&[hydroxyl], &murnac, [nonreducing_end]);
+        assert_miette_snapshot!(group_occupied);
 
-    //     // Start a new polymer by resetting the polymerizer
-    //     let mut polymerizer = polymerizer.reset();
-    //     let residue_not_in_polymer =
-    //         polymerizer.find_free_groups(&[hydroxyl], &murnac, 1, &[nonreducing_end]);
-    //     assert_miette_snapshot!(residue_not_in_polymer);
+        let empty_groups = polymerizer.find_free_groups(&[hydroxyl], &murnac, []);
+        assert_miette_snapshot!(empty_groups);
 
-    //     let alanine = polymerizer.residue("A").unwrap();
-    //     let nonexistent_group =
-    //         polymerizer.find_free_groups(&[hydroxyl], &alanine, 1, &[nonreducing_end]);
-    //     assert_miette_snapshot!(nonexistent_group);
-    // }
+        polymerizer.update_groups(
+            &mut murnac,
+            &HashSet::from_iter([nonreducing_end]),
+            GroupState::Free,
+        );
+        let hydroxyl_group = polymerizer
+            .find_free_groups(&[hydroxyl], &murnac, [nonreducing_end])
+            .unwrap();
+        assert_eq!(hydroxyl_group.len(), 1);
+        assert!(hydroxyl_group.contains(&FunctionalGroup::new("Hydroxyl", "Nonreducing End")));
+
+        // Start a new polymer by resetting the polymerizer
+        let mut polymerizer = polymerizer.reset();
+        let residue_not_in_polymer =
+            polymerizer.find_free_groups(&[hydroxyl], &murnac, [nonreducing_end]);
+        assert_miette_snapshot!(residue_not_in_polymer);
+
+        let alanine = polymerizer.residue("A").unwrap();
+        let nonexistent_group =
+            polymerizer.find_free_groups(&[hydroxyl], &alanine, [nonreducing_end]);
+        assert_miette_snapshot!(nonexistent_group);
+
+        let crazy = Target::new("Crazy", None, None);
+        let invalid_target = polymerizer.find_free_groups(&[crazy], &murnac, [nonreducing_end]);
+        assert_miette_snapshot!(invalid_target);
+    }
 
     #[test]
     fn modify_group() {
