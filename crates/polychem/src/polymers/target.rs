@@ -11,7 +11,7 @@ use ahash::{HashMap, HashMapExt};
 
 // Public API ==========================================================================================================
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct Target<S: Deref<Target = str> = String> {
     pub group: S,

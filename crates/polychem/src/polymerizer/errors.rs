@@ -11,7 +11,8 @@ use crate::{polymers::target::Target, FunctionalGroup, Id, Residue};
 #[diagnostic(transparent)]
 pub struct Error(#[from] PolymerizerError);
 
-#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
+// FIXME: All of these `derive`s need reordering...
+#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Ord, PartialOrd, Error)]
 pub enum PolymerizerError {
     #[error(
         "{} functional groups on residue {0} matching the target were free{}: {3}",
@@ -54,7 +55,7 @@ pub enum PolymerizerError {
     #[error("received an empty group set, but you must provide at least one group to look for")]
     EmptyGroupSet,
 
-    #[error("failed to find multiple requested free groups")]
+    #[error("failed to find multiple of the requested free groups")]
     MultipleMissingFreeGroups(#[related] Vec<PolymerizerError>),
 }
 
@@ -136,7 +137,8 @@ impl PolymerizerError {
         Self::EmptyGroupSet
     }
 
-    pub(super) const fn multiple_missing_free_groups(errors: Vec<Self>) -> Self {
+    pub(super) fn multiple_missing_free_groups(mut errors: Vec<Self>) -> Self {
+        errors.sort_unstable();
         Self::MultipleMissingFreeGroups(errors)
     }
 

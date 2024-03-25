@@ -1,0 +1,7 @@
+---
+source: crates/polychem/src/polymerizer/mod.rs
+description: invalid_target
+expression: out
+---
+  × expected a target matching "Hydroxyl", got "Amino" at="N-Terminal" of="N-
+  │ Acetylmuramic Acid"

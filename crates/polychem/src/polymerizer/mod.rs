@@ -400,8 +400,6 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         }
     }
 
-    // FIXME: Improve this to take all of the not-found groups simultaneously (instead of only being able to report on
-    // one group at a time!) Use a loop and a parent error with #related?
     fn diagnose_missing_groups_these<T: Into<Target<&'p str>>>(
         &self,
         targets: &(impl IntoIterator<Item = T> + Copy),
@@ -654,6 +652,78 @@ mod tests {
         assert_eq!(terminals.len(), 2);
         assert!(terminals.contains(&FunctionalGroup::new("Amino", "N-Terminal")));
         assert!(terminals.contains(&FunctionalGroup::new("Carboxyl", "C-Terminal")));
+    }
+
+    #[test]
+    fn find_multiple_specific_free_groups() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut murnac = polymerizer.residue("m").unwrap();
+
+        let hydroxyl = Target::new("Hydroxyl", None, None);
+        let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
+        let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
+        let six_position = FunctionalGroup::new("Hydroxyl", "6-Position");
+
+        let one_hydroxyl_group = polymerizer
+            .find_free_groups(&[hydroxyl], &murnac, [reducing_end])
+            .unwrap();
+        assert_eq!(one_hydroxyl_group.len(), 1);
+        assert!(one_hydroxyl_group.contains(&reducing_end));
+
+        let two_hydroxyl_groups = polymerizer
+            .find_free_groups(&[hydroxyl], &murnac, [reducing_end, nonreducing_end])
+            .unwrap();
+        assert_eq!(two_hydroxyl_groups.len(), 2);
+        assert!(two_hydroxyl_groups.contains(&reducing_end));
+        assert!(two_hydroxyl_groups.contains(&nonreducing_end));
+
+        let all_hydroxyl_groups = polymerizer
+            .find_free_groups(
+                &[hydroxyl],
+                &murnac,
+                [reducing_end, nonreducing_end, six_position],
+            )
+            .unwrap();
+        assert_eq!(all_hydroxyl_groups.len(), 3);
+        assert!(all_hydroxyl_groups.contains(&reducing_end));
+        assert!(all_hydroxyl_groups.contains(&nonreducing_end));
+        assert!(all_hydroxyl_groups.contains(&six_position));
+
+        let n_terminal = FunctionalGroup::new("Amino", "N-Terminal");
+        let invalid_target = polymerizer.find_free_groups(
+            &[hydroxyl],
+            &murnac,
+            [reducing_end, nonreducing_end, six_position, n_terminal],
+        );
+        assert_miette_snapshot!(invalid_target);
+
+        let crazy = Target::new("Crazy", None, None);
+        let still_invalid_target = polymerizer.find_free_groups(
+            &[hydroxyl, crazy],
+            &murnac,
+            [reducing_end, nonreducing_end, six_position, n_terminal],
+        );
+        assert_miette_snapshot!(still_invalid_target);
+
+        let amino = Target::new("Amino", None, None);
+        let nonexistent_group = polymerizer.find_free_groups(
+            &[hydroxyl, crazy, amino],
+            &murnac,
+            [reducing_end, nonreducing_end, six_position, n_terminal],
+        );
+        assert_miette_snapshot!(nonexistent_group);
+
+        polymerizer.update_groups(
+            &mut murnac,
+            &HashSet::from_iter([nonreducing_end]),
+            GroupState::Acceptor,
+        );
+        let multiple_errors = polymerizer.find_free_groups(
+            &[hydroxyl, crazy, amino],
+            &murnac,
+            [reducing_end, nonreducing_end, six_position, n_terminal],
+        );
+        assert_miette_snapshot!(multiple_errors);
     }
 
     #[test]
