@@ -227,9 +227,8 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
                 if groups.is_subset(&free_groups) {
                     Ok(groups)
                 } else {
-                    // SAFETY: If `groups` isn't a subset, then it must have at least one element `free_groups` doesn't
-                    let not_free = groups.difference(&free_groups).next().unwrap();
-                    Err(self.diagnose_missing_groups_these(targets, residue, *not_free))
+                    let not_free: Vec<_> = groups.difference(&free_groups).copied().collect();
+                    Err(self.diagnose_missing_groups_these(targets, residue, &not_free))
                 }
             }
         }
@@ -407,27 +406,38 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         &self,
         targets: &(impl IntoIterator<Item = T> + Copy),
         residue: &Residue<'a, 'p>,
-        group: FunctionalGroup<'p>,
+        groups: &[FunctionalGroup<'p>],
     ) -> PolymerizerError {
-        let current_target = Target::from_residue_and_group(residue, group);
+        let mut errors: Vec<_> = groups
+            .iter()
+            .map(|&group| {
+                let current_target = Target::from_residue_and_group(residue, group);
 
-        let theoretically_possible = targets
-            .into_iter()
-            .any(|possible_target| current_target.matches(&possible_target.into()));
-        let group_in_index = self
-            .residue_groups(&[current_target], residue)
-            .next()
-            .is_some();
-        let residue_has_group = residue.functional_groups.contains_key(&group);
+                let theoretically_possible = targets
+                    .into_iter()
+                    .any(|possible_target| current_target.matches(&possible_target.into()));
+                let group_in_index = self
+                    .residue_groups(&[current_target], residue)
+                    .next()
+                    .is_some();
+                let residue_has_group = residue.functional_groups.contains_key(&group);
 
-        if !theoretically_possible {
-            PolymerizerError::invalid_target(targets, &current_target)
-        } else if group_in_index {
-            PolymerizerError::group_occupied(group, residue)
-        } else if residue_has_group {
-            PolymerizerError::residue_not_in_polymer(residue)
+                if !theoretically_possible {
+                    PolymerizerError::invalid_target(targets, &current_target)
+                } else if group_in_index {
+                    PolymerizerError::group_occupied(group, residue)
+                } else if residue_has_group {
+                    PolymerizerError::residue_not_in_polymer(residue)
+                } else {
+                    PolymerizerError::nonexistent_group(group, residue)
+                }
+            })
+            .collect();
+        if errors.len() == 1 {
+            // SAFETY: We've just checked that there is one item is present in the Vec, so this will never panic
+            errors.remove(0)
         } else {
-            PolymerizerError::nonexistent_group(group, residue)
+            PolymerizerError::multiple_missing_free_groups(errors)
         }
     }
 }

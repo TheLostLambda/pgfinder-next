@@ -11,7 +11,6 @@ use crate::{polymers::target::Target, FunctionalGroup, Id, Residue};
 #[diagnostic(transparent)]
 pub struct Error(#[from] PolymerizerError);
 
-// FIXME: Should probably break this error handling out into a sub-module...
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 pub enum PolymerizerError {
     #[error(
@@ -54,8 +53,13 @@ pub enum PolymerizerError {
 
     #[error("received an empty group set, but you must provide at least one group to look for")]
     EmptyGroupSet,
+
+    #[error("failed to find multiple requested free groups")]
+    MultipleMissingFreeGroups(#[related] Vec<PolymerizerError>),
 }
 
+// FIXME: If this were made an impl on `Error`, then I could make the `PolymerizerError` private and these methods
+// would be the only way to construct these errors (you couldn't build them manually accidentially)
 impl PolymerizerError {
     pub(super) fn groups_occupied(
         residue: &Residue,
@@ -130,6 +134,10 @@ impl PolymerizerError {
 
     pub(super) const fn empty_group_set() -> Self {
         Self::EmptyGroupSet
+    }
+
+    pub(super) const fn multiple_missing_free_groups(errors: Vec<Self>) -> Self {
+        Self::MultipleMissingFreeGroups(errors)
     }
 
     // FIXME: No clue where this belongs...
