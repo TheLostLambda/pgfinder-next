@@ -204,7 +204,7 @@ mod tests {
 
     use once_cell::sync::Lazy;
 
-    use super::{Index, Target};
+    use super::*;
 
     static TARGET_LIST: Lazy<[(Target<&str>, &str); 3]> = Lazy::new(|| {
         [

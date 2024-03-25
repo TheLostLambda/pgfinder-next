@@ -44,10 +44,9 @@ mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::{
-        atoms::atomic_database::AtomicDatabase, testing_tools::assert_miette_snapshot, Charged,
-        Massive, Mz, OffsetKind, OffsetMod,
-    };
+    use crate::testing_tools::assert_miette_snapshot;
+
+    use super::*;
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 

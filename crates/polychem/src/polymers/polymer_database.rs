@@ -578,19 +578,13 @@ impl ChemistryErrorKind {
 mod tests {
     use indoc::indoc;
     use insta::{assert_debug_snapshot, assert_ron_snapshot, with_settings};
-    use miette::{Diagnostic, Report, Result};
+    use miette::{Diagnostic, Report};
     use once_cell::sync::Lazy;
     use thiserror::Error;
 
-    use crate::{
-        atoms::atomic_database::AtomicDatabase, polymers::target::Index,
-        testing_tools::assert_miette_snapshot,
-    };
+    use crate::testing_tools::assert_miette_snapshot;
 
-    use super::{
-        Bonds, BondsKdl, ChemistryError, Modifications, ModificationsKdl, PolymerDatabase,
-        PolymerDatabaseKdl, Residues, ResiduesKdl, Targets, ValidateInto,
-    };
+    use super::*;
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 

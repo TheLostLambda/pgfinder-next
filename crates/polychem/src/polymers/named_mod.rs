@@ -59,10 +59,9 @@ mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::{
-        atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-        testing_tools::assert_miette_snapshot, Charged, Massive, Mz, NamedMod,
-    };
+    use crate::{testing_tools::assert_miette_snapshot, AtomicDatabase};
+
+    use super::*;
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 

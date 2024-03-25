@@ -43,8 +43,10 @@ mod tests {
 
     use crate::{
         atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-        AnyMod, Charged, Massive, Modification, Mz, NamedMod, OffsetKind, OffsetMod,
+        AnyMod, NamedMod, OffsetKind, OffsetMod,
     };
+
+    use super::*;
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 

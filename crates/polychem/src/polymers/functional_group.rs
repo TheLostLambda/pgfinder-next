@@ -28,7 +28,7 @@ impl Display for FunctionalGroup<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::FunctionalGroup;
+    use super::*;
 
     #[test]
     fn display() {

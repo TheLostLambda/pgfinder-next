@@ -50,9 +50,9 @@ mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::{testing_tools::assert_miette_snapshot, Charged, Massive};
+    use crate::testing_tools::assert_miette_snapshot;
 
-    use super::{AtomicDatabase, Particle};
+    use super::*;
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 

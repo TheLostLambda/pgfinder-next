@@ -116,10 +116,11 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-        testing_tools::assert_miette_snapshot, Bond, BondTarget, Charged, FunctionalGroup,
-        GroupState, Massive, Modification, Mz, NamedMod, OffsetKind, OffsetMod, Residue,
+        testing_tools::assert_miette_snapshot, AtomicDatabase, Bond, BondTarget, Modification,
+        NamedMod, OffsetKind, OffsetMod,
     };
+
+    use super::*;
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
