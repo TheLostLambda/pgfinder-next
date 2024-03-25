@@ -139,11 +139,7 @@ impl<'a, E: LabeledErrorKind> LabeledParseError<'a, E> {
         Self::new_with_source(input, kind, None)
     }
 
-    pub fn new_with_source(
-        input: &'a str,
-        kind: E,
-        source: Option<LabeledParseError<'a, E>>,
-    ) -> Self {
+    pub fn new_with_source(input: &'a str, kind: E, source: Option<Self>) -> Self {
         Self::Node {
             input,
             length: 0,
