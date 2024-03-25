@@ -14,14 +14,21 @@ pub struct Error(#[from] PolymerizerError);
 // FIXME: Should probably break this error handling out into a sub-module...
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 pub enum PolymerizerError {
-    #[error("no functional groups on residue {0} matching the target were free: {1}")]
-    AllGroupsOccupied(Id, String),
+    #[error(
+        "{} functional groups on residue {0} matching the target were free{}: {3}",
+        if .2 > &1 { "too few" } else { "no" },
+        if .2 > &1 { format!(" ({}/{})", .1, .2) } else { String::new() }
+    )]
+    GroupsOccupied(Id, usize, usize, String),
 
     #[error("the functional group {0} of residue {1} was already {2}, but must be free")]
     GroupOccupied(String, Id, String),
 
-    #[error("no functional groups on residue {0} matched the target {1}")]
-    NoMatchingGroups(Id, String),
+    #[error("{} functional groups on residue {0} matched the target {1}{}",
+        if .3 > &1 { "too few" } else { "no" },
+        if .3 > &1 { format!(" ({}/{}): {}", .2, .3, .4) } else { String::new() }
+    )]
+    TooFewMatchingGroups(Id, String, usize, usize, String),
 
     #[error("the functional group {0} does not exist on residue {1}")]
     NonexistentGroup(String, Id),
@@ -50,10 +57,12 @@ pub enum PolymerizerError {
 }
 
 impl PolymerizerError {
-    pub(super) fn all_groups_occupied(
+    pub(super) fn groups_occupied(
         residue: &Residue,
         groups: &[(FunctionalGroup, bool)],
+        number: usize,
     ) -> Self {
+        let free_groups = groups.iter().filter(|(_, free)| *free).count();
         let groups_with_states = Self::comma_list(
             groups.iter().map(|(fg, _)| {
                 let fg_state = residue.group_state(fg).unwrap();
@@ -61,7 +70,7 @@ impl PolymerizerError {
             }),
             "and",
         );
-        Self::AllGroupsOccupied(residue.id(), groups_with_states)
+        Self::GroupsOccupied(residue.id(), free_groups, number, groups_with_states)
     }
 
     pub(super) fn group_occupied(group: FunctionalGroup, residue: &Residue) -> Self {
@@ -72,12 +81,22 @@ impl PolymerizerError {
         )
     }
 
-    pub(super) fn no_matching_groups<'a, T: Into<Target<&'a str>>>(
+    pub(super) fn too_few_matching_groups<'a, T: Into<Target<&'a str>>>(
         residue: &Residue,
         valid_targets: &(impl IntoIterator<Item = T> + Copy),
+        found_groups: &[FunctionalGroup],
+        number: usize,
     ) -> Self {
         let valid_targets = Self::comma_list(valid_targets.into_iter().map(Into::into), "or");
-        Self::NoMatchingGroups(residue.id(), valid_targets)
+        let number_found = found_groups.len();
+        let found_groups = Self::comma_list(found_groups, "and");
+        Self::TooFewMatchingGroups(
+            residue.id(),
+            valid_targets,
+            number_found,
+            number,
+            found_groups,
+        )
     }
 
     pub(super) fn nonexistent_group(group: FunctionalGroup, residue: &Residue) -> Self {

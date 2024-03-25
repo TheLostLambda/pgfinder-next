@@ -1,0 +1,8 @@
+---
+source: crates/polychem/src/polymerizer/mod.rs
+description: groups_occupied
+expression: out
+---
+  × too few functional groups on residue 1 matching the target were free
+  │ (2/3): "Hydroxyl" at="6-Position" is free, "Hydroxyl" at="Nonreducing End"
+  │ is an acceptor, and "Hydroxyl" at="Reducing End" is free
