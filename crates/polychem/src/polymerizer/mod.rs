@@ -121,7 +121,16 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         self.modify_with_optional_groups(abbr, target, Some(target_group))
     }
 
-    // TODO: Add modify_groups() which takes a slice of target groups
+    // PERF: Could create an `_unchecked` version for when you've already called `self.free_*_groups()` — skip straight
+    // to `self.update_group()`!
+    pub fn modify_groups(
+        &mut self,
+        abbr: impl AsRef<str>,
+        target: &mut Residue<'a, 'p>,
+        target_groups: &[FunctionalGroup<'p>],
+    ) -> Result<()> {
+        self.modify_with_optional_groups(abbr, target, target_groups)
+    }
 
     pub fn bond(
         &mut self,
@@ -806,41 +815,66 @@ mod tests {
         assert_miette_snapshot!(nonexistent_modification);
     }
 
-    // #[test]
-    // fn modify_groups() {
-    //     let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-    //     let mut murnac = polymerizer.residue("m").unwrap();
-    //     assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
+    #[test]
+    fn modify_groups() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut murnac = polymerizer.residue("m").unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
 
-    //     // let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
-    //     // polymerizer
-    //     //     .modify_groups("Anh", &mut murnac, reducing_end)
-    //     //     .unwrap();
-    //     // assert_eq!(murnac.monoisotopic_mass(), dec!(275.10050188933));
-    //     // assert!(matches!(
-    //     //     murnac.group_state(&reducing_end).unwrap(),
-    //     //     GroupState::Modified(_)
-    //     // ));
+        let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
+        let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
+        let six_position = FunctionalGroup::new("Hydroxyl", "6-Position");
 
-    //     // let modify_non_free_group = polymerizer.modify_groups("Anh", &mut murnac, reducing_end);
-    //     // assert_miette_snapshot!(modify_non_free_group);
+        polymerizer
+            .modify_groups("Met", &mut murnac, &[nonreducing_end, six_position])
+            .unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(321.14236670228));
+        assert!(murnac.group_state(&reducing_end).unwrap().is_free());
+        assert!(matches!(
+            murnac.group_state(&nonreducing_end).unwrap(),
+            GroupState::Modified(_)
+        ));
+        assert!(matches!(
+            murnac.group_state(&six_position).unwrap(),
+            GroupState::Modified(_)
+        ));
 
-    //     // // Start a new polymer by resetting the polymerizer
-    //     // let mut polymerizer = polymerizer.reset();
-    //     // let residue_from_wrong_polymer =
-    //     //     polymerizer.modify_groups("Anh", &mut murnac, reducing_end);
-    //     // assert_miette_snapshot!(residue_from_wrong_polymer);
+        let modify_non_free_group =
+            polymerizer.modify_groups("Ca", &mut murnac, &[reducing_end, six_position]);
+        assert_miette_snapshot!(modify_non_free_group);
 
-    //     // let invalid_group = polymerizer.modify_groups("Ac", &mut murnac, reducing_end);
-    //     // assert_miette_snapshot!(invalid_group);
+        let modify_invalid_group =
+            polymerizer.modify_groups("Anh", &mut murnac, &[reducing_end, six_position]);
+        assert_miette_snapshot!(modify_invalid_group);
 
-    //     // let mut alanine = polymerizer.residue("A").unwrap();
-    //     // let nonexistent_group = polymerizer.modify_groups("Red", &mut alanine, reducing_end);
-    //     // assert_miette_snapshot!(nonexistent_group);
+        polymerizer
+            .modify_groups("Anh", &mut murnac, &[reducing_end])
+            .unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(303.13180201825));
+        assert!(matches!(
+            murnac.group_state(&reducing_end).unwrap(),
+            GroupState::Modified(_)
+        ));
 
-    //     // let nonexistent_modification = polymerizer.modify_groups("Arg", &mut murnac, reducing_end);
-    //     // assert_miette_snapshot!(nonexistent_modification);
-    // }
+        let modify_multiple_errors =
+            polymerizer.modify_groups("Anh", &mut murnac, &[reducing_end, six_position]);
+        assert_miette_snapshot!(modify_multiple_errors);
+
+        // Start a new polymer by resetting the polymerizer
+        let mut polymerizer = polymerizer.reset();
+        let residue_from_wrong_polymer =
+            polymerizer.modify_groups("Anh", &mut murnac, &[reducing_end, six_position]);
+        assert_miette_snapshot!(residue_from_wrong_polymer);
+
+        let mut alanine = polymerizer.residue("A").unwrap();
+        let nonexistent_group =
+            polymerizer.modify_groups("Red", &mut alanine, &[reducing_end, six_position]);
+        assert_miette_snapshot!(nonexistent_group);
+
+        let nonexistent_modification =
+            polymerizer.modify_groups("Arg", &mut murnac, &[reducing_end]);
+        assert_miette_snapshot!(nonexistent_modification);
+    }
 
     #[test]
     fn bond_groups() {

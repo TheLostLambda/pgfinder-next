@@ -1,0 +1,14 @@
+---
+source: crates/polychem/src/polymerizer/mod.rs
+description: nonexistent_group
+expression: out
+---
+  × failed to apply the modification Reduced (Red) to residue 1 (Alanine)
+  ╰─▶   × failed to find multiple of the requested free groups
+      
+      Error:   × the functional group "Hydroxyl" at="Reducing End" does not
+      exist on
+        │ residue 1
+      Error:   × expected a target matching "Hydroxyl" at="Reducing End",
+      got "Hydroxyl"
+        │ at="6-Position" of="Alanine"
