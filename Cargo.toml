@@ -18,7 +18,8 @@ members = [
 dead_code = "allow"
 
 [dependencies]
-miette = { version = "7.2.0", features = ["fancy"] }
+# miette = { version = "7.2.0", features = ["fancy"] }
+miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
 once_cell = "1.19.0"
 polychem = { path = "crates/polychem/" }
 rustyline = "14.0.0"
