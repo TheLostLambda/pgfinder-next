@@ -78,11 +78,11 @@ impl PolymerizerError {
         Self::GroupsOccupied(residue.id(), free_groups, number, groups_with_states)
     }
 
-    pub(super) fn group_occupied(group: FunctionalGroup, residue: &Residue) -> Self {
+    pub(super) fn group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
         Self::GroupOccupied(
             group.to_string(),
             residue.id(),
-            residue.group_state(&group).unwrap().to_string(),
+            residue.group_state(group).unwrap().to_string(),
         )
     }
 
@@ -104,7 +104,7 @@ impl PolymerizerError {
         )
     }
 
-    pub(super) fn nonexistent_group(group: FunctionalGroup, residue: &Residue) -> Self {
+    pub(super) fn nonexistent_group(group: &FunctionalGroup, residue: &Residue) -> Self {
         Self::NonexistentGroup(group.to_string(), residue.id())
     }
 

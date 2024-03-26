@@ -55,7 +55,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         let residue = Residue::new(self.polymer_db, abbr, self.residue_counter)?;
 
         // NOTE: This assumes that all functional groups returned by `Residue::new()` start free!
-        for &group in residue.functional_groups.keys() {
+        for group in residue.functional_groups.keys() {
             let target = Target::from_residue_and_group(&residue, group);
             self.free_group_index
                 .entry(target)
@@ -116,9 +116,9 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         &mut self,
         abbr: impl AsRef<str>,
         target: &mut Residue<'a, 'p>,
-        target_group: FunctionalGroup<'p>,
+        target_group: &FunctionalGroup<'p>,
     ) -> Result<()> {
-        self.modify_with_optional_groups(abbr, target, [target_group])
+        self.modify_with_optional_groups(abbr, target, Some(target_group))
     }
 
     // TODO: Add modify_groups() which takes a slice of target groups
@@ -138,9 +138,9 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         &mut self,
         kind: impl AsRef<str>,
         donor: &mut Residue<'a, 'p>,
-        donor_group: FunctionalGroup<'p>,
+        donor_group: &FunctionalGroup<'p>,
         acceptor: &mut Residue<'a, 'p>,
-        acceptor_group: FunctionalGroup<'p>,
+        acceptor_group: &FunctionalGroup<'p>,
     ) -> Result<()> {
         self.bond_with_optional_groups(
             kind,
@@ -206,22 +206,26 @@ impl From<u32> for Groups<'_> {
     }
 }
 
-// FIXME: Update comment!
-// NOTE: I can't unify these two to take anything that impls IntoIterator, because Count (a u32) might someday implement
-// IntoIterator, and then that definition would overlap with the one above — this is, yet again, an ugly bit of code
-// that's waiting on the stabilization of specialization...
-// FIXME: This will need to be more flexible about the type it takes... I'll want to take Vec, slices, and HashSets?
 impl<'p, const N: usize> From<[FunctionalGroup<'p>; N]> for Groups<'p> {
     fn from(value: [FunctionalGroup<'p>; N]) -> Self {
         Self::These(HashSet::from_iter(value))
     }
 }
 
-impl<'p> From<Option<FunctionalGroup<'p>>> for Groups<'p> {
-    fn from(value: Option<FunctionalGroup<'p>>) -> Self {
+impl<'p> From<&[FunctionalGroup<'p>]> for Groups<'p> {
+    fn from(value: &[FunctionalGroup<'p>]) -> Self {
+        Self::These(value.iter().copied().collect())
+    }
+}
+
+impl<'p> From<Option<&FunctionalGroup<'p>>> for Groups<'p> {
+    fn from(value: Option<&FunctionalGroup<'p>>) -> Self {
         // NOTE: Annoyingly, `HashSet::from` only works for the std `RandomState`? If I wanted to change `from_iter`
         // into just `from` here, I would need to use `AHashSet` instead...
-        value.map_or_else(|| Self::Any(1), |_| Self::These(HashSet::from_iter(value)))
+        value.map_or_else(
+            || Self::Any(1),
+            |_| Self::These(value.into_iter().copied().collect()),
+        )
     }
 }
 
@@ -265,7 +269,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         group_state: GroupState<'a, 'p>,
     ) {
         for target_group in target_groups {
-            let current_target = Target::from_residue_and_group(target, *target_group);
+            let current_target = Target::from_residue_and_group(target, target_group);
 
             // SAFETY: These `.unwrap()`s might panic if the target hasn't first been validated by `self.find_free_group()`!
             self.free_group_index
@@ -313,9 +317,9 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         &mut self,
         kind: impl AsRef<str>,
         donor: &mut Residue<'a, 'p>,
-        donor_group: Option<FunctionalGroup<'p>>,
+        donor_group: Option<&FunctionalGroup<'p>>,
         acceptor: &mut Residue<'a, 'p>,
-        acceptor_group: Option<FunctionalGroup<'p>>,
+        acceptor_group: Option<&FunctionalGroup<'p>>,
     ) -> Result<()> {
         let (kind, BondDescription { from, to, lost }) =
             Bond::lookup_description(self.polymer_db, kind)?;
@@ -400,13 +404,9 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             .into_iter()
             .flat_map(|possible_target| {
                 let possible_target = possible_target.into();
-                residue
-                    .functional_groups
-                    .keys()
-                    .copied()
-                    .filter(move |&fg| {
-                        Target::from_residue_and_group(residue, fg).matches(&possible_target)
-                    })
+                residue.functional_groups.keys().copied().filter(move |fg| {
+                    Target::from_residue_and_group(residue, fg).matches(&possible_target)
+                })
             })
             .collect();
 
@@ -432,7 +432,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
     ) -> PolymerizerError {
         let mut errors: Vec<_> = groups
             .iter()
-            .map(|&group| {
+            .map(|group| {
                 let current_target = Target::from_residue_and_group(residue, group);
 
                 let theoretically_possible = targets
@@ -442,7 +442,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
                     .residue_groups(&[current_target], residue)
                     .next()
                     .is_some();
-                let residue_has_group = residue.functional_groups.contains_key(&group);
+                let residue_has_group = residue.functional_groups.contains_key(group);
 
                 if !theoretically_possible {
                     PolymerizerError::invalid_target(targets, &current_target)
@@ -468,8 +468,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
 impl<'p> Target<&'p str> {
     pub(crate) const fn from_residue_and_group(
         residue: &Residue<'_, 'p>,
-        // FIXME: Should I be passing this by reference?!
-        group: FunctionalGroup<'p>,
+        group: &FunctionalGroup<'p>,
     ) -> Self {
         Self::new(group.name, Some(group.location), Some(residue.name))
     }
@@ -779,7 +778,7 @@ mod tests {
 
         let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
         polymerizer
-            .modify_group("Anh", &mut murnac, reducing_end)
+            .modify_group("Anh", &mut murnac, &reducing_end)
             .unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(275.10050188933));
         assert!(matches!(
@@ -787,24 +786,61 @@ mod tests {
             GroupState::Modified(_)
         ));
 
-        let modify_non_free_group = polymerizer.modify_group("Anh", &mut murnac, reducing_end);
+        let modify_non_free_group = polymerizer.modify_group("Anh", &mut murnac, &reducing_end);
         assert_miette_snapshot!(modify_non_free_group);
 
         // Start a new polymer by resetting the polymerizer
         let mut polymerizer = polymerizer.reset();
-        let residue_from_wrong_polymer = polymerizer.modify_group("Anh", &mut murnac, reducing_end);
+        let residue_from_wrong_polymer =
+            polymerizer.modify_group("Anh", &mut murnac, &reducing_end);
         assert_miette_snapshot!(residue_from_wrong_polymer);
 
-        let invalid_group = polymerizer.modify_group("Ac", &mut murnac, reducing_end);
+        let invalid_group = polymerizer.modify_group("Ac", &mut murnac, &reducing_end);
         assert_miette_snapshot!(invalid_group);
 
         let mut alanine = polymerizer.residue("A").unwrap();
-        let nonexistent_group = polymerizer.modify_group("Red", &mut alanine, reducing_end);
+        let nonexistent_group = polymerizer.modify_group("Red", &mut alanine, &reducing_end);
         assert_miette_snapshot!(nonexistent_group);
 
-        let nonexistent_modification = polymerizer.modify_group("Arg", &mut murnac, reducing_end);
+        let nonexistent_modification = polymerizer.modify_group("Arg", &mut murnac, &reducing_end);
         assert_miette_snapshot!(nonexistent_modification);
     }
+
+    // #[test]
+    // fn modify_groups() {
+    //     let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+    //     let mut murnac = polymerizer.residue("m").unwrap();
+    //     assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
+
+    //     // let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
+    //     // polymerizer
+    //     //     .modify_groups("Anh", &mut murnac, reducing_end)
+    //     //     .unwrap();
+    //     // assert_eq!(murnac.monoisotopic_mass(), dec!(275.10050188933));
+    //     // assert!(matches!(
+    //     //     murnac.group_state(&reducing_end).unwrap(),
+    //     //     GroupState::Modified(_)
+    //     // ));
+
+    //     // let modify_non_free_group = polymerizer.modify_groups("Anh", &mut murnac, reducing_end);
+    //     // assert_miette_snapshot!(modify_non_free_group);
+
+    //     // // Start a new polymer by resetting the polymerizer
+    //     // let mut polymerizer = polymerizer.reset();
+    //     // let residue_from_wrong_polymer =
+    //     //     polymerizer.modify_groups("Anh", &mut murnac, reducing_end);
+    //     // assert_miette_snapshot!(residue_from_wrong_polymer);
+
+    //     // let invalid_group = polymerizer.modify_groups("Ac", &mut murnac, reducing_end);
+    //     // assert_miette_snapshot!(invalid_group);
+
+    //     // let mut alanine = polymerizer.residue("A").unwrap();
+    //     // let nonexistent_group = polymerizer.modify_groups("Red", &mut alanine, reducing_end);
+    //     // assert_miette_snapshot!(nonexistent_group);
+
+    //     // let nonexistent_modification = polymerizer.modify_groups("Arg", &mut murnac, reducing_end);
+    //     // assert_miette_snapshot!(nonexistent_modification);
+    // }
 
     #[test]
     fn bond_groups() {
@@ -819,7 +855,7 @@ mod tests {
         let lactyl = FunctionalGroup::new("Carboxyl", "Lactyl Ether");
         let n_terminal = FunctionalGroup::new("Amino", "N-Terminal");
         polymerizer
-            .bond_groups("Stem", &mut murnac, lactyl, &mut alanine, n_terminal)
+            .bond_groups("Stem", &mut murnac, &lactyl, &mut alanine, &n_terminal)
             .unwrap();
         assert_eq!(
             murnac.monoisotopic_mass() + alanine.monoisotopic_mass(),
@@ -835,19 +871,24 @@ mod tests {
         ));
 
         let groups_not_free =
-            polymerizer.bond_groups("Stem", &mut murnac, lactyl, &mut alanine, n_terminal);
+            polymerizer.bond_groups("Stem", &mut murnac, &lactyl, &mut alanine, &n_terminal);
         assert_miette_snapshot!(groups_not_free);
 
         let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
         let mut glcnac = polymerizer.residue("g").unwrap();
-        let invalid_bond =
-            polymerizer.bond_groups("Peptide", &mut alanine, c_terminal, &mut glcnac, n_terminal);
+        let invalid_bond = polymerizer.bond_groups(
+            "Peptide",
+            &mut alanine,
+            &c_terminal,
+            &mut glcnac,
+            &n_terminal,
+        );
         assert_miette_snapshot!(invalid_bond);
         // When bonding fails due to the acceptor, make sure that the donor remains untouched
         assert!(alanine.group_state(&c_terminal).unwrap().is_free());
 
         let nonexistent_bond =
-            polymerizer.bond_groups("Super", &mut murnac, lactyl, &mut alanine, n_terminal);
+            polymerizer.bond_groups("Super", &mut murnac, &lactyl, &mut alanine, &n_terminal);
         assert_miette_snapshot!(nonexistent_bond);
     }
 
