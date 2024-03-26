@@ -32,3 +32,8 @@ check-wasm:
 ebnf:
   ebnf2railroad grammar/peptidoglycan.ebnf -t PGLang --write-style
   firefox grammar/peptidoglycan.html
+
+wipe-snapshots:
+  fd -e snap -I -x rm {}
+  cargo insta test --accept
+  sh -c 'for crate in `ls crates`; do (cd "crates/$crate" && cargo insta test --accept); done'

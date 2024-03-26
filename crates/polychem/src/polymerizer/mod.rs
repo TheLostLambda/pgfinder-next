@@ -80,7 +80,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
     }
 
     // FIXME: Might want to call this `modify` and either delete or rename the other, less-useful `modify`
-    pub fn apply_modification(
+    pub fn modify(
         &mut self,
         modification: impl Into<AnyModification<'a, 'p>>,
         target: &mut Residue<'a, 'p>,
@@ -95,7 +95,11 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         }
     }
 
-    pub fn modify(&mut self, abbr: impl AsRef<str>, target: &mut Residue<'a, 'p>) -> Result<()> {
+    pub fn modify_only_group(
+        &mut self,
+        abbr: impl AsRef<str>,
+        target: &mut Residue<'a, 'p>,
+    ) -> Result<()> {
         self.modify_with_optional_groups(abbr, target, 1)
     }
 
@@ -840,12 +844,12 @@ mod tests {
     }
 
     #[test]
-    fn modify() {
+    fn modify_only_group() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
         let mut murnac = polymerizer.residue("m").unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
 
-        polymerizer.modify("Anh", &mut murnac).unwrap();
+        polymerizer.modify_only_group("Anh", &mut murnac).unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(275.10050188933));
         let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
         assert!(matches!(
@@ -853,19 +857,19 @@ mod tests {
             GroupState::Modified(_)
         ));
 
-        let all_groups_occupied = polymerizer.modify("Anh", &mut murnac);
+        let all_groups_occupied = polymerizer.modify_only_group("Anh", &mut murnac);
         assert_miette_snapshot!(all_groups_occupied);
 
         // Start a new polymer by resetting the polymerizer
         let mut polymerizer = polymerizer.reset();
-        let residue_not_in_polymer = polymerizer.modify("Anh", &mut murnac);
+        let residue_not_in_polymer = polymerizer.modify_only_group("Anh", &mut murnac);
         assert_miette_snapshot!(residue_not_in_polymer);
 
         let mut murnac = polymerizer.residue("m").unwrap();
-        let no_matching_groups = polymerizer.modify("Am", &mut murnac);
+        let no_matching_groups = polymerizer.modify_only_group("Am", &mut murnac);
         assert_miette_snapshot!(no_matching_groups);
 
-        let nonexistent_modification = polymerizer.modify("Arg", &mut murnac);
+        let nonexistent_modification = polymerizer.modify_only_group("Arg", &mut murnac);
         assert_miette_snapshot!(nonexistent_modification);
     }
 

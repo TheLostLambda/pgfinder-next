@@ -94,7 +94,7 @@ pub fn unbranched_amino_acid<'a, 's>(
     map_res(parser, |(abbr, modifications)| {
         let mut amino_acid = polymerizer.residue(abbr)?;
         for modification in modifications.into_iter().flatten() {
-            polymerizer.apply_modification(modification, &mut amino_acid)?;
+            polymerizer.modify(modification, &mut amino_acid)?;
         }
         Ok(amino_acid)
     })
