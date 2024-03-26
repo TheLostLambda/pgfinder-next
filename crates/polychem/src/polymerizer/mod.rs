@@ -12,7 +12,7 @@ use crate::{
         polymer_database::{BondDescription, ModificationDescription, PolymerDatabase},
         target::{Index, Target},
     },
-    AnyMod, AnyModification, Bond, BondTarget, FunctionalGroup, GroupState, Id, NamedMod,
+    AnyMod, AnyModification, Bond, BondTarget, Count, FunctionalGroup, GroupState, Id, NamedMod,
     PolychemError, Residue, Result,
 };
 
@@ -79,14 +79,12 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Ok(residues)
     }
 
-    // FIXME: Might want to call this `modify` and either delete or rename the other, less-useful `modify`
     pub fn modify(
         &mut self,
         modification: impl Into<AnyModification<'a, 'p>>,
         target: &mut Residue<'a, 'p>,
     ) -> Result<()> {
         let modification = modification.into();
-        // FIXME: Don't forget to be clever about the multiplier!
         match modification.kind {
             AnyMod::Named(m) => {
                 self.modify_with_optional_groups(m.abbr(), target, modification.multiplier)
@@ -101,6 +99,15 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         target: &mut Residue<'a, 'p>,
     ) -> Result<()> {
         self.modify_with_optional_groups(abbr, target, 1)
+    }
+
+    pub fn modify_only_groups(
+        &mut self,
+        abbr: impl AsRef<str>,
+        target: &mut Residue<'a, 'p>,
+        number: Count,
+    ) -> Result<()> {
+        self.modify_with_optional_groups(abbr, target, number)
     }
 
     // PERF: Could create an `_unchecked` version for when you've already called `self.free_*_groups()` — skip straight
@@ -476,7 +483,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        testing_tools::assert_miette_snapshot, Massive, Modification, OffsetKind, OffsetMod,
+        testing_tools::assert_miette_snapshot, Charged, Massive, Modification, OffsetKind,
+        OffsetMod,
     };
 
     use super::*;
@@ -871,6 +879,67 @@ mod tests {
 
         let nonexistent_modification = polymerizer.modify_only_group("Arg", &mut murnac);
         assert_miette_snapshot!(nonexistent_modification);
+    }
+
+    #[test]
+    fn modify_only_groups() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut murnac = polymerizer.residue("m").unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
+
+        polymerizer
+            .modify_only_groups("Met", &mut murnac, 3)
+            .unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(335.15801676674));
+        let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
+        let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
+        let six_position = FunctionalGroup::new("Hydroxyl", "6-Position");
+        for hydroxyl_group in [reducing_end, nonreducing_end, six_position] {
+            assert!(matches!(
+                murnac.group_state(&hydroxyl_group).unwrap(),
+                GroupState::Modified(_)
+            ));
+        }
+
+        let mut murnac = polymerizer.residue("m").unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
+        polymerizer
+            .modify_only_groups("Ca", &mut murnac, 4)
+            .unwrap();
+        assert_eq!(murnac.charge(), 4);
+        assert_eq!(murnac.monoisotopic_mass(), dec!(448.927935519603480));
+
+        let mut alanine = polymerizer.residue("A").unwrap();
+        assert_eq!(alanine.monoisotopic_mass(), dec!(89.04767846918));
+        polymerizer
+            .modify_only_groups("Ca", &mut alanine, 2)
+            .unwrap();
+        assert_eq!(alanine.charge(), 2);
+        assert_eq!(alanine.monoisotopic_mass(), dec!(166.956112942301740));
+
+        let mut murnac = polymerizer.residue("m").unwrap();
+        polymerizer
+            .modify_only_groups("Met", &mut murnac, 3)
+            .unwrap();
+        let all_groups_occupied = polymerizer.modify_only_groups("Ca", &mut murnac, 4);
+        assert_miette_snapshot!(all_groups_occupied);
+        let still_all_groups_occupied = polymerizer.modify_only_groups("Ca", &mut murnac, 2);
+        assert_miette_snapshot!(still_all_groups_occupied);
+
+        assert_eq!(murnac.monoisotopic_mass(), dec!(335.15801676674));
+        polymerizer
+            .modify_only_groups("Ca", &mut murnac, 1)
+            .unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(374.112234003300870));
+
+        // Start a new polymer by resetting the polymerizer
+        let mut polymerizer = polymerizer.reset();
+        let residue_not_in_polymer = polymerizer.modify_only_groups("Ca", &mut alanine, 2);
+        assert_miette_snapshot!(residue_not_in_polymer);
+
+        let mut murnac = polymerizer.residue("m").unwrap();
+        let no_matching_groups = polymerizer.modify_only_groups("Anh", &mut murnac, 2);
+        assert_miette_snapshot!(no_matching_groups);
     }
 
     #[test]
