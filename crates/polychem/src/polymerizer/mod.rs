@@ -1,3 +1,4 @@
+// FIXME: Good god, this file needs a lot of work...
 mod errors;
 pub(crate) use errors::{Error, PolymerizerError};
 
@@ -65,27 +66,17 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Ok(residue)
     }
 
-    // FIXME: Do I want a version that creates the residues too? I used to have that in c98f58e! Also naming?
-    pub fn bond_chain(
+    pub fn chain(
         &mut self,
-        residues: &mut [Residue<'a, 'p>],
+        abbrs: &[impl AsRef<str>],
         bond_kind: impl AsRef<str>,
-    ) -> Result<()> {
-        let bond_kind = bond_kind.as_ref();
-
-        // NOTE: Doing this properly requires a `windows_mut()` method, which is blocked on lending iterators, but GATs
-        // have now been stabilized, so the way is clear for those. Keep an eye out for standard library updates! For
-        // now, this manual indexing and pattern-matching is a work-around!
-        for i in 0..residues.len() - 1 {
-            // SAFETY: The `unreachable!()` is safe, since `residues[i..=i + 1]` will always have two items in it
-            let [donor, acceptor] = &mut residues[i..=i + 1] else {
-                unreachable!()
-            };
-
-            self.bond(bond_kind, donor, acceptor)?;
-        }
-
-        Ok(())
+    ) -> Result<Vec<Residue<'a, 'p>>> {
+        let mut residues: Vec<_> = abbrs
+            .iter()
+            .map(|abbr| self.residue(abbr))
+            .collect::<Result<_, _>>()?;
+        self.bond_chain(&mut residues, bond_kind)?;
+        Ok(residues)
     }
 
     // FIXME: Might want to call this `modify` and either delete or rename the other, less-useful `modify`
@@ -147,6 +138,28 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
             acceptor,
             Some(acceptor_group),
         )
+    }
+
+    pub fn bond_chain(
+        &mut self,
+        residues: &mut [Residue<'a, 'p>],
+        bond_kind: impl AsRef<str>,
+    ) -> Result<()> {
+        let bond_kind = bond_kind.as_ref();
+
+        // NOTE: Doing this properly requires a `windows_mut()` method, which is blocked on lending iterators, but GATs
+        // have now been stabilized, so the way is clear for those. Keep an eye out for standard library updates! For
+        // now, this manual indexing and pattern-matching is a work-around!
+        for i in 0..residues.len() - 1 {
+            // SAFETY: The `unreachable!()` is safe, since `residues[i..=i + 1]` will always have two items in it
+            let [donor, acceptor] = &mut residues[i..=i + 1] else {
+                unreachable!()
+            };
+
+            self.bond(bond_kind, donor, acceptor)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -505,6 +518,19 @@ mod tests {
             ".**.composition, .**.lost" => "<FORMULA>",
             ".**.functional_groups" => insta::sorted_redaction()
         });
+
+        let all_in_one_residues = polymerizer.chain(&STEM_RESIDUES, "Peptide").unwrap();
+        assert_eq!(
+            residues
+                .iter()
+                .map(Massive::monoisotopic_mass)
+                .sum::<Decimal>(),
+            all_in_one_residues
+                .iter()
+                .map(Massive::monoisotopic_mass)
+                .sum::<Decimal>(),
+        );
+
         assert_eq!(
             residues
                 .iter()
@@ -522,7 +548,14 @@ mod tests {
         );
 
         let nonexistent_bond = polymerizer.bond_chain(&mut residues, "?");
+        assert_eq!(
+            nonexistent_bond.clone().unwrap_err(),
+            polymerizer.chain(&STEM_RESIDUES, "?").unwrap_err()
+        );
         assert_miette_snapshot!(nonexistent_bond);
+
+        let nonexistent_residue = polymerizer.chain(&["?"], "Peptide");
+        assert_miette_snapshot!(nonexistent_residue);
     }
 
     #[test]
