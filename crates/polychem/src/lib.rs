@@ -53,12 +53,16 @@ pub struct FunctionalGroup<'p> {
 
 // FIXME: These fields are public because there are no internal invariants to uphold (it's just a straightforward tuple)
 // and there are no read-only fields. It makes perfect sense for users to change either field. Be sure to apply this
-// reasoning consistently to all of the other structs! Making more public where everything should be read-write!
+// reasoning consistently to all of the other structs! Making more public where everything should be read-write! Don't
+// forget to think about what might need to hold a mass-cache in the future!
+// FIXME: In fact, damn, this could reasonably have a mass-cache... So I should probably re-private those fields...
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
 pub struct Modification<K> {
     pub multiplier: Count,
     pub kind: K,
 }
+
+type SignedCount = i64;
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -165,22 +169,6 @@ pub trait Mz: Massive + Charged {
     fn average_mz(&self) -> Option<Decimal> {
         let charge = self.charge().abs();
         (charge != 0).then(|| self.average_mass() / Decimal::from(charge))
-    }
-}
-
-// FIXME: These OffsetKind impls probably need a better home?
-impl From<OffsetKind> for Decimal {
-    fn from(value: OffsetKind) -> Self {
-        Charge::from(value).into()
-    }
-}
-
-impl From<OffsetKind> for Charge {
-    fn from(value: OffsetKind) -> Self {
-        match value {
-            OffsetKind::Add => 1,
-            OffsetKind::Remove => -1,
-        }
     }
 }
 

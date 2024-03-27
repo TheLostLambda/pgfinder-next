@@ -1,6 +1,6 @@
 use rust_decimal::prelude::Decimal;
 
-use crate::{Charge, Charged, Count, Massive, Modification, Mz};
+use crate::{Charge, Charged, Count, Massive, Modification, Mz, SignedCount};
 
 impl<K> Modification<K> {
     // FIXME: Maybe make this `new_with_multiplier`, and make `new(k)` = `new_with_multiplier(1, k)` — depends on if
@@ -30,7 +30,7 @@ impl<K: Massive> Massive for Modification<K> {
 
 impl<K: Charged> Charged for Modification<K> {
     fn charge(&self) -> Charge {
-        Charge::from(self.multiplier) * self.kind.charge()
+        SignedCount::from(self.multiplier) * self.kind.charge()
     }
 }
 
