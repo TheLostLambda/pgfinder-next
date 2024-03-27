@@ -1,4 +1,7 @@
-use std::convert::identity;
+use std::{
+    convert::identity,
+    fmt::{self, Display, Formatter},
+};
 
 use itertools::Itertools;
 use rust_decimal::Decimal;
@@ -86,6 +89,17 @@ impl<'a> Element<'a> {
     }
 }
 
+impl Display for Element<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let symbol = self.symbol;
+        if let Some(mass_number) = self.mass_number {
+            write!(f, "[{mass_number}{symbol}]")
+        } else {
+            write!(f, "{symbol}")
+        }
+    }
+}
+
 impl Massive for Element<'_> {
     fn monoisotopic_mass(&self) -> Decimal {
         // SAFETY: The call to `.unwrap()` is safe here since `.isotope_abundances()` is guaranteed to yield at
@@ -165,6 +179,18 @@ mod tests {
         assert_miette_snapshot!(Element::new_isotope(&DB, "R", 42));
         // Fail to lookup isotopes that don't exist
         assert_miette_snapshot!(Element::new_isotope(&DB, "C", 15));
+    }
+
+    #[test]
+    fn element_display() {
+        let c = Element::new(&DB, "C").unwrap();
+        assert_eq!(c.to_string(), "C");
+        let c13 = Element::new_isotope(&DB, "C", 13).unwrap();
+        assert_eq!(c13.to_string(), "[13C]");
+        let th = Element::new(&DB, "Th").unwrap();
+        assert_eq!(th.to_string(), "Th");
+        let th230 = Element::new_isotope(&DB, "Th", 230).unwrap();
+        assert_eq!(th230.to_string(), "[230Th]");
     }
 
     #[test]
