@@ -6,9 +6,8 @@ expression: out
   × failed to validate polymer database file
   ├─▶   × polymer database file contained an invalid chemical composition
   │   
-  ├─▶   × expected a chemical formula (optionally followed by a '+' or '-'
-  │   and a
-  │     │ particle offset), or a standalone particle offset
+  ├─▶   × expected a chemical formula (optionally followed by a '+' or '-' and
+  │     │ a particle offset), or a standalone particle offset
   │      ╭────
   │    1 │ C6H14[100Tc]N2O2
   │      ·      ───┬───
@@ -19,10 +18,10 @@ expression: out
   │     │ followed by a number
   │   
   ╰─▶   × the isotope "Tc-100" could not be found in the supplied atomic
-      database,
-        │ though the following Technetium isotopes were found: [97, 98, 99]
+        │ database, though the following Technetium isotopes were found: [97,
+        │ 98, 99]
         help: double-check for typos, or add a new entry to the atomic
-      database
+              database
       
    ╭─[test:5:17]
  4 │ AminoAcid "K" "Lysine" {

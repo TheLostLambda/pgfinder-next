@@ -5,7 +5,8 @@ expression: out
 ---
   × error parsing KDL
 
-Error:   × an error occured during scalar conversion
+Error: 
+  × an error occured during scalar conversion
   ╰─▶   × expected a single uppercase ASCII letter optionally followed by a
         │ lowercase ASCII letter, got "d"
       

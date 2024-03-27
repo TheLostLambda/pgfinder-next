@@ -5,7 +5,8 @@ expression: out
 ---
   × error parsing KDL
 
-Error:   × at least one child node `targeting` is required
+Error: 
+  × at least one child node `targeting` is required
    ╭─[test:1:1]
  1 │ ╭─▶ Ac "O-Acetylation" {
  2 │ │       // targeting "Hydroxyl" at="6-Position"

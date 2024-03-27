@@ -7,18 +7,22 @@ expression: out
   │ particle offset), or a standalone particle offset
   ╰─▶   × attempted 2 parse branches unsuccessfully
       
-      Error:   × expected an element (like Au) or an isotope (like [15N])
-      optionally
+      Error:
+        × expected an element (like Au) or an isotope (like [15N]) optionally
         │ followed by a number
         ╰─▶   × attempted 2 parse branches unsuccessfully
       
-            Error:   × expected an element symbol
+            Error:
+              × expected an element symbol
               ╰─▶   × expected an uppercase ASCII letter
       
-            Error:   × expected '[' to open isotope brackets
       
-      Error:   × expected a particle (like p or e), optionally preceded by
-      a number
+            Error:
+              × expected '[' to open isotope brackets
+      
+      
+      Error:
+        × expected a particle (like p or e), optionally preceded by a number
         ├─▶   × expected a particle symbol
         │
         ╰─▶   × expected a lowercase ASCII letter

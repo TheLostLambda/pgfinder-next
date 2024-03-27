@@ -6,7 +6,7 @@ expression: out
   × encountered an error during testing
   ╰─▶   × the target "Carboxyl" overlaps with 1 other target specifier
         help: double-check for typos, or remove the overlapping target
-      specifier
+              specifier
       
     ╭─[test:11:9]
  10 │     Am "Amidation" {

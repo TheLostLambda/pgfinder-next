@@ -10,8 +10,7 @@ expression: out
   │   
   ╰─▶   × counts cannot start with 0
         help: a 0 value doesn't make sense here, if you've mistakenly included
-      a
-              leading zero, like NH02, try just NH2 instead
+              a leading zero, like NH02, try just NH2 instead
       
    ╭────
  1 │ C3H0N4 

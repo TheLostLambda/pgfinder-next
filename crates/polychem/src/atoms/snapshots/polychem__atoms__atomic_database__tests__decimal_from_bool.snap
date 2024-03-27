@@ -5,7 +5,8 @@ expression: out
 ---
   × error parsing KDL
 
-Error:   × expected a decimal number, found boolean
+Error: 
+  × expected a decimal number, found boolean
    ╭─[test:1:10]
  1 │ lossless true
    ·          ──┬─

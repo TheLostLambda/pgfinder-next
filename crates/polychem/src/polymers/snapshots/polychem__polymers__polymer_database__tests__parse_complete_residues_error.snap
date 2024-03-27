@@ -6,7 +6,7 @@ expression: out
   × encountered an error during testing
   ╰─▶   × the residue type "SuperAminoAcid" is undefined
         help: double-check for typos, or add "SuperAminoAcid" to the types
-      section
+              section
       
     ╭─[test:24:5]
  23 │         }

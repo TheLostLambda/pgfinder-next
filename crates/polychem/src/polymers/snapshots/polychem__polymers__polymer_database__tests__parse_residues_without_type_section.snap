@@ -5,4 +5,5 @@ expression: out
 ---
   × error parsing KDL
 
-Error:   × child node `types` is required
+Error: 
+  × child node `types` is required

@@ -7,5 +7,4 @@ expression: out
   │ Acetylmuramic Acid)
   ╰─▶   × too few functional groups on residue 1 matched the target "Hydroxyl"
         │ at="Reducing End" of="N-Acetylmuramic Acid" (1/2): "Hydroxyl"
-      at="Reducing
-        │ End"
+        │ at="Reducing End"

@@ -5,8 +5,7 @@ expression: out
 ---
   × failed to validate polymer database file
   ╰─▶   × the specifier "Hydroxyl" at="Nonreducing End" of="Alanine" cannot
-      target
-        │ any currently defined residues
+        │ target any currently defined residues
         help: double-check for typos, or add new residues / groups that are
               targeted by this specifier
       

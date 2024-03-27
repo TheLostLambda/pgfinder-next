@@ -5,7 +5,8 @@ expression: out
 ---
   × encountered an error during testing
 
-Error:   × unexpected node `group`
+Error: 
+  × unexpected node `group`
     ╭─[test:20:13]
  19 │         AminoAcid {
  20 │             group "Amino" at="N-Terminal"

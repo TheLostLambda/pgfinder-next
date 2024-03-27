@@ -6,5 +6,4 @@ expression: out
   × failed to apply the modification O-Acetylation (Ac) to residue 1 (N-
   │ Acetylmuramic Acid)
   ╰─▶   × expected a target matching "Hydroxyl" at="6-Position", got
-      "Hydroxyl"
-        │ at="Reducing End" of="N-Acetylmuramic Acid"
+        │ "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid"

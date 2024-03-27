@@ -6,9 +6,8 @@ expression: out
   × failed to validate polymer database file
   ├─▶   × polymer database file contained an invalid chemical composition
   │   
-  ├─▶   × expected a chemical formula (optionally followed by a '+' or '-'
-  │   and a
-  │     │ particle offset), or a standalone particle offset
+  ├─▶   × expected a chemical formula (optionally followed by a '+' or '-' and
+  │     │ a particle offset), or a standalone particle offset
   │      ╭────
   │    1 │ C2H-3O
   │      ·      ▲

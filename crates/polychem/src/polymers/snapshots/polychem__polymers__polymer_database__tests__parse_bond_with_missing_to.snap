@@ -5,7 +5,8 @@ expression: out
 ---
   × error parsing KDL
 
-Error:   × child node `to` is required
+Error: 
+  × child node `to` is required
    ╭─[test:1:1]
  1 │ ╭─▶ Glycosidic {
  2 │ │       from "Hydroxyl" at="Reducing End"

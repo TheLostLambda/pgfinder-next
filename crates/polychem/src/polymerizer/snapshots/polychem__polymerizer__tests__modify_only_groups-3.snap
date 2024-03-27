@@ -7,5 +7,4 @@ expression: out
   │ (Alanine)
   ╰─▶   × residue 3 does not belong to the current polymer
         help: the referenced residue was likely created by a different
-      Polymerizer
-              instance
+              Polymerizer instance

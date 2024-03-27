@@ -6,4 +6,4 @@ expression: out
   × failed to form "Peptide" bond between residue 2 (Alanine) and residue 3
   │ (N-Acetylglucosamine) due to an issue with the acceptor
   ╰─▶   × the functional group "Amino" at="N-Terminal" does not exist on
-      residue 3
+        │ residue 3

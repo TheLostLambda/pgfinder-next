@@ -5,7 +5,8 @@ expression: out
 ---
   × error parsing KDL
 
-Error:   × child node `composition` is required
+Error: 
+  × child node `composition` is required
    ╭─[test:4:1]
  3 │     }
  4 │ ╭─▶ AminoAcid "K" "Lysine" {

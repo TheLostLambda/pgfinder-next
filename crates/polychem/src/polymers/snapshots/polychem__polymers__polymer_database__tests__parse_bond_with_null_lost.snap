@@ -5,7 +5,8 @@ expression: out
 ---
   × error parsing KDL
 
-Error:   × expected string scalar, found null
+Error: 
+  × expected string scalar, found null
    ╭─[test:4:10]
  3 │     to "Hydroxyl" at="Nonreducing End"
  4 │     lost null

@@ -5,8 +5,7 @@ expression: out
 ---
   × encountered an error during testing
   ╰─▶   × the specifier "Amino" at="C-Terminal" cannot target any currently
-      defined
-        │ residues
+        │ defined residues
         help: double-check for typos, or add new residues / groups that are
               targeted by this specifier
       

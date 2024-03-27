@@ -6,7 +6,7 @@ expression: out
   × failed to validate polymer database file
   ╰─▶   × the target "Hydroxyl" overlaps with 2 other target specifiers
         help: double-check for typos, or remove the overlapping target
-      specifier
+              specifier
       
    ╭─[test:2:5]
  1 │ Ac "O-Acetylation" {

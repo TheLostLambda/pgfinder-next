@@ -6,7 +6,7 @@ expression: out
   × failed to validate polymer database file
   ╰─▶   × the residue type "AminoAcid" has already been defined
         help: consider consolidating duplicate types or picking a new type
-      name
+              name
       
    ╭─[test:2:5]
  1 │     types {

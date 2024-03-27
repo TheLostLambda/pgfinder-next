@@ -9,8 +9,7 @@ expression: out
   │     │ followed by a number
   │   
   ╰─▶   × no natural abundance data could be found for Polonium (Po), though
-      the
-        │ following isotopes were found: [209, 210]
+        │ the following isotopes were found: [209, 210]
         help: consider explicitly selecting the isotope to be used in mass
               calculations — e.g. [209Po]
       

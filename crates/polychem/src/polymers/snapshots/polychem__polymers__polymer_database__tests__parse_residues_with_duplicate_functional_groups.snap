@@ -5,7 +5,7 @@ expression: out
 ---
   × failed to validate polymer database file
   ╰─▶   × the functional group "Amino" has already been defined at "N-
-      terminal"
+        │ terminal"
         help: double-check for typos, or remove the duplicate functional group
       
    ╭─[test:6:5]

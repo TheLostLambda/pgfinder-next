@@ -5,6 +5,9 @@ expression: out
 ---
   × failed to find multiple of the requested free groups
 
-Error:   × the functional group "Hydroxyl" at="Nonreducing End" of residue 1 was
+Error: 
+  × the functional group "Hydroxyl" at="Nonreducing End" of residue 1 was
   │ already an acceptor, but must be free
-Error:   × the functional group "Amino" at="N-Terminal" does not exist on residue 1
+
+Error: 
+  × the functional group "Amino" at="N-Terminal" does not exist on residue 1

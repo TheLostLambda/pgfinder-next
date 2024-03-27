@@ -17,8 +17,7 @@ expression: out
          ·  ╰── expected non-zero
          ╰────
         help: a 0 value doesn't make sense here, if you've mistakenly included
-      a
-              leading zero, like NH02, try just NH2 instead
+              a leading zero, like NH02, try just NH2 instead
       
    ╭────
  1 │ [0H2O 

@@ -7,7 +7,7 @@ expression: out
   ╰─▶   × the target "Hydroxyl" at="6-Position" overlaps with 1 other target
         │ specifier
         help: double-check for typos, or remove the overlapping target
-      specifier
+              specifier
       
    ╭─[test:2:5]
  1 │ Ac "O-Acetylation" {

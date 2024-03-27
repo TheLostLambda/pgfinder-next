@@ -9,10 +9,10 @@ expression: out
   │     │ followed by a number
   │   
   ╰─▶   × the isotope "Tc-100" could not be found in the supplied atomic
-      database,
-        │ though the following Technetium isotopes were found: [97, 98, 99]
+        │ database, though the following Technetium isotopes were found: [97,
+        │ 98, 99]
         help: double-check for typos, or add a new entry to the atomic
-      database
+              database
       
    ╭────
  1 │ NH2[100Tc]O4 
