@@ -1,3 +1,5 @@
+use std::fmt::{self, Display, Formatter};
+
 use rust_decimal::Decimal;
 
 use crate::{Charge, Charged, Massive, Mz, Particle};
@@ -23,6 +25,13 @@ impl<'a> Particle<'a> {
             mass,
             charge,
         })
+    }
+}
+
+impl Display for Particle<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let symbol = self.symbol;
+        write!(f, "{symbol}")
     }
 }
 
@@ -63,6 +72,14 @@ mod tests {
         assert_debug_snapshot!(Particle::new(&DB, "e").unwrap());
         // Fail to lookup particles that don't exist
         assert_miette_snapshot!(Particle::new(&DB, "m"));
+    }
+
+    #[test]
+    fn particle_display() {
+        let p = Particle::new(&DB, "p").unwrap();
+        assert_eq!(p.to_string(), "p");
+        let e = Particle::new(&DB, "e").unwrap();
+        assert_eq!(e.to_string(), "e");
     }
 
     #[test]
