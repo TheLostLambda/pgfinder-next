@@ -1,10 +1,14 @@
+use std::fmt::{self, Display, Formatter};
+
 // External Crate Imports
 use nom_miette::final_parser;
 use rust_decimal::Decimal;
 
 // Local Crate Imports
 use super::{atomic_database::AtomicDatabase, chemical_composition_parser::chemical_composition};
-use crate::{Charge, Charged, ChemicalComposition, Element, Massive, Mz, Result, SignedCount};
+use crate::{
+    Charge, Charged, ChemicalComposition, Count, Element, Massive, Mz, Result, SignedCount,
+};
 
 // Public API ==========================================================================================================
 
@@ -41,6 +45,39 @@ impl Charged for ChemicalComposition<'_> {
 }
 
 impl Mz for ChemicalComposition<'_> {}
+
+// Display and Hash Trait Implementations ==============================================================================
+
+impl Display for ChemicalComposition<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        // NOTE: This is here because `Count` is just a synonym, so I can't impl `Display` for it!
+        fn to_string(count: Count) -> String {
+            if count > 1 {
+                count.to_string()
+            } else {
+                String::new()
+            }
+        }
+
+        for &(ref element, count) in &self.chemical_formula {
+            let count = to_string(count);
+            write!(f, "{element}{count}")?;
+        }
+
+        if let Some((offset_kind, count, ref particle)) = self.particle_offset {
+            let count = to_string(count);
+            if self.chemical_formula.is_empty() {
+                write!(f, "{count}{particle}")?;
+            } else {
+                write!(f, "{offset_kind}{count}{particle}")?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+// TODO: Write a Hash impl based on the Display impl above!
 
 // Private Helper Methods ==============================================================================================
 
@@ -109,6 +146,33 @@ mod tests {
         // Report elements lacking any natural abundance data
         assert_miette_snapshot!(chemical_composition("HTcN"));
         assert_miette_snapshot!(chemical_composition("C12H6PoS"));
+    }
+
+    #[test]
+    fn composition_display() {
+        let formulae = [
+            "2p",
+            "C11H10ON2",
+            "C37H63N7O21+p",
+            "Ca-2e",
+            "Cr2O7+2e",
+            "D2O",
+            "H2O",
+            "K-e",
+            "NH2+2p",
+            "NH2[99Tc]",
+            "NH3+p",
+            "Na-e",
+            "OH+e",
+            "[13C]11H10O[15N]2",
+            "[2H]2O",
+            "[37Cl]5-2p",
+            "p",
+        ];
+        for formula in formulae {
+            let composition = ChemicalComposition::new(&DB, formula).unwrap();
+            assert_eq!(composition.to_string(), formula);
+        }
     }
 
     #[test]
