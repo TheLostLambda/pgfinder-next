@@ -10,8 +10,8 @@ impl Display for OffsetKind {
             f,
             "{}",
             match self {
-                OffsetKind::Add => "+",
-                OffsetKind::Remove => "-",
+                Self::Add => "+",
+                Self::Remove => "-",
             }
         )
     }
