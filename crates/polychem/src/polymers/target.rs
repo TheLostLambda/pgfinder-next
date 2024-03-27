@@ -1,7 +1,7 @@
 // Standard Library Imports
 use std::{
     collections::hash_map::Entry,
-    fmt::{Display, Formatter},
+    fmt::{self, Display, Formatter},
     iter,
     ops::Deref,
 };
@@ -140,7 +140,7 @@ impl<'a, V> Index<'a, V> {
 // Target Printing and Borrowing =======================================================================================
 
 impl<S: Deref<Target = str>> Display for Target<S> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", &*self.group)?;
         if let Some(location) = self.location.as_deref() {
             write!(f, " at={location:?}")?;

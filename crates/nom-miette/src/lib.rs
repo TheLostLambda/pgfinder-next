@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::Display;
 
 use ahash::{HashMap, HashMapExt};
 use miette::{Diagnostic, LabeledSpan, SourceSpan};
@@ -35,7 +35,7 @@ impl<E: LabeledErrorKind> Diagnostic for LabeledError<E> {
         Some(&self.full_input)
     }
 
-    fn help<'a>(&'a self) -> Option<Box<dyn fmt::Display + 'a>> {
+    fn help<'a>(&'a self) -> Option<Box<dyn Display + 'a>> {
         if let ErrorTree::Node { kind, .. } = &self.error {
             kind.help()
         } else {

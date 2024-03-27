@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 
 use crate::FunctionalGroup;
 
@@ -21,7 +21,7 @@ impl<'p> From<&'p FunctionalGroupDescription> for FunctionalGroup<'p> {
 }
 
 impl Display for FunctionalGroup<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?} at={:?}", self.name, self.location)
     }
 }

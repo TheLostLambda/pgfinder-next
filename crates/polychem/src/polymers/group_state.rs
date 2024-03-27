@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 
 use crate::GroupState;
 
@@ -10,7 +10,7 @@ impl GroupState<'_, '_> {
 }
 
 impl Display for GroupState<'_, '_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{}",
