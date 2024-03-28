@@ -73,6 +73,7 @@ struct Element<'a> {
 }
 
 pub type Count = u32;
+pub type SignedCount = i64;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub enum OffsetKind {

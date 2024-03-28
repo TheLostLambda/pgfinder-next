@@ -2,7 +2,7 @@ use rust_decimal::Decimal;
 
 use crate::{
     atoms::atomic_database::AtomicDatabase, Charge, Charged, ChemicalComposition, Massive,
-    Modification, OffsetKind, OffsetMod, Result,
+    Modification, OffsetKind, OffsetMod, Result, SignedCount,
 };
 
 impl<'a> OffsetMod<'a> {
@@ -39,7 +39,7 @@ impl Massive for OffsetMod<'_> {
 
 impl Charged for OffsetMod<'_> {
     fn charge(&self) -> Charge {
-        Charge::from(self.kind) * self.composition.charge()
+        SignedCount::from(self.kind) * self.composition.charge()
     }
 }
 
