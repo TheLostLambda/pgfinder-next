@@ -62,8 +62,6 @@ pub struct Modification<K> {
     pub kind: K,
 }
 
-type SignedCount = i64;
-
 // ---------------------------------------------------------------------------------------------------------------------
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
@@ -162,15 +160,51 @@ pub trait Charged {
 
 pub trait Mz: Massive + Charged {
     fn monoisotopic_mz(&self) -> Option<Decimal> {
-        let charge = self.charge().abs();
-        (charge != 0).then(|| self.monoisotopic_mass() / Decimal::from(charge))
+        let charge = Decimal::from(self.charge()).abs();
+        (!charge.is_zero()).then(|| self.monoisotopic_mass() / charge)
     }
 
     fn average_mz(&self) -> Option<Decimal> {
-        let charge = self.charge().abs();
-        (charge != 0).then(|| self.average_mass() / Decimal::from(charge))
+        let charge = Decimal::from(self.charge()).abs();
+        (!charge.is_zero()).then(|| self.average_mass() / charge)
     }
 }
+
+// Blanket impls
+
+macro_rules! massive_ref_impls {
+    ($($ref_type:ty),+ $(,)?) => {
+        $(
+            impl<T: Massive> Massive for $ref_type {
+                fn monoisotopic_mass(&self) -> Decimal {
+                    (**self).monoisotopic_mass()
+                }
+
+                fn average_mass(&self) -> Decimal {
+                    (**self).average_mass()
+                }
+            }
+        )+
+    };
+}
+
+massive_ref_impls!(&T, &mut T, Box<T>);
+
+macro_rules! charged_ref_impls {
+    ($($ref_type:ty),+ $(,)?) => {
+        $(
+            impl<T: Charged> Charged for $ref_type {
+                fn charge(&self) -> Charge {
+                    (**self).charge()
+                }
+            }
+        )+
+    };
+}
+
+charged_ref_impls!(&T, &mut T, Box<T>);
+
+impl<T: Massive + Charged> Mz for T {}
 
 pub type Result<T, E = Box<PolychemError>> = std::result::Result<T, E>;
 

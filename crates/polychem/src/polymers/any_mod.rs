@@ -1,8 +1,8 @@
 use rust_decimal::Decimal;
 
 use crate::{
-    atoms::atomic_database::AtomicDatabase, AnyMod, Charge, Charged, Massive, Mz, NamedMod,
-    OffsetKind, OffsetMod, Result,
+    atoms::atomic_database::AtomicDatabase, AnyMod, AnyModification, Charge, Charged, Massive,
+    Modification, NamedMod, OffsetKind, OffsetMod, Result,
 };
 
 use super::polymer_database::PolymerDatabase;
@@ -18,6 +18,24 @@ impl<'a, 'p> AnyMod<'a, 'p> {
         formula: impl AsRef<str>,
     ) -> Result<Self> {
         Ok(Self::Offset(OffsetMod::new(db, kind, formula)?))
+    }
+}
+
+impl<'a, 'p> From<NamedMod<'a, 'p>> for AnyMod<'a, 'p> {
+    fn from(value: NamedMod<'a, 'p>) -> Self {
+        Self::Named(value)
+    }
+}
+
+impl<'a, 'p> From<OffsetMod<'a>> for AnyMod<'a, 'p> {
+    fn from(value: OffsetMod<'a>) -> Self {
+        Self::Offset(value)
+    }
+}
+
+impl<'a, 'p, K: Into<AnyMod<'a, 'p>>> From<K> for AnyModification<'a, 'p> {
+    fn from(value: K) -> Self {
+        Modification::new(1, value.into())
     }
 }
 
@@ -48,26 +66,12 @@ impl Charged for AnyMod<'_, '_> {
     }
 }
 
-impl Mz for AnyMod<'_, '_> {}
-
-impl<'a, 'p> From<NamedMod<'a, 'p>> for AnyMod<'a, 'p> {
-    fn from(value: NamedMod<'a, 'p>) -> Self {
-        Self::Named(value)
-    }
-}
-
-impl<'a, 'p> From<OffsetMod<'a>> for AnyMod<'a, 'p> {
-    fn from(value: OffsetMod<'a>) -> Self {
-        Self::Offset(value)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::testing_tools::assert_miette_snapshot;
+    use crate::{testing_tools::assert_miette_snapshot, Mz};
 
     use super::*;
 
@@ -92,6 +96,43 @@ mod tests {
         assert_miette_snapshot!(water_gained);
         let water_lost = AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H[2O]");
         assert_miette_snapshot!(water_lost);
+    }
+
+    #[test]
+    fn from_impls() {
+        let named_mod = NamedMod::new(&POLYMER_DB, "Am").unwrap();
+        let named_any_mod: AnyMod = named_mod.into();
+        let named_any_modification: AnyModification = named_mod.into();
+        let named_any_any_modification: AnyModification = named_any_mod.clone().into();
+        assert_eq!(
+            named_mod.monoisotopic_mass(),
+            named_any_mod.monoisotopic_mass()
+        );
+        assert_eq!(
+            named_mod.monoisotopic_mass(),
+            named_any_modification.monoisotopic_mass()
+        );
+        assert_eq!(
+            named_mod.monoisotopic_mass(),
+            named_any_any_modification.monoisotopic_mass()
+        );
+
+        let offset_mod = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
+        let offset_any_mod: AnyMod = offset_mod.clone().into();
+        let offset_any_modification: AnyModification = offset_mod.clone().into();
+        let offset_any_any_modification: AnyModification = offset_any_mod.clone().into();
+        assert_eq!(
+            offset_mod.monoisotopic_mass(),
+            offset_any_mod.monoisotopic_mass()
+        );
+        assert_eq!(
+            offset_mod.monoisotopic_mass(),
+            offset_any_modification.monoisotopic_mass()
+        );
+        assert_eq!(
+            offset_mod.monoisotopic_mass(),
+            offset_any_any_modification.monoisotopic_mass()
+        );
     }
 
     #[test]

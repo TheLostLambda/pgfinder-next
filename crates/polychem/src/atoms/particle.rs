@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use rust_decimal::Decimal;
 
-use crate::{Charge, Charged, Massive, Mz, Particle};
+use crate::{Charge, Charged, Massive, Particle};
 
 use super::{
     atomic_database::{AtomicDatabase, ParticleDescription},
@@ -50,8 +50,6 @@ impl Charged for Particle<'_> {
         *self.charge
     }
 }
-
-impl Mz for Particle<'_> {}
 
 #[cfg(test)]
 mod tests {

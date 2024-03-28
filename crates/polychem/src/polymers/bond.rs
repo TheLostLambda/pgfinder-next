@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 
-use crate::{Bond, BondTarget, Charge, Charged, Massive, Mz, PolychemError, Result};
+use crate::{Bond, BondTarget, Charge, Charged, Massive, PolychemError, Result};
 
 use super::polymer_database::{BondDescription, PolymerDatabase};
 
@@ -45,14 +45,12 @@ impl Charged for Bond<'_, '_> {
     }
 }
 
-impl Mz for Bond<'_, '_> {}
-
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::{testing_tools::assert_miette_snapshot, AtomicDatabase, FunctionalGroup};
+    use crate::{testing_tools::assert_miette_snapshot, AtomicDatabase, FunctionalGroup, Mz};
 
     use super::*;
 

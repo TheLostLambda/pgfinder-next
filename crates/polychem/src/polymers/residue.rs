@@ -107,8 +107,6 @@ impl Charged for Residue<'_, '_> {
     }
 }
 
-impl Mz for Residue<'_, '_> {}
-
 #[cfg(test)]
 mod tests {
     use itertools::Itertools;

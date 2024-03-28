@@ -6,9 +6,7 @@ use rust_decimal::Decimal;
 
 // Local Crate Imports
 use super::{atomic_database::AtomicDatabase, chemical_composition_parser::chemical_composition};
-use crate::{
-    Charge, Charged, ChemicalComposition, Count, Element, Massive, Mz, Result, SignedCount,
-};
+use crate::{Charge, Charged, ChemicalComposition, Count, Element, Massive, Result};
 
 // Public API ==========================================================================================================
 
@@ -36,15 +34,13 @@ impl Charged for ChemicalComposition<'_> {
         self.particle_offset
             .as_ref()
             .map(|(k, c, p)| {
-                let sign = SignedCount::from(*k);
+                let sign = Charge::from(*k);
                 let c = Charge::from(*c);
                 sign * c * p.charge()
             })
             .unwrap_or_default()
     }
 }
-
-impl Mz for ChemicalComposition<'_> {}
 
 // Display and Hash Trait Implementations ==============================================================================
 

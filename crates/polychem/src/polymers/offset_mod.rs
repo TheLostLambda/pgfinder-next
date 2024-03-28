@@ -1,8 +1,8 @@
 use rust_decimal::Decimal;
 
 use crate::{
-    atoms::atomic_database::AtomicDatabase, Charge, Charged, ChemicalComposition, Massive, Mz,
-    OffsetKind, OffsetMod, Result, SignedCount,
+    atoms::atomic_database::AtomicDatabase, Charge, Charged, ChemicalComposition, Massive,
+    Modification, OffsetKind, OffsetMod, Result,
 };
 
 impl<'a> OffsetMod<'a> {
@@ -21,6 +21,12 @@ impl<'a> OffsetMod<'a> {
     }
 }
 
+impl<'a> From<OffsetMod<'a>> for Modification<OffsetMod<'a>> {
+    fn from(value: OffsetMod<'a>) -> Self {
+        Modification::new(1, value)
+    }
+}
+
 impl Massive for OffsetMod<'_> {
     fn monoisotopic_mass(&self) -> Decimal {
         Decimal::from(self.kind) * self.composition.monoisotopic_mass()
@@ -33,18 +39,16 @@ impl Massive for OffsetMod<'_> {
 
 impl Charged for OffsetMod<'_> {
     fn charge(&self) -> Charge {
-        SignedCount::from(self.kind) * self.composition.charge()
+        Charge::from(self.kind) * self.composition.charge()
     }
 }
-
-impl Mz for OffsetMod<'_> {}
 
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::testing_tools::assert_miette_snapshot;
+    use crate::{testing_tools::assert_miette_snapshot, Mz};
 
     use super::*;
 

@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 
-use crate::{Charge, Charged, Massive, Mz, NamedMod, PolychemError, Result};
+use crate::{Charge, Charged, Massive, Modification, NamedMod, PolychemError, Result};
 
 use super::polymer_database::{ModificationDescription, PolymerDatabase};
 
@@ -36,6 +36,12 @@ impl<'a, 'p> NamedMod<'a, 'p> {
     }
 }
 
+impl<'a, 'p> From<NamedMod<'a, 'p>> for Modification<NamedMod<'a, 'p>> {
+    fn from(value: NamedMod<'a, 'p>) -> Self {
+        Modification::new(1, value)
+    }
+}
+
 impl Massive for NamedMod<'_, '_> {
     fn monoisotopic_mass(&self) -> Decimal {
         self.gained.monoisotopic_mass() - self.lost.monoisotopic_mass()
@@ -52,14 +58,12 @@ impl Charged for NamedMod<'_, '_> {
     }
 }
 
-impl Mz for NamedMod<'_, '_> {}
-
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::{testing_tools::assert_miette_snapshot, AtomicDatabase};
+    use crate::{testing_tools::assert_miette_snapshot, AtomicDatabase, Mz};
 
     use super::*;
 
@@ -80,6 +84,16 @@ mod tests {
         assert_miette_snapshot!(magnesium);
         let potassium = NamedMod::new(&POLYMER_DB, "K");
         assert_miette_snapshot!(potassium);
+    }
+
+    #[test]
+    fn from_impls() {
+        let named_mod = NamedMod::new(&POLYMER_DB, "Am").unwrap();
+        let named_modification: Modification<NamedMod> = named_mod.into();
+        assert_eq!(
+            named_mod.monoisotopic_mass(),
+            named_modification.monoisotopic_mass()
+        );
     }
 
     #[test]
