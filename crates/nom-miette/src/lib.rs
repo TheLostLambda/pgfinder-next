@@ -9,6 +9,8 @@ use nom::{
 };
 use thiserror::Error;
 
+// FIXME: I think it's okay to leave this trait-bound here — the semantic meaning it carries makes it easier to
+// understand what that `K` parameter is for!
 #[derive(Debug, Clone, Eq, PartialEq, Error)]
 #[error("{error}")]
 pub struct LabeledError<K: LabeledErrorKind> {

@@ -6,6 +6,8 @@ pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
 
+use std::{borrow::Borrow, marker::PhantomData};
+
 use atoms::chemical_composition_parser::CompositionError;
 use polymerizer::PolymerizerError;
 use serde::Serialize;
@@ -31,7 +33,7 @@ pub struct Residue<'a, 'p> {
     name: &'p str,
     composition: &'p ChemicalComposition<'a>,
     functional_groups: HashMap<FunctionalGroup<'p>, GroupState<'a, 'p>>,
-    offset_modifications: Vec<Modification<OffsetMod<'a>>>,
+    offset_modifications: HashMap<OffsetMod<'a>, Count>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -72,6 +74,7 @@ struct Element<'a> {
     isotopes: &'a HashMap<MassNumber, Isotope>,
 }
 
+// NOTE: Keep an eye on https://github.com/rust-lang/rust/issues/120257 for non-zero types
 pub type Count = u32;
 pub type SignedCount = i64;
 
@@ -115,7 +118,66 @@ pub struct NamedMod<'a, 'p> {
     gained: &'p ChemicalComposition<'a>,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+// FIXME: Horrible name...
+pub trait NestedBorrow<T> {
+    type Content<'a>
+    where
+        Self: 'a;
+
+    fn borrow(&self) -> &T;
+}
+
+impl<T> NestedBorrow<T> for T {
+    type Content<'a> = T
+    where
+        Self: 'a;
+
+    fn borrow(&self) -> &T {
+        self
+    }
+}
+
+impl<T> NestedBorrow<T> for &T {
+    type Content<'a> = T
+    where
+        Self: 'a;
+
+    fn borrow(&self) -> &T {
+        &**self
+    }
+}
+
+// #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize)]
+// pub struct OffsetMod<'a, C: NestedBorrow<ChemicalComposition<'a>> + 'a = ChemicalComposition<'a>> {
+//     kind: OffsetKind,
+//     composition: C::Content<'a>,
+// }
+
+// impl<'a> NestedBorrow<ChemicalComposition<'a>> for &ChemicalComposition<'a> {
+//     type Content<'b> = ChemicalComposition<'b>
+//     where
+//         Self: 'b;
+
+//     fn borrow(&self) -> &ChemicalComposition<'a> {
+//         &**self
+//     }
+// }
+// impl<'a, T: Borrow<ChemicalComposition<'a>>> NestedBorrow<T> for T {
+//     fn borrow(&self) -> &ChemicalComposition<'a> {
+//         self
+//     }
+// }
+
+// pub type OffsetMod<'a> = OffsetMod2<ChemicalComposition<'a>>;
+// pub type BorrowedOffsetMod<'a, 'c> = OffsetMod2<&'c ChemicalComposition<'a>>;
+
+// #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize)]
+// pub struct OffsetMod2<C> {
+//     kind: OffsetKind,
+//     composition: C,
+// }
+
+#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize)]
 pub struct OffsetMod<'a> {
     kind: OffsetKind,
     composition: ChemicalComposition<'a>,
@@ -189,7 +251,7 @@ macro_rules! massive_ref_impls {
     };
 }
 
-massive_ref_impls!(&T, &mut T, Box<T>);
+// massive_ref_impls!(&T, &mut T, Box<T>);
 
 macro_rules! charged_ref_impls {
     ($($ref_type:ty),+ $(,)?) => {

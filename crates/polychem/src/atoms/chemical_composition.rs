@@ -1,4 +1,7 @@
-use std::fmt::{self, Display, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    hash::{Hash, Hasher},
+};
 
 // External Crate Imports
 use nom_miette::final_parser;
@@ -73,7 +76,12 @@ impl Display for ChemicalComposition<'_> {
     }
 }
 
-// TODO: Write a Hash impl based on the Display impl above!
+impl Hash for ChemicalComposition<'_> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        // PERF: It's possible to do a bit better than this, but we're keeping it straightforward until we need speed
+        self.to_string().hash(state);
+    }
+}
 
 // Private Helper Methods ==============================================================================================
 

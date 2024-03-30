@@ -27,7 +27,7 @@ expression: residues
       ),
     )),
   },
-  offset_modifications: [],
+  offset_modifications: {},
 ), Residue(
   id: 2,
   abbr: "E",
@@ -57,7 +57,7 @@ expression: residues
       location: "Sidechain",
     ): Free,
   },
-  offset_modifications: [],
+  offset_modifications: {},
 ), Residue(
   id: 3,
   abbr: "J",
@@ -91,7 +91,7 @@ expression: residues
       location: "Sidechain",
     ): Free,
   },
-  offset_modifications: [],
+  offset_modifications: {},
 ), Residue(
   id: 4,
   abbr: "A",
@@ -107,5 +107,5 @@ expression: residues
       location: "C-Terminal",
     ): Free,
   },
-  offset_modifications: [],
+  offset_modifications: {},
 ))

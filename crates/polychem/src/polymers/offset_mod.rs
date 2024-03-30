@@ -1,3 +1,5 @@
+use std::{borrow::Borrow, marker::PhantomData};
+
 use rust_decimal::Decimal;
 
 use crate::{
@@ -27,13 +29,42 @@ impl<'a> From<OffsetMod<'a>> for Modification<OffsetMod<'a>> {
     }
 }
 
-impl Massive for OffsetMod<'_> {
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct BorrowedOffsetMod<'a> {
+    kind: OffsetKind,
+    composition: &'a ChemicalComposition<'a>,
+}
+
+impl<'a> From<&'a OffsetMod<'a>> for BorrowedOffsetMod<'a> {
+    fn from(value: &'a OffsetMod<'a>) -> Self {
+        BorrowedOffsetMod {
+            kind: value.kind,
+            composition: &value.composition,
+        }
+    }
+}
+// impl Massive for OffsetMod<'_> {
+//     fn monoisotopic_mass(&self) -> Decimal {
+//         Decimal::from(self.kind) * self.composition.monoisotopic_mass()
+//     }
+
+//     fn average_mass(&self) -> Decimal {
+//         Decimal::from(self.kind) * self.composition.average_mass()
+//     }
+// }
+
+impl<'a, T> Massive for T
+where
+    BorrowedOffsetMod<'a>: From<&T>,
+{
     fn monoisotopic_mass(&self) -> Decimal {
-        Decimal::from(self.kind) * self.composition.monoisotopic_mass()
+        let offset_mod = BorrowedOffsetMod::from(self);
+        Decimal::from(offset_mod.kind) * offset_mod.composition.monoisotopic_mass()
     }
 
     fn average_mass(&self) -> Decimal {
-        Decimal::from(self.kind) * self.composition.average_mass()
+        let offset_mod = (*self).into();
+        Decimal::from(offset_mod.kind) * offset_mod.composition.average_mass()
     }
 }
 

@@ -77,6 +77,7 @@ fn modifications<'a, 's>(
     polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<AnyModification<'a, 'a>>> {
     let separator = delimited(space0, char(','), space0);
+    // FIXME: Move into polychem
     let any_mod = alt((
         map(predefined_modification(polymerizer), Modification::convert),
         map(chemical_offset(polymerizer), Modification::convert),
@@ -113,6 +114,7 @@ fn lateral_chain<'a, 's>(
 // =
 
 // FIXME: I probably need to add a lot of `wrap_err`s around these parsers!
+// FIXME: Move into polychem
 /// Predefined Modification = [ Multiplier ] , Identifier
 fn predefined_modification<'a, 's>(
     polymerizer: &Polymerizer<'a, 'a>,
@@ -125,6 +127,7 @@ fn predefined_modification<'a, 's>(
     })
 }
 
+// FIXME: Move into polychem
 /// Chemical Offset = Offset Kind , [ Multiplier ] ,
 ///   Chemical Composition ;
 fn chemical_offset<'a, 's>(
@@ -145,12 +148,14 @@ fn chemical_offset<'a, 's>(
 
 // =
 
+// FIXME: Move into polychem
 /// Multiplier = Count , "x" ;
 fn multiplier(i: &str) -> ParseResult<Count> {
     let parser = terminated(count, char('x'));
     wrap_err(parser, MuropeptideErrorKind::ExpectedMultiplier)(i)
 }
 
+// FIXME: DON'T(?) Move into polychem (or only in the tests module)
 /// Identifier = letter , { letter | digit | "_" } ;
 fn identifier(i: &str) -> ParseResult<&str> {
     // PERF: Could maybe avoid allocations by using `many0_count` instead, but needs benchmarking
@@ -160,6 +165,7 @@ fn identifier(i: &str) -> ParseResult<&str> {
 
 // Adapted parsers =
 
+// FIXME: Just take atomic_db, then I don't need this wrapper, I can use the macro!
 fn chemical_composition<'a, 's>(
     polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {

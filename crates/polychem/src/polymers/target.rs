@@ -1,9 +1,9 @@
 // Standard Library Imports
 use std::{
+    borrow::Borrow,
     collections::hash_map::Entry,
     fmt::{self, Display, Formatter},
     iter,
-    ops::Deref,
 };
 
 // External Crate Imports
@@ -11,15 +11,16 @@ use ahash::{HashMap, HashMapExt};
 
 // Public API ==========================================================================================================
 
+// FIXME: I think this trait bound is okay, since this isn't public API anyways!
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub struct Target<S: Deref<Target = str> = String> {
+pub struct Target<S: Borrow<str> = String> {
     pub group: S,
     pub location: Option<S>,
     pub residue: Option<S>,
 }
 
-impl<S: Deref<Target = str>> Target<S> {
+impl<S: Borrow<str>> Target<S> {
     pub const fn new(group: S, location: Option<S>, residue: Option<S>) -> Self {
         Self {
             group,
@@ -29,7 +30,7 @@ impl<S: Deref<Target = str>> Target<S> {
     }
 }
 
-impl<S: Deref<Target = str> + Eq> Target<S> {
+impl<S: Borrow<str> + Eq> Target<S> {
     pub fn matches(&self, other: &Self) -> bool {
         self.group == other.group
             && (other.location.is_none() || self.location == other.location)
@@ -139,14 +140,14 @@ impl<'a, V> Index<'a, V> {
 
 // Target Printing and Borrowing =======================================================================================
 
-impl<S: Deref<Target = str>> Display for Target<S> {
+impl<S: Borrow<str>> Display for Target<S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", &*self.group)?;
-        if let Some(location) = self.location.as_deref() {
-            write!(f, " at={location:?}")?;
+        write!(f, "{:?}", self.group.borrow())?;
+        if let Some(ref location) = self.location {
+            write!(f, " at={:?}", location.borrow())?;
         }
-        if let Some(residue) = self.residue.as_deref() {
-            write!(f, " of={residue:?}")?;
+        if let Some(ref residue) = self.residue {
+            write!(f, " of={:?}", residue.borrow())?;
         }
         Ok(())
     }

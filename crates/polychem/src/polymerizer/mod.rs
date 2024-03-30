@@ -81,16 +81,21 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
 
     pub fn modify(
         &mut self,
+        // FIXME: Test that this can take NamedMod, OffsetMod, AnyMod, and Modification<_> with any of the preceeding —
+        // that's six (6) test-cases in all!
         modification: impl Into<AnyModification<'a, 'p>>,
         target: &mut Residue<'a, 'p>,
     ) -> Result<()> {
         let modification = modification.into();
         match modification.kind {
-            AnyMod::Named(m) => {
-                self.modify_with_optional_groups(m.abbr(), target, modification.multiplier)
+            AnyMod::Named(kind) => {
+                self.modify_with_optional_groups(kind.abbr(), target, modification.multiplier)?
             }
-            AnyMod::Offset(_) => todo!(),
-        }
+            AnyMod::Offset(kind) => {
+                todo!()
+            }
+        };
+        Ok(())
     }
 
     pub fn modify_only_group(
@@ -286,6 +291,8 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
                 .unwrap()
                 .insert(target.id(), group_state.is_free());
 
+            // FIXME: Check that the group is free before mutating? I need to really make sure that, if you call any
+            // polymerizer method on a residue that wasn't made by this polymerizer, that it fails reasonably!
             let target_state = target.group_state_mut(target_group).unwrap();
             *target_state = group_state;
         }
