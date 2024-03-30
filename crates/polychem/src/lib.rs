@@ -6,8 +6,6 @@ pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
 
-use std::{borrow::Borrow, marker::PhantomData};
-
 use atoms::chemical_composition_parser::CompositionError;
 use polymerizer::PolymerizerError;
 use serde::Serialize;
@@ -33,7 +31,7 @@ pub struct Residue<'a, 'p> {
     name: &'p str,
     composition: &'p ChemicalComposition<'a>,
     functional_groups: HashMap<FunctionalGroup<'p>, GroupState<'a, 'p>>,
-    offset_modifications: HashMap<OffsetMod<'a>, Count>,
+    offset_modifications: HashMap<ChemicalComposition<'a>, OffsetMultiplier>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -53,6 +51,10 @@ pub struct FunctionalGroup<'p> {
     location: &'p str,
 }
 
+// FIXME: Oh boy, please pick a better name...
+// FIXME: Should this really be a tuple struct?...
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+pub struct OffsetMultiplier(OffsetKind, Count);
 // FIXME: These fields are public because there are no internal invariants to uphold (it's just a straightforward tuple)
 // and there are no read-only fields. It makes perfect sense for users to change either field. Be sure to apply this
 // reasoning consistently to all of the other structs! Making more public where everything should be read-write! Don't
@@ -118,69 +120,14 @@ pub struct NamedMod<'a, 'p> {
     gained: &'p ChemicalComposition<'a>,
 }
 
-// FIXME: Horrible name...
-pub trait NestedBorrow<T> {
-    type Content<'a>
-    where
-        Self: 'a;
-
-    fn borrow(&self) -> &T;
-}
-
-impl<T> NestedBorrow<T> for T {
-    type Content<'a> = T
-    where
-        Self: 'a;
-
-    fn borrow(&self) -> &T {
-        self
-    }
-}
-
-impl<T> NestedBorrow<T> for &T {
-    type Content<'a> = T
-    where
-        Self: 'a;
-
-    fn borrow(&self) -> &T {
-        &**self
-    }
-}
-
-// #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize)]
-// pub struct OffsetMod<'a, C: NestedBorrow<ChemicalComposition<'a>> + 'a = ChemicalComposition<'a>> {
-//     kind: OffsetKind,
-//     composition: C::Content<'a>,
-// }
-
-// impl<'a> NestedBorrow<ChemicalComposition<'a>> for &ChemicalComposition<'a> {
-//     type Content<'b> = ChemicalComposition<'b>
-//     where
-//         Self: 'b;
-
-//     fn borrow(&self) -> &ChemicalComposition<'a> {
-//         &**self
-//     }
-// }
-// impl<'a, T: Borrow<ChemicalComposition<'a>>> NestedBorrow<T> for T {
-//     fn borrow(&self) -> &ChemicalComposition<'a> {
-//         self
-//     }
-// }
-
-// pub type OffsetMod<'a> = OffsetMod2<ChemicalComposition<'a>>;
-// pub type BorrowedOffsetMod<'a, 'c> = OffsetMod2<&'c ChemicalComposition<'a>>;
-
-// #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize)]
-// pub struct OffsetMod2<C> {
-//     kind: OffsetKind,
-//     composition: C,
-// }
+pub type OffsetMod<'a> = Offset<ChemicalComposition<'a>>;
+pub type BorrowedOffsetMod<'a> = Offset<&'a ChemicalComposition<'a>>;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize)]
-pub struct OffsetMod<'a> {
+pub struct Offset<C> {
     kind: OffsetKind,
-    composition: ChemicalComposition<'a>,
+    // FIXME: Better field name now that this is generic?
+    composition: C,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -251,7 +198,7 @@ macro_rules! massive_ref_impls {
     };
 }
 
-// massive_ref_impls!(&T, &mut T, Box<T>);
+massive_ref_impls!(&T, &mut T, Box<T>);
 
 macro_rules! charged_ref_impls {
     ($($ref_type:ty),+ $(,)?) => {

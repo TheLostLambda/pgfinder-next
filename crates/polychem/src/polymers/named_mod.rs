@@ -38,7 +38,7 @@ impl<'a, 'p> NamedMod<'a, 'p> {
 
 impl<'a, 'p> From<NamedMod<'a, 'p>> for Modification<NamedMod<'a, 'p>> {
     fn from(value: NamedMod<'a, 'p>) -> Self {
-        Modification::new(1, value)
+        Self::new(1, value)
     }
 }
 

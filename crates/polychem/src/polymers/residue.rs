@@ -1,11 +1,11 @@
-use std::{iter, marker::PhantomData};
+use std::{collections::hash_map::Entry, iter};
 
 use ahash::{HashMap, HashMapExt};
 use rust_decimal::Decimal;
 
 use crate::{
-    Charge, Charged, ChemicalComposition, FunctionalGroup, GroupState, Id, Massive, Modification,
-    OffsetKind, OffsetMod, PolychemError, Residue, Result, SignedCount,
+    BorrowedOffsetMod, Charge, Charged, FunctionalGroup, GroupState, Id, Massive, Modification,
+    Offset, OffsetMod, OffsetMultiplier, PolychemError, Residue, Result, SignedCount,
 };
 
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
@@ -62,8 +62,9 @@ impl<'a, 'p> Residue<'a, 'p> {
         })
     }
 
-    // FIXME: This cannot be public — it breaks the polymerizer free-group index
-    pub fn group_state_mut(
+    // FIXME: This cannot be public — it breaks the polymerizer free-group index — think about if residue should have
+    // any public methods... I think they should, since they can be looked up by ID in the polymerizer!
+    pub(crate) fn group_state_mut(
         &mut self,
         functional_group: &FunctionalGroup<'p>,
     ) -> Result<&mut GroupState<'a, 'p>> {
@@ -76,28 +77,42 @@ impl<'a, 'p> Residue<'a, 'p> {
 
     // FIXME: Is there a non-unit return value that might be helpful / make sense here?
     pub fn add_offset(&mut self, offset: impl Into<Modification<OffsetMod<'a>>>) -> Result<()> {
-        let Modification { multiplier, kind } = offset.into();
-        let sign = SignedCount::from(kind.kind);
-        let mut count = self.offset_modifications.entry(kind).or_default();
-        let signed_count = sign * SignedCount::from(*count);
-        todo!()
+        let Modification {
+            multiplier,
+            kind: Offset { kind, composition },
+        } = offset.into();
+        let delta = SignedCount::from(kind) * SignedCount::from(multiplier);
+        match self.offset_modifications.entry(composition) {
+            Entry::Occupied(mut e) => {
+                let offset_multiplier = e.get();
+                let signed_count = SignedCount::from(*offset_multiplier) + delta;
+                if signed_count == 0 {
+                    e.remove();
+                } else {
+                    // FIXME: Unwrap → ?
+                    e.insert(signed_count.try_into().unwrap());
+                }
+            }
+            Entry::Vacant(e) => {
+                // FIXME: Unwrap → ?
+                e.insert(delta.try_into().unwrap());
+            }
+        }
+        Ok(())
     }
 
-    // FIXME: What the *FUCK* happened here...
-    // pub fn offset_modifications(
-    //     &self,
-    // ) -> impl Iterator<Item = Modification<BorrowedOffsetMod<'a, '_>>> {
-    //     self.offset_modifications.iter().map(
-    //         move |(
-    //             &OffsetMod {
-    //                 kind,
-    //                 ref composition,
-    //                 ..
-    //             },
-    //             &multiplier,
-    //         )| { Modification::new(multiplier, OffsetMod { kind, composition }) },
-    //     )
-    // }
+    pub fn offset_modifications(
+        &'a self,
+    ) -> impl Iterator<Item = Modification<BorrowedOffsetMod<'a>>> {
+        self.offset_modifications.iter().map(
+            |(composition, &OffsetMultiplier(kind, multiplier))| {
+                Modification::new(
+                    multiplier,
+                    BorrowedOffsetMod::new_with_composition(kind, composition),
+                )
+            },
+        )
+    }
 
     // TODO: Write a `named_modifications()` equivalent!
 }
@@ -112,11 +127,11 @@ macro_rules! sum_parts {
             GroupState::Donor(b) => Some($accessor(b)),
             _ => None,
         });
-        // let offset_mods = $self.offset_modifications().map(|ref m| $accessor(m));
+        let offset_mods = $self.offset_modifications().map(|ref m| $accessor(m));
 
         composition
             .chain(functional_groups)
-            // .chain(offset_mods)
+            .chain(offset_mods)
             .sum()
     }};
 }
@@ -226,15 +241,12 @@ mod tests {
         snapshots.push(alanine.clone());
 
         // Add a water-loss offset modification
-        let water_loss = Modification::new(
-            1,
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
-        // FIXME: Uncomment this!
-        // alanine.offset_modifications.push(water_loss);
+        let water_loss = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
+        alanine.add_offset(water_loss).unwrap();
         snapshots.push(alanine.clone());
 
         // Add an amidation named modification to the C-terminal
+        // FIXME: Replace all of these with .group_state_mut()!
         assert!(alanine.functional_groups.contains_key(&C_TERMINAL));
         alanine.functional_groups.insert(
             C_TERMINAL,
@@ -277,30 +289,27 @@ mod tests {
         snapshots.push(alanine.clone());
 
         // Residues can be protonated
-        let proton =
+        let protons =
             Modification::new(2, OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "p").unwrap());
-        // FIXME: Uncomment this!
-        // alanine.offset_modifications.push(proton);
+        alanine.add_offset(protons).unwrap();
         snapshots.push(alanine.clone());
 
         // Or can form other adducts
-        let ca = Modification::new(
-            1,
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
-        // FIXME: Uncomment this!
-        // alanine.offset_modifications.push(ca);
+        let ca = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap();
+        alanine.add_offset(ca).unwrap();
         snapshots.push(alanine.clone());
 
         // Removing the two protons...
-        // FIXME: Uncomment this!
-        // alanine.offset_modifications.remove(1);
+        let anti_protons = Modification::new(
+            2,
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "p").unwrap(),
+        );
+        alanine.add_offset(anti_protons).unwrap();
         snapshots.push(alanine.clone());
 
         snapshots
     });
 
-    #[ignore]
     #[test]
     fn monoisotopic_mass() {
         assert_eq!(
@@ -322,7 +331,6 @@ mod tests {
         );
     }
 
-    #[ignore]
     #[test]
     fn average_mass() {
         assert_eq!(
@@ -344,7 +352,6 @@ mod tests {
         );
     }
 
-    #[ignore]
     #[test]
     fn charge() {
         assert_eq!(
@@ -353,7 +360,6 @@ mod tests {
         );
     }
 
-    #[ignore]
     #[test]
     fn monoisotopic_mz() {
         assert_eq!(
@@ -372,7 +378,6 @@ mod tests {
         );
     }
 
-    #[ignore]
     #[test]
     fn average_mz() {
         assert_eq!(

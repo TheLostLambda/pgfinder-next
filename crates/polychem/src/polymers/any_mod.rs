@@ -2,7 +2,7 @@ use rust_decimal::Decimal;
 
 use crate::{
     atoms::atomic_database::AtomicDatabase, AnyMod, AnyModification, Charge, Charged, Massive,
-    Modification, NamedMod, OffsetKind, OffsetMod, Result,
+    NamedMod, OffsetKind, OffsetMod, Result,
 };
 
 use super::polymer_database::PolymerDatabase;
@@ -35,7 +35,7 @@ impl<'a, 'p> From<OffsetMod<'a>> for AnyMod<'a, 'p> {
 
 impl<'a, 'p, K: Into<AnyMod<'a, 'p>>> From<K> for AnyModification<'a, 'p> {
     fn from(value: K) -> Self {
-        Modification::new(1, value.into())
+        Self::new(1, value.into())
     }
 }
 

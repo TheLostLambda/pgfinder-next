@@ -1,11 +1,16 @@
-use std::{borrow::Borrow, marker::PhantomData};
-
 use rust_decimal::Decimal;
 
 use crate::{
     atoms::atomic_database::AtomicDatabase, Charge, Charged, ChemicalComposition, Massive,
-    Modification, OffsetKind, OffsetMod, Result, SignedCount,
+    Modification, Offset, OffsetKind, OffsetMod, Result, SignedCount,
 };
+
+impl<T> Offset<T> {
+    #[must_use]
+    pub const fn new_with_composition(kind: OffsetKind, composition: T) -> Self {
+        Self { kind, composition }
+    }
+}
 
 impl<'a> OffsetMod<'a> {
     // FIXME: Should this error be wrapped? Probably should have a variant in PolychemError!
@@ -13,62 +18,25 @@ impl<'a> OffsetMod<'a> {
         let composition = ChemicalComposition::new(db, formula)?;
         Ok(Self { kind, composition })
     }
+}
 
-    #[must_use]
-    pub const fn new_with_composition(
-        kind: OffsetKind,
-        composition: ChemicalComposition<'a>,
-    ) -> Self {
-        Self { kind, composition }
+impl<T> From<Offset<T>> for Modification<Offset<T>> {
+    fn from(value: Offset<T>) -> Self {
+        Self::new(1, value)
     }
 }
 
-impl<'a> From<OffsetMod<'a>> for Modification<OffsetMod<'a>> {
-    fn from(value: OffsetMod<'a>) -> Self {
-        Modification::new(1, value)
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct BorrowedOffsetMod<'a> {
-    kind: OffsetKind,
-    composition: &'a ChemicalComposition<'a>,
-}
-
-impl<'a> From<&'a OffsetMod<'a>> for BorrowedOffsetMod<'a> {
-    fn from(value: &'a OffsetMod<'a>) -> Self {
-        BorrowedOffsetMod {
-            kind: value.kind,
-            composition: &value.composition,
-        }
-    }
-}
-// impl Massive for OffsetMod<'_> {
-//     fn monoisotopic_mass(&self) -> Decimal {
-//         Decimal::from(self.kind) * self.composition.monoisotopic_mass()
-//     }
-
-//     fn average_mass(&self) -> Decimal {
-//         Decimal::from(self.kind) * self.composition.average_mass()
-//     }
-// }
-
-impl<'a, T> Massive for T
-where
-    BorrowedOffsetMod<'a>: From<&T>,
-{
+impl<T: Massive> Massive for Offset<T> {
     fn monoisotopic_mass(&self) -> Decimal {
-        let offset_mod = BorrowedOffsetMod::from(self);
-        Decimal::from(offset_mod.kind) * offset_mod.composition.monoisotopic_mass()
+        Decimal::from(self.kind) * self.composition.monoisotopic_mass()
     }
 
     fn average_mass(&self) -> Decimal {
-        let offset_mod = (*self).into();
-        Decimal::from(offset_mod.kind) * offset_mod.composition.average_mass()
+        Decimal::from(self.kind) * self.composition.average_mass()
     }
 }
 
-impl Charged for OffsetMod<'_> {
+impl<T: Charged> Charged for Offset<T> {
     fn charge(&self) -> Charge {
         SignedCount::from(self.kind) * self.composition.charge()
     }

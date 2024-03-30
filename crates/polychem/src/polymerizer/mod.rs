@@ -89,7 +89,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         let modification = modification.into();
         match modification.kind {
             AnyMod::Named(kind) => {
-                self.modify_with_optional_groups(kind.abbr(), target, modification.multiplier)?
+                self.modify_with_optional_groups(kind.abbr(), target, modification.multiplier)?;
             }
             AnyMod::Offset(kind) => {
                 todo!()
