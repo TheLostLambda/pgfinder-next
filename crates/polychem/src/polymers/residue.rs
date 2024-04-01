@@ -238,6 +238,38 @@ mod tests {
         assert_miette_snapshot!(alanine.group_state_mut(&sidechain_amino));
     }
 
+    #[test]
+    fn add_offset() {
+        let mut alanine = Residue::new(&POLYMER_DB, "A", 0).unwrap();
+        let water_loss = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
+        let protons = |kind| Modification::new(2, OffsetMod::new(&ATOMIC_DB, kind, "p").unwrap());
+        macro_rules! assert_offset_names_and_counts {
+            ($input:ident, $output:expr) => {
+                let mut sorted_offsets: Vec<_> = $input
+                    .offset_modifications()
+                    .map(|m| m.to_string())
+                    .collect();
+                sorted_offsets.sort_unstable();
+                assert_eq!(sorted_offsets, $output);
+            };
+        }
+
+        assert_eq!(alanine.add_offset(water_loss.clone()).unwrap(), -1);
+        assert_offset_names_and_counts!(alanine, vec!["-H2O"]);
+        assert_eq!(alanine.add_offset(water_loss).unwrap(), -2);
+        assert_offset_names_and_counts!(alanine, vec!["-2xH2O"]);
+
+        assert_eq!(alanine.add_offset(protons(OffsetKind::Add)).unwrap(), 2);
+        assert_offset_names_and_counts!(alanine, vec!["+2xp", "-2xH2O"]);
+        assert_eq!(alanine.add_offset(protons(OffsetKind::Add)).unwrap(), 4);
+        assert_offset_names_and_counts!(alanine, vec!["+4xp", "-2xH2O"]);
+
+        assert_eq!(alanine.add_offset(protons(OffsetKind::Remove)).unwrap(), 2);
+        assert_offset_names_and_counts!(alanine, vec!["+2xp", "-2xH2O"]);
+        assert_eq!(alanine.add_offset(protons(OffsetKind::Remove)).unwrap(), 0);
+        assert_offset_names_and_counts!(alanine, vec!["-2xH2O"]);
+    }
+
     static RESIDUE_SERIES: Lazy<Vec<Residue<'static, 'static>>> = Lazy::new(|| {
         let mut snapshots = Vec::new();
 

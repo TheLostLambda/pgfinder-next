@@ -1,6 +1,8 @@
+use std::fmt::{self, Display, Formatter};
+
 use rust_decimal::prelude::Decimal;
 
-use crate::{Charge, Charged, Count, Massive, Modification, SignedCount};
+use crate::{AnyMod, Charge, Charged, Count, Massive, Modification, NamedMod, Offset, SignedCount};
 
 impl<K> Modification<K> {
     // FIXME: Maybe make this `new_with_multiplier`, and make `new(k)` = `new_with_multiplier(1, k)` — depends on if
@@ -34,14 +36,73 @@ impl<K: Charged> Charged for Modification<K> {
     }
 }
 
+fn display_offset_modification(
+    f: &mut Formatter<'_>,
+    multiplier: Count,
+    offset_mod: &Offset<impl Display>,
+) -> fmt::Result {
+    let Offset { kind, composition } = offset_mod;
+    if multiplier > 1 {
+        write!(f, "{kind}{multiplier}x{composition}")
+    } else {
+        write!(f, "{kind}{composition}")
+    }
+}
+
+fn display_named_modification(
+    f: &mut Formatter<'_>,
+    multiplier: Count,
+    named_mod: &NamedMod,
+) -> fmt::Result {
+    let NamedMod { abbr, .. } = named_mod;
+    if multiplier > 1 {
+        write!(f, "{multiplier}x{abbr}")
+    } else {
+        write!(f, "{abbr}")
+    }
+}
+
+impl<C: Display> Display for Modification<Offset<C>> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let &Self {
+            multiplier,
+            ref kind,
+        } = self;
+        display_offset_modification(f, multiplier, kind)
+    }
+}
+
+impl Display for Modification<NamedMod<'_, '_>> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let &Self {
+            multiplier,
+            ref kind,
+        } = self;
+        display_named_modification(f, multiplier, kind)
+    }
+}
+
+impl Display for Modification<AnyMod<'_, '_>> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let &Self {
+            multiplier,
+            ref kind,
+        } = self;
+        match kind {
+            AnyMod::Named(kind) => display_named_modification(f, multiplier, kind),
+            AnyMod::Offset(kind) => display_offset_modification(f, multiplier, kind),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
     use crate::{
-        atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-        AnyMod, Mz, NamedMod, OffsetKind, OffsetMod,
+        atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase, Mz,
+        OffsetKind, OffsetMod,
     };
 
     use super::*;
@@ -56,6 +117,61 @@ mod tests {
         )
         .unwrap()
     });
+
+    #[test]
+    fn modifcation_display() {
+        let water_gain = Modification::new(
+            1,
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
+        );
+        assert_eq!(water_gain.to_string(), "+H2O");
+        let water_loss = Modification::new(
+            1,
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
+        );
+        assert_eq!(water_loss.to_string(), "-H2O");
+        let double_water_gain = Modification::new(
+            2,
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
+        );
+        assert_eq!(double_water_gain.to_string(), "+2xH2O");
+        let double_water_loss = Modification::new(
+            2,
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
+        );
+        assert_eq!(double_water_loss.to_string(), "-2xH2O");
+
+        let amidation = Modification::new(1, NamedMod::new(&POLYMER_DB, "Am").unwrap());
+        assert_eq!(amidation.to_string(), "Am");
+        let double_amidation = Modification::new(2, NamedMod::new(&POLYMER_DB, "Am").unwrap());
+        assert_eq!(double_amidation.to_string(), "2xAm");
+
+        let water_gain = Modification::new(
+            1,
+            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
+        );
+        assert_eq!(water_gain.to_string(), "+H2O");
+        let water_loss = Modification::new(
+            1,
+            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
+        );
+        assert_eq!(water_loss.to_string(), "-H2O");
+        let double_water_gain = Modification::new(
+            2,
+            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
+        );
+        assert_eq!(double_water_gain.to_string(), "+2xH2O");
+        let double_water_loss = Modification::new(
+            2,
+            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
+        );
+        assert_eq!(double_water_loss.to_string(), "-2xH2O");
+
+        let amidation = Modification::new(1, AnyMod::named(&POLYMER_DB, "Am").unwrap());
+        assert_eq!(amidation.to_string(), "Am");
+        let double_amidation = Modification::new(2, AnyMod::named(&POLYMER_DB, "Am").unwrap());
+        assert_eq!(double_amidation.to_string(), "2xAm");
+    }
 
     #[test]
     fn monoisotopic_mass() {
