@@ -75,8 +75,11 @@ impl<'a, 'p> Residue<'a, 'p> {
             })
     }
 
-    // FIXME: Is there a non-unit return value that might be helpful / make sense here?
-    pub fn add_offset(&mut self, offset: impl Into<Modification<OffsetMod<'a>>>) -> Result<()> {
+    // FIXME: Does that `SignedCount` return value make sense here?
+    pub fn add_offset(
+        &mut self,
+        offset: impl Into<Modification<OffsetMod<'a>>>,
+    ) -> Result<SignedCount> {
         let Modification {
             multiplier,
             kind: Offset { kind, composition },
@@ -92,13 +95,14 @@ impl<'a, 'p> Residue<'a, 'p> {
                     // FIXME: Unwrap → ?
                     e.insert(signed_count.try_into().unwrap());
                 }
+                Ok(signed_count)
             }
             Entry::Vacant(e) => {
                 // FIXME: Unwrap → ?
                 e.insert(delta.try_into().unwrap());
+                Ok(delta)
             }
         }
-        Ok(())
     }
 
     pub fn offset_modifications(
