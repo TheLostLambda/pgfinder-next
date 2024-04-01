@@ -55,15 +55,11 @@ pub struct FunctionalGroup<'p> {
 // FIXME: Should this really be a tuple struct?...
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct OffsetMultiplier(OffsetKind, Count);
-// FIXME: These fields are public because there are no internal invariants to uphold (it's just a straightforward tuple)
-// and there are no read-only fields. It makes perfect sense for users to change either field. Be sure to apply this
-// reasoning consistently to all of the other structs! Making more public where everything should be read-write! Don't
-// forget to think about what might need to hold a mass-cache in the future!
-// FIXME: In fact, damn, this could reasonably have a mass-cache... So I should probably re-private those fields...
+
 #[derive(Clone, PartialEq, Eq, Debug, Serialize)]
 pub struct Modification<K> {
-    pub multiplier: Count,
-    pub kind: K,
+    multiplier: Count,
+    kind: K,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -103,15 +99,6 @@ pub enum GroupState<'a, 'p> {
     Acceptor,
 }
 
-// FIXME: Move these "Any" types to their own section, after the main tree of data structures, since they are only used
-// *outside* of this crate!
-pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
-#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-pub enum AnyMod<'a, 'p> {
-    Named(NamedMod<'a, 'p>),
-    Offset(OffsetMod<'a>),
-}
-
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize)]
 pub struct NamedMod<'a, 'p> {
     abbr: &'p str,
@@ -126,7 +113,6 @@ pub type BorrowedOffsetMod<'a> = Offset<&'a ChemicalComposition<'a>>;
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize)]
 pub struct Offset<C> {
     kind: OffsetKind,
-    // FIXME: Better field name now that this is generic?
     composition: C,
 }
 
@@ -154,10 +140,22 @@ pub struct Bond<'a, 'p> {
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct BondTarget<'p> {
     residue: Id,
+    // NOTE: Owned because some of these are sometimes constructed from `Target`s returned by the `TargetIndex`
     group: FunctionalGroup<'p>,
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
+// FIXME: Better section naming!
+// Convenience API? ====================================================================================================
+
+pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+pub enum AnyMod<'a, 'p> {
+    Named(NamedMod<'a, 'p>),
+    Offset(OffsetMod<'a>),
+}
+
+// =====================================================================================================================
 
 pub trait Massive {
     fn monoisotopic_mass(&self) -> Decimal;

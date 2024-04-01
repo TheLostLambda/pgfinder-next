@@ -260,15 +260,8 @@ mod tests {
         snapshots.push(alanine.clone());
 
         // But they can be replaced with bonds
-        let peptide_bond = Bond::new(
-            &POLYMER_DB,
-            "Peptide",
-            BondTarget {
-                residue: 0,
-                group: C_TERMINAL,
-            },
-        )
-        .unwrap();
+        let peptide_bond =
+            Bond::new(&POLYMER_DB, "Peptide", BondTarget::new(0, C_TERMINAL)).unwrap();
         *alanine.group_state_mut(&N_TERMINAL).unwrap() = GroupState::Donor(peptide_bond);
         snapshots.push(alanine.clone());
 

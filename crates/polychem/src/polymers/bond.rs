@@ -67,10 +67,7 @@ mod tests {
 
     static EMPTY_GROUP: FunctionalGroup = FunctionalGroup::new("", "");
 
-    static EMPTY_TARGET: Lazy<BondTarget> = Lazy::new(|| BondTarget {
-        residue: 0,
-        group: EMPTY_GROUP,
-    });
+    static EMPTY_TARGET: Lazy<BondTarget> = Lazy::new(|| BondTarget::new(0, EMPTY_GROUP));
 
     #[test]
     fn errors() {

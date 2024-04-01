@@ -351,13 +351,13 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         let donor_state = GroupState::Donor(Bond {
             kind,
             lost,
-            acceptor: BondTarget {
-                residue: acceptor.id(),
+            acceptor: BondTarget::new(
+                acceptor.id(),
                 // SAFETY: The `count` of 1 provided to `find_free_groups` ensures that `acceptor_groups` will contain
                 // at least one element
                 // FIXME: Awful! Maybe a `find_free_group` that sets `find_free_groups`s `count` to 1?
-                group: *acceptor_groups.iter().next().unwrap(),
-            },
+                *acceptor_groups.iter().next().unwrap(),
+            ),
         });
         self.update_groups(donor, &donor_groups, donor_state);
         self.update_groups(acceptor, &acceptor_groups, GroupState::Acceptor);
