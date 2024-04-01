@@ -246,31 +246,17 @@ mod tests {
         snapshots.push(alanine.clone());
 
         // Add an amidation named modification to the C-terminal
-        // FIXME: Replace all of these with .group_state_mut()!
-        assert!(alanine.functional_groups.contains_key(&C_TERMINAL));
-        alanine.functional_groups.insert(
-            C_TERMINAL,
-            GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap()),
-        );
+        let amidation = GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap());
+        *alanine.group_state_mut(&C_TERMINAL).unwrap() = amidation;
         snapshots.push(alanine.clone());
 
         // Add an amidation named modification to the N-terminal (ignoring that that's impossible)
-        assert!(alanine.functional_groups.contains_key(&N_TERMINAL));
-        alanine.functional_groups.insert(
-            N_TERMINAL,
-            GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap()),
-        );
+        *alanine.group_state_mut(&N_TERMINAL).unwrap() = amidation;
         snapshots.push(alanine.clone());
 
         // Out of functional groups, so adding more amidations changes nothing
-        alanine.functional_groups.insert(
-            N_TERMINAL,
-            GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap()),
-        );
-        alanine.functional_groups.insert(
-            C_TERMINAL,
-            GroupState::Modified(NamedMod::new(&POLYMER_DB, "Am").unwrap()),
-        );
+        *alanine.group_state_mut(&N_TERMINAL).unwrap() = amidation;
+        *alanine.group_state_mut(&C_TERMINAL).unwrap() = amidation;
         snapshots.push(alanine.clone());
 
         // But they can be replaced with bonds
@@ -283,9 +269,7 @@ mod tests {
             },
         )
         .unwrap();
-        alanine
-            .functional_groups
-            .insert(N_TERMINAL, GroupState::Donor(peptide_bond));
+        *alanine.group_state_mut(&N_TERMINAL).unwrap() = GroupState::Donor(peptide_bond);
         snapshots.push(alanine.clone());
 
         // Residues can be protonated
