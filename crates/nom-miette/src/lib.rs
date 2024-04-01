@@ -13,7 +13,7 @@ use thiserror::Error;
 // understand what that `K` parameter is for!
 #[derive(Debug, Clone, Eq, PartialEq, Error)]
 #[error("{error}")]
-pub struct LabeledError<K: LabeledErrorKind> {
+pub struct LabeledError<K> {
     full_input: String,
     labels: Vec<LabeledSpan>,
     error: ErrorTree<K, Self>,
@@ -113,7 +113,7 @@ impl<E: LabeledErrorKind> LabeledError<E> {
 
 // FIXME: Check that field ordering everywhere matches this!
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum LabeledParseError<'a, K: LabeledErrorKind> {
+pub enum LabeledParseError<'a, K> {
     Node {
         input: &'a str,
         length: usize,

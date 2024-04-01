@@ -14,7 +14,7 @@ use ahash::{HashMap, HashMapExt};
 // FIXME: I think this trait bound is okay, since this isn't public API anyways!
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-pub struct Target<S: Borrow<str> = String> {
+pub struct Target<S = String> {
     pub group: S,
     pub location: Option<S>,
     pub residue: Option<S>,
