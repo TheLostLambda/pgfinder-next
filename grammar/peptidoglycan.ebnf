@@ -11,13 +11,8 @@ Connection
   | ( "~=" | "=~" ) (* Both *)
   ;
 
-Modifications = "(" ,
-  ( Predefined Modification
-  | Chemical Offset
-  ) , { { " " } , "," , { " " } ,
-  ( Predefined Modification
-  | Chemical Offset
-  ) } , ")" ;
+Modifications = "(" , ( Named Modification | Offset Modification ) ,
+  { { " " } , "," , { " " } , ( Named Modification | Offset Modification ) } , ")" ;
 
 Crosslinks = "(" , Crosslink Descriptors ,
   { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
@@ -27,10 +22,10 @@ Glycan = { Monosaccharide , [ Modifications ] }- ;
 Peptide = { Amino Acid , [ Modifications ] ,
   [ Lateral Chain ] }- ;
 
-Predefined Modification = [ Multiplier ] , letter ,
+Named Modification = [ Multiplier ] , letter ,
   { letter | digit | "_" } ;
 
-Chemical Offset = ( "+" | "-" ) , [ Multiplier ] ,
+Offset Modification = ( "+" | "-" ) , [ Multiplier ] ,
   Chemical Composition ;
 
 Crosslink Descriptors = Crosslink Descriptor ,

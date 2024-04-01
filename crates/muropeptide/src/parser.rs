@@ -66,20 +66,15 @@ fn amino_acid<'a, 's>(
 
 // =
 
-/// Modifications = "(" ,
-///   ( Predefined Modification
-///   | Chemical Offset
-///   ) , { { " " } , "," , { " " } ,
-///   ( Predefined Modification
-///   | Chemical Offset
-///   ) } , ")" ;
+/// Modifications = "(" , ( Named Modification | Offset Modification ) ,
+///   { { " " } , "," , { " " } , ( Named Modification | Offset Modification ) } , ")" ;
 fn modifications<'a, 's>(
     polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<AnyModification<'a, 'a>>> {
     let separator = delimited(space0, char(','), space0);
     // FIXME: Move into polychem
     let any_mod = alt((
-        map(predefined_modification(polymerizer), Modification::convert),
+        map(named_modification(polymerizer), Modification::convert),
         map(chemical_offset(polymerizer), Modification::convert),
     ));
     delimited(char('('), separated_list1(separator, any_mod), char(')'))
@@ -115,8 +110,8 @@ fn lateral_chain<'a, 's>(
 
 // FIXME: I probably need to add a lot of `wrap_err`s around these parsers!
 // FIXME: Move into polychem
-/// Predefined Modification = [ Multiplier ] , Identifier
-fn predefined_modification<'a, 's>(
+/// Named Modification = [ Multiplier ] , Identifier
+fn named_modification<'a, 's>(
     polymerizer: &Polymerizer<'a, 'a>,
 ) -> impl FnMut(&'s str) -> ParseResult<Modification<NamedMod<'a, 'a>>> {
     let polymer_db = polymerizer.polymer_db();
@@ -342,17 +337,17 @@ mod tests {
 
     #[test]
     #[allow(clippy::cognitive_complexity)]
-    fn test_predefined_modification() {
+    fn test_named_modification() {
         let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut predefined_modification = predefined_modification(&polymerizer);
+        let mut named_modification = named_modification(&polymerizer);
         macro_rules! assert_offset_mass {
             ($input:literal, $output:literal, $mass:expr) => {
-                let (rest, modification) = predefined_modification($input).unwrap();
+                let (rest, modification) = named_modification($input).unwrap();
                 assert_eq!(rest, $output);
                 assert_eq!(modification.monoisotopic_mass(), $mass);
             };
         }
-        // Valid Predefined Modifications
+        // Valid Named Modifications
         assert_offset_mass!("Am", "", dec!(-0.98401558291));
         assert_offset_mass!("Ac", "", dec!(42.01056468403));
         assert_offset_mass!("Poly", "", dec!(77.95068082490));
@@ -362,33 +357,33 @@ mod tests {
         assert_offset_mass!("1xAm", "", dec!(-0.98401558291));
         assert_offset_mass!("2xRed", "", dec!(4.03130012892));
         assert_offset_mass!("3xAnh", "", dec!(-54.03169405209));
-        // Invalid Predefined Modifications
-        assert!(predefined_modification(" H2O").is_err());
-        assert!(predefined_modification("1").is_err());
-        assert!(predefined_modification("9999").is_err());
-        assert!(predefined_modification("0").is_err());
-        assert!(predefined_modification("00145").is_err());
-        assert!(predefined_modification("+H").is_err());
-        assert!(predefined_modification("[H]").is_err());
-        assert!(predefined_modification("Øof").is_err());
-        assert!(predefined_modification("-Ac").is_err());
-        assert!(predefined_modification("_Ac").is_err());
-        assert!(predefined_modification("+Am").is_err());
-        assert!(predefined_modification("-2xAm").is_err());
-        assert!(predefined_modification("(Am)").is_err());
-        assert!(predefined_modification("-4xH2O").is_err());
-        assert!(predefined_modification("-2p").is_err());
-        assert!(predefined_modification("+C2H2O-2e").is_err());
-        assert!(predefined_modification("-3xC2H2O-2e").is_err());
-        assert!(predefined_modification("+NH3+p").is_err());
-        assert!(predefined_modification("+2xD2O").is_err());
-        assert!(predefined_modification("-2x[2H]2O").is_err());
-        // Non-Existent Predefined Modifications
-        assert!(predefined_modification("Blue").is_err());
-        assert!(predefined_modification("Hydro").is_err());
-        assert!(predefined_modification("1xAm2").is_err());
-        assert!(predefined_modification("2xR_ed").is_err());
-        // Multiple Predefined Modifications
+        // Invalid Named Modifications
+        assert!(named_modification(" H2O").is_err());
+        assert!(named_modification("1").is_err());
+        assert!(named_modification("9999").is_err());
+        assert!(named_modification("0").is_err());
+        assert!(named_modification("00145").is_err());
+        assert!(named_modification("+H").is_err());
+        assert!(named_modification("[H]").is_err());
+        assert!(named_modification("Øof").is_err());
+        assert!(named_modification("-Ac").is_err());
+        assert!(named_modification("_Ac").is_err());
+        assert!(named_modification("+Am").is_err());
+        assert!(named_modification("-2xAm").is_err());
+        assert!(named_modification("(Am)").is_err());
+        assert!(named_modification("-4xH2O").is_err());
+        assert!(named_modification("-2p").is_err());
+        assert!(named_modification("+C2H2O-2e").is_err());
+        assert!(named_modification("-3xC2H2O-2e").is_err());
+        assert!(named_modification("+NH3+p").is_err());
+        assert!(named_modification("+2xD2O").is_err());
+        assert!(named_modification("-2x[2H]2O").is_err());
+        // Non-Existent Named Modifications
+        assert!(named_modification("Blue").is_err());
+        assert!(named_modification("Hydro").is_err());
+        assert!(named_modification("1xAm2").is_err());
+        assert!(named_modification("2xR_ed").is_err());
+        // Multiple Named Modifications
         assert_offset_mass!("Anh, Am", ", Am", dec!(-18.01056468403));
         assert_offset_mass!("1xAm)JAA", ")JAA", dec!(-0.98401558291));
     }
