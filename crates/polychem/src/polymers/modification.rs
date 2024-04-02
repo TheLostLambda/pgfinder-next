@@ -42,7 +42,7 @@ fn display_offset_modification(
     offset: &Offset<impl Display>,
 ) -> fmt::Result {
     let Offset { kind, composition } = offset;
-    if multiplier > 1 {
+    if multiplier != 1 {
         write!(f, "{kind}{multiplier}x{composition}")
     } else {
         write!(f, "{kind}{composition}")
@@ -55,7 +55,7 @@ fn display_named_modification(
     named: &NamedMod,
 ) -> fmt::Result {
     let NamedMod { abbr, .. } = named;
-    if multiplier > 1 {
+    if multiplier != 1 {
         write!(f, "{multiplier}x{abbr}")
     } else {
         write!(f, "{abbr}")
@@ -120,6 +120,18 @@ mod tests {
 
     #[test]
     fn modifcation_display() {
+        // NOTE: Theoretically you should never have a multiplier of 0, but this display impl lets us print out pretty
+        // errors for when the user tries to do some nonsense like that...
+        let zero_water_gain = Modification::new(
+            0,
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
+        );
+        assert_eq!(zero_water_gain.to_string(), "+0xH2O");
+        let zero_water_loss = Modification::new(
+            0,
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
+        );
+        assert_eq!(zero_water_loss.to_string(), "-0xH2O");
         let water_gain = Modification::new(
             1,
             OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
@@ -146,6 +158,18 @@ mod tests {
         let double_amidation = Modification::new(2, NamedMod::new(&POLYMER_DB, "Am").unwrap());
         assert_eq!(double_amidation.to_string(), "2xAm");
 
+        // NOTE: Theoretically you should never have a multiplier of 0, but this display impl lets us print out pretty
+        // errors for when the user tries to do some nonsense like that...
+        let zero_water_gain = Modification::new(
+            0,
+            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
+        );
+        assert_eq!(zero_water_gain.to_string(), "+0xH2O");
+        let zero_water_loss = Modification::new(
+            0,
+            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
+        );
+        assert_eq!(zero_water_loss.to_string(), "-0xH2O");
         let water_gain = Modification::new(
             1,
             AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
