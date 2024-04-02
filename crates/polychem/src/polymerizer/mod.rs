@@ -315,7 +315,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
 
         let target_groups = self
             .find_free_groups(&targets, target, groups)
-            .map_err(|e| PolychemError::modification(name, abbr, target, e))?;
+            .map_err(|e| PolychemError::named_modification(name, abbr, target, e))?;
 
         let modified_state = GroupState::Modified(NamedMod {
             abbr,

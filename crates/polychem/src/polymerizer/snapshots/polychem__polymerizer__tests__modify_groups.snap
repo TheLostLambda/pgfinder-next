@@ -3,7 +3,7 @@ source: crates/polychem/src/polymerizer/mod.rs
 description: modify_non_free_group
 expression: out
 ---
-  × failed to apply the modification Calcium Adduct (Ca) to residue 1 (N-
-  │ Acetylmuramic Acid)
+  × failed to apply the named modification Calcium Adduct (Ca) to residue 1
+  │ (N-Acetylmuramic Acid)
   ╰─▶   × the functional group "Hydroxyl" at="6-Position" of residue 1 was
         │ already modified, but must be free

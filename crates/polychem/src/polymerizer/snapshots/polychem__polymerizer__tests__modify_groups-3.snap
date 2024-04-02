@@ -3,7 +3,7 @@ source: crates/polychem/src/polymerizer/mod.rs
 description: modify_multiple_errors
 expression: out
 ---
-  × failed to apply the modification 1,6-Anhydro (Anh) to residue 1 (N-
+  × failed to apply the named modification 1,6-Anhydro (Anh) to residue 1 (N-
   │ Acetylmuramic Acid)
   ╰─▶   × failed to find multiple of the requested free groups
       

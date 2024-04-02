@@ -8,6 +8,7 @@ mod testing_tools;
 
 use atoms::chemical_composition_parser::CompositionError;
 use polymerizer::PolymerizerError;
+use polymers::errors::OffsetMultiplierError;
 use serde::Serialize;
 
 // External Crate Imports
@@ -237,8 +238,20 @@ pub enum PolychemError {
     #[error("the functional group {0} could not be found on the residue {1} ({2})")]
     GroupLookup(String, String, String),
 
-    #[error("failed to apply the modification {0} ({1}) to residue {2} ({3})")]
-    Modification(
+    // FIXME: Needs constructor, use, and testing!
+    #[error("failed to apply the offset modification {0} to residue {1} ({2})")]
+    OffsetModification(
+        String,
+        Id,
+        String,
+        #[source]
+        #[diagnostic_source]
+        // FIXME: This should be hidden behind a private error struct, like `polymerizer::Error`
+        OffsetMultiplierError,
+    ),
+
+    #[error("failed to apply the named modification {0} ({1}) to residue {2} ({3})")]
+    NamedModification(
         String,
         String,
         Id,
@@ -284,8 +297,30 @@ impl PolychemError {
         )
     }
 
-    fn modification(name: &str, abbr: &str, residue: &Residue, source: PolymerizerError) -> Self {
-        Self::Modification(
+    fn offset_modification(
+        count: Count,
+        kind: OffsetKind,
+        composition: ChemicalComposition,
+        residue: &Residue,
+        source: OffsetMultiplierError,
+    ) -> Self {
+        let modification =
+            Modification::new(count, Offset::new_with_composition(kind, composition));
+        Self::OffsetModification(
+            modification.to_string(),
+            residue.id(),
+            residue.name().to_owned(),
+            source,
+        )
+    }
+
+    fn named_modification(
+        name: &str,
+        abbr: &str,
+        residue: &Residue,
+        source: PolymerizerError,
+    ) -> Self {
+        Self::NamedModification(
             name.to_owned(),
             abbr.to_owned(),
             residue.id(),

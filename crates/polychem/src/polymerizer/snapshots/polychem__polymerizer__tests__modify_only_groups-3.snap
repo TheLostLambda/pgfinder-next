@@ -3,8 +3,8 @@ source: crates/polychem/src/polymerizer/mod.rs
 description: residue_not_in_polymer
 expression: out
 ---
-  × failed to apply the modification Calcium Adduct (Ca) to residue 3
-  │ (Alanine)
+  × failed to apply the named modification Calcium Adduct (Ca) to residue
+  │ 3 (Alanine)
   ╰─▶   × residue 3 does not belong to the current polymer
         help: the referenced residue was likely created by a different
               Polymerizer instance

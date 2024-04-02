@@ -3,7 +3,7 @@ source: crates/polychem/src/polymerizer/mod.rs
 description: residue_from_wrong_polymer
 expression: out
 ---
-  × failed to apply the modification 1,6-Anhydro (Anh) to residue 1 (N-
+  × failed to apply the named modification 1,6-Anhydro (Anh) to residue 1 (N-
   │ Acetylmuramic Acid)
   ╰─▶   × residue 1 does not belong to the current polymer
         help: the referenced residue was likely created by a different

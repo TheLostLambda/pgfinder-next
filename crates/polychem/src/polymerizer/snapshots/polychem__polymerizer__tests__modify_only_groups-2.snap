@@ -3,8 +3,8 @@ source: crates/polychem/src/polymerizer/mod.rs
 description: still_all_groups_occupied
 expression: out
 ---
-  × failed to apply the modification Calcium Adduct (Ca) to residue 4 (N-
-  │ Acetylmuramic Acid)
+  × failed to apply the named modification Calcium Adduct (Ca) to residue 4
+  │ (N-Acetylmuramic Acid)
   ╰─▶   × too few functional groups on residue 4 matching the target were
         │ free (1/2): "Carboxyl" at="Lactyl Ether" is free, "Hydroxyl" at="6-
         │ Position" is modified, "Hydroxyl" at="Nonreducing End" is modified,

@@ -3,7 +3,7 @@ source: crates/polychem/src/polymerizer/mod.rs
 description: modify_invalid_group
 expression: out
 ---
-  × failed to apply the modification 1,6-Anhydro (Anh) to residue 1 (N-
+  × failed to apply the named modification 1,6-Anhydro (Anh) to residue 1 (N-
   │ Acetylmuramic Acid)
   ╰─▶   × expected a target matching "Hydroxyl" at="Reducing End" of="N-
         │ Acetylmuramic Acid", got "Hydroxyl" at="6-Position" of="N-

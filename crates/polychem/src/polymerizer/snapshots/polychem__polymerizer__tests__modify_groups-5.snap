@@ -3,7 +3,8 @@ source: crates/polychem/src/polymerizer/mod.rs
 description: nonexistent_group
 expression: out
 ---
-  × failed to apply the modification Reduced (Red) to residue 1 (Alanine)
+  × failed to apply the named modification Reduced (Red) to residue 1
+  │ (Alanine)
   ╰─▶   × failed to find multiple of the requested free groups
       
       Error:
