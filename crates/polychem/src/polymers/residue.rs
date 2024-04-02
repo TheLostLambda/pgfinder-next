@@ -84,6 +84,17 @@ impl<'a, 'p> Residue<'a, 'p> {
 
     pub fn add_offsets(&mut self, offset: OffsetMod<'a>, count: Count) -> Result<SignedCount> {
         let Offset { kind, composition } = offset;
+        let offset_error = |composition, residue, source| {
+            Err(
+                PolychemError::offset_modification(count, kind, composition, residue, source)
+                    .into(),
+            )
+        };
+
+        if count == 0 {
+            return offset_error(composition.clone(), self, OffsetMultiplierError::Zero);
+        }
+
         let requested_delta = SignedCount::from(kind) * SignedCount::from(count);
         match self.offset_modifications.entry(composition) {
             Entry::Occupied(mut e) => {
@@ -97,14 +108,7 @@ impl<'a, 'p> Residue<'a, 'p> {
                         e.remove();
                     }
                     Err(too_large) => {
-                        return Err(PolychemError::offset_modification(
-                            count,
-                            kind,
-                            e.key().clone(),
-                            self,
-                            too_large,
-                        )
-                        .into())
+                        return offset_error(e.key().clone(), self, too_large);
                     }
                 };
                 Ok(updated_count)
@@ -267,7 +271,7 @@ mod tests {
 
         assert_eq!(alanine.add_offset(water_loss.clone()).unwrap(), -1);
         assert_offset_names_and_counts!(alanine, vec!["-H2O"]);
-        assert_eq!(alanine.add_offset(water_loss).unwrap(), -2);
+        assert_eq!(alanine.add_offset(water_loss.clone()).unwrap(), -2);
         assert_offset_names_and_counts!(alanine, vec!["-2xH2O"]);
 
         assert_eq!(alanine.add_offsets(proton(OffsetKind::Add), 2).unwrap(), 2);
@@ -285,6 +289,17 @@ mod tests {
             0
         );
         assert_offset_names_and_counts!(alanine, vec!["-2xH2O"]);
+
+        assert_eq!(
+            alanine
+                .add_offsets(proton(OffsetKind::Add), Count::MAX)
+                .unwrap(),
+            Count::MAX.into()
+        );
+        assert_offset_names_and_counts!(alanine, vec!["+4294967295xp", "-2xH2O"]);
+        assert_miette_snapshot!(alanine.add_offsets(proton(OffsetKind::Add), Count::MAX));
+
+        assert_miette_snapshot!(alanine.add_offsets(water_loss, 0));
     }
 
     static RESIDUE_SERIES: Lazy<Vec<Residue<'static, 'static>>> = Lazy::new(|| {

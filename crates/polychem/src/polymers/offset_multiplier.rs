@@ -8,13 +8,13 @@ impl TryFrom<SignedCount> for OffsetMultiplier {
     type Error = OffsetMultiplierError;
 
     fn try_from(value: SignedCount) -> Result<Self, Self::Error> {
+        let abs_value = value.unsigned_abs();
+        let count =
+            Count::try_from(abs_value).map_err(|_| OffsetMultiplierError::TooLarge(abs_value))?;
         match value.cmp(&0) {
-            Ordering::Less => Ok(Self(
-                OffsetKind::Remove,
-                Count::try_from(value.unsigned_abs())?,
-            )),
+            Ordering::Less => Ok(Self(OffsetKind::Remove, count)),
             Ordering::Equal => Err(OffsetMultiplierError::Zero),
-            Ordering::Greater => Ok(Self(OffsetKind::Add, Count::try_from(value)?)),
+            Ordering::Greater => Ok(Self(OffsetKind::Add, count)),
         }
     }
 }

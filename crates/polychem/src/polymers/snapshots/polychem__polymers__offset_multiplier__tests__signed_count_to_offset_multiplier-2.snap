@@ -3,6 +3,4 @@ source: crates/polychem/src/polymers/offset_multiplier.rs
 description: "OffsetMultiplier::try_from(too_big)"
 expression: out
 ---
-  × attemped to convert a `SignedCount` into an `OffsetMultiplier`, but the
-  │ count was too large to represent
-  ╰─▶ out of range integral type conversion attempted
+  × the count 9223372036854775807 is too large to represent using 32 bits

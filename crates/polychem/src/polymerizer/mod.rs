@@ -2,7 +2,7 @@
 mod errors;
 pub(crate) use errors::{Error, PolymerizerError};
 
-use std::{cmp::Ordering, mem::size_of, slice};
+use std::{cmp::Ordering, slice};
 
 use ahash::{HashMap, HashSet};
 use static_assertions::const_assert;
@@ -213,7 +213,7 @@ impl Groups<'_> {
 #[allow(clippy::fallible_impl_from)]
 impl From<Count> for Groups<'_> {
     fn from(value: Count) -> Self {
-        const_assert!(size_of::<usize>() >= size_of::<Count>());
+        const_assert!(usize::BITS >= Count::BITS);
         // SAFETY: The above assertion prevents compilation on platforms with fewer bits than the type used to
         // represent `Count`. If this code compiles, then this `.unwrap()` will never panic.
         Self::Any(usize::try_from(value).unwrap())

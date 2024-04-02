@@ -3,5 +3,4 @@ source: crates/polychem/src/polymers/offset_multiplier.rs
 description: "OffsetMultiplier::try_from(zero)"
 expression: out
 ---
-  × attemped to convert a `SignedCount` into an `OffsetMultiplier`, but the
-  │ count was zero
+  × counts must be non-zero

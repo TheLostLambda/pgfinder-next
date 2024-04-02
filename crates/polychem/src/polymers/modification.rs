@@ -42,10 +42,10 @@ fn display_offset_modification(
     offset: &Offset<impl Display>,
 ) -> fmt::Result {
     let Offset { kind, composition } = offset;
-    if multiplier != 1 {
-        write!(f, "{kind}{multiplier}x{composition}")
-    } else {
+    if multiplier == 1 {
         write!(f, "{kind}{composition}")
+    } else {
+        write!(f, "{kind}{multiplier}x{composition}")
     }
 }
 
@@ -55,10 +55,10 @@ fn display_named_modification(
     named: &NamedMod,
 ) -> fmt::Result {
     let NamedMod { abbr, .. } = named;
-    if multiplier != 1 {
-        write!(f, "{multiplier}x{abbr}")
-    } else {
+    if multiplier == 1 {
         write!(f, "{abbr}")
+    } else {
+        write!(f, "{multiplier}x{abbr}")
     }
 }
 

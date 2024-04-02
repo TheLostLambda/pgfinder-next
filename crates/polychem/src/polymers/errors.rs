@@ -1,7 +1,7 @@
-use std::num::TryFromIntError;
-
 use miette::Diagnostic;
 use thiserror::Error;
+
+use crate::Count;
 
 // FIXME: All of the errors in `polychem` need some major refactoring: which files / submodules should have their own
 // error enums? How should they be named?
@@ -9,11 +9,9 @@ use thiserror::Error;
 // `PolymerizerError` — then this doesn't need to be public API...
 #[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
 pub enum OffsetMultiplierError {
-    #[error(
-        "attemped to convert a `SignedCount` into an `OffsetMultiplier`, but the count was zero"
-    )]
+    #[error("counts must be non-zero")]
     Zero,
 
-    #[error("attemped to convert a `SignedCount` into an `OffsetMultiplier`, but the count was too large to represent")]
-    TooLarge(#[from] TryFromIntError),
+    #[error("the count {0} is too large to represent using {} bits", Count::BITS)]
+    TooLarge(u64),
 }
