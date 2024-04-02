@@ -2,9 +2,10 @@
 mod errors;
 pub(crate) use errors::{Error, PolymerizerError};
 
-use std::{cmp::Ordering, slice};
+use std::{cmp::Ordering, mem::size_of, slice};
 
 use ahash::{HashMap, HashSet};
+use static_assertions::const_assert;
 
 use crate::{
     atoms::atomic_database::AtomicDatabase,
@@ -207,15 +208,13 @@ impl Groups<'_> {
 }
 
 // NOTE: Since this will only panic on 16-bit platforms, I couldn't test a `TryFrom` impl if I wanted to — I don't want
-// to add an entire error-handling code path that could never possibly be run. I'm intentionally using `u32` instead of
-// the more semantically correct `Count` here so that I get a compilation error if the type of `Count` is ever changed,
-// so I can re-evaluate if this panic is still impossible on the hardware this program can actually be run on.
+// to add an entire error-handling code path that could never possibly be run.
 #[allow(clippy::fallible_impl_from)]
-impl From<u32> for Groups<'_> {
-    fn from(value: u32) -> Self {
-        // SAFETY: This could only possibly panic on platforms with pointers smaller than 32 bits. If someone gets this
-        // program running on a 16-bit platform, they 1) deserve a medal and 2) will have much bigger problems than
-        // this panic...
+impl From<Count> for Groups<'_> {
+    fn from(value: Count) -> Self {
+        const_assert!(size_of::<usize>() >= size_of::<Count>());
+        // SAFETY: The above assertion prevents compilation on platforms with fewer bits than the type used to
+        // represent `Count`. If this code compiles, then this `.unwrap()` will never panic.
         Self::Any(usize::try_from(value).unwrap())
     }
 }
