@@ -29,6 +29,8 @@ pub struct AtomicDatabase {
 }
 
 impl AtomicDatabase {
+    // FIXME: This `Result` should probably return a `PolychemError`! Use the `Result` type from `lib.rs`! The same
+    // goes for `PolymerDatabase`! All public API than can error should return a `polychem::Result`!
     pub fn new(file_name: impl AsRef<str>, kdl_text: impl AsRef<str>) -> Result<Self> {
         let parsed_db: AtomicDatabaseKdl = knuffel::parse(file_name.as_ref(), kdl_text.as_ref())?;
         let elements = parsed_db
