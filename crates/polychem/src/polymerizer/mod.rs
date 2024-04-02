@@ -13,8 +13,8 @@ use crate::{
         polymer_database::{BondDescription, ModificationDescription, PolymerDatabase},
         target::{Index, Target},
     },
-    AnyMod, AnyModification, Bond, BondTarget, Count, FunctionalGroup, GroupState, Id, NamedMod,
-    PolychemError, Residue, Result,
+    AnyMod, AnyModification, Bond, BondTarget, Count, FunctionalGroup, GroupState, Id,
+    Modification, NamedMod, PolychemError, Residue, Result,
 };
 
 #[derive(Clone)]
@@ -87,16 +87,17 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         modification: impl Into<AnyModification<'a, 'p>>,
         target: &mut Residue<'a, 'p>,
     ) -> Result<()> {
-        let modification = modification.into();
-        match modification.kind {
+        let Modification { multiplier, kind } = modification.into();
+        match kind {
             AnyMod::Named(kind) => {
-                self.modify_with_optional_groups(kind.abbr(), target, modification.multiplier)?;
+                self.modify_with_optional_groups(kind.abbr(), target, multiplier)
             }
             AnyMod::Offset(kind) => {
-                todo!()
+                // FIXME: Once `Polymerizer` is refactored to store residues, then turn this into a method on `self`
+                // FIXME: And when you do that, get rid of this nasty discard hack...
+                target.add_offsets(kind, multiplier).map(|_| ())
             }
-        };
-        Ok(())
+        }
     }
 
     pub fn modify_only_group(
@@ -496,10 +497,7 @@ mod tests {
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
 
-    use crate::{
-        testing_tools::assert_miette_snapshot, Charged, Massive, Modification, OffsetKind,
-        OffsetMod,
-    };
+    use crate::{testing_tools::assert_miette_snapshot, Charged, Massive, OffsetKind, OffsetMod};
 
     use super::*;
 

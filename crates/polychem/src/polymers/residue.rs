@@ -8,7 +8,10 @@ use crate::{
     Modification, Offset, OffsetMod, OffsetMultiplier, PolychemError, Residue, Result, SignedCount,
 };
 
-use super::polymer_database::{PolymerDatabase, ResidueDescription};
+use super::{
+    errors::OffsetMultiplierError,
+    polymer_database::{PolymerDatabase, ResidueDescription},
+};
 
 impl<'a, 'p> Residue<'a, 'p> {
     pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>, id: Id) -> Result<Self> {
@@ -81,23 +84,34 @@ impl<'a, 'p> Residue<'a, 'p> {
 
     pub fn add_offsets(&mut self, offset: OffsetMod<'a>, count: Count) -> Result<SignedCount> {
         let Offset { kind, composition } = offset;
-        let delta = SignedCount::from(kind) * SignedCount::from(count);
+        let requested_delta = SignedCount::from(kind) * SignedCount::from(count);
         match self.offset_modifications.entry(composition) {
             Entry::Occupied(mut e) => {
-                let offset_multiplier = e.get();
-                let signed_count = SignedCount::from(*offset_multiplier) + delta;
-                if signed_count == 0 {
-                    e.remove();
-                } else {
-                    // FIXME: Unwrap → ?
-                    e.insert(signed_count.try_into().unwrap());
-                }
-                Ok(signed_count)
+                let current_offset_multiplier = e.get();
+                let updated_count = SignedCount::from(*current_offset_multiplier) + requested_delta;
+                match updated_count.try_into() {
+                    Ok(updated_offset_multiplier) => {
+                        e.insert(updated_offset_multiplier);
+                    }
+                    Err(OffsetMultiplierError::Zero) => {
+                        e.remove();
+                    }
+                    Err(too_large) => {
+                        return Err(PolychemError::offset_modification(
+                            count,
+                            kind,
+                            e.key().clone(),
+                            self,
+                            too_large,
+                        )
+                        .into())
+                    }
+                };
+                Ok(updated_count)
             }
             Entry::Vacant(e) => {
-                // FIXME: Unwrap → ?
-                e.insert(delta.try_into().unwrap());
-                Ok(delta)
+                e.insert(OffsetMultiplier(kind, count));
+                Ok(requested_delta)
             }
         }
     }
