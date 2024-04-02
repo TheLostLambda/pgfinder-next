@@ -39,9 +39,9 @@ impl<K: Charged> Charged for Modification<K> {
 fn display_offset_modification(
     f: &mut Formatter<'_>,
     multiplier: Count,
-    offset_mod: &Offset<impl Display>,
+    offset: &Offset<impl Display>,
 ) -> fmt::Result {
-    let Offset { kind, composition } = offset_mod;
+    let Offset { kind, composition } = offset;
     if multiplier > 1 {
         write!(f, "{kind}{multiplier}x{composition}")
     } else {
@@ -52,9 +52,9 @@ fn display_offset_modification(
 fn display_named_modification(
     f: &mut Formatter<'_>,
     multiplier: Count,
-    named_mod: &NamedMod,
+    named: &NamedMod,
 ) -> fmt::Result {
-    let NamedMod { abbr, .. } = named_mod;
+    let NamedMod { abbr, .. } = named;
     if multiplier > 1 {
         write!(f, "{multiplier}x{abbr}")
     } else {

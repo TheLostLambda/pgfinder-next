@@ -4,8 +4,8 @@ use ahash::{HashMap, HashMapExt};
 use rust_decimal::Decimal;
 
 use crate::{
-    BorrowedOffsetMod, Charge, Charged, FunctionalGroup, GroupState, Id, Massive, Modification,
-    Offset, OffsetMod, OffsetMultiplier, PolychemError, Residue, Result, SignedCount,
+    BorrowedOffsetMod, Charge, Charged, Count, FunctionalGroup, GroupState, Id, Massive,
+    Modification, Offset, OffsetMod, OffsetMultiplier, PolychemError, Residue, Result, SignedCount,
 };
 
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
@@ -75,16 +75,13 @@ impl<'a, 'p> Residue<'a, 'p> {
             })
     }
 
-    // FIXME: Does that `SignedCount` return value make sense here?
-    pub fn add_offset(
-        &mut self,
-        offset: impl Into<Modification<OffsetMod<'a>>>,
-    ) -> Result<SignedCount> {
-        let Modification {
-            multiplier,
-            kind: Offset { kind, composition },
-        } = offset.into();
-        let delta = SignedCount::from(kind) * SignedCount::from(multiplier);
+    pub fn add_offset(&mut self, offset: OffsetMod<'a>) -> Result<SignedCount> {
+        self.add_offsets(offset, 1)
+    }
+
+    pub fn add_offsets(&mut self, offset: OffsetMod<'a>, count: Count) -> Result<SignedCount> {
+        let Offset { kind, composition } = offset;
+        let delta = SignedCount::from(kind) * SignedCount::from(count);
         match self.offset_modifications.entry(composition) {
             Entry::Occupied(mut e) => {
                 let offset_multiplier = e.get();
@@ -242,7 +239,7 @@ mod tests {
     fn add_offset() {
         let mut alanine = Residue::new(&POLYMER_DB, "A", 0).unwrap();
         let water_loss = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
-        let protons = |kind| Modification::new(2, OffsetMod::new(&ATOMIC_DB, kind, "p").unwrap());
+        let proton = |kind| OffsetMod::new(&ATOMIC_DB, kind, "p").unwrap();
         macro_rules! assert_offset_names_and_counts {
             ($input:ident, $output:expr) => {
                 let mut sorted_offsets: Vec<_> = $input
@@ -259,14 +256,20 @@ mod tests {
         assert_eq!(alanine.add_offset(water_loss).unwrap(), -2);
         assert_offset_names_and_counts!(alanine, vec!["-2xH2O"]);
 
-        assert_eq!(alanine.add_offset(protons(OffsetKind::Add)).unwrap(), 2);
+        assert_eq!(alanine.add_offsets(proton(OffsetKind::Add), 2).unwrap(), 2);
         assert_offset_names_and_counts!(alanine, vec!["+2xp", "-2xH2O"]);
-        assert_eq!(alanine.add_offset(protons(OffsetKind::Add)).unwrap(), 4);
+        assert_eq!(alanine.add_offsets(proton(OffsetKind::Add), 2).unwrap(), 4);
         assert_offset_names_and_counts!(alanine, vec!["+4xp", "-2xH2O"]);
 
-        assert_eq!(alanine.add_offset(protons(OffsetKind::Remove)).unwrap(), 2);
+        assert_eq!(
+            alanine.add_offsets(proton(OffsetKind::Remove), 2).unwrap(),
+            2
+        );
         assert_offset_names_and_counts!(alanine, vec!["+2xp", "-2xH2O"]);
-        assert_eq!(alanine.add_offset(protons(OffsetKind::Remove)).unwrap(), 0);
+        assert_eq!(
+            alanine.add_offsets(proton(OffsetKind::Remove), 2).unwrap(),
+            0
+        );
         assert_offset_names_and_counts!(alanine, vec!["-2xH2O"]);
     }
 
@@ -302,9 +305,8 @@ mod tests {
         snapshots.push(alanine.clone());
 
         // Residues can be protonated
-        let protons =
-            Modification::new(2, OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "p").unwrap());
-        alanine.add_offset(protons).unwrap();
+        let proton = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "p").unwrap();
+        alanine.add_offsets(proton, 2).unwrap();
         snapshots.push(alanine.clone());
 
         // Or can form other adducts
@@ -313,11 +315,8 @@ mod tests {
         snapshots.push(alanine.clone());
 
         // Removing the two protons...
-        let anti_protons = Modification::new(
-            2,
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "p").unwrap(),
-        );
-        alanine.add_offset(anti_protons).unwrap();
+        let anti_proton = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "p").unwrap();
+        alanine.add_offsets(anti_proton, 2).unwrap();
         snapshots.push(alanine.clone());
 
         snapshots
