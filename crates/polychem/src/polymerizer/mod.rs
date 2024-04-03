@@ -830,10 +830,7 @@ mod tests {
             .modify_group("Anh", &mut murnac, &reducing_end)
             .unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(275.10050188933));
-        assert!(matches!(
-            murnac.group_state(&reducing_end).unwrap(),
-            GroupState::Modified(_)
-        ));
+        assert!(murnac.group_state(&reducing_end).unwrap().is_modified());
 
         let modify_non_free_group = polymerizer.modify_group("Anh", &mut murnac, &reducing_end);
         assert_miette_snapshot!(modify_non_free_group);
@@ -870,14 +867,8 @@ mod tests {
             .unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(321.14236670228));
         assert!(murnac.group_state(&reducing_end).unwrap().is_free());
-        assert!(matches!(
-            murnac.group_state(&nonreducing_end).unwrap(),
-            GroupState::Modified(_)
-        ));
-        assert!(matches!(
-            murnac.group_state(&six_position).unwrap(),
-            GroupState::Modified(_)
-        ));
+        assert!(murnac.group_state(&nonreducing_end).unwrap().is_modified());
+        assert!(murnac.group_state(&six_position).unwrap().is_modified());
 
         let modify_non_free_group =
             polymerizer.modify_groups("Ca", &mut murnac, &[reducing_end, six_position]);
@@ -891,10 +882,7 @@ mod tests {
             .modify_groups("Anh", &mut murnac, &[reducing_end])
             .unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(303.13180201825));
-        assert!(matches!(
-            murnac.group_state(&reducing_end).unwrap(),
-            GroupState::Modified(_)
-        ));
+        assert!(murnac.group_state(&reducing_end).unwrap().is_modified());
 
         let modify_multiple_errors =
             polymerizer.modify_groups("Anh", &mut murnac, &[reducing_end, six_position]);
@@ -935,14 +923,8 @@ mod tests {
             murnac.monoisotopic_mass() + alanine.monoisotopic_mass(),
             dec!(364.14818035851)
         );
-        assert!(matches!(
-            murnac.group_state(&lactyl).unwrap(),
-            GroupState::Donor(_)
-        ));
-        assert!(matches!(
-            alanine.group_state(&n_terminal).unwrap(),
-            GroupState::Acceptor
-        ));
+        assert!(murnac.group_state(&lactyl).unwrap().is_donor());
+        assert!(alanine.group_state(&n_terminal).unwrap().is_acceptor());
 
         let groups_not_free =
             polymerizer.bond_groups("Stem", &mut murnac, &lactyl, &mut alanine, &n_terminal);
@@ -975,10 +957,7 @@ mod tests {
         polymerizer.modify_only_group("Anh", &mut murnac).unwrap();
         assert_eq!(murnac.monoisotopic_mass(), dec!(275.10050188933));
         let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
-        assert!(matches!(
-            murnac.group_state(&reducing_end).unwrap(),
-            GroupState::Modified(_)
-        ));
+        assert!(murnac.group_state(&reducing_end).unwrap().is_modified());
 
         let all_groups_occupied = polymerizer.modify_only_group("Anh", &mut murnac);
         assert_miette_snapshot!(all_groups_occupied);
@@ -1010,10 +989,7 @@ mod tests {
         let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
         let six_position = FunctionalGroup::new("Hydroxyl", "6-Position");
         for hydroxyl_group in [reducing_end, nonreducing_end, six_position] {
-            assert!(matches!(
-                murnac.group_state(&hydroxyl_group).unwrap(),
-                GroupState::Modified(_)
-            ));
+            assert!(murnac.group_state(&hydroxyl_group).unwrap().is_modified());
         }
 
         let mut murnac = polymerizer.residue("m").unwrap();
@@ -1074,14 +1050,8 @@ mod tests {
         );
         let lactyl = FunctionalGroup::new("Carboxyl", "Lactyl Ether");
         let n_terminal = FunctionalGroup::new("Amino", "N-Terminal");
-        assert!(matches!(
-            murnac.group_state(&lactyl).unwrap(),
-            GroupState::Donor(_)
-        ));
-        assert!(matches!(
-            alanine.group_state(&n_terminal).unwrap(),
-            GroupState::Acceptor
-        ));
+        assert!(murnac.group_state(&lactyl).unwrap().is_donor());
+        assert!(alanine.group_state(&n_terminal).unwrap().is_acceptor());
 
         let all_groups_occupied = polymerizer.bond("Stem", &mut murnac, &mut alanine);
         assert_miette_snapshot!(all_groups_occupied);
