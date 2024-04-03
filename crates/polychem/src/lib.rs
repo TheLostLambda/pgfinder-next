@@ -238,7 +238,6 @@ pub enum PolychemError {
     #[error("the functional group {0} could not be found on the residue {1} ({2})")]
     GroupLookup(String, String, String),
 
-    // FIXME: Needs constructor, use, and testing!
     #[error("failed to apply the offset modification {0} to residue {1} ({2})")]
     OffsetModification(
         String,

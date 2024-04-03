@@ -2,7 +2,7 @@ use rust_decimal::Decimal;
 
 use crate::{
     atoms::atomic_database::AtomicDatabase, AnyMod, AnyModification, Charge, Charged, Massive,
-    NamedMod, OffsetKind, OffsetMod, Result,
+    Modification, NamedMod, OffsetKind, OffsetMod, Result,
 };
 
 use super::polymer_database::PolymerDatabase;
@@ -38,6 +38,25 @@ impl<'a, 'p, K: Into<AnyMod<'a, 'p>>> From<K> for AnyModification<'a, 'p> {
         Self::new(1, value.into())
     }
 }
+
+// NOTE: I can't merge the following `From` impls since it would overlap with `impl From<T> for T` from the standard
+// library. This is awfully annoying, so keep an eye out for specialization, which should make that sort of overlap
+// possible: https://github.com/rust-lang/rust/issues/31844. In the meantime, this macro keeps things DRY...
+macro_rules! convert_impls {
+    ($($kind:ty),+ $(,)?) => {
+        $(
+            impl<'a, 'p> From<Modification<$kind>> for AnyModification<'a, 'p> {
+                fn from(value: Modification<$kind>) -> Self {
+                    value.convert()
+                }
+            }
+        )+
+    };
+}
+
+// NOTE: This should contain all modification kinds *except* for `AnyMod`, since that's the one that triggers overlap
+// with the core `impl From<T> for T` blanket impl
+convert_impls!(NamedMod<'a, 'p>, OffsetMod<'a>);
 
 // NOTE: There are crates for automating more of this code generation, but odds are that I'll only need to do this sort
 // of enum dispatch for AnyMod — it doesn't seem worth a dependency and cluttering lib.rs with attributes
@@ -132,6 +151,23 @@ mod tests {
         assert_eq!(
             offset_mod.monoisotopic_mass(),
             offset_any_any_modification.monoisotopic_mass()
+        );
+
+        let named_modification = Modification::new(2, NamedMod::new(&POLYMER_DB, "Am").unwrap());
+        let named_any_modification: AnyModification = named_modification.clone().into();
+        assert_eq!(
+            named_modification.monoisotopic_mass(),
+            named_any_modification.monoisotopic_mass()
+        );
+
+        let offset_modification = Modification::new(
+            3,
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2").unwrap(),
+        );
+        let offset_any_modification: AnyModification = offset_modification.clone().into();
+        assert_eq!(
+            offset_modification.monoisotopic_mass(),
+            offset_any_modification.monoisotopic_mass()
         );
     }
 

@@ -74,8 +74,8 @@ fn modifications<'a, 's>(
     let separator = delimited(space0, char(','), space0);
     // FIXME: Move into polychem
     let any_mod = alt((
-        map(named_modification(polymerizer), Modification::into),
-        map(chemical_offset(polymerizer), Modification::into),
+        into(named_modification(polymerizer)),
+        into(chemical_offset(polymerizer)),
     ));
     delimited(char('('), separated_list1(separator, any_mod), char(')'))
 }
