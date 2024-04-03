@@ -158,30 +158,30 @@ fn identifier(i: &str) -> ParseResult<&str> {
 
 // Adapted parsers =
 
-// FIXME: Just take atomic_db, then I don't need this wrapper, I can use the macro!
-fn chemical_composition<'a, 's>(
-    polymerizer: &Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {
-    into(polychem::parsers::chemical_composition(
-        polymerizer.atomic_db(),
-    ))
-}
-
-macro_rules! wrap_composition_parsers {
-    ($($f:ident -> $t:ty),+ $(,)?) => {
-        $(
-            fn $f(i: &str) -> ParseResult<$t> {
-                into(polychem::parsers::$f)(i)
-            }
-        )+
+// FIXME: Unify this with the macro below!
+macro_rules! wrap_parsers {
+    () => {};
+    ($f:ident($s:ty) -> $t:ty; $($tail:tt)*) => {
+        fn $f<'a, 's>(db: &'a $s) -> impl FnMut(&'s str) -> ParseResult<$t> {
+            into(polychem::parsers::$f(db))
+        }
+        wrap_parsers!($($tail)*);
+    };
+    ($f:ident -> $t:ty; $($tail:tt)*) => {
+        fn $f(i: &str) -> ParseResult<$t> {
+            into(polychem::parsers::$f)(i)
+        }
+        wrap_parsers!($($tail)*);
     };
 }
 
-wrap_composition_parsers!(
-    count -> Count,
-    offset_kind -> OffsetKind,
-    uppercase -> char,
-    lowercase -> char,
+wrap_parsers!(
+    offset_modification(AtomicDatabase) -> Modification<OffsetMod<'a>>;
+    chemical_composition(AtomicDatabase) -> ChemicalComposition<'a>;
+    count -> Count;
+    offset_kind -> OffsetKind;
+    uppercase -> char;
+    lowercase -> char;
 );
 
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideErrorKind>>;
