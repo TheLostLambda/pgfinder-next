@@ -24,8 +24,8 @@ pub const DEFAULT_KDL: &str = include_str!("../../data/atomic_database.kdl");
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct AtomicDatabase {
-    pub(super) elements: HashMap<String, ElementDescription>,
-    pub(super) particles: HashMap<String, ParticleDescription>,
+    pub(crate) elements: HashMap<String, ElementDescription>,
+    pub(crate) particles: HashMap<String, ParticleDescription>,
 }
 
 impl AtomicDatabase {
@@ -60,16 +60,16 @@ impl Default for AtomicDatabase {
 // Private Types =======================================================================================================
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub(super) struct ElementDescription {
-    pub(super) name: String,
-    pub(super) isotopes: HashMap<MassNumber, Isotope>,
+pub(crate) struct ElementDescription {
+    pub(crate) name: String,
+    pub(crate) isotopes: HashMap<MassNumber, Isotope>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub(super) struct ParticleDescription {
-    pub(super) name: String,
-    pub(super) mass: Decimal,
-    pub(super) charge: Charge,
+pub(crate) struct ParticleDescription {
+    pub(crate) name: String,
+    pub(crate) mass: Decimal,
+    pub(crate) charge: Charge,
 }
 
 // KDL File Schema =====================================================================================================

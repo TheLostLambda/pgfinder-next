@@ -62,7 +62,7 @@ pub enum PolymerizerError {
 // FIXME: If this were made an impl on `Error`, then I could make the `PolymerizerError` private and these methods
 // would be the only way to construct these errors (you couldn't build them manually accidentially)
 impl PolymerizerError {
-    pub(super) fn groups_occupied(
+    pub(crate) fn groups_occupied(
         residue: &Residue,
         groups: &[(FunctionalGroup, bool)],
         number: usize,
@@ -78,7 +78,7 @@ impl PolymerizerError {
         Self::GroupsOccupied(residue.id(), free_groups, number, groups_with_states)
     }
 
-    pub(super) fn group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
+    pub(crate) fn group_occupied(group: &FunctionalGroup, residue: &Residue) -> Self {
         Self::GroupOccupied(
             group.to_string(),
             residue.id(),
@@ -86,7 +86,7 @@ impl PolymerizerError {
         )
     }
 
-    pub(super) fn too_few_matching_groups<'a, T: Into<Target<&'a str>>>(
+    pub(crate) fn too_few_matching_groups<'a, T: Into<Target<&'a str>>>(
         residue: &Residue,
         valid_targets: &(impl IntoIterator<Item = T> + Copy),
         found_groups: &[FunctionalGroup],
@@ -104,11 +104,11 @@ impl PolymerizerError {
         )
     }
 
-    pub(super) fn nonexistent_group(group: &FunctionalGroup, residue: &Residue) -> Self {
+    pub(crate) fn nonexistent_group(group: &FunctionalGroup, residue: &Residue) -> Self {
         Self::NonexistentGroup(group.to_string(), residue.id())
     }
 
-    pub(super) fn invalid_target<'a, T: Into<Target<&'a str>>>(
+    pub(crate) fn invalid_target<'a, T: Into<Target<&'a str>>>(
         valid_targets: &(impl IntoIterator<Item = T> + Copy),
         target: impl Into<Target>,
     ) -> Self {
@@ -116,11 +116,11 @@ impl PolymerizerError {
         Self::InvalidTarget(valid_targets, target.into())
     }
 
-    pub(super) const fn residue_not_in_polymer(residue: &Residue) -> Self {
+    pub(crate) const fn residue_not_in_polymer(residue: &Residue) -> Self {
         Self::ResidueNotInPolymer(residue.id())
     }
 
-    pub(super) fn ambiguous_groups(
+    pub(crate) fn ambiguous_groups(
         residue: &Residue,
         number: usize,
         groups: HashSet<FunctionalGroup>,
@@ -129,21 +129,21 @@ impl PolymerizerError {
         Self::AmbiguousGroups(residue.id(), number, groups)
     }
 
-    pub(super) const fn zero_group_number() -> Self {
+    pub(crate) const fn zero_group_number() -> Self {
         Self::ZeroGroupNumber
     }
 
-    pub(super) const fn empty_group_set() -> Self {
+    pub(crate) const fn empty_group_set() -> Self {
         Self::EmptyGroupSet
     }
 
-    pub(super) fn multiple_missing_free_groups(mut errors: Vec<Self>) -> Self {
+    pub(crate) fn multiple_missing_free_groups(mut errors: Vec<Self>) -> Self {
         errors.sort_unstable();
         Self::MultipleMissingFreeGroups(errors)
     }
 
     // FIXME: No clue where this belongs...
-    pub(super) fn comma_list<I: Display>(
+    pub(crate) fn comma_list<I: Display>(
         items: impl IntoIterator<Item = I>,
         final_sep: &str,
     ) -> String {
