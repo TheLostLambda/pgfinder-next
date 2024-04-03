@@ -1,5 +1,5 @@
 ---
-source: crates/polychem/src/atoms/chemical_composition_parser.rs
+source: crates/polychem/src/parsers/chemical_composition.rs
 expression: "(chemical_formula, particle_offset)"
 ---
 (
@@ -13,11 +13,5 @@ expression: "(chemical_formula, particle_offset)"
             2,
         ),
     ],
-    Some(
-        (
-            Add,
-            2,
-            "Proton",
-        ),
-    ),
+    None,
 )

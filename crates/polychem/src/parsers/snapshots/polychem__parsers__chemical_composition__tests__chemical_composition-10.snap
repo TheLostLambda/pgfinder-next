@@ -1,19 +1,19 @@
 ---
-source: crates/polychem/src/atoms/chemical_composition_parser.rs
+source: crates/polychem/src/parsers/chemical_composition.rs
 expression: "(chemical_formula, particle_offset)"
 ---
 (
     [
         (
-            "Sodium",
-            1,
+            "Chlorine-37",
+            5,
         ),
     ],
     Some(
         (
             Remove,
-            1,
-            "Electron",
+            2,
+            "Proton",
         ),
     ),
 )

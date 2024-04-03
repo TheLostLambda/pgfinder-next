@@ -1,27 +1,25 @@
 // External Crate Imports
-use miette::Diagnostic;
 use nom::{
     branch::alt,
-    character::complete::{char, one_of, satisfy, u32},
-    combinator::{cut, map, not, opt, recognize},
-    error::ErrorKind,
+    character::complete::char,
+    combinator::{cut, map, opt, recognize},
     multi::many1,
-    sequence::{delimited, pair, preceded},
-    IResult, Parser,
+    sequence::{delimited, pair},
+    Parser,
 };
-use nom_miette::{
-    expect, map_res, wrap_err, FromExternalError, LabeledError, LabeledErrorKind, LabeledParseError,
-};
-
-use thiserror::Error;
+use nom_miette::{expect, map_res, wrap_err};
 
 // Local Crate Imports
-use super::{atomic_database::AtomicDatabase, errors::AtomicLookupError};
-use crate::{ChemicalComposition, Count, Element, MassNumber, OffsetKind, Particle};
+use super::{
+    count,
+    errors::{CompositionErrorKind, ParseResult},
+    lowercase, offset_kind, uppercase,
+};
+use crate::{
+    AtomicDatabase, ChemicalComposition, Count, Element, MassNumber, OffsetKind, Particle,
+};
 
 // Public API ==========================================================================================================
-
-pub(crate) type CompositionError = LabeledError<CompositionErrorKind>;
 
 /// Chemical Composition
 ///   = { Atomic Offset }- , [ Offset Kind , Particle Offset ]
@@ -53,49 +51,6 @@ pub fn chemical_composition<'a, 's>(
 
     let parser = alt((atoms_and_particles, just_particles));
     wrap_err(parser, CompositionErrorKind::ExpectedChemicalComposition)
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-/// Count = digit - "0" , { digit } ;
-pub fn count(i: &str) -> ParseResult<Count> {
-    let not_zero = expect(
-        cut(not(char('0'))),
-        CompositionErrorKind::ExpectedNoLeadingZero,
-    );
-    let digits = expect(u32, CompositionErrorKind::ExpectedDigit);
-    preceded(not_zero, digits)(i)
-}
-
-/// Offset Kind = "+" | "-" ;
-pub fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
-    map(one_of("+-"), |c| match c {
-        '+' => OffsetKind::Add,
-        '-' => OffsetKind::Remove,
-        _ => unreachable!(),
-    })(i)
-}
-
-/// uppercase
-///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
-///   | "H" | "I" | "J" | "K" | "L" | "M" | "N"
-///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
-///   | "V" | "W" | "X" | "Y" | "Z"
-///   ;
-pub fn uppercase(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_uppercase());
-    expect(parser, CompositionErrorKind::ExpectedUppercase)(i)
-}
-
-/// lowercase
-///   = "a" | "b" | "c" | "d" | "e" | "f" | "g"
-///   | "h" | "i" | "j" | "k" | "l" | "m" | "n"
-///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
-///   | "v" | "w" | "x" | "y" | "z"
-///   ;
-pub fn lowercase(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_lowercase());
-    expect(parser, CompositionErrorKind::ExpectedLowercase)(i)
 }
 
 // Private Sub-Parsers =================================================================================================
@@ -168,123 +123,6 @@ fn particle_symbol(i: &str) -> ParseResult<&str> {
     wrap_err(parser, CompositionErrorKind::ExpectedParticleSymbol)(i)
 }
 
-// Parse Error Types and Trait Implementations =========================================================================
-
-type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, CompositionErrorKind>>;
-
-// NOTE: Public so that other parsers using `chemical_composition` as a building block can inspect errors — I should
-// consider finding a way to make this more private in the future, or at least mark it as #[non_exhaustive] so that it
-// doesn't end up becoming SemVer nightmare...
-#[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
-pub enum CompositionErrorKind {
-    #[error(
-        "expected a chemical formula (optionally followed by a '+' or '-' and a particle offset), \
-        or a standalone particle offset"
-    )]
-    ExpectedChemicalComposition,
-
-    #[error(
-        "expected an element (like Au) or an isotope (like [15N]) optionally followed by a number"
-    )]
-    ExpectedAtomicOffset,
-
-    #[error("expected a particle (like p or e), optionally preceded by a number")]
-    ExpectedParticleOffset,
-
-    #[diagnostic(help(
-        "a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like \
-        NH02, try just NH2 instead"
-    ))]
-    #[error("counts cannot start with 0")]
-    ExpectedNoLeadingZero,
-
-    #[error("expected an ASCII digit 1-9")]
-    ExpectedDigit,
-
-    #[error("expected an element symbol")]
-    ExpectedElementSymbol,
-
-    #[error("expected '[' to open isotope brackets")]
-    ExpectedIsotopeStart,
-
-    #[error("expected an isotopic mass number")]
-    ExpectedMassNumber,
-
-    #[diagnostic(help("you've probably forgotten to close an earlier '[' bracket"))]
-    #[error("expected ']' to close isotope brackets")]
-    ExpectedIsotopeEnd,
-
-    #[error("expected a particle symbol")]
-    ExpectedParticleSymbol,
-
-    #[error("expected an uppercase ASCII letter")]
-    ExpectedUppercase,
-
-    #[error("expected a lowercase ASCII letter")]
-    ExpectedLowercase,
-
-    #[diagnostic(transparent)]
-    #[error(transparent)]
-    LookupError(Box<AtomicLookupError>),
-
-    #[diagnostic(help(
-        "this is an internal error that you shouldn't ever see! If you have gotten this error, \
-        then please report it as a bug!"
-    ))]
-    #[error("internal `nom` error: {0:?}")]
-    NomError(ErrorKind),
-
-    #[diagnostic(help(
-        "check the unparsed region for errors, or remove it from the rest of the composition"
-    ))]
-    #[error("could not interpret the full input as a valid chemical composition")]
-    Incomplete,
-}
-
-impl LabeledErrorKind for CompositionErrorKind {
-    fn label(&self) -> Option<&'static str> {
-        Some(match self {
-            // NOTE: Stuck with this nested match until either `box_patterns` or `deref_patterns` are stabilized.
-            // Keep an eye on:
-            //   1) https://github.com/rust-lang/rust/issues/29641
-            //   2) https://github.com/rust-lang/rust/issues/87121
-            Self::LookupError(e) => match **e {
-                AtomicLookupError::Element(_) => "element not found",
-                AtomicLookupError::Isotope(_, _, _, _) => "isotope not found",
-                AtomicLookupError::Particle(_) => "particle not found",
-                AtomicLookupError::Abundance(_, _, _) => "no natural abundance",
-            },
-            Self::ExpectedUppercase => "expected uppercase",
-            Self::ExpectedLowercase => "expected lowercase",
-            Self::ExpectedDigit => "expected digit",
-            Self::ExpectedIsotopeStart => "'['",
-            Self::ExpectedIsotopeEnd => "expected ']'",
-            Self::ExpectedMassNumber => "expected a mass number",
-            Self::ExpectedNoLeadingZero => "expected non-zero",
-            Self::Incomplete => "input was valid up until this point",
-            Self::NomError(_) => "the region that triggered this bug!",
-            _ => return None,
-        })
-    }
-}
-
-impl<'a> FromExternalError<'a, AtomicLookupError> for CompositionErrorKind {
-    const FATAL: bool = true;
-
-    fn from_external_error(input: &'a str, e: AtomicLookupError) -> LabeledParseError<'_, Self> {
-        LabeledParseError::new(input, Self::LookupError(Box::new(e)))
-    }
-}
-
-impl From<ErrorKind> for CompositionErrorKind {
-    fn from(value: ErrorKind) -> Self {
-        match value {
-            ErrorKind::Eof => Self::Incomplete,
-            kind => Self::NomError(kind),
-        }
-    }
-}
-
 // Module Tests ========================================================================================================
 
 #[cfg(test)]
@@ -295,56 +133,6 @@ mod tests {
     use super::*;
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-
-    #[test]
-    fn test_uppercase() {
-        // Ensure the complete uppercase ASCII alphabet is present
-        for c in 'A'..='Z' {
-            assert_eq!(uppercase(&c.to_string()), Ok(("", c)));
-        }
-        // Ensure the complete lowercase ASCII alphabet is absent
-        for c in 'a'..='z' {
-            assert!(uppercase(&c.to_string()).is_err());
-        }
-        // Ensure only one character is parsed
-        assert_eq!(uppercase("Hg"), Ok(("g", 'H')));
-        assert_eq!(uppercase("HG"), Ok(("G", 'H')));
-    }
-
-    #[test]
-    fn test_lowercase() {
-        // Ensure the complete lowercase ASCII alphabet is present
-        for c in 'a'..='z' {
-            assert_eq!(lowercase(&c.to_string()), Ok(("", c)));
-        }
-        // Ensure the complete uppercase ASCII alphabet is absent
-        for c in 'A'..='Z' {
-            assert!(lowercase(&c.to_string()).is_err());
-        }
-        // Ensure only one character is parsed
-        assert_eq!(lowercase("hg"), Ok(("g", 'h')));
-        assert_eq!(lowercase("hG"), Ok(("G", 'h')));
-    }
-
-    #[test]
-    fn test_count() {
-        // Valid Counts
-        assert_eq!(count("1"), Ok(("", 1)));
-        assert_eq!(count("10"), Ok(("", 10)));
-        assert_eq!(count("422"), Ok(("", 422)));
-        assert_eq!(count("9999"), Ok(("", 9999)));
-        // Invalid Counts
-        assert!(count("0").is_err());
-        assert!(count("01").is_err());
-        assert!(count("00145").is_err());
-        assert!(count("H").is_err());
-        assert!(count("p").is_err());
-        assert!(count("+H").is_err());
-        assert!(count("[H]").is_err());
-        // Multiple Counts
-        assert_eq!(count("1OH"), Ok(("OH", 1)));
-        assert_eq!(count("42HeH"), Ok(("HeH", 42)));
-    }
 
     #[test]
     fn test_element_symbol() {

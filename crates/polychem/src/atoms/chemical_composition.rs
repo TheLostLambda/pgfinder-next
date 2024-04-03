@@ -8,8 +8,10 @@ use nom_miette::final_parser;
 use rust_decimal::Decimal;
 
 // Local Crate Imports
-use super::{atomic_database::AtomicDatabase, chemical_composition_parser::chemical_composition};
-use crate::{Charge, Charged, ChemicalComposition, Count, Element, Massive, Result, SignedCount};
+use crate::{
+    parsers::chemical_composition, AtomicDatabase, Charge, Charged, ChemicalComposition, Count,
+    Element, Massive, Result, SignedCount,
+};
 
 // Public API ==========================================================================================================
 

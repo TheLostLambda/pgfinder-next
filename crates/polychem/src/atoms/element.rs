@@ -14,14 +14,14 @@ use super::{
 };
 
 impl<'a> Element<'a> {
-    pub(super) fn new(
+    pub(crate) fn new(
         db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
     ) -> Result<Self, AtomicLookupError> {
         Self::lookup(db, symbol, None)
     }
 
-    pub(super) fn new_isotope(
+    pub(crate) fn new_isotope(
         db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
         mass_number: MassNumber,

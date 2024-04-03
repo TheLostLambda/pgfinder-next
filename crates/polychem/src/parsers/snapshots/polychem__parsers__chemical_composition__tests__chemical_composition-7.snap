@@ -1,23 +1,23 @@
 ---
-source: crates/polychem/src/atoms/chemical_composition_parser.rs
+source: crates/polychem/src/parsers/chemical_composition.rs
 expression: "(chemical_formula, particle_offset)"
 ---
 (
     [
         (
-            "Chromium",
-            2,
+            "Nitrogen",
+            1,
         ),
         (
-            "Oxygen",
-            7,
+            "Hydrogen",
+            2,
         ),
     ],
     Some(
         (
             Add,
             2,
-            "Electron",
+            "Proton",
         ),
     ),
 )

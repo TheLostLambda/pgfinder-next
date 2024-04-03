@@ -1,12 +1,13 @@
 //! An abstraction for building chemically validated polymers
 
 pub mod atoms;
+pub mod parsers;
 pub mod polymerizer;
 pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
 
-use atoms::chemical_composition_parser::CompositionError;
+use parsers::errors::CompositionError;
 use polymerizer::PolymerizerError;
 use polymers::errors::OffsetMultiplierError;
 use serde::Serialize;

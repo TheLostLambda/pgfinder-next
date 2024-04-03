@@ -10,7 +10,7 @@ use super::{
 };
 
 impl<'a> Particle<'a> {
-    pub(super) fn new(
+    pub(crate) fn new(
         db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
     ) -> Result<Self, AtomicLookupError> {
