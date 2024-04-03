@@ -785,6 +785,41 @@ mod tests {
     }
 
     #[test]
+    fn modify() {
+        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut murnac = polymerizer.residue("m").unwrap();
+        assert_eq!(murnac.monoisotopic_mass(), dec!(293.11106657336));
+
+        macro_rules! assert_modification_series {
+            ($($modification:expr => $mass:expr),+ $(,)?) => {
+                $(
+                    polymerizer
+                        .modify($modification, &mut murnac)
+                        .unwrap();
+                    assert_eq!(murnac.monoisotopic_mass(), $mass);
+                )+
+            };
+        }
+
+        assert_modification_series!(
+            NamedMod::new(&POLYMER_DB, "Anh").unwrap() => dec!(275.10050188933),
+            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "2p").unwrap() => dec!(273.085948956088),
+            AnyMod::named(&POLYMER_DB, "Ac").unwrap() => dec!(315.096513640118),
+            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "C2H2O").unwrap() => dec!(357.107078324148),
+            Modification::new(1, NamedMod::new(&POLYMER_DB, "Met").unwrap()) => dec!(371.122728388608),
+            Modification::new(
+                4,
+                OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap()
+            ) => dec!(299.080469652488),
+            Modification::new(1, AnyMod::named(&POLYMER_DB, "Ca").unwrap()) => dec!(338.034686889048870),
+            Modification::new(
+                5,
+                AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "[99Tc]").unwrap()
+            ) => dec!(832.565940889048870),
+        );
+    }
+
+    #[test]
     fn modify_group() {
         let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
         let mut murnac = polymerizer.residue("m").unwrap();
