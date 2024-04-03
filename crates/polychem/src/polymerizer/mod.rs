@@ -55,13 +55,14 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         self.residue_counter += 1;
         let residue = Residue::new(self.polymer_db, abbr, self.residue_counter)?;
 
-        // NOTE: This assumes that all functional groups returned by `Residue::new()` start free!
-        for group in residue.functional_groups.keys() {
-            let target = Target::from_residue_and_group(&residue, group);
-            self.free_group_index
-                .entry(target)
-                .or_default()
-                .insert(residue.id(), true);
+        for (group, state) in &residue.functional_groups {
+            if state.is_free() {
+                let target = Target::from_residue_and_group(&residue, group);
+                self.free_group_index
+                    .entry(target)
+                    .or_default()
+                    .insert(residue.id(), true);
+            }
         }
 
         Ok(residue)
