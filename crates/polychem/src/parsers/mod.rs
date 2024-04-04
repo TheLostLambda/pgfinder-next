@@ -1,38 +1,19 @@
+pub(crate) mod chemical_composition;
+pub mod errors;
+pub mod modification;
+
 use nom::{
     character::complete::{char, one_of, satisfy, u32},
     combinator::{cut, map, not},
     sequence::preceded,
 };
-use nom_miette::expect;
+use nom_miette::{expect, into, LabeledErrorKind};
 
 use crate::{Count, OffsetKind};
 
-use self::errors::{CompositionErrorKind, ParseResult};
+use self::errors::{ParseResult, PolychemErrorKind};
 
-mod chemical_composition;
-pub mod errors;
-
-// Re-exports:
-pub use chemical_composition::chemical_composition;
-
-/// Count = digit - "0" , { digit } ;
-pub fn count(i: &str) -> ParseResult<Count> {
-    let not_zero = expect(
-        cut(not(char('0'))),
-        CompositionErrorKind::ExpectedNoLeadingZero,
-    );
-    let digits = expect(u32, CompositionErrorKind::ExpectedDigit);
-    preceded(not_zero, digits)(i)
-}
-
-/// Offset Kind = "+" | "-" ;
-pub fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
-    map(one_of("+-"), |c| match c {
-        '+' => OffsetKind::Add,
-        '-' => OffsetKind::Remove,
-        _ => unreachable!(),
-    })(i)
-}
+// FIXME: Make sure that all public parsers return a generic ErrorKind!
 
 /// uppercase
 ///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
@@ -40,9 +21,12 @@ pub fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
 ///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
 ///   | "V" | "W" | "X" | "Y" | "Z"
 ///   ;
-pub fn uppercase(i: &str) -> ParseResult<char> {
+pub fn uppercase<K>(i: &str) -> ParseResult<char, K>
+where
+    K: LabeledErrorKind + From<PolychemErrorKind>,
+{
     let parser = satisfy(|c| c.is_ascii_uppercase());
-    expect(parser, CompositionErrorKind::ExpectedUppercase)(i)
+    into(expect(parser, PolychemErrorKind::ExpectedUppercase))(i)
 }
 
 /// lowercase
@@ -51,9 +35,31 @@ pub fn uppercase(i: &str) -> ParseResult<char> {
 ///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
 ///   | "v" | "w" | "x" | "y" | "z"
 ///   ;
-pub fn lowercase(i: &str) -> ParseResult<char> {
+pub fn lowercase<K>(i: &str) -> ParseResult<char, K>
+where
+    K: LabeledErrorKind + From<PolychemErrorKind>,
+{
     let parser = satisfy(|c| c.is_ascii_lowercase());
-    expect(parser, CompositionErrorKind::ExpectedLowercase)(i)
+    into(expect(parser, PolychemErrorKind::ExpectedLowercase))(i)
+}
+
+/// Count = digit - "0" , { digit } ;
+fn count(i: &str) -> ParseResult<Count> {
+    let not_zero = expect(
+        cut(not(char('0'))),
+        PolychemErrorKind::ExpectedNoLeadingZero,
+    );
+    let digits = expect(u32, PolychemErrorKind::ExpectedDigit);
+    preceded(not_zero, digits)(i)
+}
+
+/// Offset Kind = "+" | "-" ;
+fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
+    map(one_of("+-"), |c| match c {
+        '+' => OffsetKind::Add,
+        '-' => OffsetKind::Remove,
+        _ => unreachable!(),
+    })(i)
 }
 
 #[cfg(test)]
@@ -62,6 +68,7 @@ mod tests {
 
     #[test]
     fn test_uppercase() {
+        let uppercase = uppercase::<PolychemErrorKind>;
         // Ensure the complete uppercase ASCII alphabet is present
         for c in 'A'..='Z' {
             assert_eq!(uppercase(&c.to_string()), Ok(("", c)));
@@ -77,6 +84,7 @@ mod tests {
 
     #[test]
     fn test_lowercase() {
+        let lowercase = lowercase::<PolychemErrorKind>;
         // Ensure the complete lowercase ASCII alphabet is present
         for c in 'a'..='z' {
             assert_eq!(lowercase(&c.to_string()), Ok(("", c)));
@@ -108,5 +116,21 @@ mod tests {
         // Multiple Counts
         assert_eq!(count("1OH"), Ok(("OH", 1)));
         assert_eq!(count("42HeH"), Ok(("HeH", 42)));
+    }
+
+    #[test]
+    fn test_offset_kind() {
+        // Valid Offset Kinds
+        assert_eq!(offset_kind("+"), Ok(("", OffsetKind::Add)));
+        assert_eq!(offset_kind("-"), Ok(("", OffsetKind::Remove)));
+        // Invalid Offset Kinds
+        assert!(offset_kind("p").is_err());
+        assert!(offset_kind("H").is_err());
+        assert!(offset_kind("1H").is_err());
+        assert!(offset_kind("1+H").is_err());
+        assert!(offset_kind("[H]").is_err());
+        // Multiple Offset Kinds
+        assert_eq!(offset_kind("+-"), Ok(("-", OffsetKind::Add)));
+        assert_eq!(offset_kind("--"), Ok(("-", OffsetKind::Remove)));
     }
 }

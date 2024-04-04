@@ -3,17 +3,16 @@ use nom::{error::ErrorKind, IResult};
 use nom_miette::{FromExternalError, LabeledError, LabeledErrorKind, LabeledParseError};
 use thiserror::Error;
 
-use crate::atoms::errors::AtomicLookupError;
+use crate::{atoms::errors::AtomicLookupError, PolychemError};
 
-pub(crate) type CompositionError = LabeledError<CompositionErrorKind>;
-
-pub type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, CompositionErrorKind>>;
+pub(crate) type CompositionError = LabeledError<PolychemErrorKind>;
+pub type ParseResult<'a, O, K = PolychemErrorKind> = IResult<&'a str, O, LabeledParseError<'a, K>>;
 
 // NOTE: Public so that other parsers using `chemical_composition` as a building block can inspect errors — I should
 // consider finding a way to make this more private in the future, or at least mark it as #[non_exhaustive] so that it
 // doesn't end up becoming SemVer nightmare...
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
-pub enum CompositionErrorKind {
+pub enum PolychemErrorKind {
     #[error(
         "expected a chemical formula (optionally followed by a '+' or '-' and a particle offset), \
         or a standalone particle offset"
@@ -27,6 +26,10 @@ pub enum CompositionErrorKind {
 
     #[error("expected a particle (like p or e), optionally preceded by a number")]
     ExpectedParticleOffset,
+
+    // FIXME: This needs a label and testing!
+    #[error("expected a count followed by 'x'")]
+    ExpectedMultiplier,
 
     #[diagnostic(help(
         "a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like \
@@ -64,6 +67,11 @@ pub enum CompositionErrorKind {
     #[error(transparent)]
     LookupError(Box<AtomicLookupError>),
 
+    // FIXME: This needs a label and testing!
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    PolychemError(#[from] Box<PolychemError>),
+
     #[diagnostic(help(
         "this is an internal error that you shouldn't ever see! If you have gotten this error, \
         then please report it as a bug!"
@@ -78,7 +86,7 @@ pub enum CompositionErrorKind {
     Incomplete,
 }
 
-impl LabeledErrorKind for CompositionErrorKind {
+impl LabeledErrorKind for PolychemErrorKind {
     fn label(&self) -> Option<&'static str> {
         Some(match self {
             // NOTE: Stuck with this nested match until either `box_patterns` or `deref_patterns` are stabilized.
@@ -105,7 +113,7 @@ impl LabeledErrorKind for CompositionErrorKind {
     }
 }
 
-impl<'a> FromExternalError<'a, AtomicLookupError> for CompositionErrorKind {
+impl<'a> FromExternalError<'a, AtomicLookupError> for PolychemErrorKind {
     const FATAL: bool = true;
 
     fn from_external_error(input: &'a str, e: AtomicLookupError) -> LabeledParseError<'_, Self> {
@@ -113,7 +121,15 @@ impl<'a> FromExternalError<'a, AtomicLookupError> for CompositionErrorKind {
     }
 }
 
-impl From<ErrorKind> for CompositionErrorKind {
+impl<'a> FromExternalError<'a, Box<PolychemError>> for PolychemErrorKind {
+    const FATAL: bool = true;
+
+    fn from_external_error(input: &'a str, e: Box<PolychemError>) -> LabeledParseError<'_, Self> {
+        LabeledParseError::new(input, Self::PolychemError(e))
+    }
+}
+
+impl From<ErrorKind> for PolychemErrorKind {
     fn from(value: ErrorKind) -> Self {
         match value {
             ErrorKind::Eof => Self::Incomplete,

@@ -9,8 +9,8 @@ use rust_decimal::Decimal;
 
 // Local Crate Imports
 use crate::{
-    parsers::chemical_composition, AtomicDatabase, Charge, Charged, ChemicalComposition, Count,
-    Element, Massive, Result, SignedCount,
+    parsers::chemical_composition::chemical_composition, AtomicDatabase, Charge, Charged,
+    ChemicalComposition, Count, Element, Massive, Result, SignedCount,
 };
 
 // Public API ==========================================================================================================

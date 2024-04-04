@@ -12,7 +12,7 @@ use nom_miette::{expect, map_res, wrap_err};
 // Local Crate Imports
 use super::{
     count,
-    errors::{CompositionErrorKind, ParseResult},
+    errors::{ParseResult, PolychemErrorKind},
     lowercase, offset_kind, uppercase,
 };
 use crate::{
@@ -50,7 +50,7 @@ pub fn chemical_composition<'a, 's>(
     });
 
     let parser = alt((atoms_and_particles, just_particles));
-    wrap_err(parser, CompositionErrorKind::ExpectedChemicalComposition)
+    wrap_err(parser, PolychemErrorKind::ExpectedChemicalComposition)
 }
 
 // Private Sub-Parsers =================================================================================================
@@ -62,7 +62,7 @@ fn atomic_offset<'a, 's>(
     let element_or_isotope = alt((element(db), isotope(db)));
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     let parser = pair(element_or_isotope, optional_count);
-    wrap_err(parser, CompositionErrorKind::ExpectedAtomicOffset)
+    wrap_err(parser, PolychemErrorKind::ExpectedAtomicOffset)
 }
 
 /// Particle Offset = [ Count ] , Particle ;
@@ -71,7 +71,7 @@ fn particle_offset<'a, 's>(
 ) -> impl FnMut(&'s str) -> ParseResult<(Count, Particle<'a>)> {
     let optional_count = opt(count).map(|o| o.unwrap_or(1));
     let parser = pair(optional_count, particle(db));
-    wrap_err(parser, CompositionErrorKind::ExpectedParticleOffset)
+    wrap_err(parser, PolychemErrorKind::ExpectedParticleOffset)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -100,16 +100,16 @@ fn particle<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResul
 /// Element = uppercase , [ lowercase ] ;
 fn element_symbol(i: &str) -> ParseResult<&str> {
     let parser = recognize(pair(uppercase, opt(lowercase)));
-    wrap_err(parser, CompositionErrorKind::ExpectedElementSymbol)(i)
+    wrap_err(parser, PolychemErrorKind::ExpectedElementSymbol)(i)
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
 #[allow(clippy::doc_link_with_quotes)]
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
-    let opening_bracket = expect(char('['), CompositionErrorKind::ExpectedIsotopeStart);
-    let mass_number = wrap_err(count, CompositionErrorKind::ExpectedMassNumber);
-    let closing_bracket = expect(cut(char(']')), CompositionErrorKind::ExpectedIsotopeEnd);
+    let opening_bracket = expect(char('['), PolychemErrorKind::ExpectedIsotopeStart);
+    let mass_number = wrap_err(count, PolychemErrorKind::ExpectedMassNumber);
+    let closing_bracket = expect(cut(char(']')), PolychemErrorKind::ExpectedIsotopeEnd);
     delimited(
         opening_bracket,
         cut(pair(mass_number, element_symbol)),
@@ -120,7 +120,7 @@ fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
 /// Particle = lowercase ;
 fn particle_symbol(i: &str) -> ParseResult<&str> {
     let parser = recognize(lowercase);
-    wrap_err(parser, CompositionErrorKind::ExpectedParticleSymbol)(i)
+    wrap_err(parser, PolychemErrorKind::ExpectedParticleSymbol)(i)
 }
 
 // Module Tests ========================================================================================================
@@ -259,22 +259,6 @@ mod tests {
         // Multiple Particles
         assert_particle_name!("ep", "p", "Electron");
         assert_particle_name!("pe", "e", "Proton");
-    }
-
-    #[test]
-    fn test_offset_kind() {
-        // Valid Offset Kinds
-        assert_eq!(offset_kind("+"), Ok(("", OffsetKind::Add)));
-        assert_eq!(offset_kind("-"), Ok(("", OffsetKind::Remove)));
-        // Invalid Offset Kinds
-        assert!(offset_kind("p").is_err());
-        assert!(offset_kind("H").is_err());
-        assert!(offset_kind("1H").is_err());
-        assert!(offset_kind("1+H").is_err());
-        assert!(offset_kind("[H]").is_err());
-        // Multiple Offset Kinds
-        assert_eq!(offset_kind("+-"), Ok(("-", OffsetKind::Add)));
-        assert_eq!(offset_kind("--"), Ok(("-", OffsetKind::Remove)));
     }
 
     #[test]
