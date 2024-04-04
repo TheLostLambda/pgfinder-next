@@ -1,5 +1,5 @@
 [package]
-name = "smithereens"
+name = "pg-pipeline"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,6 +8,7 @@ members = [
   "crates/muropeptide",
   "crates/nom-miette",
   "crates/polychem",
+  "crates/smithereens",
 ]
 
 # FIXME: Does this actually apply to this base-level crate?
