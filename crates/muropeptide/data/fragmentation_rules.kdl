@@ -1,0 +1,147 @@
+// This section describes how bonds are broken, and how mass is divided between
+// the two newly formed "termini"
+cleavages {
+    // These are the deltas from full — not-residue — masses
+    termini {
+        // [N] = "H"
+        // [C] = "OH"
+        // [M] = "C3H5NO" (Alanine)
+
+        // Peptides ===========================================================
+        // Note KDL properties cannot be duplicated! Can only have one `lost`!
+        // [N]+[M]-CHO
+        a lost="OHCHO"
+        // [N]+[M]-H
+        b lost="OHH"
+        // [N]+[M]+NH2
+        c lost="OH" gained="NH2"
+        // [C]+[M]+CO-H
+        x lost="HH" gained="CO"
+        // [C]+[M]+H
+        y lost="H" gained="H" // Also allow just: y
+        // [C]+[M]-NH2
+        z lost="HNH2"
+
+        // Glycans ============================================================
+        // Note these are capitalized! The same masses as the peptides, but can
+        // be treated differently during the `transformations` step!
+        B lost="OHH"
+        Y lost="H" gained="H"
+
+        // Peptidoglycan ======================================================
+        -lac lost="???" gained="???"
+        +lac lost="???" gained="???"
+    }
+    Glycosidic {
+        // QUESTION: Should I ever have anything unpaired here? If not, isn't
+        // the `pair` repetitive? Nah, I can have a from?
+        pair donor="B" acceptor="Y"
+    }
+    Peptide {
+        pair donor="a" acceptor="x"
+        pair donor="b" acceptor="y"
+        pair donor="c" acceptor="z"
+    }
+    // Oh dear, I really don't know here...
+    Stem {
+        pair donor="-lac" acceptor="+lac"
+        pair donor="b" acceptor="y"
+    }
+    Crosslink {
+        from "Peptide"
+    }
+}
+
+transformations {
+    filters {
+
+    }
+}
+
+charges {
+    proton "p" // 1+
+}
+// Cutting bonds
+ions-series {
+    // Do these always come in pairs?
+    // Separate naming from ion tags? So you can enable differently
+    // for negative or positive mode?
+    ax {
+
+    }
+    by {
+        bond "Peptide" {
+            donor "-H"
+            acceptor "+H"
+        }
+
+        // If charge one, only one of these will actually show up?
+    }
+    cz {
+
+    }
+}
+// OR: (But lactyl A seems to work best with a paired model?)
+ions {
+    b {
+        donor "Peptide"
+        lost "H"
+    }
+    y {
+        acceptor "Peptide"
+        gained "H"
+    }
+}
+
+// Looking at whole fragments
+decay?losses?rearrangments?secondarylosses? {
+    water-loss residue="*" {
+        lost "H2O"
+    }
+    sidechain-loss residue="M" {
+        lost "..." // Sidechain?
+    }
+    // Loss / gained in the top?
+    // Body is then all of the targeting!
+    // modifications can fly off, or lose bits
+    // Neutral losses here
+    // Oxidised methionine, whole sidechain be me lost
+}
+
+charges {
+    // Maybe don't do this, but just have the method list a negative charge!
+    neg-mode "-p" // This isn't a valid chemical formula...
+    proton "p"
+    sodium "Na-e"
+    calcium "Ca-2e"
+    // protons, Na, etc
+}
+
+// Enable or disable combinations of all of the above
+method? {
+    cid {
+        terminals "b" "y"
+        cleavages "Peptide" "Glycosidic"
+        secondary-losses "water-loss"
+        charge-carriers "proton" "calcium"
+        charge-range min=1 max=4
+        fragmentation-depth?
+        // more B here
+        // Internal rare
+        // For glyco, tips fly off and charge stays behind
+    }
+    hcd {
+        // B tends to be fragile
+        // more internal here
+    }
+    etd {
+        ion-series "c" "z" "y"
+        // Not really neutral losses here
+        // Charge goes with longer piece, one-side will prefer charge
+        // Some sites might split the charge 2 into two charged halves
+        // Sometimes you can end up with proton getting turned into a hydrogen,
+        // so there is a 1Da shift in the ions?
+        // Proline and cystine odd here
+        // z-ion, n-term C, loses sidechain
+    }
+}
