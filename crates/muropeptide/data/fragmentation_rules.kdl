@@ -29,37 +29,73 @@ cleavages {
         Y lost="H" gained="H"
 
         // Peptidoglycan ======================================================
-        -lac lost="???" gained="???"
-        +lac lost="???" gained="???"
+        // These are just like b and y ions, but with an extra C3H4O2
+        b-lac lost="C3H4O2OHH"
+        y-lac lost="H" gained="C3H4O2H" // This seems correct
     }
+    // I could predict intensity by adding that in here... Ugh... No, that
+    // would need a different number for each method...
     Glycosidic {
         // QUESTION: Should I ever have anything unpaired here? If not, isn't
         // the `pair` repetitive? Nah, I can have a from?
         pair donor="B" acceptor="Y"
     }
     Peptide {
-        pair donor="a" acceptor="x"
-        pair donor="b" acceptor="y"
+        pair donor="a" acceptor="x" // Skip these if method disables both terms
+        pair donor="b" acceptor="y" // Not skipped in ETD since y is enabled
+        // ^ the b ions are just filtered out at the end
         pair donor="c" acceptor="z"
     }
     // Oh dear, I really don't know here...
     Stem {
-        pair donor="-lac" acceptor="+lac"
+        pair donor="b-lac" acceptor="y-lac"
         pair donor="b" acceptor="y"
+        // Also test the other types of peptide fragmentation! `from "Peptide"`
     }
     Crosslink {
+        // I also don't know if this is really right... I don't think it is...
         from "Peptide"
     }
 }
 
 transformations {
-    filters {
-
+    // The losses in here should have an option to add "related" ions!
+    immonium { // Capital or lowercase by convention?
+        // For fragments that are a single residue
+        size 1
+        // Any two paired lowercase / amino-acid termini
+        termini 2 {
+            one-from "a" "b" "c" // Or expressed as multiple params
+            one-from "x" "y" "z" // And expressed as a second line?
+        }
+        // Change termini to be a and y (an immonium ion)
+        transform "a" "b" "c" to="a"
+        transform "x" "y" "z" to="y"
     }
+    // Should I split things into `if` and `then` blocks?
+    phospho-loss {
+        modification "Poly"
+        lost "PO3"
+    }
+    // GlcNAc is almost always the first to fall off in HCD, so any fragments
+    // that are B or b ions containing GlcNAc (g) and are larger than 1
+    // residue, remove them!
+    no-glcnac-b-ions {
+        // Should have have `contains-all` and `contains-any`, or should I
+        // stick with the multiple args for "or" and multiple lines for "and"?
+        contains "g"
+        size greater-than=1
+        termini 1 "B" "b"
+        remove
+    }
+    // TODO: Add something for isoGlu and isoGln from PGN_MS2 — will I want to
+    // distinguish these iso versions from the non-iso versions?
 }
 
-charges {
+charge-carriers {
     proton "p" // 1+
+    sodium "Na-e" // 1+
+    calcium "Ca-2e" // 2+
 }
 // Cutting bonds
 ions-series {
@@ -120,11 +156,11 @@ charges {
 // Enable or disable combinations of all of the above
 method? {
     cid {
-        terminals "b" "y"
+        termini "b" "y"
         cleavages "Peptide" "Glycosidic"
         secondary-losses "water-loss"
         charge-carriers "proton" "calcium"
-        charge-range min=1 max=4
+        charge min=1 max=4
         fragmentation-depth?
         // more B here
         // Internal rare
