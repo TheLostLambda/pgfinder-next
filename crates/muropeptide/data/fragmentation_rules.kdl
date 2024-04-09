@@ -12,10 +12,9 @@
 // 5) methods (maybe here is where I say protons are the charge carrier)
 // -> scratch that... One file should mean one polymer-type, one method!
 
-cleavages {
-    // This is required keyword, but can be null? Maybe just have the whole
-    // keyword / node be optional...
-    max-cleavages null // null means unlimited!
+// Goes to a fragmentation-depth of 3 — leave off the max= if you want an 
+// unlimited / exhaustive depth!
+cleavages max=3 {
     termini {
         /-a lost="OHCHO"
         b lost="OHH"
@@ -51,18 +50,23 @@ cleavages {
     }
 }
 
-
-
 transformations {
+    // This first section applies once for each occurance in a fragment — if
+    // you can lose a modifiction, and you have several on one fragment, this
+    // will generate fragments with one lost, two lost, etc! One fragment in,
+    // can result in several new fragments out! Criteria / filters apply to
+    // individual residues / modifications!
+
     // Implementation-wise, doing this pass first also gives me an excuse to
     // potentially collect some metrics for the whole-fragment tranformations?
-    residues {
+    residue {
         // TODO: Add GlcNAc decay here
         // Also add other side-chain losses?
         // And be sure it works for labile modification losses!
     }
-    // Processes whole fragments at a time
-    fragments {
+    // This processes whole fragments at a time — one fragment in, one added or
+    // removed afterwards
+    fragment {
         // Really not sure how I feel about using "lost" in this position...
         // Do I want to keep this called "lost"? It's consistent at least...
         offset lost="CO" { // The difference between an a and b ion!
@@ -99,10 +103,13 @@ transformations {
     }
 }
 
-// Maybe like this?
-adducts {
-    // Think about naming... total-charge? final-charge?
-    net-charge min=1 max=5
+// Maybe like this? Those min and max properties aren't always optional...
+// You could give just a max= if it's a positive max charge, then the min can
+// be assumed 1, or you can give a negative min=, then the max is assumed to be
+// -1 charge. So the below could also be just: charges max=5. If you span 0
+// with things (e.g. min=-1 max=1), then 0 is excluded? Maybe not, and I just
+// return the neutral mass...
+charges min=1 max=5 {
     // Not giving a max or minimum implies it's free to come in any number!
     p // Can be added or removed in any number!
     // Supplying only min or max implies 0 for the omitted value
