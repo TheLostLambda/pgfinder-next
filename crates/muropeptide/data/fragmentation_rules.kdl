@@ -1,3 +1,146 @@
+// ^ OTHER OPTION: When cutting bonds, just leave bond-type and donor /
+// acceptor info, then later on apply all of the permutations of terminal types
+// depending on the bond and bond-direction! Also nice because it stops the
+// number of fragments from exploding in this graph-fragmeting stage (which is
+// comparatively expensive and slow, vs just generating permutations from a
+// list of sub-graphs!)
+// Then have these sections?
+// 2) ions (which terminal combinations?)
+// 3) secondary-losses
+// 4) adducts (salts, etc — should protons be hard-coded?)
+// -> hmm, but I might also want to specify min and max numbers of Na or K
+// 5) methods (maybe here is where I say protons are the charge carrier)
+// -> scratch that... One file should mean one polymer-type, one method!
+
+cleavages {
+    // This is required keyword, but can be null? Maybe just have the whole
+    // keyword / node be optional...
+    max-cleavages null // null means unlimited!
+    termini {
+        /-a lost="OHCHO"
+        b lost="OHH"
+        /-c lost="OH" gained="NH2"
+        /-x lost="HH" gained="CO"
+        y lost="H" gained="H"
+        /-z lost="HNH2"
+
+        B lost="OHH"
+        Y lost="H" gained="H"
+
+        b-lac lost="C3H4O2OHH"
+        y-lac lost="H" gained="C3H4O2H" 
+    }
+    Glycosidic {
+        donor "B"
+        acceptor "Y"
+    }
+    Peptide {
+        donor /-"a" "b" /-"c"
+        acceptor /-"x" "y" /-"z"
+    }
+    Stem {
+        // Is it chemically possible to get non-b or y ions?
+        donor "b" "b-lac"
+        acceptor "y" "y-lac"
+    }
+    Crosslink {
+        // Does this really always fragment the same? Better keyword than from?
+        // Not sure if this sugar is worth it: from "Peptide"
+        donor "b"
+        acceptor "y"
+    }
+}
+
+
+
+transformations {
+    // Implementation-wise, doing this pass first also gives me an excuse to
+    // potentially collect some metrics for the whole-fragment tranformations?
+    residues {
+        // TODO: Add GlcNAc decay here
+        // Also add other side-chain losses?
+        // And be sure it works for labile modification losses!
+    }
+    // Processes whole fragments at a time
+    fragments {
+        // Really not sure how I feel about using "lost" in this position...
+        // Do I want to keep this called "lost"? It's consistent at least...
+        offset lost="CO" { // The difference between an a and b ion!
+            residues 1
+            termini 2 {
+                // Two total termini, one "b" and one "y"
+                has 1 "b"
+                has 1 "y"
+                // Nodes are ANDed, and arguments are ORed, so one b or y terminal
+                // would be: has 1 "b" "y"
+            }      
+        }
+        // No sense in removing things if you're just annotating, but for scoring
+        // it can be nice to cut out things that rarely (if-ever) show up! This
+        // gets rid of b-ions (larger than one residue) that contain GlcNAc, since
+        // GlcNAc falls off incredibly readily!
+        remove {
+            // Without a number, any number / size is fine; with a number, the
+            // count must be exactly equal; otherwise, use more-than or fewer-than
+
+            // Total number of residues must be greater than 1 (not a single "g")
+            residues more-than=1 {
+                // And at least 1 of those must be "g"
+                has more-than=0 "g"
+            }
+            // If the fragment has only one terminal
+            termini 1 {
+                // Has without the count again means any number is fine, but we
+                // have already checked that the total termini count is 1 at this
+                // point, so this will just match either "B" or "b"
+                has "B" "b"
+            }
+        }
+    }
+}
+
+// Maybe like this?
+adducts {
+    // Think about naming... total-charge? final-charge?
+    net-charge min=1 max=5
+    // Not giving a max or minimum implies it's free to come in any number!
+    p // Can be added or removed in any number!
+    // Supplying only min or max implies 0 for the omitted value
+    Na-e max=2 // Could be 0, 1, or 2!
+    // Could have a minimum too, if you really wanted:
+    // Ca-2e min=1 max=3 // Inclusive, so this allows 1, 2, or 3 Ca's
+}
+
+// ============================================================================
+// ============================================================================
+// ============================================================================
+
+// Ugh, I hate it again, let's start anew...
+secondary-losses {
+    immonium {
+        residues 1
+        termini 2 {
+            // has and has-some are allowed here — nodes are ANDed
+            has "b" "y" // Could also be has "b"; has "y"
+            // has-some "b" "y" would mean it could be either! Here with the
+            // count set to 2, that would mean that "bb", "by", and "yy" match
+        }
+        lost "CO" // The difference between an a and b ion!
+    }
+    // No sense in removing things if you're just annotating, but for scoring
+    // it can be nice to cut out things that rarely (if-ever) show up!
+    no-glcnac-b-ions {
+        // Without a number, any number / size is fine, with one is exact, and
+        // properties can be used for fewer-than or more-than
+        // Any number of "g" residues
+        residues {
+            has-some "g"
+        }
+        termini 1 "B" "b"
+        remove
+    }
+}
+
 // This section describes how bonds are broken, and how mass is divided between
 // the two newly formed "termini"
 cleavages {
@@ -44,6 +187,10 @@ cleavages {
         pair donor="a" acceptor="x" // Skip these if method disables both terms
         pair donor="b" acceptor="y" // Not skipped in ETD since y is enabled
         // ^ the b ions are just filtered out at the end
+        // CORRECTION! I can't skip these, since transformations could rely on
+        // some terminals being generated? UPDATE: I think they are still fine
+        // to skip, since biologically if a transformation is meant to rely on
+        // an ion that's never formed, it probably shouldn't happen?
         pair donor="c" acceptor="z"
     }
     // Oh dear, I really don't know here...
@@ -60,6 +207,7 @@ cleavages {
 
 transformations {
     // The losses in here should have an option to add "related" ions!
+    // Still not happy with immonium generation... Feels messy...
     immonium { // Capital or lowercase by convention?
         // For fragments that are a single residue
         size 1
@@ -91,7 +239,8 @@ transformations {
     // TODO: Add something for isoGlu and isoGln from PGN_MS2 — will I want to
     // distinguish these iso versions from the non-iso versions?
 }
-
+// Maybe call "adducts" and I should maybe have the add / remove here? Negative
+// mode probably needs to be more clever about salt-adducts?
 charge-carriers {
     proton "p" // 1+
     sodium "Na-e" // 1+
@@ -160,7 +309,8 @@ method? {
         cleavages "Peptide" "Glycosidic"
         secondary-losses "water-loss"
         charge-carriers "proton" "calcium"
-        charge min=1 max=4
+        adducts "+p" "+Na" "+Ca"
+        charge min=1 max=4 // Redundant with adducts? Or still useful?
         fragmentation-depth?
         // more B here
         // Internal rare
