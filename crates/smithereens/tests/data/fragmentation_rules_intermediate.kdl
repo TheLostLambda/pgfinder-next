@@ -1,0 +1,113 @@
+// Adding the optional steps: `decay-fragments`, `filters`, and `offsets`
+
+cleavages max=3 {
+    termini {
+        b lost="OHH"
+        y lost="H" gained="H"
+
+        B lost="OHH"
+        Y lost="H" gained="H"
+
+        b-lac lost="C3H4O2OHH"
+        y-lac lost="H" gained="C3H4O2H" 
+    }
+
+    Glycosidic {
+        donor "B"
+        acceptor "Y"
+    }
+    Peptide {
+        donor "b"
+        acceptor "y"
+    }
+    Stem {
+        donor "b" "b-lac"
+        acceptor "y" "y-lac"
+    }
+    Crosslink {
+        donor "b"
+        acceptor "y"
+    }
+}
+
+decay-fragments {
+    // Is this... Even worth including?
+    background {
+        // Whatever you'd like to be included in all of your fragment lists,
+        // regardless of the structure being fragmented!
+    }
+    residue "g" {
+        fragment "C8H11N1O4"
+        fragment "C8H9N1O3"
+        fragment "C6H9O3N1" name="The Annoying One"
+        fragment "C7H7O2N1"
+        fragment "C6H7O2N1"
+    }
+    modification "Poly" {
+        fragment "PO3+3e"
+    }
+}
+
+filters {
+    // Keep only single-terminal Y- and y-ions
+    keep {
+        termini 1 {
+            has "Y" "y"
+        }
+    }
+    // Remove multi-residue fragments with GlcNAc
+    remove {
+        residues more-than=1 {
+            has "g"
+        }
+    }
+    // Or combine conditionals: keep only single-terminal b-ions with exactly
+    // three "A"s and one MurNAc
+    keep {
+        termini 1 {
+            has "b"
+        }
+        residues {
+            has 3 "A"
+            has 1 "m"
+        }
+    }
+    // Just for fun, keep only fragments with a crosslink!
+    keep {
+        bonds {
+            has "Crosslink"
+        }
+    }
+    // Something awful, keep only fragments with a J bound to an A or E via a
+    // Crosslink or Peptide bond
+    keep {
+        bonds {
+            residue "mDAP" "J"
+            residue "AorE" "A" "E"
+            has "Crosslink" "Peptide" {
+                between "mDAP" "AorE"
+            }
+        }
+    }
+}
+
+offsets {
+    // Lose phosphate ions from MurNAc
+    residue lost="PO3" {
+        residue "m"
+        modification "Poly"
+    }
+    // Generate immonium ions
+    fragment lost="CO" { // The difference between an a and b ion!
+        residues 1
+        termini 2 {
+            has 1 "b"
+            has 1 "y"
+        }      
+    }
+}
+
+charges min=1 max=5 {
+    p
+    Na-e max=2
+}

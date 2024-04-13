@@ -131,6 +131,7 @@ filters {
         bonds {
             // This is by default *one* or more
             has "Crosslink"
+            // ^ This crosslink can be between any two residues!
         }
     }
     // How about just a 3-3 / J-J crosslink?
@@ -141,6 +142,26 @@ filters {
             residue "mDAP2" "J"
             // Then give donors and acceptors!
             has "Crosslink" donor="mDAP1" acceptor="mDAP2"
+            // *MORE THOUGHT NEEDED:* How to list multiple bond types and also
+            // allow for things to be undirected?
+        }
+    }
+    // Something awful, keep only fragments with a J bound to an A or E via a
+    // Crosslink or Peptide bond?
+    keep {
+        bonds {
+            residue "mDAP" "J"
+            residue "AorE" "A" "E" // Could be instantiated as either!
+            // Maybe let `has` have children here...
+            has "Crosslink" "Peptide" { // Either type of bond is fine
+                between "mDAP" "AorE"
+                // Or you can specify which is acceptor and donor — specifying
+                // one of the two is enough, but you can do both, if you'd like
+                // All mean the same:
+                /-between donor="mDAP" "AorE"
+                /-between acceptor="AorE" "mDAP"
+                /-between donor="mDAP" acceptor="AorE"
+            }
         }
     }
     // No sense in removing things if you're just annotating, but for scoring
