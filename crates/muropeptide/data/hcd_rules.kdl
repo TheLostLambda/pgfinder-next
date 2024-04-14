@@ -1,0 +1,77 @@
+// Modelled after the fragmentation rules of https://doi.org/10.1039/D3SC05819K
+cleavages {
+    termini {
+        b lost="OHH"
+        y lost="H" gained="H"
+
+        B lost="OHH"
+        C lost="H" gained="H"
+        Y lost="H" gained="H"
+        Z lost="OHH"
+
+        b-lac lost="C3H4O2OHH"
+        y-lac lost="H" gained="C3H4O2H" 
+    }
+
+    Glycosidic {
+        donor "B" "C"
+        acceptor "Y" "Z"
+    }
+    Peptide {
+        donor "b"
+        acceptor "y"
+    }
+    Stem {
+        donor "b" "b-lac"
+        acceptor "y" "y-lac"
+    }
+    Crosslink {
+        donor "b"
+        acceptor "y"
+    }
+}
+
+decay-fragments {
+    // From https://doi.org/10.1021/jasms.2c00172
+    residue "g" {
+        fragment "C8H11NO4" // +1: 186.076084
+        fragment "C8H9NO3"  // +1: 168.065520
+        fragment "C6H9NO3"  // +1: 144.065520
+        fragment "C7H7NO2"  // +1: 138.054955
+        fragment "C6H7NO2"  // +1: 126.054955
+    }
+    // Non-exhaustive, but from https://doi.org/10.1039/D3SC05819K
+    residue "m" {
+        fragment "C7H7NO2" // +1: 138.054955
+    }
+    // Perhaps it's also worth adding the "related" amino-acid ions from here:
+    // https://doi.org/10.1016/1044-0305(93)87006-X
+}
+
+offsets {
+    // Generate immonium fragments from internal b+y fragments
+    fragment lost="CO" {
+        residues 1
+        termini 2 {
+            has "b"
+            has "y"
+        }
+    }
+    // TODO: Figure out how to get terminal losses? Here losing H2O from C-term
+    residue lost="H2O" {
+        groups {
+            has "Carboxyl" {
+                at "C-Terminal"
+                state "Free"
+            }
+        }
+    }
+    // FIXME: Vibe-check the above, and maybe just make it all Carboxyls and
+    // add something for all amino groups too?
+}
+
+charges min=1 max=5 {
+    p
+    K-e max=2
+    Na-e max=2
+}

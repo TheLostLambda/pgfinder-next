@@ -94,8 +94,8 @@ filters {
 offsets {
     // Lose phosphate ions from MurNAc
     residue lost="PO3" {
-        residue "m"
-        modification "Poly"
+        residue "m" // Move to parent?
+        modification "Poly" // Change to modifications plural and have `has`
     }
     // Generate immonium ions
     fragment lost="CO" { // The difference between an a and b ion!
