@@ -31,43 +31,53 @@ cleavages {
     }
 }
 
-decay-fragments {
+secondary-losses {
     // From https://doi.org/10.1021/jasms.2c00172
     residue "g" {
-        fragment "C8H11NO4" // +1: 186.076084
-        fragment "C8H9NO3"  // +1: 168.065520
-        fragment "C6H9NO3"  // +1: 144.065520
-        fragment "C7H7NO2"  // +1: 138.054955
-        fragment "C6H7NO2"  // +1: 126.054955
+        freed "C8H11NO4" // +1: 186.076084 -H2O
+        freed "C8H9NO3"  // +1: 168.065520 -2xH2O
+        freed "C6H9NO3"  // +1: 144.065520
+        freed "C7H7NO2"  // +1: 138.054955
+        freed "C6H7NO2"  // +1: 126.054955 -2xH2O, -C2H2O
     }
     // Non-exhaustive, but from https://doi.org/10.1039/D3SC05819K
     residue "m" {
-        fragment "C7H7NO2" // +1: 138.054955
+        freed "C7H7NO2" // +1: 138.054955
     }
     // Perhaps it's also worth adding the "related" amino-acid ions from here:
     // https://doi.org/10.1016/1044-0305(93)87006-X
-}
 
-offsets {
     // Generate immonium fragments from internal b+y fragments
-    fragment lost="CO" {
+    fragment {
         residues 1
         termini 2 {
             has "b"
             has "y"
         }
+        lost "CO"
     }
-    // TODO: Figure out how to get terminal losses? Here losing H2O from C-term
-    residue lost="H2O" {
-        groups {
-            has "Carboxyl" {
-                at "C-Terminal"
-                state "Free"
-            }
+    // Covers N and C terminal losses from https://doi.org/10.1039/D3SC05819K
+    group "Carboxyl" {
+        at "C-terminal"
+        lost "H2O"
+    }
+    group "Amino" {
+        at "N-terminal"
+        lost "NH3"
+    }
+    // Generates e1/2 and q1/2 ions from https://doi.org/10.1039/D3SC05819K
+    residue "E" {
+        termini {
+            has "y"
         }
+        lost "H2O" "H2OCONH2"
     }
-    // FIXME: Vibe-check the above, and maybe just make it all Carboxyls and
-    // add something for all amino groups too?
+    residue "Q" {
+        termini {
+            has "y"
+        }
+        lost "NH3" "NH3CONH2"
+    }
 }
 
 charges min=1 max=5 {

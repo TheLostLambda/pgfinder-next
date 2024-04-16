@@ -14,6 +14,9 @@
 
 // Goes to a fragmentation-depth of 3 — leave off the max= if you want an 
 // unlimited / exhaustive depth! Maybe rename this to depth=?
+// If I'm sticking with max=, should I have a min= for completeness? I'm
+// leaning towards no, since you can use filters to remove fragments with fewer
+// cuts, and it's not like I can take any shortcuts performance-wise with a min
 cleavages max=3 {
     termini {
         /-a lost="OHCHO"
@@ -48,41 +51,6 @@ cleavages max=3 {
         // Not sure if this sugar is worth it: from "Peptide"
         donor "b"
         acceptor "y"
-    }
-}
-
-// IMPLEMENTATION: This depends on nothing but the precursor structure, so this
-// step can be run in parallel with the rest of the pipeline! At least up until
-// the charging / adduct formation step!
-// Not 100% sold on that name...
-decay-fragments {
-    // Is this... Even worth including? I'm leaning towards "no", since if
-    // there really are ions that are always in your spectra as background,
-    // then perhaps that's outside the scope of this tool? Eh, I don't know,
-    // this is pretty "inexpensive" to implement
-    background {
-        // Whatever you'd like to be included in all of your fragment lists,
-        // regardless of the structure being fragmented!
-    }
-    // Any precursor with a GlcNAc will include these fragments
-    residue "g" { // +1: 204.0866
-        // By default, I think I should name these as <abbr><fragment #>, so
-        // they would be g1, g2, etc here, but you can optionally name them for
-        // something like: g1 (<NAME>)
-        // From: https://doi.org/10.1021/jasms.2c00172 — a bit sketchy...
-        fragment "C8H11N1O4" // +1: 186.0761
-        fragment "C8H9N1O3" // +1: 168.0655
-        fragment "C6H9O3N1" name="The Annoying One" // +1: 144.066
-        fragment "C7H7O2N1" // +1: 138.055
-        fragment "C6H7O2N1" // +1: 126.055
-    }
-    // Any precursor with a "Poly" modification will include these ions
-    modification "Poly" {
-        // These compositions are charged up / form adducts in the same way as
-        // "proper" fragments, but you shouldn't forget to include any inherent
-        // charge of the fragment itself (before adduct formation)!
-        // I don't actually know if this is chemically correct though...
-        fragment "PO3+3e"
     }
 }
 
@@ -242,8 +210,41 @@ filters {
     // keep
 }
 
-offsets {
-
+// Can I ever have gains?
+secondary-losses {
+    // Background fragments that are always added
+    fragment {
+        freed "H2O"
+        freed "..."
+    }
+    // Free GlcNAc's readily undergo fragmentation and generate a number of
+    // related fragments:
+    residue "g" {
+        freed "C8H11NO4" // +1: 186.076084
+        freed "C8H9NO3"  // +1: 168.065520
+        freed "C6H9NO3"  // +1: 144.065520
+        freed "C7H7NO2"  // +1: 138.054955
+        freed "C6H7NO2"  // +1: 126.054955
+    }
+    // Lose a phosphate ion from wall-polymer linkages
+    modification "Poly" {
+        lost "PO3"
+    }
+    // Water loss from free C-terminal carboxyls
+    group "Carboxyl" { // Only matches free / unsubstituted groups
+        at "C-Terminal"
+        // Allow `of` as well, for completeness?
+        lost "H2O"
+    }
+    // Generate immonium ions
+    fragment {
+        residues 1
+        termini 2 {
+            has "b"
+            has "y"
+        }
+        lost "CO" // The difference between an a and b ion!
+    }
 }
 
 // Maybe like this? Those min and max properties aren't always optional...
@@ -256,7 +257,9 @@ offsets {
 // you need to check the charge of each fragment before doing this addition and
 // subtraction here!
 charges min=1 max=5 {
-    // Not giving a max or minimum implies it's free to come in any number!
+    // Not giving a max or minimum implies it's free to come in any number! It
+    // should be an error to have more than one charge that's unbounded like
+    // this one!
     p // Can be added or removed in any number!
     // Supplying only min or max implies 0 for the omitted value
     Na-e max=2 // Could be 0, 1, or 2!
@@ -267,6 +270,41 @@ charges min=1 max=5 {
 // ============================================================================
 // ============================================================================
 // ============================================================================
+
+// IMPLEMENTATION: This depends on nothing but the precursor structure, so this
+// step can be run in parallel with the rest of the pipeline! At least up until
+// the charging / adduct formation step!
+// Not 100% sold on that name...
+decay-fragments {
+    // Is this... Even worth including? I'm leaning towards "no", since if
+    // there really are ions that are always in your spectra as background,
+    // then perhaps that's outside the scope of this tool? Eh, I don't know,
+    // this is pretty "inexpensive" to implement
+    background {
+        // Whatever you'd like to be included in all of your fragment lists,
+        // regardless of the structure being fragmented!
+    }
+    // Any precursor with a GlcNAc will include these fragments
+    residue "g" { // +1: 204.0866
+        // By default, I think I should name these as <abbr><fragment #>, so
+        // they would be g1, g2, etc here, but you can optionally name them for
+        // something like: g1 (<NAME>)
+        // From: https://doi.org/10.1021/jasms.2c00172 — a bit sketchy...
+        fragment "C8H11N1O4" // +1: 186.0761
+        fragment "C8H9N1O3" // +1: 168.0655
+        fragment "C6H9O3N1" name="The Annoying One" // +1: 144.066
+        fragment "C7H7O2N1" // +1: 138.055
+        fragment "C6H7O2N1" // +1: 126.055
+    }
+    // Any precursor with a "Poly" modification will include these ions
+    modification "Poly" {
+        // These compositions are charged up / form adducts in the same way as
+        // "proper" fragments, but you shouldn't forget to include any inherent
+        // charge of the fragment itself (before adduct formation)!
+        // I don't actually know if this is chemically correct though...
+        fragment "PO3+3e"
+    }
+}
 
 // Split into: offsets, decay-ions (name WIP), and filters (also name WIP) 
 transformations {

@@ -1,31 +1,12 @@
 // Only two required sections: `cleavages` and `charges`
 
-cleavages max=3 {
+cleavages max=1 {
     termini {
         b lost="OHH"
         y lost="H" gained="H"
-
-        B lost="OHH"
-        Y lost="H" gained="H"
-
-        b-lac lost="C3H4O2OHH"
-        y-lac lost="H" gained="C3H4O2H" 
     }
 
-    Glycosidic {
-        donor "B"
-        acceptor "Y"
-    }
     Peptide {
-        donor "b"
-        acceptor "y"
-    }
-    Stem {
-        donor "b" "b-lac"
-        acceptor "y" "y-lac"
-    }
-    Crosslink {
-        // Not sure if this sugar is worth it: from "Peptide"
         donor "b"
         acceptor "y"
     }
