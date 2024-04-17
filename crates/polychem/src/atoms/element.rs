@@ -4,9 +4,8 @@ use std::{
 };
 
 use itertools::Itertools;
-use rust_decimal::Decimal;
 
-use crate::{Element, Isotope, MassNumber, Massive, Result};
+use crate::{Element, Isotope, Mass, MassNumber, Massive, Result};
 
 use super::{
     atomic_database::{AtomicDatabase, ElementDescription},
@@ -24,9 +23,9 @@ impl<'a> Element<'a> {
     pub(crate) fn new_isotope(
         db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
-        mass_number: MassNumber,
+        mass_number: impl Into<MassNumber>,
     ) -> Result<Self, AtomicLookupError> {
-        Self::lookup(db, symbol, Some(mass_number))
+        Self::lookup(db, symbol, Some(mass_number.into()))
     }
 
     fn lookup(
@@ -78,7 +77,7 @@ impl<'a> Element<'a> {
         Ok(element)
     }
 
-    fn isotope_mass(&self) -> Option<Decimal> {
+    fn isotope_mass(&self) -> Option<Mass> {
         self.mass_number
             .and_then(|a| self.isotopes.get(&a))
             .map(|i| i.relative_mass)
@@ -101,7 +100,7 @@ impl Display for Element<'_> {
 }
 
 impl Massive for Element<'_> {
-    fn monoisotopic_mass(&self) -> Decimal {
+    fn monoisotopic_mass(&self) -> Mass {
         // SAFETY: The call to `.unwrap()` is safe here since `.isotope_abundances()` is guaranteed to yield at
         // least one isotope
         self.isotope_mass().map_or_else(
@@ -115,14 +114,16 @@ impl Massive for Element<'_> {
         )
     }
 
-    fn average_mass(&self) -> Decimal {
+    fn average_mass(&self) -> Mass {
         // SAFETY: The call to `.unwrap()` is safe here since `.isotope_abundances()` is guaranteed to yield
         // only isotopes containing natural abundance data
         self.isotope_mass().map_or_else(
             || {
-                self.isotope_abundances()
-                    .map(|i| i.relative_mass * i.abundance.unwrap())
-                    .sum()
+                Mass(
+                    self.isotope_abundances()
+                        .map(|i| i.relative_mass.0 * i.abundance.unwrap())
+                        .sum(),
+                )
             },
             identity,
         )
@@ -171,7 +172,7 @@ mod tests {
         } = Element::new_isotope(&DB, "C", 13).unwrap();
         assert_eq!(symbol, "C");
         assert_eq!(name, "Carbon");
-        assert_eq!(mass_number, Some(13));
+        assert_eq!(mass_number, Some(MassNumber(13)));
         let mut isotopes: Vec<_> = isotopes.iter().collect();
         isotopes.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
         assert_debug_snapshot!(isotopes);
@@ -197,11 +198,11 @@ mod tests {
     fn element_monoisotopic_mass() {
         // Successfully calculate the monoisotopic mass of elements with natural abundances
         let c = Element::new(&DB, "C").unwrap().monoisotopic_mass();
-        assert_eq!(c, dec!(12));
+        assert_eq!(c.into(), dec!(12));
         let mg = Element::new(&DB, "Mg").unwrap().monoisotopic_mass();
-        assert_eq!(mg, dec!(23.985041697));
+        assert_eq!(mg.into(), dec!(23.985041697));
         let mo = Element::new(&DB, "Mo").unwrap().monoisotopic_mass();
-        assert_eq!(mo, dec!(97.90540482));
+        assert_eq!(mo.into(), dec!(97.90540482));
         // Fail to construct elements without natural abundances
         assert_miette_snapshot!(Element::new(&DB, "Tc"));
     }
@@ -210,11 +211,11 @@ mod tests {
     fn element_average_mass() {
         // Successfully calculate the average mass of elements with natural abundances
         let c = Element::new(&DB, "C").unwrap().average_mass();
-        assert_eq!(c, dec!(12.010735896735249));
+        assert_eq!(c.into(), dec!(12.010735896735249));
         let mg = Element::new(&DB, "Mg").unwrap().average_mass();
-        assert_eq!(mg, dec!(24.3050516198371));
+        assert_eq!(mg.into(), dec!(24.3050516198371));
         let mo = Element::new(&DB, "Mo").unwrap().average_mass();
-        assert_eq!(mo, dec!(95.959788541188));
+        assert_eq!(mo.into(), dec!(95.959788541188));
         // Fail to construct elements without natural abundances
         assert_miette_snapshot!(Element::new(&DB, "Po"));
     }
@@ -225,15 +226,15 @@ mod tests {
         let c13_mono = Element::new_isotope(&DB, "C", 13)
             .unwrap()
             .monoisotopic_mass();
-        assert_eq!(c13_mono, dec!(13.00335483507));
+        assert_eq!(c13_mono.into(), dec!(13.00335483507));
         let c13_avg = Element::new_isotope(&DB, "C", 13).unwrap().average_mass();
-        assert_eq!(c13_avg, dec!(13.00335483507));
+        assert_eq!(c13_avg.into(), dec!(13.00335483507));
         // Get masses for an element without natural abundances
         let tc99_mono = Element::new_isotope(&DB, "Tc", 99)
             .unwrap()
             .monoisotopic_mass();
-        assert_eq!(tc99_mono, dec!(98.9062508));
+        assert_eq!(tc99_mono.into(), dec!(98.9062508));
         let tc99_avg = Element::new_isotope(&DB, "Tc", 99).unwrap().average_mass();
-        assert_eq!(tc99_avg, dec!(98.9062508));
+        assert_eq!(tc99_avg.into(), dec!(98.9062508));
     }
 }

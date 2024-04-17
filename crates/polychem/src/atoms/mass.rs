@@ -7,3 +7,9 @@ impl Mass {
         (!charge.is_zero()).then(|| Mz(self.0 / Decimal::from(charge.0)))
     }
 }
+
+impl From<Mass> for Decimal {
+    fn from(value: Mass) -> Self {
+        value.0
+    }
+}

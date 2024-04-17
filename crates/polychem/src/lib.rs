@@ -19,6 +19,7 @@ use rust_decimal::Decimal;
 
 // FIXME: Work on what's publicly exported / part of the API! — maybe create a prelude?
 pub use atoms::atomic_database::AtomicDatabase;
+pub use errors::Result;
 pub use polymers::polymer_database::PolymerDatabase;
 
 // FIXME: Blocks here need reordering!
@@ -204,6 +205,7 @@ pub struct Charge(i64);
 // MISSING: No `Default` — should not be constructable by the user
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
 pub struct Mz(Decimal);
+
 // =====================================================================================================================
 
 pub trait Massive {
