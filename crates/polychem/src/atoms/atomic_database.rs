@@ -16,7 +16,7 @@ use rust_decimal::Decimal;
 use thiserror::Error;
 
 // Local Crate Imports
-use crate::{Charge, Isotope, MassNumber};
+use crate::{Charge, Isotope, Mass, MassNumber};
 
 // Public API ==========================================================================================================
 
@@ -101,13 +101,13 @@ struct ParticleKdl {
     #[knuffel(child, unwrap(argument))]
     mass: DecimalKdl,
     #[knuffel(child, unwrap(argument))]
-    charge: Charge,
+    charge: i64,
 }
 
 #[derive(Debug, Decode)]
 struct IsotopeKdl {
     #[knuffel(argument)]
-    mass_number: MassNumber,
+    mass_number: u32,
     #[knuffel(argument)]
     relative_mass: DecimalKdl,
     #[knuffel(argument)]
@@ -238,9 +238,9 @@ impl From<IsotopeKdl> for IsotopeEntry {
         }: IsotopeKdl,
     ) -> Self {
         (
-            mass_number,
+            MassNumber(mass_number),
             Isotope {
-                relative_mass: relative_mass.0,
+                relative_mass: Mass(relative_mass.0),
                 abundance: abundance.map(|a| a.0),
             },
         )
@@ -263,7 +263,7 @@ impl From<ParticleKdl> for ParticleEntry {
             ParticleDescription {
                 name,
                 mass: mass.0,
-                charge,
+                charge: Charge(charge),
             },
         )
     }
