@@ -10,7 +10,7 @@ mod testing_tools;
 
 use std::num::NonZeroU32;
 
-use polymers::target::Index;
+use polymerizer::Polymerizer;
 use serde::Serialize;
 
 // External Crate Imports
@@ -22,32 +22,42 @@ pub use atoms::atomic_database::AtomicDatabase;
 pub use polymers::polymer_database::PolymerDatabase;
 
 // FIXME: Blocks here need reordering!
-
-// NOTE: For the types in this module, 'a lifetimes indicate references to the AtomicDatabase, whilst 'p lifetimes
-// indicate references to the PolymerDatabase
 // FIXME: Add exhaustive derives to everything!
 // Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Default, Serialize
 // #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize)]
+
+// Core Data Types =====================================================================================================
+
+// NOTE: For the types in this module, 'a lifetimes indicate references to the AtomicDatabase, whilst 'p lifetimes
+// indicate references to the PolymerDatabase
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 pub struct Polymer<'a, 'p> {
-    atomic_db: &'a AtomicDatabase,
-    polymer_db: &'p PolymerDatabase<'a>,
-    next_id: Id,
-    groups: Index<'p, HashMap<ResidueId, bool>>,
+    // DESIGN: The `Polymerizer` struct keeps track of fields that are only useful when adding new components to the
+    // current polymer. Abstracting those fields out into a `Polymerizer` helps to separate concerns, and makes it
+    // clearer that the `residues`, `modifications`, and `bonds` fields are, by themselves, a complete description of
+    // the `Polymer`s structure. A discarded alternative was two versions of the `Polymer` struct ("complete" and
+    // "non-complete" versions), which would have introduced additional complexity to the user API, and the free group
+    // index lost by discarding the `Polymerizer` would have needed to be reconstructed during fragmentation anyways
+    // for quick group lookup. Having two structs just for the ID counter and database references didn't seem worth it.
+    // This decision accepts the downside of increasing the size of the `Polymer` struct.
+    #[serde(skip)]
+    polymerizer: Polymerizer<'a, 'p>,
+    // NOTE: Whilst the `Polymerizer` struct is defined elsewhere, the following fields are part of the core polymer
+    // representation and are therefore defined in this file, with `impl`s added in separate modules as needed.
     residues: HashMap<ResidueId, Residue<'a, 'p>>,
     modifications: HashMap<ModificationId, ModificationInfo<'a, 'p>>,
     bonds: HashMap<BondId, BondInfo<'a, 'p>>,
 }
 
-enum ModificationInfo<'a, 'p> {
-    Named(NamedMod<'a, 'p>, ResidueId, &'p FunctionalGroup<'p>),
-    Offset(Modification<OffsetMod<'a>>, ResidueId),
-    Unlocalized(AnyModification<'a, 'p>),
-}
+// ---------------------------------------------------------------------------------------------------------------------
 
-// FIXME: Perhaps I should consider changing these `*Info` structs to have named fields? Is the donor -> acceptor order
-// obvious enough for internal use? Users of `polychem` should never see this...
-struct BondInfo<'a, 'p>(ResidueId, Bond<'a, 'p>, ResidueId);
+// FIXME: Pass through Display implementations for all Id newtypes!
+// FIXME: Add tests that fail if `Default` is implemented for `Id`s!
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct ResidueId(Id);
 
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 struct Residue<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
@@ -56,64 +66,47 @@ struct Residue<'a, 'p> {
     offset_modifications: HashSet<ModificationId>,
 }
 
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct ModificationId(Id);
+
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+enum ModificationInfo<'a, 'p> {
+    Named(NamedMod<'a, 'p>, ResidueId, &'p FunctionalGroup<'p>),
+    Offset(Modification<OffsetMod<'a>>, ResidueId),
+    Unlocalized(AnyModification<'a, 'p>),
+}
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct BondId(Id);
+
+// FIXME: Perhaps I should consider changing these `*Info` structs to have named fields? Is the donor -> acceptor order
+// obvious enough for internal use? Users of `polychem` should never see this...
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct BondInfo<'a, 'p>(ResidueId, Bond<'a, 'p>, ResidueId);
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 // NOTE: This underlying `Id` type is just a synonym since it's private to this crate — there is no way for users to
 // directly provide or modify `Id`s, so I don't need to worry about a newtype wrapper here
 type Id = usize;
 
-// FIXME: Pass through Display implementations for all Id newtypes!
-// MISSING: `*Id` types intentionally don't implement `Default`, since it should not be possible for users to construct
-// their own — only `Polymer` should be capable of forging new `Id`s
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
-pub struct ResidueId(Id);
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
-pub struct ModificationId(Id);
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
-pub struct BondId(Id);
-
+// MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 pub struct ChemicalComposition<'a> {
     chemical_formula: Vec<(Element<'a>, Count)>,
     particle_offset: Option<(OffsetKind, Count, Particle<'a>)>,
 }
 
-// FIXME: Ensure all of the derives in this file derive as much as possible!
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
 pub struct FunctionalGroup<'p> {
     name: &'p str,
     location: &'p str,
 }
 
-struct Modification<K> {
-    multiplier: Count,
-    kind: K,
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-struct Element<'a> {
-    symbol: &'a str,
-    name: &'a str,
-    mass_number: Option<MassNumber>,
-    isotopes: &'a HashMap<MassNumber, Isotope>,
-}
-
-// FIXME: Impl `Default` as Count(1)
-pub struct Count(NonZeroU32);
-
-pub enum OffsetKind {
-    Add,
-    Remove,
-}
-
-struct Particle<'a> {
-    symbol: &'a str,
-    name: &'a str,
-    mass: &'a Decimal,
-    charge: &'a Charge,
-}
-
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize)]
 pub enum GroupState {
     #[default]
     Free,
@@ -122,30 +115,30 @@ pub enum GroupState {
     Acceptor(BondId),
 }
 
-pub struct NamedMod<'a, 'p> {
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct NamedMod<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
     lost: &'p ChemicalComposition<'a>,
     gained: &'p ChemicalComposition<'a>,
 }
 
-pub struct OffsetMod<'a> {
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct OffsetMod<'a> {
     kind: OffsetKind,
     composition: ChemicalComposition<'a>,
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-pub struct MassNumber(NonZeroU32);
-
-struct Isotope {
-    relative_mass: Decimal,
-    abundance: Option<Decimal>,
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Modification<K> {
+    multiplier: Count,
+    kind: K,
 }
 
-pub struct Charge(i64);
+pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
 
-pub struct Bond<'a, 'p> {
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Bond<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
     lost: &'p ChemicalComposition<'a>,
@@ -153,15 +146,60 @@ pub struct Bond<'a, 'p> {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-// FIXME: Better section naming!
-// Convenience API? ====================================================================================================
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Element<'a> {
+    symbol: &'a str,
+    name: &'a str,
+    mass_number: Option<MassNumber>,
+    isotopes: &'a HashMap<MassNumber, Isotope>,
+}
 
-pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
+// FIXME: Impl `Default` as Count(1)
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct Count(NonZeroU32);
 
-pub enum AnyMod<'a, 'p> {
+// MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub enum OffsetKind {
+    Add,
+    Remove,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Particle<'a> {
+    symbol: &'a str,
+    name: &'a str,
+    mass: &'a Mass,
+    charge: &'a Charge,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+enum AnyMod<'a, 'p> {
     Named(NamedMod<'a, 'p>),
     Offset(OffsetMod<'a>),
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct MassNumber(u32);
+
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Isotope {
+    relative_mass: Mass,
+    // NOTE: Just `Decimal` is fine here, since abundance is currently private to the crate. If we ever add API exposing
+    // abundance information to the user, then we'll want to replace this with a newtype!
+    abundance: Option<Decimal>,
+}
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct Mass(Decimal);
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct Charge(i64);
 
 // =====================================================================================================================
 

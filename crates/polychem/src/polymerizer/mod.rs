@@ -1,6 +1,7 @@
 // FIXME: Good god, this file needs a lot of work...
 mod errors;
 pub(crate) use errors::{Error, PolymerizerError};
+use serde::Serialize;
 
 use std::{cmp::Ordering, slice};
 
@@ -14,15 +15,15 @@ use crate::{
         target::{Index, Target},
     },
     AnyMod, AnyModification, Bond, BondTarget, Count, FunctionalGroup, GroupState, Id,
-    Modification, NamedMod, PolychemError, Residue, Result,
+    Modification, NamedMod, PolychemError, Residue, ResidueId, Result,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Polymerizer<'a, 'p> {
     atomic_db: &'a AtomicDatabase,
     polymer_db: &'p PolymerDatabase<'a>,
-    residue_counter: Id,
-    free_group_index: Index<'p, HashMap<Id, bool>>,
+    next_id: Id,
+    free_groups: Index<'p, HashMap<ResidueId, bool>>,
 }
 
 impl<'a, 'p> Polymerizer<'a, 'p> {
@@ -31,8 +32,8 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
         Self {
             atomic_db,
             polymer_db,
-            residue_counter: 0,
-            free_group_index: Index::new(),
+            next_id: 0,
+            free_groups: Index::new(),
         }
     }
 
