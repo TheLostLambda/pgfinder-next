@@ -50,7 +50,9 @@ mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::{testing_tools::assert_miette_snapshot, AtomicDatabase, FunctionalGroup, Mz};
+    use crate::{
+        testing_tools::assert_miette_snapshot, AtomicDatabase, ChargedParticle, FunctionalGroup,
+    };
 
     use super::*;
 

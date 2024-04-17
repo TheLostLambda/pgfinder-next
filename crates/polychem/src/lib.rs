@@ -201,26 +201,32 @@ pub struct Mass(Decimal);
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
 pub struct Charge(i64);
 
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct Mz(Decimal);
 // =====================================================================================================================
 
 pub trait Massive {
-    fn monoisotopic_mass(&self) -> Decimal;
-    fn average_mass(&self) -> Decimal;
+    fn monoisotopic_mass(&self) -> Mass;
+    fn average_mass(&self) -> Mass;
 }
 
 pub trait Charged {
     fn charge(&self) -> Charge;
 }
 
-pub trait Mz: Massive + Charged {
-    fn monoisotopic_mz(&self) -> Option<Decimal> {
-        let charge = Decimal::from(self.charge()).abs();
-        (!charge.is_zero()).then(|| self.monoisotopic_mass() / charge)
+// FIXME: Not super sold on that trait name...
+pub trait ChargedParticle: Massive + Charged {
+    fn monoisotopic_mz(&self) -> Option<Mz> {
+        let mass = self.monoisotopic_mass();
+        let charge = self.charge().abs();
+        mass.with_charge(charge)
     }
 
-    fn average_mz(&self) -> Option<Decimal> {
-        let charge = Decimal::from(self.charge()).abs();
-        (!charge.is_zero()).then(|| self.average_mass() / charge)
+    fn average_mz(&self) -> Option<Mz> {
+        let mass = self.average_mass();
+        let charge = self.charge().abs();
+        mass.with_charge(charge)
     }
 }
 
@@ -230,11 +236,11 @@ macro_rules! massive_ref_impls {
     ($($ref_type:ty),+ $(,)?) => {
         $(
             impl<T: Massive> Massive for $ref_type {
-                fn monoisotopic_mass(&self) -> Decimal {
+                fn monoisotopic_mass(&self) -> Mass {
                     (**self).monoisotopic_mass()
                 }
 
-                fn average_mass(&self) -> Decimal {
+                fn average_mass(&self) -> Mass {
                     (**self).average_mass()
                 }
             }
@@ -258,4 +264,4 @@ macro_rules! charged_ref_impls {
 
 charged_ref_impls!(&T, &mut T, Box<T>);
 
-impl<T: Massive + Charged> Mz for T {}
+impl<T: Massive + Charged> ChargedParticle for T {}

@@ -178,8 +178,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        testing_tools::assert_miette_snapshot, AtomicDatabase, Bond, BondTarget, Mz, NamedMod,
-        OffsetKind,
+        testing_tools::assert_miette_snapshot, AtomicDatabase, Bond, BondTarget, ChargedParticle,
+        NamedMod, OffsetKind,
     };
 
     use super::*;
@@ -404,7 +404,10 @@ mod tests {
     #[test]
     fn monoisotopic_mz() {
         assert_eq!(
-            RESIDUE_SERIES.iter().map(Mz::monoisotopic_mz).collect_vec(),
+            RESIDUE_SERIES
+                .iter()
+                .map(ChargedParticle::monoisotopic_mz)
+                .collect_vec(),
             vec![
                 None,
                 None,
@@ -422,7 +425,10 @@ mod tests {
     #[test]
     fn average_mz() {
         assert_eq!(
-            RESIDUE_SERIES.iter().map(Mz::average_mz).collect_vec(),
+            RESIDUE_SERIES
+                .iter()
+                .map(ChargedParticle::average_mz)
+                .collect_vec(),
             vec![
                 None,
                 None,

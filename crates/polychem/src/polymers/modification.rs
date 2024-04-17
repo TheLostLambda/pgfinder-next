@@ -101,8 +101,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase, Mz,
-        OffsetKind, OffsetMod,
+        atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
+        ChargedParticle, OffsetKind, OffsetMod,
     };
 
     use super::*;
