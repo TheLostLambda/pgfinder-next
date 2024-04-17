@@ -5,8 +5,10 @@ use crate::FunctionalGroup;
 use super::polymer_database::FunctionalGroupDescription;
 
 impl<'p> FunctionalGroup<'p> {
+    // MISSING: Only `pub(crate)` so that users of `Polychem` are forced to get functional groups from a query method
+    // on `Polymer` — making it impossible for users to make up a group that doesn't exist
     #[must_use]
-    pub const fn new(name: &'p str, location: &'p str) -> Self {
+    pub(crate) const fn new(name: &'p str, location: &'p str) -> Self {
         Self { name, location }
     }
 }
