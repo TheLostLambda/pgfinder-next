@@ -188,9 +188,7 @@ pub struct MassNumber(u32);
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 struct Isotope {
     relative_mass: Mass,
-    // NOTE: Just `Decimal` is fine here, since abundance is currently private to the crate. If we ever add API exposing
-    // abundance information to the user, then we'll want to replace this with a newtype!
-    abundance: Option<Decimal>,
+    abundance: Option<Abundance>,
 }
 
 // MISSING: No `Default` — should not be constructable by the user
@@ -201,9 +199,16 @@ pub struct Mass(Decimal);
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
 pub struct Charge(i64);
 
+// ---------------------------------------------------------------------------------------------------------------------
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub struct Abundance(Decimal);
+
 // MISSING: No `Default` — should not be constructable by the user
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
 pub struct Mz(Decimal);
+
 // =====================================================================================================================
 
 pub trait Massive {
