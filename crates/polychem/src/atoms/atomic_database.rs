@@ -16,7 +16,7 @@ use rust_decimal::Decimal;
 use thiserror::Error;
 
 // Local Crate Imports
-use crate::{Abundance, Charge, Isotope, Mass, MassNumber};
+use crate::{Charge, Isotope, Mass, MassNumber};
 
 // Public API ==========================================================================================================
 
@@ -241,7 +241,7 @@ impl From<IsotopeKdl> for IsotopeEntry {
             MassNumber(mass_number),
             Isotope {
                 relative_mass: Mass(relative_mass.0),
-                abundance: abundance.map(|a| Abundance(a.0)),
+                abundance: abundance.map(|a| a.0),
             },
         )
     }
