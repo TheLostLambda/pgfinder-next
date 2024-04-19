@@ -50,7 +50,7 @@ fn count(i: &str) -> ParseResult<Count> {
         PolychemErrorKind::ExpectedNoLeadingZero,
     );
     let digits = expect(u32, PolychemErrorKind::ExpectedDigit);
-    preceded(not_zero, digits)(i)
+    map(preceded(not_zero, digits), |c| Count::new(c).unwrap())(i)
 }
 
 /// Offset Kind = "+" | "-" ;
@@ -101,10 +101,10 @@ mod tests {
     #[test]
     fn test_count() {
         // Valid Counts
-        assert_eq!(count("1"), Ok(("", 1)));
-        assert_eq!(count("10"), Ok(("", 10)));
-        assert_eq!(count("422"), Ok(("", 422)));
-        assert_eq!(count("9999"), Ok(("", 9999)));
+        assert_eq!(count("1"), Ok(("", Count::new(1).unwrap())));
+        assert_eq!(count("10"), Ok(("", Count::new(10).unwrap())));
+        assert_eq!(count("422"), Ok(("", Count::new(422).unwrap())));
+        assert_eq!(count("9999"), Ok(("", Count::new(9999).unwrap())));
         // Invalid Counts
         assert!(count("0").is_err());
         assert!(count("01").is_err());
@@ -114,8 +114,8 @@ mod tests {
         assert!(count("+H").is_err());
         assert!(count("[H]").is_err());
         // Multiple Counts
-        assert_eq!(count("1OH"), Ok(("OH", 1)));
-        assert_eq!(count("42HeH"), Ok(("HeH", 42)));
+        assert_eq!(count("1OH"), Ok(("OH", Count::new(1).unwrap())));
+        assert_eq!(count("42HeH"), Ok(("HeH", Count::new(42).unwrap())));
     }
 
     #[test]

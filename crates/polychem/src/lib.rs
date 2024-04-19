@@ -10,6 +10,7 @@ mod testing_tools;
 
 use std::num::NonZeroU32;
 
+use derive_more::{Add, AddAssign, Display, From, Into, IsVariant, Neg, Sub, SubAssign, Sum};
 use polymerizer::Polymerizer;
 use serde::Serialize;
 
@@ -21,11 +22,6 @@ use rust_decimal::Decimal;
 pub use atoms::atomic_database::AtomicDatabase;
 pub use errors::Result;
 pub use polymers::polymer_database::PolymerDatabase;
-
-// FIXME: Blocks here need reordering!
-// FIXME: Add exhaustive derives to everything!
-// Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Default, Serialize
-// #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize)]
 
 // Core Data Types =====================================================================================================
 
@@ -107,7 +103,9 @@ pub struct FunctionalGroup<'p> {
     location: &'p str,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize)]
+#[derive(
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, IsVariant, Serialize,
+)]
 pub enum GroupState {
     #[default]
     Free,
@@ -155,7 +153,6 @@ struct Element<'a> {
     isotopes: &'a HashMap<MassNumber, Isotope>,
 }
 
-// FIXME: Impl `Default` as Count(1)
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
 pub struct Count(NonZeroU32);
 
@@ -183,27 +180,86 @@ enum AnyMod<'a, 'p> {
 // ---------------------------------------------------------------------------------------------------------------------
 
 // MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+#[derive(
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, From, Into, Serialize,
+)]
 pub struct MassNumber(u32);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 struct Isotope {
     relative_mass: Mass,
-    // NOTE: Just `Decimal` is fine here, since abundance is currently private to the crate. If we ever add API exposing
-    // abundance information to the user, then we'll want to replace this with a newtype!
-    abundance: Option<Decimal>,
+    abundance: Option<Abundance>,
 }
 
 // MISSING: No `Default` — should not be constructable by the user
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Neg,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
 pub struct Mass(Decimal);
 
 // MISSING: No `Default` — should not be constructable by the user
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Neg,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
 pub struct Charge(i64);
 
+// ---------------------------------------------------------------------------------------------------------------------
+
 // MISSING: No `Default` — should not be constructable by the user
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Into, Serialize)]
+struct Abundance(Decimal);
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
 pub struct Mz(Decimal);
 
 // =====================================================================================================================
@@ -222,13 +278,13 @@ pub trait ChargedParticle: Massive + Charged {
     fn monoisotopic_mz(&self) -> Option<Mz> {
         let mass = self.monoisotopic_mass();
         let charge = self.charge().abs();
-        mass.with_charge(charge)
+        mass.checked_div(charge)
     }
 
     fn average_mz(&self) -> Option<Mz> {
         let mass = self.average_mass();
         let charge = self.charge().abs();
-        mass.with_charge(charge)
+        mass.checked_div(charge)
     }
 }
 

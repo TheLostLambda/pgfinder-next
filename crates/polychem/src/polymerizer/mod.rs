@@ -22,6 +22,10 @@ use crate::{
 pub struct Polymerizer<'a, 'p> {
     atomic_db: &'a AtomicDatabase,
     polymer_db: &'p PolymerDatabase<'a>,
+    // FIXME: Will need to think about naming, but these two fields don't really need to be here... Perhaps `Polymer`
+    // should store some other struct like `PolymerizerState`, and this `Polymerizer` can have a method like
+    // `new_polymer()` or just `polymer()` that returns a `Polymer` that it populates with a `PolymerizerState` that's
+    // essentially what the `Polymerizer::new()` method does currently!
     next_id: Id,
     free_groups: Index<'p, HashMap<ResidueId, bool>>,
 }

@@ -1,8 +1,16 @@
 use std::fmt::{self, Display, Formatter};
+use std::ops::Neg;
 
-use rust_decimal::Decimal;
+use crate::OffsetKind;
 
-use crate::{OffsetKind, SignedCount};
+impl OffsetKind {
+    pub fn offset<T: Neg<Output = T>>(self, value: T) -> T {
+        match self {
+            OffsetKind::Add => value,
+            OffsetKind::Remove => -value,
+        }
+    }
+}
 
 impl Display for OffsetKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -17,21 +25,6 @@ impl Display for OffsetKind {
     }
 }
 
-impl From<OffsetKind> for Decimal {
-    fn from(value: OffsetKind) -> Self {
-        SignedCount::from(value).into()
-    }
-}
-
-impl From<OffsetKind> for SignedCount {
-    fn from(value: OffsetKind) -> Self {
-        match value {
-            OffsetKind::Add => 1,
-            OffsetKind::Remove => -1,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use rust_decimal_macros::dec;
@@ -39,26 +32,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn offset() {
+        let add = OffsetKind::Add;
+        let remove = OffsetKind::Remove;
+        assert_eq!(add.offset(1), 1);
+        assert_eq!(remove.offset(1), -1);
+        assert_eq!(add.offset(dec!(3.14)), dec!(3.14));
+        assert_eq!(remove.offset(dec!(3.14)), dec!(-3.14));
+    }
+
+    #[test]
     fn offset_kind_display() {
         let add = OffsetKind::Add;
         assert_eq!(add.to_string(), "+");
         let remove = OffsetKind::Remove;
         assert_eq!(remove.to_string(), "-");
-    }
-
-    #[test]
-    fn into_signed_count() {
-        let add = OffsetKind::Add;
-        assert_eq!(SignedCount::from(add), 1);
-        let remove = OffsetKind::Remove;
-        assert_eq!(SignedCount::from(remove), -1);
-    }
-
-    #[test]
-    fn into_decimal() {
-        let add = OffsetKind::Add;
-        assert_eq!(Decimal::from(add), dec!(1));
-        let remove = OffsetKind::Remove;
-        assert_eq!(Decimal::from(remove), dec!(-1));
     }
 }

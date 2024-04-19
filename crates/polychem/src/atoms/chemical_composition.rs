@@ -10,7 +10,7 @@ use rust_decimal::Decimal;
 // Local Crate Imports
 use crate::{
     parsers::chemical_composition::chemical_composition, AtomicDatabase, Charge, Charged,
-    ChemicalComposition, Count, Element, Massive, Result, SignedCount,
+    ChemicalComposition, Count, Element, Mass, Massive, Particle, Result,
 };
 
 // Public API ==========================================================================================================
@@ -25,11 +25,11 @@ impl<'a> ChemicalComposition<'a> {
 // Massive, Charged, and Mz Trait Implementations ======================================================================
 
 impl Massive for ChemicalComposition<'_> {
-    fn monoisotopic_mass(&self) -> Decimal {
+    fn monoisotopic_mass(&self) -> Mass {
         self.mass(Element::monoisotopic_mass)
     }
 
-    fn average_mass(&self) -> Decimal {
+    fn average_mass(&self) -> Mass {
         self.mass(Element::average_mass)
     }
 }
@@ -51,22 +51,11 @@ impl Charged for ChemicalComposition<'_> {
 
 impl Display for ChemicalComposition<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        // NOTE: This is here because `Count` is just a synonym, so I can't impl `Display` for it!
-        fn to_string(count: Count) -> String {
-            if count > 1 {
-                count.to_string()
-            } else {
-                String::new()
-            }
-        }
-
         for &(ref element, count) in &self.chemical_formula {
-            let count = to_string(count);
             write!(f, "{element}{count}")?;
         }
 
         if let Some((offset_kind, count, ref particle)) = self.particle_offset {
-            let count = to_string(count);
             if self.chemical_formula.is_empty() {
                 write!(f, "{count}{particle}")?;
             } else {
@@ -88,18 +77,15 @@ impl Hash for ChemicalComposition<'_> {
 // Private Helper Methods ==============================================================================================
 
 impl<'a> ChemicalComposition<'a> {
-    fn mass(&self, accessor: impl Fn(&Element<'a>) -> Decimal) -> Decimal {
+    fn mass(&self, accessor: impl Fn(&Element<'a>) -> Mass) -> Mass {
         let element_masses = self
             .chemical_formula
             .iter()
-            .map(|(element, count)| Decimal::from(*count) * accessor(element));
+            .map(|&(ref element, count)| count * accessor(element));
 
-        let particle_masses = self
-            .particle_offset
-            .iter()
-            .map(|(offset_kind, count, particle)| {
-                Decimal::from(*offset_kind) * Decimal::from(*count) * particle.mass
-            });
+        let particle_masses = self.particle_offset.iter().map(
+            |&(offset_kind, count, Particle { mass: &mass, .. })| offset_kind.offset(count * mass),
+        );
 
         element_masses.chain(particle_masses).sum()
     }

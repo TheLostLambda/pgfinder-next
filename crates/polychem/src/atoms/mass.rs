@@ -1,15 +1,16 @@
-use rust_decimal::Decimal;
-
-use crate::{Charge, Mass, Mz};
+use crate::{Abundance, Charge, Mass, Mz};
+use std::ops::Mul;
 
 impl Mass {
-    pub(crate) fn with_charge(self, charge: Charge) -> Option<Mz> {
-        (!charge.is_zero()).then(|| Mz(self.0 / Decimal::from(charge.0)))
+    pub(crate) fn checked_div(self, charge: Charge) -> Option<Mz> {
+        (charge.0 != 0).then(|| self / charge)
     }
 }
 
-impl From<Mass> for Decimal {
-    fn from(value: Mass) -> Self {
-        value.0
+impl Mul<Abundance> for Mass {
+    type Output = Mass;
+
+    fn mul(self, rhs: Abundance) -> Self::Output {
+        Mass(self.0 * rhs.0)
     }
 }

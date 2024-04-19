@@ -6,6 +6,7 @@ edition = "2021"
 # FIXME: Set up justfile and CI to check direct-minimal-versions
 [dependencies]
 ahash = "0.8.11"
+derive_more = { version = "=1.0.0-beta.6", features = ["full"] }
 getrandom = { version = "0.2", features = ["js"] }
 itertools = "0.12.1"
 knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
