@@ -1,16 +1,7 @@
-use rust_decimal::Decimal;
-
 use crate::{
-    atoms::atomic_database::AtomicDatabase, Charge, Charged, ChemicalComposition, Massive,
-    Modification, Offset, OffsetKind, OffsetMod, Result, SignedCount,
+    atoms::atomic_database::AtomicDatabase, Charge, Charged, ChemicalComposition, Count, Mass,
+    Massive, Modification, OffsetKind, OffsetMod, Result,
 };
-
-impl<T> Offset<T> {
-    #[must_use]
-    pub const fn new_with_composition(kind: OffsetKind, composition: T) -> Self {
-        Self { kind, composition }
-    }
-}
 
 impl<'a> OffsetMod<'a> {
     // FIXME: Should this error be wrapped? Probably should have a variant in PolychemError!
@@ -18,27 +9,35 @@ impl<'a> OffsetMod<'a> {
         let composition = ChemicalComposition::new(db, formula)?;
         Ok(Self { kind, composition })
     }
-}
 
-impl<T> From<Offset<T>> for Modification<Offset<T>> {
-    fn from(value: Offset<T>) -> Self {
-        Self::new(1, value)
+    #[must_use]
+    pub const fn new_with_composition(
+        kind: OffsetKind,
+        composition: ChemicalComposition<'a>,
+    ) -> Self {
+        Self { kind, composition }
     }
 }
 
-impl<T: Massive> Massive for Offset<T> {
-    fn monoisotopic_mass(&self) -> Decimal {
-        Decimal::from(self.kind) * self.composition.monoisotopic_mass()
-    }
-
-    fn average_mass(&self) -> Decimal {
-        Decimal::from(self.kind) * self.composition.average_mass()
+impl<'a> From<OffsetMod<'a>> for Modification<OffsetMod<'a>> {
+    fn from(value: OffsetMod<'a>) -> Self {
+        Self::new(Count::default(), value)
     }
 }
 
-impl<T: Charged> Charged for Offset<T> {
+impl Massive for OffsetMod<'_> {
+    fn monoisotopic_mass(&self) -> Mass {
+        self.kind.offset(self.composition.monoisotopic_mass())
+    }
+
+    fn average_mass(&self) -> Mass {
+        self.kind.offset(self.composition.average_mass())
+    }
+}
+
+impl Charged for OffsetMod<'_> {
     fn charge(&self) -> Charge {
-        SignedCount::from(self.kind) * self.composition.charge()
+        self.kind.offset(self.composition.charge())
     }
 }
 
@@ -47,7 +46,7 @@ mod tests {
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
-    use crate::{testing_tools::assert_miette_snapshot, ChargedParticle};
+    use crate::{testing_tools::assert_miette_snapshot, ChargedParticle, Mz};
 
     use super::*;
 
@@ -65,40 +64,46 @@ mod tests {
     fn monoisotopic_mass() {
         // Masses checked against https://www.unimod.org/modifications_list.php
         let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
-        assert_eq!(water_gained.monoisotopic_mass(), dec!(18.01056468403));
+        assert_eq!(water_gained.monoisotopic_mass(), Mass(dec!(18.01056468403)));
         let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
-        assert_eq!(water_lost.monoisotopic_mass(), dec!(-18.01056468403));
+        assert_eq!(water_lost.monoisotopic_mass(), Mass(dec!(-18.01056468403)));
         // Masses checked against https://bioportal.bioontology.org/ontologies/UBERON
         let ca_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap();
-        assert_eq!(ca_gained.monoisotopic_mass(), dec!(39.961493703181870));
+        assert_eq!(
+            ca_gained.monoisotopic_mass(),
+            Mass(dec!(39.961493703181870))
+        );
         let ca_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap();
-        assert_eq!(ca_lost.monoisotopic_mass(), dec!(-39.961493703181870));
+        assert_eq!(ca_lost.monoisotopic_mass(), Mass(dec!(-39.961493703181870)));
     }
 
     #[test]
     fn average_mass() {
         // Masses checked against https://www.unimod.org/modifications_list.php
         let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
-        assert_eq!(water_gained.average_mass(), dec!(18.01528643242983260));
+        assert_eq!(
+            water_gained.average_mass(),
+            Mass(dec!(18.01528643242983260))
+        );
         let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
-        assert_eq!(water_lost.average_mass(), dec!(-18.01528643242983260));
+        assert_eq!(water_lost.average_mass(), Mass(dec!(-18.01528643242983260)));
         // Masses checked against https://bioportal.bioontology.org/ontologies/UBERON
         let ca_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap();
-        assert_eq!(ca_gained.average_mass(), dec!(40.076925351199600));
+        assert_eq!(ca_gained.average_mass(), Mass(dec!(40.076925351199600)));
         let ca_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap();
-        assert_eq!(ca_lost.average_mass(), dec!(-40.076925351199600));
+        assert_eq!(ca_lost.average_mass(), Mass(dec!(-40.076925351199600)));
     }
 
     #[test]
     fn charge() {
         let water_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap();
-        assert_eq!(water_gained.charge(), 0);
+        assert_eq!(water_gained.charge(), Charge(0));
         let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
-        assert_eq!(water_lost.charge(), 0);
+        assert_eq!(water_lost.charge(), Charge(0));
         let ca_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap();
-        assert_eq!(ca_gained.charge(), 2);
+        assert_eq!(ca_gained.charge(), Charge(2));
         let ca_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap();
-        assert_eq!(ca_lost.charge(), -2);
+        assert_eq!(ca_lost.charge(), Charge(-2));
     }
 
     #[test]
@@ -108,9 +113,15 @@ mod tests {
         let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
         assert_eq!(water_lost.monoisotopic_mz(), None);
         let ca_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap();
-        assert_eq!(ca_gained.monoisotopic_mz(), Some(dec!(19.980746851590935)));
+        assert_eq!(
+            ca_gained.monoisotopic_mz(),
+            Some(Mz(dec!(19.980746851590935)))
+        );
         let ca_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap();
-        assert_eq!(ca_lost.monoisotopic_mz(), Some(dec!(-19.980746851590935)));
+        assert_eq!(
+            ca_lost.monoisotopic_mz(),
+            Some(Mz(dec!(-19.980746851590935)))
+        );
     }
 
     #[test]
@@ -120,8 +131,8 @@ mod tests {
         let water_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap();
         assert_eq!(water_lost.average_mz(), None);
         let ca_gained = OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap();
-        assert_eq!(ca_gained.average_mz(), Some(dec!(20.0384626755998)));
+        assert_eq!(ca_gained.average_mz(), Some(Mz(dec!(20.0384626755998))));
         let ca_lost = OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap();
-        assert_eq!(ca_lost.average_mz(), Some(dec!(-20.0384626755998)));
+        assert_eq!(ca_lost.average_mz(), Some(Mz(dec!(-20.0384626755998))));
     }
 }

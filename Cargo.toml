@@ -15,8 +15,6 @@ members = [
 [workspace.lints.rust]
 # FIXME: Uncomment this!
 # missing_docs = "warn"
-# FIXME: Delete this!
-dead_code = "allow"
 
 [dependencies]
 # miette = { version = "7.2.0", features = ["fancy"] }

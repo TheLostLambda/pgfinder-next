@@ -1,11 +1,10 @@
-use std::{collections::hash_map::Entry, iter};
+use std::iter;
 
-use ahash::{HashMap, HashMapExt};
-use rust_decimal::Decimal;
+use ahash::{HashSet, HashSetExt};
 
 use crate::{
-    BorrowedOffsetMod, Charge, Charged, Count, FunctionalGroup, GroupState, Id, Massive,
-    Modification, Offset, OffsetMod, OffsetMultiplier, PolychemError, Residue, Result, SignedCount,
+    errors::PolychemError, Charge, Charged, Count, FunctionalGroup, GroupState, Id, Mass, Massive,
+    Modification, ModificationId, OffsetMod, Residue, Result,
 };
 
 use super::{
@@ -32,18 +31,12 @@ impl<'a, 'p> Residue<'a, 'p> {
             .map(|fg| (fg.into(), GroupState::default()))
             .collect();
         Ok(Self {
-            id,
             abbr,
             name,
             composition,
             functional_groups,
-            offset_modifications: HashMap::new(),
+            offset_modifications: HashSet::new(),
         })
-    }
-
-    #[must_use]
-    pub const fn id(&self) -> Id {
-        self.id
     }
 
     #[must_use]
@@ -56,10 +49,7 @@ impl<'a, 'p> Residue<'a, 'p> {
         self.name
     }
 
-    pub fn group_state(
-        &self,
-        functional_group: &FunctionalGroup<'p>,
-    ) -> Result<&GroupState<'a, 'p>> {
+    pub fn group_state(&self, functional_group: &FunctionalGroup<'p>) -> Result<&GroupState> {
         self.functional_groups.get(functional_group).ok_or_else(|| {
             PolychemError::group_lookup(*functional_group, self.name, self.abbr).into()
         })
@@ -70,7 +60,7 @@ impl<'a, 'p> Residue<'a, 'p> {
     pub(crate) fn group_state_mut(
         &mut self,
         functional_group: &FunctionalGroup<'p>,
-    ) -> Result<&mut GroupState<'a, 'p>> {
+    ) -> Result<&mut GroupState> {
         self.functional_groups
             .get_mut(functional_group)
             .ok_or_else(|| {
@@ -78,96 +68,26 @@ impl<'a, 'p> Residue<'a, 'p> {
             })
     }
 
-    pub fn add_offset(&mut self, offset: OffsetMod<'a>) -> Result<SignedCount> {
-        self.add_offsets(offset, 1)
-    }
-
-    pub fn add_offsets(&mut self, offset: OffsetMod<'a>, count: Count) -> Result<SignedCount> {
-        let Offset { kind, composition } = offset;
-        let offset_error = |composition, residue, source| {
-            Err(
-                PolychemError::offset_modification(count, kind, composition, residue, source)
-                    .into(),
-            )
-        };
-
-        if count == 0 {
-            return offset_error(composition.clone(), self, OffsetMultiplierError::Zero);
-        }
-
-        let requested_delta = SignedCount::from(kind) * SignedCount::from(count);
-        match self.offset_modifications.entry(composition) {
-            Entry::Occupied(mut e) => {
-                let current_offset_multiplier = e.get();
-                let updated_count = SignedCount::from(*current_offset_multiplier) + requested_delta;
-                match updated_count.try_into() {
-                    Ok(updated_offset_multiplier) => {
-                        e.insert(updated_offset_multiplier);
-                    }
-                    Err(OffsetMultiplierError::Zero) => {
-                        e.remove();
-                    }
-                    Err(too_large) => {
-                        return offset_error(e.key().clone(), self, too_large);
-                    }
-                };
-                Ok(updated_count)
-            }
-            Entry::Vacant(e) => {
-                e.insert(OffsetMultiplier(kind, count));
-                Ok(requested_delta)
-            }
-        }
-    }
-
-    pub fn offset_modifications(
-        &'a self,
-    ) -> impl Iterator<Item = Modification<BorrowedOffsetMod<'a>>> {
-        self.offset_modifications.iter().map(
-            |(composition, &OffsetMultiplier(kind, multiplier))| {
-                Modification::new(
-                    multiplier,
-                    BorrowedOffsetMod::new_with_composition(kind, composition),
-                )
-            },
-        )
+    pub fn offset_modifications(&'a self) -> impl Iterator<Item = ModificationId> + 'a {
+        self.offset_modifications.iter().copied()
     }
 
     // TODO: Write a `named_modifications()` equivalent!
 }
 
-// NOTE: This needs to be a macro, since all of the Massive::monoisotopic_mass calls will actually have different types!
-// The other way to do this would be to use trait-objects, but this avoids that overhead
-macro_rules! sum_parts {
-    ($self:expr, $accessor:path) => {{
-        let composition = iter::once($accessor($self.composition));
-        let functional_groups = $self.functional_groups.values().filter_map(|gs| match gs {
-            GroupState::Modified(m) => Some($accessor(m)),
-            GroupState::Donor(b) => Some($accessor(b)),
-            _ => None,
-        });
-        let offset_mods = $self.offset_modifications().map(|ref m| $accessor(m));
-
-        composition
-            .chain(functional_groups)
-            .chain(offset_mods)
-            .sum()
-    }};
-}
-
 impl Massive for Residue<'_, '_> {
-    fn monoisotopic_mass(&self) -> Decimal {
-        sum_parts!(self, Massive::monoisotopic_mass)
+    fn monoisotopic_mass(&self) -> Mass {
+        self.composition.monoisotopic_mass()
     }
 
-    fn average_mass(&self) -> Decimal {
-        sum_parts!(self, Massive::average_mass)
+    fn average_mass(&self) -> Mass {
+        self.composition.average_mass()
     }
 }
 
 impl Charged for Residue<'_, '_> {
     fn charge(&self) -> Charge {
-        sum_parts!(self, Charged::charge)
+        self.composition.charge()
     }
 }
 

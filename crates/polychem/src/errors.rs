@@ -1,3 +1,12 @@
+use miette::Diagnostic;
+use thiserror::Error;
+
+use crate::{
+    parsers::errors::CompositionError, polymerizer, polymers::errors::OffsetMultiplierError,
+    ChemicalComposition, Count, FunctionalGroup, Modification, OffsetKind, OffsetMod, Residue,
+    ResidueId,
+};
+
 pub type Result<T, E = Box<PolychemError>> = std::result::Result<T, E>;
 
 // FIXME: Maybe there are too many layers of things being wrapped here!
@@ -24,7 +33,7 @@ pub enum PolychemError {
     #[error("failed to apply the offset modification {0} to residue {1} ({2})")]
     OffsetModification(
         String,
-        Id,
+        ResidueId,
         String,
         #[source]
         #[diagnostic_source]
@@ -36,7 +45,7 @@ pub enum PolychemError {
     NamedModification(
         String,
         String,
-        Id,
+        ResidueId,
         String,
         #[source]
         #[diagnostic_source]
@@ -46,9 +55,9 @@ pub enum PolychemError {
     #[error("failed to form {0:?} bond between residue {1} ({2}) and residue {3} ({4}) due to an issue with the {5}")]
     Bond(
         String,
-        Id,
+        ResidueId,
         String,
-        Id,
+        ResidueId,
         String,
         String,
         #[source]
@@ -59,19 +68,19 @@ pub enum PolychemError {
 
 // FIXME: Move this to it's own errors.rs module? Bring the enum along too?
 impl PolychemError {
-    fn residue_lookup(abbr: &str) -> Self {
+    pub(crate) fn residue_lookup(abbr: &str) -> Self {
         Self::ResidueLookup(abbr.to_owned())
     }
 
-    fn modification_lookup(abbr: &str) -> Self {
+    pub(crate) fn modification_lookup(abbr: &str) -> Self {
         Self::ModificationLookup(abbr.to_owned())
     }
 
-    fn bond_lookup(kind: &str) -> Self {
+    pub(crate) fn bond_lookup(kind: &str) -> Self {
         Self::BondLookup(kind.to_owned())
     }
 
-    fn group_lookup(functional_group: FunctionalGroup, name: &str, abbr: &str) -> Self {
+    pub(crate) fn group_lookup(functional_group: FunctionalGroup, name: &str, abbr: &str) -> Self {
         Self::GroupLookup(
             functional_group.to_string(),
             name.to_owned(),
@@ -79,7 +88,7 @@ impl PolychemError {
         )
     }
 
-    fn offset_modification(
+    pub(crate) fn offset_modification(
         count: Count,
         kind: OffsetKind,
         composition: ChemicalComposition,
@@ -87,7 +96,7 @@ impl PolychemError {
         source: OffsetMultiplierError,
     ) -> Self {
         let modification =
-            Modification::new(count, Offset::new_with_composition(kind, composition));
+            Modification::new(count, OffsetMod::new_with_composition(kind, composition));
         Self::OffsetModification(
             modification.to_string(),
             residue.id(),
@@ -96,7 +105,7 @@ impl PolychemError {
         )
     }
 
-    fn named_modification(
+    pub(crate) fn named_modification(
         name: &str,
         abbr: &str,
         residue: &Residue,
@@ -111,7 +120,7 @@ impl PolychemError {
         )
     }
 
-    fn bond(
+    pub(crate) fn bond(
         kind: &str,
         donor: &Residue,
         acceptor: &Residue,

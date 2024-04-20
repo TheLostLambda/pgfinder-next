@@ -1,26 +1,27 @@
+// FIXME: Revisit the bond names here...
 bonds {
-    Glycosidic {
+    Gly "Glycosidic" {
         from "Hydroxyl" at="Reducing End"
         to "Hydroxyl" at="Nonreducing End"
         lost "H2O"
     }
-    Peptide {
+    Pep "Peptide" {
         from "Carboxyl" at="C-Terminal"
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
-    Stem {
+    Stem "MurNAc -> Stem Peptide" {
         from "Carboxyl" at="Lactyl Ether" of="N-Acetylmuramic Acid"
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
-    Crosslink {
+    Xlink "Stem Peptide Crosslink" {
         from "Carboxyl" at="C-Terminal"
         to "Amino"
         lost "H2O"
     }
     // NOTE: Modification added for testing only!
-    Charged {
+    Chr "Charged" {
         from "Hydroxyl" at="6-Position"
         to "Carboxyl"
         lost "2p"

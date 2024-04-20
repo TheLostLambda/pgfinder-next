@@ -6,7 +6,7 @@ use std::{
 
 use rust_decimal::Decimal;
 
-use crate::{Count, Mass};
+use crate::{Charge, Count, Mass};
 
 impl Count {
     pub(crate) fn new(n: u32) -> Option<Self> {
@@ -19,6 +19,14 @@ impl Mul<Mass> for Count {
 
     fn mul(self, rhs: Mass) -> Self::Output {
         Mass(Decimal::from(self.0.get()) * rhs.0)
+    }
+}
+
+impl Mul<Charge> for Count {
+    type Output = Charge;
+
+    fn mul(self, rhs: Charge) -> Self::Output {
+        Charge(i64::from(self.0.get()) * rhs.0)
     }
 }
 

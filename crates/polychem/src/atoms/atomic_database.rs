@@ -68,7 +68,7 @@ pub(crate) struct ElementDescription {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub(crate) struct ParticleDescription {
     pub(crate) name: String,
-    pub(crate) mass: Decimal,
+    pub(crate) mass: Mass,
     pub(crate) charge: Charge,
 }
 
@@ -262,7 +262,7 @@ impl From<ParticleKdl> for ParticleEntry {
             symbol.0,
             ParticleDescription {
                 name,
-                mass: mass.0,
+                mass: Mass(mass.0),
                 charge: Charge(charge),
             },
         )

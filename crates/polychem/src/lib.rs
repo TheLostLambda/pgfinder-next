@@ -51,7 +51,7 @@ pub struct Polymer<'a, 'p> {
 // FIXME: Pass through Display implementations for all Id newtypes!
 // FIXME: Add tests that fail if `Default` is implemented for `Id`s!
 // MISSING: No `Default` — should not be constructable by the user
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Serialize)]
 pub struct ResidueId(Id);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
@@ -64,7 +64,7 @@ struct Residue<'a, 'p> {
 }
 
 // MISSING: No `Default` — should not be constructable by the user
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Serialize)]
 pub struct ModificationId(Id);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
@@ -75,7 +75,7 @@ enum ModificationInfo<'a, 'p> {
 }
 
 // MISSING: No `Default` — should not be constructable by the user
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Serialize)]
 pub struct BondId(Id);
 
 // FIXME: Perhaps I should consider changing these `*Info` structs to have named fields? Is the donor -> acceptor order
@@ -89,8 +89,7 @@ struct BondInfo<'a, 'p>(ResidueId, Bond<'a, 'p>, ResidueId);
 // directly provide or modify `Id`s, so I don't need to worry about a newtype wrapper here
 type Id = usize;
 
-// MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
-#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+#[derive(Clone, Eq, PartialEq, Debug, Default, Serialize)]
 pub struct ChemicalComposition<'a> {
     chemical_formula: Vec<(Element<'a>, Count)>,
     particle_offset: Option<(OffsetKind, Count, Particle<'a>)>,
@@ -191,27 +190,10 @@ struct Isotope {
     abundance: Option<Abundance>,
 }
 
-// MISSING: No `Default` — should not be constructable by the user
-#[derive(
-    Copy,
-    Clone,
-    Eq,
-    PartialEq,
-    Ord,
-    PartialOrd,
-    Hash,
-    Debug,
-    Display,
-    Into,
-    Neg,
-    Add,
-    Sub,
-    Sum,
-    AddAssign,
-    SubAssign,
-    Serialize,
-)]
-pub struct Mass(Decimal);
+// NOTE: `Mass` is *private* to this crate, and must be converted to either a `MonoisotopicMass` or `AverageMass`
+// before being passed to the user. `Mass` should *not* show up in public API!
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Neg, Add, Sum, Serialize)]
+struct Mass(Decimal);
 
 // MISSING: No `Default` — should not be constructable by the user
 #[derive(
@@ -241,6 +223,81 @@ pub struct Charge(i64);
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Into, Serialize)]
 struct Abundance(Decimal);
 
+// =====================================================================================================================
+
+pub trait Massive {
+    fn monoisotopic_mass(&self) -> MonoisotopicMass;
+    fn average_mass(&self) -> AverageMass;
+}
+
+pub trait Charged {
+    fn charge(&self) -> Charge;
+}
+
+// FIXME: Not super sold on that trait name...
+pub trait ChargedParticle: Massive + Charged {
+    fn monoisotopic_mz(&self) -> Option<MonoisotopicMz> {
+        let mass = self.monoisotopic_mass();
+        let charge = self.charge().abs();
+        (charge.0 != 0).then(|| mass / charge)
+    }
+
+    fn average_mz(&self) -> Option<AverageMz> {
+        let mass = self.average_mass();
+        let charge = self.charge().abs();
+        (charge.0 != 0).then(|| mass / charge)
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// DESIGN: These types are all "duplicated" instead of providing something like `Monoisotopic<T>` and `Average<T>`,
+// since writing something like `Monoisotopic<Mass>` would leak the private `Mass` struct into the API, and would
+// prevent me from hiding that implementation detail from the user. We're explicitly accepting the repetition here...
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Neg,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
+pub struct MonoisotopicMass(Decimal);
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Neg,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
+pub struct AverageMass(Decimal);
+
 // MISSING: No `Default` — should not be constructable by the user
 #[derive(
     Copy,
@@ -260,33 +317,30 @@ struct Abundance(Decimal);
     SubAssign,
     Serialize,
 )]
-pub struct Mz(Decimal);
+pub struct MonoisotopicMz(Decimal);
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
+pub struct AverageMz(Decimal);
 
 // =====================================================================================================================
-
-pub trait Massive {
-    fn monoisotopic_mass(&self) -> Mass;
-    fn average_mass(&self) -> Mass;
-}
-
-pub trait Charged {
-    fn charge(&self) -> Charge;
-}
-
-// FIXME: Not super sold on that trait name...
-pub trait ChargedParticle: Massive + Charged {
-    fn monoisotopic_mz(&self) -> Option<Mz> {
-        let mass = self.monoisotopic_mass();
-        let charge = self.charge().abs();
-        mass.checked_div(charge)
-    }
-
-    fn average_mz(&self) -> Option<Mz> {
-        let mass = self.average_mass();
-        let charge = self.charge().abs();
-        mass.checked_div(charge)
-    }
-}
 
 // Blanket impls
 
@@ -294,11 +348,11 @@ macro_rules! massive_ref_impls {
     ($($ref_type:ty),+ $(,)?) => {
         $(
             impl<T: Massive> Massive for $ref_type {
-                fn monoisotopic_mass(&self) -> Mass {
+                fn monoisotopic_mass(&self) -> MonoisotopicMass {
                     (**self).monoisotopic_mass()
                 }
 
-                fn average_mass(&self) -> Mass {
+                fn average_mass(&self) -> AverageMass {
                     (**self).average_mass()
                 }
             }

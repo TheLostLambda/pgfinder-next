@@ -15,7 +15,7 @@ use thiserror::Error;
 
 // Local Crate Imports
 use super::target::{Index, Target};
-use crate::{atoms::atomic_database::AtomicDatabase, ChemicalComposition};
+use crate::{atoms::atomic_database::AtomicDatabase, errors::PolychemError, ChemicalComposition};
 
 // Public API ==========================================================================================================
 
@@ -51,6 +51,7 @@ type Residues<'a> = HashMap<String, ResidueDescription<'a>>;
 #[derive(Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct BondDescription<'a> {
+    pub name: String,
     pub from: Target,
     pub to: Target,
     pub lost: ChemicalComposition<'a>,
@@ -124,7 +125,9 @@ struct ResiduesKdl {
 #[knuffel(span_type=Span)]
 struct BondKdl {
     #[knuffel(node_name)]
-    kind: String,
+    abbr: String,
+    #[knuffel(argument)]
+    name: String,
     #[knuffel(child)]
     from: TargetKdl,
     #[knuffel(child)]
@@ -360,8 +363,9 @@ impl<'a: 't, 't> ValidateInto<'t, BondEntry<'a>> for BondKdl {
 
     fn validate(self, ctx: Self::Context) -> ChemResult<BondEntry<'a>> {
         Ok((
-            self.kind,
+            self.abbr,
             BondDescription {
+                name: self.name,
                 from: self.from.validate(ctx.1)?,
                 to: self.to.validate(ctx.1)?,
                 lost: self.lost.validate(ctx.0)?,
@@ -546,7 +550,7 @@ enum ChemistryErrorKind {
         Span,
         #[source]
         #[diagnostic_source]
-        crate::PolychemError,
+        PolychemError,
     ),
 }
 
