@@ -58,7 +58,7 @@ Particle Offset = [ Count ] , Particle ;
 
 Element = uppercase , [ lowercase ] ;
 
-Isotope = "[" , { digit }- , Element , "]" ;
+Isotope = "[" , Count , Element , "]" ;
 
 Particle = lowercase ;
 
