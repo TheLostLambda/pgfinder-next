@@ -1,9 +1,0 @@
----
-source: crates/polychem/src/polymerizer/mod.rs
-description: invalid_group
-expression: out
----
-  × failed to apply the named modification O-Acetylation (Ac) to residue 1 (N-
-  │ Acetylmuramic Acid)
-  ╰─▶   × expected a target matching "Hydroxyl" at="6-Position", got
-        │ "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid"

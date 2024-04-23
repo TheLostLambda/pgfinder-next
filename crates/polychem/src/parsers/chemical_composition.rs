@@ -60,7 +60,7 @@ fn atomic_offset<'a, 's>(
     db: &'a AtomicDatabase,
 ) -> impl FnMut(&'s str) -> ParseResult<(Element<'a>, Count)> {
     let element_or_isotope = alt((element(db), isotope(db)));
-    let optional_count = opt(count).map(|o| o.unwrap_or_default());
+    let optional_count = opt(count).map(Option::unwrap_or_default);
     let parser = pair(element_or_isotope, optional_count);
     wrap_err(parser, PolychemErrorKind::ExpectedAtomicOffset)
 }
@@ -69,7 +69,7 @@ fn atomic_offset<'a, 's>(
 fn particle_offset<'a, 's>(
     db: &'a AtomicDatabase,
 ) -> impl FnMut(&'s str) -> ParseResult<(Count, Particle<'a>)> {
-    let optional_count = opt(count).map(|o| o.unwrap_or_default());
+    let optional_count = opt(count).map(Option::unwrap_or_default);
     let parser = pair(optional_count, particle(db));
     wrap_err(parser, PolychemErrorKind::ExpectedParticleOffset)
 }
@@ -393,10 +393,11 @@ mod tests {
                         } else {
                             e.name.to_owned()
                         };
-                        (name, c)
+                        let count = c.0.get();
+                        (name, count)
                     })
                     .collect();
-                let particle_offset = particle_offset.map(|(k, c, p)| (k, c, p.name));
+                let particle_offset = particle_offset.map(|(k, c, p)| (k, c.0.get(), p.name));
                 assert_debug_snapshot!((chemical_formula, particle_offset));
             };
         }

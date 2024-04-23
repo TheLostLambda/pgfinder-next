@@ -1,9 +1,0 @@
----
-source: crates/polychem/src/polymerizer/mod.rs
-description: groups_not_free
-expression: out
----
-  × failed to form "Stem" bond between residue 1 (N-Acetylmuramic Acid) and
-  │ residue 2 (Alanine) due to an issue with the donor
-  ╰─▶   × the functional group "Carboxyl" at="Lactyl Ether" of residue 1 was
-        │ already a donor, but must be free

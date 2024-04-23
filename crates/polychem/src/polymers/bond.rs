@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn monoisotopic_mass() {
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic").unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Gly").unwrap();
         assert_eq!(
             glycosidic.monoisotopic_mass(),
             MonoisotopicMass(dec!(-18.01056468403))
@@ -80,7 +80,7 @@ mod tests {
             stem.monoisotopic_mass(),
             MonoisotopicMass(dec!(-18.01056468403))
         );
-        let charged = Bond::new(&POLYMER_DB, "Charged").unwrap();
+        let charged = Bond::new(&POLYMER_DB, "Chr").unwrap();
         assert_eq!(
             charged.monoisotopic_mass(),
             MonoisotopicMass(dec!(-2.014552933242))
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn average_mass() {
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic").unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Gly").unwrap();
         assert_eq!(
             glycosidic.average_mass(),
             AverageMass(dec!(-18.01528643242983260))
@@ -99,27 +99,27 @@ mod tests {
             stem.average_mass(),
             AverageMass(dec!(-18.01528643242983260))
         );
-        let charged = Bond::new(&POLYMER_DB, "Charged").unwrap();
+        let charged = Bond::new(&POLYMER_DB, "Chr").unwrap();
         assert_eq!(charged.average_mass(), AverageMass(dec!(-2.014552933242)));
     }
 
     #[test]
     fn charge() {
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic").unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Gly").unwrap();
         assert_eq!(glycosidic.charge(), Charge(0));
         let stem = Bond::new(&POLYMER_DB, "Stem").unwrap();
         assert_eq!(stem.charge(), Charge(0));
-        let charged = Bond::new(&POLYMER_DB, "Charged").unwrap();
+        let charged = Bond::new(&POLYMER_DB, "Chr").unwrap();
         assert_eq!(charged.charge(), Charge(-2));
     }
 
     #[test]
     fn monoisotopic_mz() {
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic").unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Gly").unwrap();
         assert_eq!(glycosidic.monoisotopic_mz(), None);
         let stem = Bond::new(&POLYMER_DB, "Stem").unwrap();
         assert_eq!(stem.monoisotopic_mz(), None);
-        let charged = Bond::new(&POLYMER_DB, "Charged").unwrap();
+        let charged = Bond::new(&POLYMER_DB, "Chr").unwrap();
         assert_eq!(
             charged.monoisotopic_mz(),
             Some(MonoisotopicMz(dec!(-1.007276466621)))
@@ -128,11 +128,11 @@ mod tests {
 
     #[test]
     fn average_mz() {
-        let glycosidic = Bond::new(&POLYMER_DB, "Glycosidic").unwrap();
+        let glycosidic = Bond::new(&POLYMER_DB, "Gly").unwrap();
         assert_eq!(glycosidic.average_mz(), None);
         let stem = Bond::new(&POLYMER_DB, "Stem").unwrap();
         assert_eq!(stem.average_mz(), None);
-        let charged = Bond::new(&POLYMER_DB, "Charged").unwrap();
+        let charged = Bond::new(&POLYMER_DB, "Chr").unwrap();
         assert_eq!(charged.average_mz(), Some(AverageMz(dec!(-1.007276466621))));
     }
 }

@@ -163,8 +163,7 @@ mod tests {
             RESIDUES.each_ref().map(Massive::monoisotopic_mass),
             [
                 MonoisotopicMass(dec!(89.04767846918)),
-                // FIXME: This should fail!
-                MonoisotopicMass(dec!(89.04767846918)),
+                MonoisotopicMass(dec!(293.11106657336)),
                 MonoisotopicMass(dec!(0))
             ]
         );
@@ -176,8 +175,7 @@ mod tests {
             RESIDUES.each_ref().map(Massive::average_mass),
             [
                 AverageMass(dec!(89.09330602867854225)),
-                // FIXME: This should fail!
-                AverageMass(dec!(89.09330602867854225)),
+                AverageMass(dec!(293.27091179713952985)),
                 AverageMass(dec!(0))
             ]
         );

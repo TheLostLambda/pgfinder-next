@@ -984,11 +984,11 @@ mod tests {
     #[test]
     fn parse_muropeptide_bonds() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 from "Hydroxyl" at="Reducing End"
                 to "Hydroxyl" at="Nonreducing End"
             }
-            Stem {
+            Stem "MurNAc -> Stem Peptide" {
                 from "Carboxyl" at="Lactyl Ether" of="N-Acetylmuramic Acid"
                 to "Amino" at="N-Terminal"
                 lost "H2O"
@@ -1005,7 +1005,7 @@ mod tests {
     #[test]
     fn parse_bond_with_chemically_invalid_lost() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 from "Hydroxyl" at="Reducing End"
                 to "Hydroxyl" at="Nonreducing End"
                 lost "2H2O"
@@ -1018,7 +1018,7 @@ mod tests {
     #[test]
     fn parse_bond_with_null_lost() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 from "Hydroxyl" at="Reducing End"
                 to "Hydroxyl" at="Nonreducing End"
                 lost null
@@ -1031,7 +1031,7 @@ mod tests {
     #[test]
     fn parse_bond_with_missing_to() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 from "Hydroxyl" at="Reducing End"
             }
         "#};
@@ -1042,7 +1042,7 @@ mod tests {
     #[test]
     fn parse_bond_with_missing_from() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 to "Hydroxyl" at="Nonreducing End"
             }
         "#};
@@ -1053,7 +1053,7 @@ mod tests {
     #[test]
     fn parse_bond_with_nonexistent_from() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 from "Hydroxyl" at="Sidechain"
                 to "Hydroxyl" at="Nonreducing End"
             }
@@ -1065,7 +1065,7 @@ mod tests {
     #[test]
     fn parse_bond_with_nonexistent_to() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 from "Hydroxyl" at="Reducing End"
                 to "Hydroxyl" at="Nonreducing End" of="Alanine"
             }
@@ -1077,7 +1077,7 @@ mod tests {
     #[test]
     fn parse_bond_with_duplicate_from() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 from "Hydroxyl" at="Reducing End"
                 from "Hydroxyl" at="Nonreducing End"
             }
@@ -1089,7 +1089,7 @@ mod tests {
     #[test]
     fn parse_bond_with_duplicate_to() {
         let kdl = indoc! {r#"
-            Glycosidic {
+            Gly "Glycosidic" {
                 to "Hydroxyl" at="Reducing End"
                 to "Hydroxyl" at="Nonreducing End"
             }
@@ -1107,7 +1107,7 @@ mod tests {
     fn parse_complete_parse_error() {
         let kdl = indoc! {r#"
             bonds {
-                Peptide {
+                Pep "Peptide" {
                     from "Carboxyl" at="C-Terminal"
                     to "Amino" at="N-Terminal"
                     lost "H2O"
@@ -1143,7 +1143,7 @@ mod tests {
     fn parse_complete_bonds_error() {
         let kdl = indoc! {r#"
             bonds {
-                Peptide {
+                Pep "Peptide" {
                     from "Carboxyl" at="C-Terminal"
                     to "Amino" at="C-Terminal"
                     lost "H2O"
@@ -1179,7 +1179,7 @@ mod tests {
     fn parse_complete_modifications_error() {
         let kdl = indoc! {r#"
             bonds {
-                Peptide {
+                Pep "Peptide" {
                     from "Carboxyl" at="C-Terminal"
                     to "Amino" at="N-Terminal"
                     lost "H2O"
@@ -1216,7 +1216,7 @@ mod tests {
     fn parse_complete_residues_error() {
         let kdl = indoc! {r#"
             bonds {
-                Peptide {
+                Pep "Peptide" {
                     from "Carboxyl" at="C-Terminal"
                     to "Amino" at="N-Terminal"
                     lost "H2O"

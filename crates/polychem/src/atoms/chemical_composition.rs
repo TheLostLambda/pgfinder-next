@@ -37,10 +37,9 @@ impl Charged for ChemicalComposition<'_> {
     fn charge(&self) -> Charge {
         self.particle_offset
             .as_ref()
-            .map(|&(offset_kind, count, ref particle)| {
+            .map_or(Charge(0), |&(offset_kind, count, ref particle)| {
                 offset_kind.offset(count * particle.charge())
             })
-            .unwrap_or(Charge(0))
     }
 }
 

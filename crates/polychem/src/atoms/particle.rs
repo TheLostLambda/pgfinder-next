@@ -16,7 +16,7 @@ impl<'a> Particle<'a> {
         let (symbol, ParticleDescription { name, mass, charge }) = db
             .particles
             .get_key_value(symbol)
-            .ok_or_else(|| AtomicLookupError::Particle(symbol.to_owned()))?;
+            .ok_or_else(|| AtomicLookupError::particle(symbol))?;
         Ok(Self {
             symbol,
             name,
@@ -25,7 +25,7 @@ impl<'a> Particle<'a> {
         })
     }
 
-    pub(crate) fn mass(&self) -> Mass {
+    pub(crate) const fn mass(&self) -> Mass {
         *self.mass
     }
 }

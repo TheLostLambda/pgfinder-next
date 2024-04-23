@@ -13,6 +13,8 @@ members = [
 
 # FIXME: Does this actually apply to this base-level crate?
 [workspace.lints.rust]
+# FIXME: Delete this!
+dead_code = "allow"
 # FIXME: Uncomment this!
 # missing_docs = "warn"
 

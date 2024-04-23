@@ -125,17 +125,6 @@ mod tests {
 
     #[test]
     fn modifcation_display() {
-        // FIXME: These should panic!!!
-        let zero_water_gain = Modification::new(
-            c(0),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
-        assert_eq!(zero_water_gain.to_string(), "+0xH2O");
-        let zero_water_loss = Modification::new(
-            c(0),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
-        assert_eq!(zero_water_loss.to_string(), "-0xH2O");
         let water_gain = Modification::new(
             c(1),
             OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
@@ -162,17 +151,6 @@ mod tests {
         let double_amidation = Modification::new(c(2), NamedMod::new(&POLYMER_DB, "Am").unwrap());
         assert_eq!(double_amidation.to_string(), "2xAm");
 
-        // FIXME: These should panic!!!
-        let zero_water_gain = Modification::new(
-            c(0),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
-        assert_eq!(zero_water_gain.to_string(), "+0xH2O");
-        let zero_water_loss = Modification::new(
-            c(0),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
-        assert_eq!(zero_water_loss.to_string(), "-0xH2O");
         let water_gain = Modification::new(
             c(1),
             AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
@@ -201,6 +179,9 @@ mod tests {
     }
 
     #[test]
+    // FIXME: Maybe split this up some?
+    // NOTE: This is just a test, so whilst this isn't great, it's acceptable to be a bit long...
+    #[allow(clippy::too_many_lines)]
     fn monoisotopic_mass() {
         // Masses checked against https://www.unimod.org/modifications_list.php
         let amidation = Modification::new(c(1), NamedMod::new(&POLYMER_DB, "Am").unwrap());
@@ -316,6 +297,9 @@ mod tests {
     }
 
     #[test]
+    // FIXME: Maybe split this up some?
+    // NOTE: This is just a test, so whilst this isn't great, it's acceptable to be a bit long...
+    #[allow(clippy::too_many_lines)]
     fn average_mass() {
         // Masses checked against https://www.unimod.org/modifications_list.php
         let amidation = Modification::new(c(1), NamedMod::new(&POLYMER_DB, "Am").unwrap());

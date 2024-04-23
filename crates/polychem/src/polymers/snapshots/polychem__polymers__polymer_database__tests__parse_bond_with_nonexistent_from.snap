@@ -10,7 +10,7 @@ expression: out
               targeted by this specifier
       
    ╭─[test:2:5]
- 1 │ Glycosidic {
+ 1 │ Gly "Glycosidic" {
  2 │     from "Hydroxyl" at="Sidechain"
    ·     ───────────────┬───────────────
    ·                    ╰── targets nothing

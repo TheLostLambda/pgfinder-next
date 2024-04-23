@@ -5,6 +5,10 @@ expression: "Particle::new(&DB, \"p\").unwrap()"
 Particle {
     symbol: "p",
     name: "Proton",
-    mass: 1.007276466621,
-    charge: 1,
+    mass: Mass(
+        1.007276466621,
+    ),
+    charge: Charge(
+        1,
+    ),
 }

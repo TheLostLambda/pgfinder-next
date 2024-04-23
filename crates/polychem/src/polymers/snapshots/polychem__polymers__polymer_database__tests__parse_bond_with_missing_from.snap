@@ -8,7 +8,7 @@ expression: out
 Error: 
   × child node `from` is required
    ╭─[test:1:1]
- 1 │ ╭─▶ Glycosidic {
+ 1 │ ╭─▶ Gly "Glycosidic" {
  2 │ │       to "Hydroxyl" at="Nonreducing End"
  3 │ ├─▶ }
    · ╰──── node starts here

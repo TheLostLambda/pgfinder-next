@@ -21,9 +21,9 @@ macro_rules! mass_conversion_impls {
 mass_conversion_impls!(MonoisotopicMass, AverageMass);
 
 impl Mul<Abundance> for Mass {
-    type Output = Mass;
+    type Output = Self;
 
     fn mul(self, rhs: Abundance) -> Self::Output {
-        Mass(self.0 * rhs.0)
+        Self(self.0 * rhs.0)
     }
 }

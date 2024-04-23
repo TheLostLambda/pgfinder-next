@@ -44,7 +44,7 @@ impl Display for Count {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let count = self.0.get();
         if count > 1 {
-            write!(f, "{}", count)?;
+            write!(f, "{count}")?;
         }
         Ok(())
     }

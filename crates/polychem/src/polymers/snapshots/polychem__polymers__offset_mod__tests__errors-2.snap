@@ -1,5 +1,5 @@
 ---
-source: crates/polychem/src/polymers/offset.rs
+source: crates/polychem/src/polymers/offset_mod.rs
 description: water_lost
 expression: out
 ---

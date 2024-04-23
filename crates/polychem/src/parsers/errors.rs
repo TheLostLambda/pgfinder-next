@@ -94,10 +94,10 @@ impl LabeledErrorKind for PolychemErrorKind {
             //   1) https://github.com/rust-lang/rust/issues/29641
             //   2) https://github.com/rust-lang/rust/issues/87121
             Self::LookupError(e) => match **e {
-                AtomicLookupError::Element(_) => "element not found",
-                AtomicLookupError::Isotope(_, _, _, _) => "isotope not found",
-                AtomicLookupError::Particle(_) => "particle not found",
-                AtomicLookupError::Abundance(_, _, _) => "no natural abundance",
+                AtomicLookupError::Element(..) => "element not found",
+                AtomicLookupError::Isotope(..) => "isotope not found",
+                AtomicLookupError::Particle(..) => "particle not found",
+                AtomicLookupError::Abundance(..) => "no natural abundance",
             },
             Self::ExpectedUppercase => "expected uppercase",
             Self::ExpectedLowercase => "expected lowercase",

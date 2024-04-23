@@ -1,6 +1,6 @@
 ---
 source: crates/polychem/src/atoms/element.rs
-description: "Element::new_isotope(&DB, \"C\", 15)"
+description: "Element::new_isotope(&DB, \"C\", mn(15))"
 expression: out
 ---
   × the isotope "C-15" could not be found in the supplied atomic database,

@@ -1,6 +1,0 @@
----
-source: crates/polychem/src/polymers/offset_multiplier.rs
-description: "OffsetMultiplier::try_from(zero)"
-expression: out
----
-  × counts must be non-zero

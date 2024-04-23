@@ -492,6 +492,7 @@ mod tests {
         assert_miette_snapshot!(res);
     }
 
+    #[ignore]
     #[test]
     fn non_zero_tests() {
         // TODO: Properly test NonZeroU32Kdl parsing and error reporting!

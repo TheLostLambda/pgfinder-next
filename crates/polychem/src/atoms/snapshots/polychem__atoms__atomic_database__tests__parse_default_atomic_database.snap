@@ -11,7 +11,9 @@ AtomicDatabaseKdl {
             name: "Hydrogen",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 1,
+                    mass_number: NonZeroU32Kdl(
+                        1,
+                    ),
                     relative_mass: DecimalKdl(
                         1.00782503223,
                     ),
@@ -22,7 +24,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 2,
+                    mass_number: NonZeroU32Kdl(
+                        2,
+                    ),
                     relative_mass: DecimalKdl(
                         2.01410177812,
                     ),
@@ -33,7 +37,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 3,
+                    mass_number: NonZeroU32Kdl(
+                        3,
+                    ),
                     relative_mass: DecimalKdl(
                         3.0160492779,
                     ),
@@ -48,7 +54,9 @@ AtomicDatabaseKdl {
             name: "Deuterium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 2,
+                    mass_number: NonZeroU32Kdl(
+                        2,
+                    ),
                     relative_mass: DecimalKdl(
                         2.01410177812,
                     ),
@@ -67,7 +75,9 @@ AtomicDatabaseKdl {
             name: "Tritium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 3,
+                    mass_number: NonZeroU32Kdl(
+                        3,
+                    ),
                     relative_mass: DecimalKdl(
                         3.0160492779,
                     ),
@@ -86,7 +96,9 @@ AtomicDatabaseKdl {
             name: "Helium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 3,
+                    mass_number: NonZeroU32Kdl(
+                        3,
+                    ),
                     relative_mass: DecimalKdl(
                         3.0160293201,
                     ),
@@ -97,7 +109,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 4,
+                    mass_number: NonZeroU32Kdl(
+                        4,
+                    ),
                     relative_mass: DecimalKdl(
                         4.00260325413,
                     ),
@@ -116,7 +130,9 @@ AtomicDatabaseKdl {
             name: "Lithium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 6,
+                    mass_number: NonZeroU32Kdl(
+                        6,
+                    ),
                     relative_mass: DecimalKdl(
                         6.0151228874,
                     ),
@@ -127,7 +143,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 7,
+                    mass_number: NonZeroU32Kdl(
+                        7,
+                    ),
                     relative_mass: DecimalKdl(
                         7.0160034366,
                     ),
@@ -146,7 +164,9 @@ AtomicDatabaseKdl {
             name: "Beryllium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 9,
+                    mass_number: NonZeroU32Kdl(
+                        9,
+                    ),
                     relative_mass: DecimalKdl(
                         9.012183065,
                     ),
@@ -165,7 +185,9 @@ AtomicDatabaseKdl {
             name: "Boron",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 10,
+                    mass_number: NonZeroU32Kdl(
+                        10,
+                    ),
                     relative_mass: DecimalKdl(
                         10.01293695,
                     ),
@@ -176,7 +198,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 11,
+                    mass_number: NonZeroU32Kdl(
+                        11,
+                    ),
                     relative_mass: DecimalKdl(
                         11.00930536,
                     ),
@@ -195,7 +219,9 @@ AtomicDatabaseKdl {
             name: "Carbon",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 12,
+                    mass_number: NonZeroU32Kdl(
+                        12,
+                    ),
                     relative_mass: DecimalKdl(
                         12.0000000,
                     ),
@@ -206,7 +232,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 13,
+                    mass_number: NonZeroU32Kdl(
+                        13,
+                    ),
                     relative_mass: DecimalKdl(
                         13.00335483507,
                     ),
@@ -217,7 +245,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 14,
+                    mass_number: NonZeroU32Kdl(
+                        14,
+                    ),
                     relative_mass: DecimalKdl(
                         14.0032419884,
                     ),
@@ -232,7 +262,9 @@ AtomicDatabaseKdl {
             name: "Nitrogen",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 14,
+                    mass_number: NonZeroU32Kdl(
+                        14,
+                    ),
                     relative_mass: DecimalKdl(
                         14.00307400443,
                     ),
@@ -243,7 +275,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 15,
+                    mass_number: NonZeroU32Kdl(
+                        15,
+                    ),
                     relative_mass: DecimalKdl(
                         15.00010889888,
                     ),
@@ -262,7 +296,9 @@ AtomicDatabaseKdl {
             name: "Oxygen",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 16,
+                    mass_number: NonZeroU32Kdl(
+                        16,
+                    ),
                     relative_mass: DecimalKdl(
                         15.99491461957,
                     ),
@@ -273,7 +309,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 17,
+                    mass_number: NonZeroU32Kdl(
+                        17,
+                    ),
                     relative_mass: DecimalKdl(
                         16.99913175650,
                     ),
@@ -284,7 +322,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 18,
+                    mass_number: NonZeroU32Kdl(
+                        18,
+                    ),
                     relative_mass: DecimalKdl(
                         17.99915961286,
                     ),
@@ -303,7 +343,9 @@ AtomicDatabaseKdl {
             name: "Fluorine",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 19,
+                    mass_number: NonZeroU32Kdl(
+                        19,
+                    ),
                     relative_mass: DecimalKdl(
                         18.99840316273,
                     ),
@@ -322,7 +364,9 @@ AtomicDatabaseKdl {
             name: "Neon",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 20,
+                    mass_number: NonZeroU32Kdl(
+                        20,
+                    ),
                     relative_mass: DecimalKdl(
                         19.9924401762,
                     ),
@@ -333,7 +377,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 21,
+                    mass_number: NonZeroU32Kdl(
+                        21,
+                    ),
                     relative_mass: DecimalKdl(
                         20.993846685,
                     ),
@@ -344,7 +390,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 22,
+                    mass_number: NonZeroU32Kdl(
+                        22,
+                    ),
                     relative_mass: DecimalKdl(
                         21.991385114,
                     ),
@@ -363,7 +411,9 @@ AtomicDatabaseKdl {
             name: "Sodium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 23,
+                    mass_number: NonZeroU32Kdl(
+                        23,
+                    ),
                     relative_mass: DecimalKdl(
                         22.9897692820,
                     ),
@@ -382,7 +432,9 @@ AtomicDatabaseKdl {
             name: "Magnesium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 24,
+                    mass_number: NonZeroU32Kdl(
+                        24,
+                    ),
                     relative_mass: DecimalKdl(
                         23.985041697,
                     ),
@@ -393,7 +445,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 25,
+                    mass_number: NonZeroU32Kdl(
+                        25,
+                    ),
                     relative_mass: DecimalKdl(
                         24.985836976,
                     ),
@@ -404,7 +458,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 26,
+                    mass_number: NonZeroU32Kdl(
+                        26,
+                    ),
                     relative_mass: DecimalKdl(
                         25.982592968,
                     ),
@@ -423,7 +479,9 @@ AtomicDatabaseKdl {
             name: "Aluminium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 27,
+                    mass_number: NonZeroU32Kdl(
+                        27,
+                    ),
                     relative_mass: DecimalKdl(
                         26.98153853,
                     ),
@@ -442,7 +500,9 @@ AtomicDatabaseKdl {
             name: "Silicon",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 28,
+                    mass_number: NonZeroU32Kdl(
+                        28,
+                    ),
                     relative_mass: DecimalKdl(
                         27.97692653465,
                     ),
@@ -453,7 +513,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 29,
+                    mass_number: NonZeroU32Kdl(
+                        29,
+                    ),
                     relative_mass: DecimalKdl(
                         28.97649466490,
                     ),
@@ -464,7 +526,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 30,
+                    mass_number: NonZeroU32Kdl(
+                        30,
+                    ),
                     relative_mass: DecimalKdl(
                         29.973770136,
                     ),
@@ -483,7 +547,9 @@ AtomicDatabaseKdl {
             name: "Phosphorus",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 31,
+                    mass_number: NonZeroU32Kdl(
+                        31,
+                    ),
                     relative_mass: DecimalKdl(
                         30.97376199842,
                     ),
@@ -502,7 +568,9 @@ AtomicDatabaseKdl {
             name: "Sulfur",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 32,
+                    mass_number: NonZeroU32Kdl(
+                        32,
+                    ),
                     relative_mass: DecimalKdl(
                         31.9720711744,
                     ),
@@ -513,7 +581,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 33,
+                    mass_number: NonZeroU32Kdl(
+                        33,
+                    ),
                     relative_mass: DecimalKdl(
                         32.9714589098,
                     ),
@@ -524,7 +594,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 34,
+                    mass_number: NonZeroU32Kdl(
+                        34,
+                    ),
                     relative_mass: DecimalKdl(
                         33.967867004,
                     ),
@@ -535,7 +607,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 36,
+                    mass_number: NonZeroU32Kdl(
+                        36,
+                    ),
                     relative_mass: DecimalKdl(
                         35.96708071,
                     ),
@@ -554,7 +628,9 @@ AtomicDatabaseKdl {
             name: "Chlorine",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 35,
+                    mass_number: NonZeroU32Kdl(
+                        35,
+                    ),
                     relative_mass: DecimalKdl(
                         34.968852682,
                     ),
@@ -565,7 +641,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 37,
+                    mass_number: NonZeroU32Kdl(
+                        37,
+                    ),
                     relative_mass: DecimalKdl(
                         36.965902602,
                     ),
@@ -584,7 +662,9 @@ AtomicDatabaseKdl {
             name: "Argon",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 36,
+                    mass_number: NonZeroU32Kdl(
+                        36,
+                    ),
                     relative_mass: DecimalKdl(
                         35.967545105,
                     ),
@@ -595,7 +675,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 38,
+                    mass_number: NonZeroU32Kdl(
+                        38,
+                    ),
                     relative_mass: DecimalKdl(
                         37.96273211,
                     ),
@@ -606,7 +688,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 40,
+                    mass_number: NonZeroU32Kdl(
+                        40,
+                    ),
                     relative_mass: DecimalKdl(
                         39.9623831237,
                     ),
@@ -625,7 +709,9 @@ AtomicDatabaseKdl {
             name: "Potassium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 39,
+                    mass_number: NonZeroU32Kdl(
+                        39,
+                    ),
                     relative_mass: DecimalKdl(
                         38.9637064864,
                     ),
@@ -636,7 +722,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 40,
+                    mass_number: NonZeroU32Kdl(
+                        40,
+                    ),
                     relative_mass: DecimalKdl(
                         39.963998166,
                     ),
@@ -647,7 +735,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 41,
+                    mass_number: NonZeroU32Kdl(
+                        41,
+                    ),
                     relative_mass: DecimalKdl(
                         40.9618252579,
                     ),
@@ -666,7 +756,9 @@ AtomicDatabaseKdl {
             name: "Calcium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 40,
+                    mass_number: NonZeroU32Kdl(
+                        40,
+                    ),
                     relative_mass: DecimalKdl(
                         39.962590863,
                     ),
@@ -677,7 +769,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 42,
+                    mass_number: NonZeroU32Kdl(
+                        42,
+                    ),
                     relative_mass: DecimalKdl(
                         41.95861783,
                     ),
@@ -688,7 +782,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 43,
+                    mass_number: NonZeroU32Kdl(
+                        43,
+                    ),
                     relative_mass: DecimalKdl(
                         42.95876644,
                     ),
@@ -699,7 +795,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 44,
+                    mass_number: NonZeroU32Kdl(
+                        44,
+                    ),
                     relative_mass: DecimalKdl(
                         43.95548156,
                     ),
@@ -710,7 +808,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 46,
+                    mass_number: NonZeroU32Kdl(
+                        46,
+                    ),
                     relative_mass: DecimalKdl(
                         45.9536890,
                     ),
@@ -721,7 +821,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 48,
+                    mass_number: NonZeroU32Kdl(
+                        48,
+                    ),
                     relative_mass: DecimalKdl(
                         47.95252276,
                     ),
@@ -740,7 +842,9 @@ AtomicDatabaseKdl {
             name: "Scandium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 45,
+                    mass_number: NonZeroU32Kdl(
+                        45,
+                    ),
                     relative_mass: DecimalKdl(
                         44.95590828,
                     ),
@@ -759,7 +863,9 @@ AtomicDatabaseKdl {
             name: "Titanium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 46,
+                    mass_number: NonZeroU32Kdl(
+                        46,
+                    ),
                     relative_mass: DecimalKdl(
                         45.95262772,
                     ),
@@ -770,7 +876,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 47,
+                    mass_number: NonZeroU32Kdl(
+                        47,
+                    ),
                     relative_mass: DecimalKdl(
                         46.95175879,
                     ),
@@ -781,7 +889,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 48,
+                    mass_number: NonZeroU32Kdl(
+                        48,
+                    ),
                     relative_mass: DecimalKdl(
                         47.94794198,
                     ),
@@ -792,7 +902,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 49,
+                    mass_number: NonZeroU32Kdl(
+                        49,
+                    ),
                     relative_mass: DecimalKdl(
                         48.94786568,
                     ),
@@ -803,7 +915,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 50,
+                    mass_number: NonZeroU32Kdl(
+                        50,
+                    ),
                     relative_mass: DecimalKdl(
                         49.94478689,
                     ),
@@ -822,7 +936,9 @@ AtomicDatabaseKdl {
             name: "Vanadium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 50,
+                    mass_number: NonZeroU32Kdl(
+                        50,
+                    ),
                     relative_mass: DecimalKdl(
                         49.94715601,
                     ),
@@ -833,7 +949,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 51,
+                    mass_number: NonZeroU32Kdl(
+                        51,
+                    ),
                     relative_mass: DecimalKdl(
                         50.94395704,
                     ),
@@ -852,7 +970,9 @@ AtomicDatabaseKdl {
             name: "Chromium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 50,
+                    mass_number: NonZeroU32Kdl(
+                        50,
+                    ),
                     relative_mass: DecimalKdl(
                         49.94604183,
                     ),
@@ -863,7 +983,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 52,
+                    mass_number: NonZeroU32Kdl(
+                        52,
+                    ),
                     relative_mass: DecimalKdl(
                         51.94050623,
                     ),
@@ -874,7 +996,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 53,
+                    mass_number: NonZeroU32Kdl(
+                        53,
+                    ),
                     relative_mass: DecimalKdl(
                         52.94064815,
                     ),
@@ -885,7 +1009,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 54,
+                    mass_number: NonZeroU32Kdl(
+                        54,
+                    ),
                     relative_mass: DecimalKdl(
                         53.93887916,
                     ),
@@ -904,7 +1030,9 @@ AtomicDatabaseKdl {
             name: "Manganese",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 55,
+                    mass_number: NonZeroU32Kdl(
+                        55,
+                    ),
                     relative_mass: DecimalKdl(
                         54.93804391,
                     ),
@@ -923,7 +1051,9 @@ AtomicDatabaseKdl {
             name: "Iron",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 54,
+                    mass_number: NonZeroU32Kdl(
+                        54,
+                    ),
                     relative_mass: DecimalKdl(
                         53.93960899,
                     ),
@@ -934,7 +1064,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 56,
+                    mass_number: NonZeroU32Kdl(
+                        56,
+                    ),
                     relative_mass: DecimalKdl(
                         55.93493633,
                     ),
@@ -945,7 +1077,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 57,
+                    mass_number: NonZeroU32Kdl(
+                        57,
+                    ),
                     relative_mass: DecimalKdl(
                         56.93539284,
                     ),
@@ -956,7 +1090,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 58,
+                    mass_number: NonZeroU32Kdl(
+                        58,
+                    ),
                     relative_mass: DecimalKdl(
                         57.93327443,
                     ),
@@ -975,7 +1111,9 @@ AtomicDatabaseKdl {
             name: "Cobalt",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 59,
+                    mass_number: NonZeroU32Kdl(
+                        59,
+                    ),
                     relative_mass: DecimalKdl(
                         58.93319429,
                     ),
@@ -994,7 +1132,9 @@ AtomicDatabaseKdl {
             name: "Nickel",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 58,
+                    mass_number: NonZeroU32Kdl(
+                        58,
+                    ),
                     relative_mass: DecimalKdl(
                         57.93534241,
                     ),
@@ -1005,7 +1145,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 60,
+                    mass_number: NonZeroU32Kdl(
+                        60,
+                    ),
                     relative_mass: DecimalKdl(
                         59.93078588,
                     ),
@@ -1016,7 +1158,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 61,
+                    mass_number: NonZeroU32Kdl(
+                        61,
+                    ),
                     relative_mass: DecimalKdl(
                         60.93105557,
                     ),
@@ -1027,7 +1171,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 62,
+                    mass_number: NonZeroU32Kdl(
+                        62,
+                    ),
                     relative_mass: DecimalKdl(
                         61.92834537,
                     ),
@@ -1038,7 +1184,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 64,
+                    mass_number: NonZeroU32Kdl(
+                        64,
+                    ),
                     relative_mass: DecimalKdl(
                         63.92796682,
                     ),
@@ -1057,7 +1205,9 @@ AtomicDatabaseKdl {
             name: "Copper",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 63,
+                    mass_number: NonZeroU32Kdl(
+                        63,
+                    ),
                     relative_mass: DecimalKdl(
                         62.92959772,
                     ),
@@ -1068,7 +1218,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 65,
+                    mass_number: NonZeroU32Kdl(
+                        65,
+                    ),
                     relative_mass: DecimalKdl(
                         64.92778970,
                     ),
@@ -1087,7 +1239,9 @@ AtomicDatabaseKdl {
             name: "Zinc",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 64,
+                    mass_number: NonZeroU32Kdl(
+                        64,
+                    ),
                     relative_mass: DecimalKdl(
                         63.92914201,
                     ),
@@ -1098,7 +1252,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 66,
+                    mass_number: NonZeroU32Kdl(
+                        66,
+                    ),
                     relative_mass: DecimalKdl(
                         65.92603381,
                     ),
@@ -1109,7 +1265,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 67,
+                    mass_number: NonZeroU32Kdl(
+                        67,
+                    ),
                     relative_mass: DecimalKdl(
                         66.92712775,
                     ),
@@ -1120,7 +1278,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 68,
+                    mass_number: NonZeroU32Kdl(
+                        68,
+                    ),
                     relative_mass: DecimalKdl(
                         67.92484455,
                     ),
@@ -1131,7 +1291,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 70,
+                    mass_number: NonZeroU32Kdl(
+                        70,
+                    ),
                     relative_mass: DecimalKdl(
                         69.9253192,
                     ),
@@ -1150,7 +1312,9 @@ AtomicDatabaseKdl {
             name: "Gallium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 69,
+                    mass_number: NonZeroU32Kdl(
+                        69,
+                    ),
                     relative_mass: DecimalKdl(
                         68.9255735,
                     ),
@@ -1161,7 +1325,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 71,
+                    mass_number: NonZeroU32Kdl(
+                        71,
+                    ),
                     relative_mass: DecimalKdl(
                         70.92470258,
                     ),
@@ -1180,7 +1346,9 @@ AtomicDatabaseKdl {
             name: "Germanium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 70,
+                    mass_number: NonZeroU32Kdl(
+                        70,
+                    ),
                     relative_mass: DecimalKdl(
                         69.92424875,
                     ),
@@ -1191,7 +1359,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 72,
+                    mass_number: NonZeroU32Kdl(
+                        72,
+                    ),
                     relative_mass: DecimalKdl(
                         71.922075826,
                     ),
@@ -1202,7 +1372,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 73,
+                    mass_number: NonZeroU32Kdl(
+                        73,
+                    ),
                     relative_mass: DecimalKdl(
                         72.923458956,
                     ),
@@ -1213,7 +1385,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 74,
+                    mass_number: NonZeroU32Kdl(
+                        74,
+                    ),
                     relative_mass: DecimalKdl(
                         73.921177761,
                     ),
@@ -1224,7 +1398,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 76,
+                    mass_number: NonZeroU32Kdl(
+                        76,
+                    ),
                     relative_mass: DecimalKdl(
                         75.921402726,
                     ),
@@ -1243,7 +1419,9 @@ AtomicDatabaseKdl {
             name: "Arsenic",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 75,
+                    mass_number: NonZeroU32Kdl(
+                        75,
+                    ),
                     relative_mass: DecimalKdl(
                         74.92159457,
                     ),
@@ -1262,7 +1440,9 @@ AtomicDatabaseKdl {
             name: "Selenium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 74,
+                    mass_number: NonZeroU32Kdl(
+                        74,
+                    ),
                     relative_mass: DecimalKdl(
                         73.922475934,
                     ),
@@ -1273,7 +1453,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 76,
+                    mass_number: NonZeroU32Kdl(
+                        76,
+                    ),
                     relative_mass: DecimalKdl(
                         75.919213704,
                     ),
@@ -1284,7 +1466,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 77,
+                    mass_number: NonZeroU32Kdl(
+                        77,
+                    ),
                     relative_mass: DecimalKdl(
                         76.919914154,
                     ),
@@ -1295,7 +1479,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 78,
+                    mass_number: NonZeroU32Kdl(
+                        78,
+                    ),
                     relative_mass: DecimalKdl(
                         77.91730928,
                     ),
@@ -1306,7 +1492,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 80,
+                    mass_number: NonZeroU32Kdl(
+                        80,
+                    ),
                     relative_mass: DecimalKdl(
                         79.9165218,
                     ),
@@ -1317,7 +1505,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 82,
+                    mass_number: NonZeroU32Kdl(
+                        82,
+                    ),
                     relative_mass: DecimalKdl(
                         81.9166995,
                     ),
@@ -1336,7 +1526,9 @@ AtomicDatabaseKdl {
             name: "Bromine",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 79,
+                    mass_number: NonZeroU32Kdl(
+                        79,
+                    ),
                     relative_mass: DecimalKdl(
                         78.9183376,
                     ),
@@ -1347,7 +1539,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 81,
+                    mass_number: NonZeroU32Kdl(
+                        81,
+                    ),
                     relative_mass: DecimalKdl(
                         80.9162897,
                     ),
@@ -1366,7 +1560,9 @@ AtomicDatabaseKdl {
             name: "Krypton",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 78,
+                    mass_number: NonZeroU32Kdl(
+                        78,
+                    ),
                     relative_mass: DecimalKdl(
                         77.92036494,
                     ),
@@ -1377,7 +1573,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 80,
+                    mass_number: NonZeroU32Kdl(
+                        80,
+                    ),
                     relative_mass: DecimalKdl(
                         79.91637808,
                     ),
@@ -1388,7 +1586,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 82,
+                    mass_number: NonZeroU32Kdl(
+                        82,
+                    ),
                     relative_mass: DecimalKdl(
                         81.91348273,
                     ),
@@ -1399,7 +1599,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 83,
+                    mass_number: NonZeroU32Kdl(
+                        83,
+                    ),
                     relative_mass: DecimalKdl(
                         82.91412716,
                     ),
@@ -1410,7 +1612,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 84,
+                    mass_number: NonZeroU32Kdl(
+                        84,
+                    ),
                     relative_mass: DecimalKdl(
                         83.9114977282,
                     ),
@@ -1421,7 +1625,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 86,
+                    mass_number: NonZeroU32Kdl(
+                        86,
+                    ),
                     relative_mass: DecimalKdl(
                         85.9106106269,
                     ),
@@ -1440,7 +1646,9 @@ AtomicDatabaseKdl {
             name: "Rubidium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 85,
+                    mass_number: NonZeroU32Kdl(
+                        85,
+                    ),
                     relative_mass: DecimalKdl(
                         84.9117897379,
                     ),
@@ -1451,7 +1659,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 87,
+                    mass_number: NonZeroU32Kdl(
+                        87,
+                    ),
                     relative_mass: DecimalKdl(
                         86.9091805310,
                     ),
@@ -1470,7 +1680,9 @@ AtomicDatabaseKdl {
             name: "Strontium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 84,
+                    mass_number: NonZeroU32Kdl(
+                        84,
+                    ),
                     relative_mass: DecimalKdl(
                         83.9134191,
                     ),
@@ -1481,7 +1693,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 86,
+                    mass_number: NonZeroU32Kdl(
+                        86,
+                    ),
                     relative_mass: DecimalKdl(
                         85.9092606,
                     ),
@@ -1492,7 +1706,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 87,
+                    mass_number: NonZeroU32Kdl(
+                        87,
+                    ),
                     relative_mass: DecimalKdl(
                         86.9088775,
                     ),
@@ -1503,7 +1719,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 88,
+                    mass_number: NonZeroU32Kdl(
+                        88,
+                    ),
                     relative_mass: DecimalKdl(
                         87.9056125,
                     ),
@@ -1522,7 +1740,9 @@ AtomicDatabaseKdl {
             name: "Yttrium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 89,
+                    mass_number: NonZeroU32Kdl(
+                        89,
+                    ),
                     relative_mass: DecimalKdl(
                         88.9058403,
                     ),
@@ -1541,7 +1761,9 @@ AtomicDatabaseKdl {
             name: "Zirconium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 90,
+                    mass_number: NonZeroU32Kdl(
+                        90,
+                    ),
                     relative_mass: DecimalKdl(
                         89.9046977,
                     ),
@@ -1552,7 +1774,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 91,
+                    mass_number: NonZeroU32Kdl(
+                        91,
+                    ),
                     relative_mass: DecimalKdl(
                         90.9056396,
                     ),
@@ -1563,7 +1787,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 92,
+                    mass_number: NonZeroU32Kdl(
+                        92,
+                    ),
                     relative_mass: DecimalKdl(
                         91.9050347,
                     ),
@@ -1574,7 +1800,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 94,
+                    mass_number: NonZeroU32Kdl(
+                        94,
+                    ),
                     relative_mass: DecimalKdl(
                         93.9063108,
                     ),
@@ -1585,7 +1813,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 96,
+                    mass_number: NonZeroU32Kdl(
+                        96,
+                    ),
                     relative_mass: DecimalKdl(
                         95.9082714,
                     ),
@@ -1604,7 +1834,9 @@ AtomicDatabaseKdl {
             name: "Niobium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 93,
+                    mass_number: NonZeroU32Kdl(
+                        93,
+                    ),
                     relative_mass: DecimalKdl(
                         92.9063730,
                     ),
@@ -1623,7 +1855,9 @@ AtomicDatabaseKdl {
             name: "Molybdenum",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 92,
+                    mass_number: NonZeroU32Kdl(
+                        92,
+                    ),
                     relative_mass: DecimalKdl(
                         91.90680796,
                     ),
@@ -1634,7 +1868,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 94,
+                    mass_number: NonZeroU32Kdl(
+                        94,
+                    ),
                     relative_mass: DecimalKdl(
                         93.90508490,
                     ),
@@ -1645,7 +1881,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 95,
+                    mass_number: NonZeroU32Kdl(
+                        95,
+                    ),
                     relative_mass: DecimalKdl(
                         94.90583877,
                     ),
@@ -1656,7 +1894,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 96,
+                    mass_number: NonZeroU32Kdl(
+                        96,
+                    ),
                     relative_mass: DecimalKdl(
                         95.90467612,
                     ),
@@ -1667,7 +1907,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 97,
+                    mass_number: NonZeroU32Kdl(
+                        97,
+                    ),
                     relative_mass: DecimalKdl(
                         96.90601812,
                     ),
@@ -1678,7 +1920,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 98,
+                    mass_number: NonZeroU32Kdl(
+                        98,
+                    ),
                     relative_mass: DecimalKdl(
                         97.90540482,
                     ),
@@ -1689,7 +1933,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 100,
+                    mass_number: NonZeroU32Kdl(
+                        100,
+                    ),
                     relative_mass: DecimalKdl(
                         99.9074718,
                     ),
@@ -1708,21 +1954,27 @@ AtomicDatabaseKdl {
             name: "Technetium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 97,
+                    mass_number: NonZeroU32Kdl(
+                        97,
+                    ),
                     relative_mass: DecimalKdl(
                         96.9063667,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 98,
+                    mass_number: NonZeroU32Kdl(
+                        98,
+                    ),
                     relative_mass: DecimalKdl(
                         97.9072124,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 99,
+                    mass_number: NonZeroU32Kdl(
+                        99,
+                    ),
                     relative_mass: DecimalKdl(
                         98.9062508,
                     ),
@@ -1737,7 +1989,9 @@ AtomicDatabaseKdl {
             name: "Ruthenium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 96,
+                    mass_number: NonZeroU32Kdl(
+                        96,
+                    ),
                     relative_mass: DecimalKdl(
                         95.90759025,
                     ),
@@ -1748,7 +2002,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 98,
+                    mass_number: NonZeroU32Kdl(
+                        98,
+                    ),
                     relative_mass: DecimalKdl(
                         97.9052868,
                     ),
@@ -1759,7 +2015,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 99,
+                    mass_number: NonZeroU32Kdl(
+                        99,
+                    ),
                     relative_mass: DecimalKdl(
                         98.9059341,
                     ),
@@ -1770,7 +2028,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 100,
+                    mass_number: NonZeroU32Kdl(
+                        100,
+                    ),
                     relative_mass: DecimalKdl(
                         99.9042143,
                     ),
@@ -1781,7 +2041,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 101,
+                    mass_number: NonZeroU32Kdl(
+                        101,
+                    ),
                     relative_mass: DecimalKdl(
                         100.9055769,
                     ),
@@ -1792,7 +2054,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 102,
+                    mass_number: NonZeroU32Kdl(
+                        102,
+                    ),
                     relative_mass: DecimalKdl(
                         101.9043441,
                     ),
@@ -1803,7 +2067,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 104,
+                    mass_number: NonZeroU32Kdl(
+                        104,
+                    ),
                     relative_mass: DecimalKdl(
                         103.9054275,
                     ),
@@ -1822,7 +2088,9 @@ AtomicDatabaseKdl {
             name: "Rhodium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 103,
+                    mass_number: NonZeroU32Kdl(
+                        103,
+                    ),
                     relative_mass: DecimalKdl(
                         102.9054980,
                     ),
@@ -1841,7 +2109,9 @@ AtomicDatabaseKdl {
             name: "Palladium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 102,
+                    mass_number: NonZeroU32Kdl(
+                        102,
+                    ),
                     relative_mass: DecimalKdl(
                         101.9056022,
                     ),
@@ -1852,7 +2122,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 104,
+                    mass_number: NonZeroU32Kdl(
+                        104,
+                    ),
                     relative_mass: DecimalKdl(
                         103.9040305,
                     ),
@@ -1863,7 +2135,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 105,
+                    mass_number: NonZeroU32Kdl(
+                        105,
+                    ),
                     relative_mass: DecimalKdl(
                         104.9050796,
                     ),
@@ -1874,7 +2148,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 106,
+                    mass_number: NonZeroU32Kdl(
+                        106,
+                    ),
                     relative_mass: DecimalKdl(
                         105.9034804,
                     ),
@@ -1885,7 +2161,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 108,
+                    mass_number: NonZeroU32Kdl(
+                        108,
+                    ),
                     relative_mass: DecimalKdl(
                         107.9038916,
                     ),
@@ -1896,7 +2174,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 110,
+                    mass_number: NonZeroU32Kdl(
+                        110,
+                    ),
                     relative_mass: DecimalKdl(
                         109.90517220,
                     ),
@@ -1915,7 +2195,9 @@ AtomicDatabaseKdl {
             name: "Silver",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 107,
+                    mass_number: NonZeroU32Kdl(
+                        107,
+                    ),
                     relative_mass: DecimalKdl(
                         106.9050916,
                     ),
@@ -1926,7 +2208,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 109,
+                    mass_number: NonZeroU32Kdl(
+                        109,
+                    ),
                     relative_mass: DecimalKdl(
                         108.9047553,
                     ),
@@ -1945,7 +2229,9 @@ AtomicDatabaseKdl {
             name: "Cadmium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 106,
+                    mass_number: NonZeroU32Kdl(
+                        106,
+                    ),
                     relative_mass: DecimalKdl(
                         105.9064599,
                     ),
@@ -1956,7 +2242,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 108,
+                    mass_number: NonZeroU32Kdl(
+                        108,
+                    ),
                     relative_mass: DecimalKdl(
                         107.9041834,
                     ),
@@ -1967,7 +2255,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 110,
+                    mass_number: NonZeroU32Kdl(
+                        110,
+                    ),
                     relative_mass: DecimalKdl(
                         109.90300661,
                     ),
@@ -1978,7 +2268,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 111,
+                    mass_number: NonZeroU32Kdl(
+                        111,
+                    ),
                     relative_mass: DecimalKdl(
                         110.90418287,
                     ),
@@ -1989,7 +2281,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 112,
+                    mass_number: NonZeroU32Kdl(
+                        112,
+                    ),
                     relative_mass: DecimalKdl(
                         111.90276287,
                     ),
@@ -2000,7 +2294,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 113,
+                    mass_number: NonZeroU32Kdl(
+                        113,
+                    ),
                     relative_mass: DecimalKdl(
                         112.90440813,
                     ),
@@ -2011,7 +2307,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 114,
+                    mass_number: NonZeroU32Kdl(
+                        114,
+                    ),
                     relative_mass: DecimalKdl(
                         113.90336509,
                     ),
@@ -2022,7 +2320,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 116,
+                    mass_number: NonZeroU32Kdl(
+                        116,
+                    ),
                     relative_mass: DecimalKdl(
                         115.90476315,
                     ),
@@ -2041,7 +2341,9 @@ AtomicDatabaseKdl {
             name: "Indium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 113,
+                    mass_number: NonZeroU32Kdl(
+                        113,
+                    ),
                     relative_mass: DecimalKdl(
                         112.90406184,
                     ),
@@ -2052,7 +2354,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 115,
+                    mass_number: NonZeroU32Kdl(
+                        115,
+                    ),
                     relative_mass: DecimalKdl(
                         114.903878776,
                     ),
@@ -2071,7 +2375,9 @@ AtomicDatabaseKdl {
             name: "Tin",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 112,
+                    mass_number: NonZeroU32Kdl(
+                        112,
+                    ),
                     relative_mass: DecimalKdl(
                         111.90482387,
                     ),
@@ -2082,7 +2388,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 114,
+                    mass_number: NonZeroU32Kdl(
+                        114,
+                    ),
                     relative_mass: DecimalKdl(
                         113.9027827,
                     ),
@@ -2093,7 +2401,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 115,
+                    mass_number: NonZeroU32Kdl(
+                        115,
+                    ),
                     relative_mass: DecimalKdl(
                         114.903344699,
                     ),
@@ -2104,7 +2414,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 116,
+                    mass_number: NonZeroU32Kdl(
+                        116,
+                    ),
                     relative_mass: DecimalKdl(
                         115.90174280,
                     ),
@@ -2115,7 +2427,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 117,
+                    mass_number: NonZeroU32Kdl(
+                        117,
+                    ),
                     relative_mass: DecimalKdl(
                         116.90295398,
                     ),
@@ -2126,7 +2440,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 118,
+                    mass_number: NonZeroU32Kdl(
+                        118,
+                    ),
                     relative_mass: DecimalKdl(
                         117.90160657,
                     ),
@@ -2137,7 +2453,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 119,
+                    mass_number: NonZeroU32Kdl(
+                        119,
+                    ),
                     relative_mass: DecimalKdl(
                         118.90331117,
                     ),
@@ -2148,7 +2466,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 120,
+                    mass_number: NonZeroU32Kdl(
+                        120,
+                    ),
                     relative_mass: DecimalKdl(
                         119.90220163,
                     ),
@@ -2159,7 +2479,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 122,
+                    mass_number: NonZeroU32Kdl(
+                        122,
+                    ),
                     relative_mass: DecimalKdl(
                         121.9034438,
                     ),
@@ -2170,7 +2492,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 124,
+                    mass_number: NonZeroU32Kdl(
+                        124,
+                    ),
                     relative_mass: DecimalKdl(
                         123.9052766,
                     ),
@@ -2189,7 +2513,9 @@ AtomicDatabaseKdl {
             name: "Antimony",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 121,
+                    mass_number: NonZeroU32Kdl(
+                        121,
+                    ),
                     relative_mass: DecimalKdl(
                         120.9038120,
                     ),
@@ -2200,7 +2526,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 123,
+                    mass_number: NonZeroU32Kdl(
+                        123,
+                    ),
                     relative_mass: DecimalKdl(
                         122.9042132,
                     ),
@@ -2219,7 +2547,9 @@ AtomicDatabaseKdl {
             name: "Tellurium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 120,
+                    mass_number: NonZeroU32Kdl(
+                        120,
+                    ),
                     relative_mass: DecimalKdl(
                         119.9040593,
                     ),
@@ -2230,7 +2560,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 122,
+                    mass_number: NonZeroU32Kdl(
+                        122,
+                    ),
                     relative_mass: DecimalKdl(
                         121.9030435,
                     ),
@@ -2241,7 +2573,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 123,
+                    mass_number: NonZeroU32Kdl(
+                        123,
+                    ),
                     relative_mass: DecimalKdl(
                         122.9042698,
                     ),
@@ -2252,7 +2586,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 124,
+                    mass_number: NonZeroU32Kdl(
+                        124,
+                    ),
                     relative_mass: DecimalKdl(
                         123.9028171,
                     ),
@@ -2263,7 +2599,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 125,
+                    mass_number: NonZeroU32Kdl(
+                        125,
+                    ),
                     relative_mass: DecimalKdl(
                         124.9044299,
                     ),
@@ -2274,7 +2612,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 126,
+                    mass_number: NonZeroU32Kdl(
+                        126,
+                    ),
                     relative_mass: DecimalKdl(
                         125.9033109,
                     ),
@@ -2285,7 +2625,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 128,
+                    mass_number: NonZeroU32Kdl(
+                        128,
+                    ),
                     relative_mass: DecimalKdl(
                         127.90446128,
                     ),
@@ -2296,7 +2638,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 130,
+                    mass_number: NonZeroU32Kdl(
+                        130,
+                    ),
                     relative_mass: DecimalKdl(
                         129.906222748,
                     ),
@@ -2315,7 +2659,9 @@ AtomicDatabaseKdl {
             name: "Iodine",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 127,
+                    mass_number: NonZeroU32Kdl(
+                        127,
+                    ),
                     relative_mass: DecimalKdl(
                         126.9044719,
                     ),
@@ -2334,7 +2680,9 @@ AtomicDatabaseKdl {
             name: "Xenon",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 124,
+                    mass_number: NonZeroU32Kdl(
+                        124,
+                    ),
                     relative_mass: DecimalKdl(
                         123.9058920,
                     ),
@@ -2345,7 +2693,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 126,
+                    mass_number: NonZeroU32Kdl(
+                        126,
+                    ),
                     relative_mass: DecimalKdl(
                         125.9042983,
                     ),
@@ -2356,7 +2706,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 128,
+                    mass_number: NonZeroU32Kdl(
+                        128,
+                    ),
                     relative_mass: DecimalKdl(
                         127.9035310,
                     ),
@@ -2367,7 +2719,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 129,
+                    mass_number: NonZeroU32Kdl(
+                        129,
+                    ),
                     relative_mass: DecimalKdl(
                         128.9047808611,
                     ),
@@ -2378,7 +2732,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 130,
+                    mass_number: NonZeroU32Kdl(
+                        130,
+                    ),
                     relative_mass: DecimalKdl(
                         129.903509349,
                     ),
@@ -2389,7 +2745,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 131,
+                    mass_number: NonZeroU32Kdl(
+                        131,
+                    ),
                     relative_mass: DecimalKdl(
                         130.90508406,
                     ),
@@ -2400,7 +2758,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 132,
+                    mass_number: NonZeroU32Kdl(
+                        132,
+                    ),
                     relative_mass: DecimalKdl(
                         131.9041550856,
                     ),
@@ -2411,7 +2771,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 134,
+                    mass_number: NonZeroU32Kdl(
+                        134,
+                    ),
                     relative_mass: DecimalKdl(
                         133.90539466,
                     ),
@@ -2422,7 +2784,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 136,
+                    mass_number: NonZeroU32Kdl(
+                        136,
+                    ),
                     relative_mass: DecimalKdl(
                         135.907214484,
                     ),
@@ -2441,7 +2805,9 @@ AtomicDatabaseKdl {
             name: "Cesium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 133,
+                    mass_number: NonZeroU32Kdl(
+                        133,
+                    ),
                     relative_mass: DecimalKdl(
                         132.9054519610,
                     ),
@@ -2460,7 +2826,9 @@ AtomicDatabaseKdl {
             name: "Barium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 130,
+                    mass_number: NonZeroU32Kdl(
+                        130,
+                    ),
                     relative_mass: DecimalKdl(
                         129.9063207,
                     ),
@@ -2471,7 +2839,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 132,
+                    mass_number: NonZeroU32Kdl(
+                        132,
+                    ),
                     relative_mass: DecimalKdl(
                         131.9050611,
                     ),
@@ -2482,7 +2852,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 134,
+                    mass_number: NonZeroU32Kdl(
+                        134,
+                    ),
                     relative_mass: DecimalKdl(
                         133.90450818,
                     ),
@@ -2493,7 +2865,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 135,
+                    mass_number: NonZeroU32Kdl(
+                        135,
+                    ),
                     relative_mass: DecimalKdl(
                         134.90568838,
                     ),
@@ -2504,7 +2878,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 136,
+                    mass_number: NonZeroU32Kdl(
+                        136,
+                    ),
                     relative_mass: DecimalKdl(
                         135.90457573,
                     ),
@@ -2515,7 +2891,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 137,
+                    mass_number: NonZeroU32Kdl(
+                        137,
+                    ),
                     relative_mass: DecimalKdl(
                         136.90582714,
                     ),
@@ -2526,7 +2904,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 138,
+                    mass_number: NonZeroU32Kdl(
+                        138,
+                    ),
                     relative_mass: DecimalKdl(
                         137.90524700,
                     ),
@@ -2545,7 +2925,9 @@ AtomicDatabaseKdl {
             name: "Lanthanum",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 138,
+                    mass_number: NonZeroU32Kdl(
+                        138,
+                    ),
                     relative_mass: DecimalKdl(
                         137.9071149,
                     ),
@@ -2556,7 +2938,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 139,
+                    mass_number: NonZeroU32Kdl(
+                        139,
+                    ),
                     relative_mass: DecimalKdl(
                         138.9063563,
                     ),
@@ -2575,7 +2959,9 @@ AtomicDatabaseKdl {
             name: "Cerium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 136,
+                    mass_number: NonZeroU32Kdl(
+                        136,
+                    ),
                     relative_mass: DecimalKdl(
                         135.90712921,
                     ),
@@ -2586,7 +2972,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 138,
+                    mass_number: NonZeroU32Kdl(
+                        138,
+                    ),
                     relative_mass: DecimalKdl(
                         137.905991,
                     ),
@@ -2597,7 +2985,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 140,
+                    mass_number: NonZeroU32Kdl(
+                        140,
+                    ),
                     relative_mass: DecimalKdl(
                         139.9054431,
                     ),
@@ -2608,7 +2998,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 142,
+                    mass_number: NonZeroU32Kdl(
+                        142,
+                    ),
                     relative_mass: DecimalKdl(
                         141.9092504,
                     ),
@@ -2627,7 +3019,9 @@ AtomicDatabaseKdl {
             name: "Praseodymium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 141,
+                    mass_number: NonZeroU32Kdl(
+                        141,
+                    ),
                     relative_mass: DecimalKdl(
                         140.9076576,
                     ),
@@ -2646,7 +3040,9 @@ AtomicDatabaseKdl {
             name: "Neodymium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 142,
+                    mass_number: NonZeroU32Kdl(
+                        142,
+                    ),
                     relative_mass: DecimalKdl(
                         141.9077290,
                     ),
@@ -2657,7 +3053,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 143,
+                    mass_number: NonZeroU32Kdl(
+                        143,
+                    ),
                     relative_mass: DecimalKdl(
                         142.9098200,
                     ),
@@ -2668,7 +3066,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 144,
+                    mass_number: NonZeroU32Kdl(
+                        144,
+                    ),
                     relative_mass: DecimalKdl(
                         143.9100930,
                     ),
@@ -2679,7 +3079,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 145,
+                    mass_number: NonZeroU32Kdl(
+                        145,
+                    ),
                     relative_mass: DecimalKdl(
                         144.9125793,
                     ),
@@ -2690,7 +3092,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 146,
+                    mass_number: NonZeroU32Kdl(
+                        146,
+                    ),
                     relative_mass: DecimalKdl(
                         145.9131226,
                     ),
@@ -2701,7 +3105,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 148,
+                    mass_number: NonZeroU32Kdl(
+                        148,
+                    ),
                     relative_mass: DecimalKdl(
                         147.9168993,
                     ),
@@ -2712,7 +3118,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 150,
+                    mass_number: NonZeroU32Kdl(
+                        150,
+                    ),
                     relative_mass: DecimalKdl(
                         149.9209022,
                     ),
@@ -2731,14 +3139,18 @@ AtomicDatabaseKdl {
             name: "Promethium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 145,
+                    mass_number: NonZeroU32Kdl(
+                        145,
+                    ),
                     relative_mass: DecimalKdl(
                         144.9127559,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 147,
+                    mass_number: NonZeroU32Kdl(
+                        147,
+                    ),
                     relative_mass: DecimalKdl(
                         146.9151450,
                     ),
@@ -2753,7 +3165,9 @@ AtomicDatabaseKdl {
             name: "Samarium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 144,
+                    mass_number: NonZeroU32Kdl(
+                        144,
+                    ),
                     relative_mass: DecimalKdl(
                         143.9120065,
                     ),
@@ -2764,7 +3178,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 147,
+                    mass_number: NonZeroU32Kdl(
+                        147,
+                    ),
                     relative_mass: DecimalKdl(
                         146.9149044,
                     ),
@@ -2775,7 +3191,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 148,
+                    mass_number: NonZeroU32Kdl(
+                        148,
+                    ),
                     relative_mass: DecimalKdl(
                         147.9148292,
                     ),
@@ -2786,7 +3204,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 149,
+                    mass_number: NonZeroU32Kdl(
+                        149,
+                    ),
                     relative_mass: DecimalKdl(
                         148.9171921,
                     ),
@@ -2797,7 +3217,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 150,
+                    mass_number: NonZeroU32Kdl(
+                        150,
+                    ),
                     relative_mass: DecimalKdl(
                         149.9172829,
                     ),
@@ -2808,7 +3230,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 152,
+                    mass_number: NonZeroU32Kdl(
+                        152,
+                    ),
                     relative_mass: DecimalKdl(
                         151.9197397,
                     ),
@@ -2819,7 +3243,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 154,
+                    mass_number: NonZeroU32Kdl(
+                        154,
+                    ),
                     relative_mass: DecimalKdl(
                         153.9222169,
                     ),
@@ -2838,7 +3264,9 @@ AtomicDatabaseKdl {
             name: "Europium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 151,
+                    mass_number: NonZeroU32Kdl(
+                        151,
+                    ),
                     relative_mass: DecimalKdl(
                         150.9198578,
                     ),
@@ -2849,7 +3277,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 153,
+                    mass_number: NonZeroU32Kdl(
+                        153,
+                    ),
                     relative_mass: DecimalKdl(
                         152.9212380,
                     ),
@@ -2868,7 +3298,9 @@ AtomicDatabaseKdl {
             name: "Gadolinium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 152,
+                    mass_number: NonZeroU32Kdl(
+                        152,
+                    ),
                     relative_mass: DecimalKdl(
                         151.9197995,
                     ),
@@ -2879,7 +3311,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 154,
+                    mass_number: NonZeroU32Kdl(
+                        154,
+                    ),
                     relative_mass: DecimalKdl(
                         153.9208741,
                     ),
@@ -2890,7 +3324,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 155,
+                    mass_number: NonZeroU32Kdl(
+                        155,
+                    ),
                     relative_mass: DecimalKdl(
                         154.9226305,
                     ),
@@ -2901,7 +3337,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 156,
+                    mass_number: NonZeroU32Kdl(
+                        156,
+                    ),
                     relative_mass: DecimalKdl(
                         155.9221312,
                     ),
@@ -2912,7 +3350,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 157,
+                    mass_number: NonZeroU32Kdl(
+                        157,
+                    ),
                     relative_mass: DecimalKdl(
                         156.9239686,
                     ),
@@ -2923,7 +3363,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 158,
+                    mass_number: NonZeroU32Kdl(
+                        158,
+                    ),
                     relative_mass: DecimalKdl(
                         157.9241123,
                     ),
@@ -2934,7 +3376,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 160,
+                    mass_number: NonZeroU32Kdl(
+                        160,
+                    ),
                     relative_mass: DecimalKdl(
                         159.9270624,
                     ),
@@ -2953,7 +3397,9 @@ AtomicDatabaseKdl {
             name: "Terbium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 159,
+                    mass_number: NonZeroU32Kdl(
+                        159,
+                    ),
                     relative_mass: DecimalKdl(
                         158.9253547,
                     ),
@@ -2972,7 +3418,9 @@ AtomicDatabaseKdl {
             name: "Dysprosium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 156,
+                    mass_number: NonZeroU32Kdl(
+                        156,
+                    ),
                     relative_mass: DecimalKdl(
                         155.9242847,
                     ),
@@ -2983,7 +3431,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 158,
+                    mass_number: NonZeroU32Kdl(
+                        158,
+                    ),
                     relative_mass: DecimalKdl(
                         157.9244159,
                     ),
@@ -2994,7 +3444,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 160,
+                    mass_number: NonZeroU32Kdl(
+                        160,
+                    ),
                     relative_mass: DecimalKdl(
                         159.9252046,
                     ),
@@ -3005,7 +3457,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 161,
+                    mass_number: NonZeroU32Kdl(
+                        161,
+                    ),
                     relative_mass: DecimalKdl(
                         160.9269405,
                     ),
@@ -3016,7 +3470,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 162,
+                    mass_number: NonZeroU32Kdl(
+                        162,
+                    ),
                     relative_mass: DecimalKdl(
                         161.9268056,
                     ),
@@ -3027,7 +3483,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 163,
+                    mass_number: NonZeroU32Kdl(
+                        163,
+                    ),
                     relative_mass: DecimalKdl(
                         162.9287383,
                     ),
@@ -3038,7 +3496,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 164,
+                    mass_number: NonZeroU32Kdl(
+                        164,
+                    ),
                     relative_mass: DecimalKdl(
                         163.9291819,
                     ),
@@ -3057,7 +3517,9 @@ AtomicDatabaseKdl {
             name: "Holmium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 165,
+                    mass_number: NonZeroU32Kdl(
+                        165,
+                    ),
                     relative_mass: DecimalKdl(
                         164.9303288,
                     ),
@@ -3076,7 +3538,9 @@ AtomicDatabaseKdl {
             name: "Erbium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 162,
+                    mass_number: NonZeroU32Kdl(
+                        162,
+                    ),
                     relative_mass: DecimalKdl(
                         161.9287884,
                     ),
@@ -3087,7 +3551,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 164,
+                    mass_number: NonZeroU32Kdl(
+                        164,
+                    ),
                     relative_mass: DecimalKdl(
                         163.9292088,
                     ),
@@ -3098,7 +3564,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 166,
+                    mass_number: NonZeroU32Kdl(
+                        166,
+                    ),
                     relative_mass: DecimalKdl(
                         165.9302995,
                     ),
@@ -3109,7 +3577,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 167,
+                    mass_number: NonZeroU32Kdl(
+                        167,
+                    ),
                     relative_mass: DecimalKdl(
                         166.9320546,
                     ),
@@ -3120,7 +3590,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 168,
+                    mass_number: NonZeroU32Kdl(
+                        168,
+                    ),
                     relative_mass: DecimalKdl(
                         167.9323767,
                     ),
@@ -3131,7 +3603,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 170,
+                    mass_number: NonZeroU32Kdl(
+                        170,
+                    ),
                     relative_mass: DecimalKdl(
                         169.9354702,
                     ),
@@ -3150,7 +3624,9 @@ AtomicDatabaseKdl {
             name: "Thulium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 169,
+                    mass_number: NonZeroU32Kdl(
+                        169,
+                    ),
                     relative_mass: DecimalKdl(
                         168.9342179,
                     ),
@@ -3169,7 +3645,9 @@ AtomicDatabaseKdl {
             name: "Ytterbium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 168,
+                    mass_number: NonZeroU32Kdl(
+                        168,
+                    ),
                     relative_mass: DecimalKdl(
                         167.9338896,
                     ),
@@ -3180,7 +3658,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 170,
+                    mass_number: NonZeroU32Kdl(
+                        170,
+                    ),
                     relative_mass: DecimalKdl(
                         169.9347664,
                     ),
@@ -3191,7 +3671,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 171,
+                    mass_number: NonZeroU32Kdl(
+                        171,
+                    ),
                     relative_mass: DecimalKdl(
                         170.9363302,
                     ),
@@ -3202,7 +3684,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 172,
+                    mass_number: NonZeroU32Kdl(
+                        172,
+                    ),
                     relative_mass: DecimalKdl(
                         171.9363859,
                     ),
@@ -3213,7 +3697,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 173,
+                    mass_number: NonZeroU32Kdl(
+                        173,
+                    ),
                     relative_mass: DecimalKdl(
                         172.9382151,
                     ),
@@ -3224,7 +3710,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 174,
+                    mass_number: NonZeroU32Kdl(
+                        174,
+                    ),
                     relative_mass: DecimalKdl(
                         173.9388664,
                     ),
@@ -3235,7 +3723,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 176,
+                    mass_number: NonZeroU32Kdl(
+                        176,
+                    ),
                     relative_mass: DecimalKdl(
                         175.9425764,
                     ),
@@ -3254,7 +3744,9 @@ AtomicDatabaseKdl {
             name: "Lutetium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 175,
+                    mass_number: NonZeroU32Kdl(
+                        175,
+                    ),
                     relative_mass: DecimalKdl(
                         174.9407752,
                     ),
@@ -3265,7 +3757,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 176,
+                    mass_number: NonZeroU32Kdl(
+                        176,
+                    ),
                     relative_mass: DecimalKdl(
                         175.9426897,
                     ),
@@ -3284,7 +3778,9 @@ AtomicDatabaseKdl {
             name: "Hafnium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 174,
+                    mass_number: NonZeroU32Kdl(
+                        174,
+                    ),
                     relative_mass: DecimalKdl(
                         173.9400461,
                     ),
@@ -3295,7 +3791,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 176,
+                    mass_number: NonZeroU32Kdl(
+                        176,
+                    ),
                     relative_mass: DecimalKdl(
                         175.9414076,
                     ),
@@ -3306,7 +3804,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 177,
+                    mass_number: NonZeroU32Kdl(
+                        177,
+                    ),
                     relative_mass: DecimalKdl(
                         176.9432277,
                     ),
@@ -3317,7 +3817,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 178,
+                    mass_number: NonZeroU32Kdl(
+                        178,
+                    ),
                     relative_mass: DecimalKdl(
                         177.9437058,
                     ),
@@ -3328,7 +3830,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 179,
+                    mass_number: NonZeroU32Kdl(
+                        179,
+                    ),
                     relative_mass: DecimalKdl(
                         178.9458232,
                     ),
@@ -3339,7 +3843,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 180,
+                    mass_number: NonZeroU32Kdl(
+                        180,
+                    ),
                     relative_mass: DecimalKdl(
                         179.9465570,
                     ),
@@ -3358,7 +3864,9 @@ AtomicDatabaseKdl {
             name: "Tantalum",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 180,
+                    mass_number: NonZeroU32Kdl(
+                        180,
+                    ),
                     relative_mass: DecimalKdl(
                         179.9474648,
                     ),
@@ -3369,7 +3877,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 181,
+                    mass_number: NonZeroU32Kdl(
+                        181,
+                    ),
                     relative_mass: DecimalKdl(
                         180.9479958,
                     ),
@@ -3388,7 +3898,9 @@ AtomicDatabaseKdl {
             name: "Tungsten",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 180,
+                    mass_number: NonZeroU32Kdl(
+                        180,
+                    ),
                     relative_mass: DecimalKdl(
                         179.9467108,
                     ),
@@ -3399,7 +3911,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 182,
+                    mass_number: NonZeroU32Kdl(
+                        182,
+                    ),
                     relative_mass: DecimalKdl(
                         181.94820394,
                     ),
@@ -3410,7 +3924,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 183,
+                    mass_number: NonZeroU32Kdl(
+                        183,
+                    ),
                     relative_mass: DecimalKdl(
                         182.95022275,
                     ),
@@ -3421,7 +3937,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 184,
+                    mass_number: NonZeroU32Kdl(
+                        184,
+                    ),
                     relative_mass: DecimalKdl(
                         183.95093092,
                     ),
@@ -3432,7 +3950,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 186,
+                    mass_number: NonZeroU32Kdl(
+                        186,
+                    ),
                     relative_mass: DecimalKdl(
                         185.9543628,
                     ),
@@ -3451,7 +3971,9 @@ AtomicDatabaseKdl {
             name: "Rhenium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 185,
+                    mass_number: NonZeroU32Kdl(
+                        185,
+                    ),
                     relative_mass: DecimalKdl(
                         184.9529545,
                     ),
@@ -3462,7 +3984,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 187,
+                    mass_number: NonZeroU32Kdl(
+                        187,
+                    ),
                     relative_mass: DecimalKdl(
                         186.9557501,
                     ),
@@ -3481,7 +4005,9 @@ AtomicDatabaseKdl {
             name: "Osmium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 184,
+                    mass_number: NonZeroU32Kdl(
+                        184,
+                    ),
                     relative_mass: DecimalKdl(
                         183.9524885,
                     ),
@@ -3492,7 +4018,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 186,
+                    mass_number: NonZeroU32Kdl(
+                        186,
+                    ),
                     relative_mass: DecimalKdl(
                         185.9538350,
                     ),
@@ -3503,7 +4031,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 187,
+                    mass_number: NonZeroU32Kdl(
+                        187,
+                    ),
                     relative_mass: DecimalKdl(
                         186.9557474,
                     ),
@@ -3514,7 +4044,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 188,
+                    mass_number: NonZeroU32Kdl(
+                        188,
+                    ),
                     relative_mass: DecimalKdl(
                         187.9558352,
                     ),
@@ -3525,7 +4057,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 189,
+                    mass_number: NonZeroU32Kdl(
+                        189,
+                    ),
                     relative_mass: DecimalKdl(
                         188.9581442,
                     ),
@@ -3536,7 +4070,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 190,
+                    mass_number: NonZeroU32Kdl(
+                        190,
+                    ),
                     relative_mass: DecimalKdl(
                         189.9584437,
                     ),
@@ -3547,7 +4083,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 192,
+                    mass_number: NonZeroU32Kdl(
+                        192,
+                    ),
                     relative_mass: DecimalKdl(
                         191.9614770,
                     ),
@@ -3566,7 +4104,9 @@ AtomicDatabaseKdl {
             name: "Iridium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 191,
+                    mass_number: NonZeroU32Kdl(
+                        191,
+                    ),
                     relative_mass: DecimalKdl(
                         190.9605893,
                     ),
@@ -3577,7 +4117,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 193,
+                    mass_number: NonZeroU32Kdl(
+                        193,
+                    ),
                     relative_mass: DecimalKdl(
                         192.9629216,
                     ),
@@ -3596,7 +4138,9 @@ AtomicDatabaseKdl {
             name: "Platinum",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 190,
+                    mass_number: NonZeroU32Kdl(
+                        190,
+                    ),
                     relative_mass: DecimalKdl(
                         189.9599297,
                     ),
@@ -3607,7 +4151,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 192,
+                    mass_number: NonZeroU32Kdl(
+                        192,
+                    ),
                     relative_mass: DecimalKdl(
                         191.9610387,
                     ),
@@ -3618,7 +4164,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 194,
+                    mass_number: NonZeroU32Kdl(
+                        194,
+                    ),
                     relative_mass: DecimalKdl(
                         193.9626809,
                     ),
@@ -3629,7 +4177,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 195,
+                    mass_number: NonZeroU32Kdl(
+                        195,
+                    ),
                     relative_mass: DecimalKdl(
                         194.9647917,
                     ),
@@ -3640,7 +4190,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 196,
+                    mass_number: NonZeroU32Kdl(
+                        196,
+                    ),
                     relative_mass: DecimalKdl(
                         195.96495209,
                     ),
@@ -3651,7 +4203,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 198,
+                    mass_number: NonZeroU32Kdl(
+                        198,
+                    ),
                     relative_mass: DecimalKdl(
                         197.9678949,
                     ),
@@ -3670,7 +4224,9 @@ AtomicDatabaseKdl {
             name: "Gold",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 197,
+                    mass_number: NonZeroU32Kdl(
+                        197,
+                    ),
                     relative_mass: DecimalKdl(
                         196.96656879,
                     ),
@@ -3689,7 +4245,9 @@ AtomicDatabaseKdl {
             name: "Mercury",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 196,
+                    mass_number: NonZeroU32Kdl(
+                        196,
+                    ),
                     relative_mass: DecimalKdl(
                         195.9658326,
                     ),
@@ -3700,7 +4258,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 198,
+                    mass_number: NonZeroU32Kdl(
+                        198,
+                    ),
                     relative_mass: DecimalKdl(
                         197.96676860,
                     ),
@@ -3711,7 +4271,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 199,
+                    mass_number: NonZeroU32Kdl(
+                        199,
+                    ),
                     relative_mass: DecimalKdl(
                         198.96828064,
                     ),
@@ -3722,7 +4284,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 200,
+                    mass_number: NonZeroU32Kdl(
+                        200,
+                    ),
                     relative_mass: DecimalKdl(
                         199.96832659,
                     ),
@@ -3733,7 +4297,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 201,
+                    mass_number: NonZeroU32Kdl(
+                        201,
+                    ),
                     relative_mass: DecimalKdl(
                         200.97030284,
                     ),
@@ -3744,7 +4310,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 202,
+                    mass_number: NonZeroU32Kdl(
+                        202,
+                    ),
                     relative_mass: DecimalKdl(
                         201.97064340,
                     ),
@@ -3755,7 +4323,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 204,
+                    mass_number: NonZeroU32Kdl(
+                        204,
+                    ),
                     relative_mass: DecimalKdl(
                         203.97349398,
                     ),
@@ -3774,7 +4344,9 @@ AtomicDatabaseKdl {
             name: "Thallium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 203,
+                    mass_number: NonZeroU32Kdl(
+                        203,
+                    ),
                     relative_mass: DecimalKdl(
                         202.9723446,
                     ),
@@ -3785,7 +4357,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 205,
+                    mass_number: NonZeroU32Kdl(
+                        205,
+                    ),
                     relative_mass: DecimalKdl(
                         204.9744278,
                     ),
@@ -3804,7 +4378,9 @@ AtomicDatabaseKdl {
             name: "Lead",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 204,
+                    mass_number: NonZeroU32Kdl(
+                        204,
+                    ),
                     relative_mass: DecimalKdl(
                         203.9730440,
                     ),
@@ -3815,7 +4391,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 206,
+                    mass_number: NonZeroU32Kdl(
+                        206,
+                    ),
                     relative_mass: DecimalKdl(
                         205.9744657,
                     ),
@@ -3826,7 +4404,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 207,
+                    mass_number: NonZeroU32Kdl(
+                        207,
+                    ),
                     relative_mass: DecimalKdl(
                         206.9758973,
                     ),
@@ -3837,7 +4417,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 208,
+                    mass_number: NonZeroU32Kdl(
+                        208,
+                    ),
                     relative_mass: DecimalKdl(
                         207.9766525,
                     ),
@@ -3856,7 +4438,9 @@ AtomicDatabaseKdl {
             name: "Bismuth",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 209,
+                    mass_number: NonZeroU32Kdl(
+                        209,
+                    ),
                     relative_mass: DecimalKdl(
                         208.9803991,
                     ),
@@ -3875,14 +4459,18 @@ AtomicDatabaseKdl {
             name: "Polonium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 209,
+                    mass_number: NonZeroU32Kdl(
+                        209,
+                    ),
                     relative_mass: DecimalKdl(
                         208.9824308,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 210,
+                    mass_number: NonZeroU32Kdl(
+                        210,
+                    ),
                     relative_mass: DecimalKdl(
                         209.9828741,
                     ),
@@ -3897,14 +4485,18 @@ AtomicDatabaseKdl {
             name: "Astatine",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 210,
+                    mass_number: NonZeroU32Kdl(
+                        210,
+                    ),
                     relative_mass: DecimalKdl(
                         209.9871479,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 211,
+                    mass_number: NonZeroU32Kdl(
+                        211,
+                    ),
                     relative_mass: DecimalKdl(
                         210.9874966,
                     ),
@@ -3919,21 +4511,27 @@ AtomicDatabaseKdl {
             name: "Radon",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 211,
+                    mass_number: NonZeroU32Kdl(
+                        211,
+                    ),
                     relative_mass: DecimalKdl(
                         210.9906011,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 220,
+                    mass_number: NonZeroU32Kdl(
+                        220,
+                    ),
                     relative_mass: DecimalKdl(
                         220.0113941,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 222,
+                    mass_number: NonZeroU32Kdl(
+                        222,
+                    ),
                     relative_mass: DecimalKdl(
                         222.0175782,
                     ),
@@ -3948,7 +4546,9 @@ AtomicDatabaseKdl {
             name: "Francium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 223,
+                    mass_number: NonZeroU32Kdl(
+                        223,
+                    ),
                     relative_mass: DecimalKdl(
                         223.0197360,
                     ),
@@ -3963,28 +4563,36 @@ AtomicDatabaseKdl {
             name: "Radium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 223,
+                    mass_number: NonZeroU32Kdl(
+                        223,
+                    ),
                     relative_mass: DecimalKdl(
                         223.0185023,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 224,
+                    mass_number: NonZeroU32Kdl(
+                        224,
+                    ),
                     relative_mass: DecimalKdl(
                         224.0202120,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 226,
+                    mass_number: NonZeroU32Kdl(
+                        226,
+                    ),
                     relative_mass: DecimalKdl(
                         226.0254103,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 228,
+                    mass_number: NonZeroU32Kdl(
+                        228,
+                    ),
                     relative_mass: DecimalKdl(
                         228.0310707,
                     ),
@@ -3999,7 +4607,9 @@ AtomicDatabaseKdl {
             name: "Actinium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 227,
+                    mass_number: NonZeroU32Kdl(
+                        227,
+                    ),
                     relative_mass: DecimalKdl(
                         227.0277523,
                     ),
@@ -4014,14 +4624,18 @@ AtomicDatabaseKdl {
             name: "Thorium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 230,
+                    mass_number: NonZeroU32Kdl(
+                        230,
+                    ),
                     relative_mass: DecimalKdl(
                         230.0331341,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 232,
+                    mass_number: NonZeroU32Kdl(
+                        232,
+                    ),
                     relative_mass: DecimalKdl(
                         232.0380558,
                     ),
@@ -4040,7 +4654,9 @@ AtomicDatabaseKdl {
             name: "Protactinium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 231,
+                    mass_number: NonZeroU32Kdl(
+                        231,
+                    ),
                     relative_mass: DecimalKdl(
                         231.0358842,
                     ),
@@ -4059,14 +4675,18 @@ AtomicDatabaseKdl {
             name: "Uranium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 233,
+                    mass_number: NonZeroU32Kdl(
+                        233,
+                    ),
                     relative_mass: DecimalKdl(
                         233.0396355,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 234,
+                    mass_number: NonZeroU32Kdl(
+                        234,
+                    ),
                     relative_mass: DecimalKdl(
                         234.0409523,
                     ),
@@ -4077,7 +4697,9 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 235,
+                    mass_number: NonZeroU32Kdl(
+                        235,
+                    ),
                     relative_mass: DecimalKdl(
                         235.0439301,
                     ),
@@ -4088,14 +4710,18 @@ AtomicDatabaseKdl {
                     ),
                 },
                 IsotopeKdl {
-                    mass_number: 236,
+                    mass_number: NonZeroU32Kdl(
+                        236,
+                    ),
                     relative_mass: DecimalKdl(
                         236.0455682,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 238,
+                    mass_number: NonZeroU32Kdl(
+                        238,
+                    ),
                     relative_mass: DecimalKdl(
                         238.0507884,
                     ),
@@ -4114,14 +4740,18 @@ AtomicDatabaseKdl {
             name: "Neptunium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 236,
+                    mass_number: NonZeroU32Kdl(
+                        236,
+                    ),
                     relative_mass: DecimalKdl(
                         236.046570,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 237,
+                    mass_number: NonZeroU32Kdl(
+                        237,
+                    ),
                     relative_mass: DecimalKdl(
                         237.0481736,
                     ),
@@ -4136,42 +4766,54 @@ AtomicDatabaseKdl {
             name: "Plutonium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 238,
+                    mass_number: NonZeroU32Kdl(
+                        238,
+                    ),
                     relative_mass: DecimalKdl(
                         238.0495601,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 239,
+                    mass_number: NonZeroU32Kdl(
+                        239,
+                    ),
                     relative_mass: DecimalKdl(
                         239.0521636,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 240,
+                    mass_number: NonZeroU32Kdl(
+                        240,
+                    ),
                     relative_mass: DecimalKdl(
                         240.0538138,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 241,
+                    mass_number: NonZeroU32Kdl(
+                        241,
+                    ),
                     relative_mass: DecimalKdl(
                         241.0568517,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 242,
+                    mass_number: NonZeroU32Kdl(
+                        242,
+                    ),
                     relative_mass: DecimalKdl(
                         242.0587428,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 244,
+                    mass_number: NonZeroU32Kdl(
+                        244,
+                    ),
                     relative_mass: DecimalKdl(
                         244.0642053,
                     ),
@@ -4186,14 +4828,18 @@ AtomicDatabaseKdl {
             name: "Americium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 241,
+                    mass_number: NonZeroU32Kdl(
+                        241,
+                    ),
                     relative_mass: DecimalKdl(
                         241.0568293,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 243,
+                    mass_number: NonZeroU32Kdl(
+                        243,
+                    ),
                     relative_mass: DecimalKdl(
                         243.0613813,
                     ),
@@ -4208,42 +4854,54 @@ AtomicDatabaseKdl {
             name: "Curium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 243,
+                    mass_number: NonZeroU32Kdl(
+                        243,
+                    ),
                     relative_mass: DecimalKdl(
                         243.0613893,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 244,
+                    mass_number: NonZeroU32Kdl(
+                        244,
+                    ),
                     relative_mass: DecimalKdl(
                         244.0627528,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 245,
+                    mass_number: NonZeroU32Kdl(
+                        245,
+                    ),
                     relative_mass: DecimalKdl(
                         245.0654915,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 246,
+                    mass_number: NonZeroU32Kdl(
+                        246,
+                    ),
                     relative_mass: DecimalKdl(
                         246.0672238,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 247,
+                    mass_number: NonZeroU32Kdl(
+                        247,
+                    ),
                     relative_mass: DecimalKdl(
                         247.0703541,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 248,
+                    mass_number: NonZeroU32Kdl(
+                        248,
+                    ),
                     relative_mass: DecimalKdl(
                         248.0723499,
                     ),
@@ -4258,14 +4916,18 @@ AtomicDatabaseKdl {
             name: "Berkelium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 247,
+                    mass_number: NonZeroU32Kdl(
+                        247,
+                    ),
                     relative_mass: DecimalKdl(
                         247.0703073,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 249,
+                    mass_number: NonZeroU32Kdl(
+                        249,
+                    ),
                     relative_mass: DecimalKdl(
                         249.0749877,
                     ),
@@ -4280,28 +4942,36 @@ AtomicDatabaseKdl {
             name: "Californium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 249,
+                    mass_number: NonZeroU32Kdl(
+                        249,
+                    ),
                     relative_mass: DecimalKdl(
                         249.0748539,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 250,
+                    mass_number: NonZeroU32Kdl(
+                        250,
+                    ),
                     relative_mass: DecimalKdl(
                         250.0764062,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 251,
+                    mass_number: NonZeroU32Kdl(
+                        251,
+                    ),
                     relative_mass: DecimalKdl(
                         251.0795886,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 252,
+                    mass_number: NonZeroU32Kdl(
+                        252,
+                    ),
                     relative_mass: DecimalKdl(
                         252.0816272,
                     ),
@@ -4316,7 +4986,9 @@ AtomicDatabaseKdl {
             name: "Einsteinium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 252,
+                    mass_number: NonZeroU32Kdl(
+                        252,
+                    ),
                     relative_mass: DecimalKdl(
                         252.082980,
                     ),
@@ -4331,7 +5003,9 @@ AtomicDatabaseKdl {
             name: "Fermium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 257,
+                    mass_number: NonZeroU32Kdl(
+                        257,
+                    ),
                     relative_mass: DecimalKdl(
                         257.0951061,
                     ),
@@ -4346,14 +5020,18 @@ AtomicDatabaseKdl {
             name: "Mendelevium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 258,
+                    mass_number: NonZeroU32Kdl(
+                        258,
+                    ),
                     relative_mass: DecimalKdl(
                         258.0984315,
                     ),
                     abundance: None,
                 },
                 IsotopeKdl {
-                    mass_number: 260,
+                    mass_number: NonZeroU32Kdl(
+                        260,
+                    ),
                     relative_mass: DecimalKdl(
                         260.10365,
                     ),
@@ -4368,7 +5046,9 @@ AtomicDatabaseKdl {
             name: "Nobelium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 259,
+                    mass_number: NonZeroU32Kdl(
+                        259,
+                    ),
                     relative_mass: DecimalKdl(
                         259.10103,
                     ),
@@ -4383,7 +5063,9 @@ AtomicDatabaseKdl {
             name: "Lawrencium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 262,
+                    mass_number: NonZeroU32Kdl(
+                        262,
+                    ),
                     relative_mass: DecimalKdl(
                         262.10961,
                     ),
@@ -4398,7 +5080,9 @@ AtomicDatabaseKdl {
             name: "Rutherfordium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 267,
+                    mass_number: NonZeroU32Kdl(
+                        267,
+                    ),
                     relative_mass: DecimalKdl(
                         267.12179,
                     ),
@@ -4413,7 +5097,9 @@ AtomicDatabaseKdl {
             name: "Dubnium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 268,
+                    mass_number: NonZeroU32Kdl(
+                        268,
+                    ),
                     relative_mass: DecimalKdl(
                         268.12567,
                     ),
@@ -4428,7 +5114,9 @@ AtomicDatabaseKdl {
             name: "Seaborgium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 271,
+                    mass_number: NonZeroU32Kdl(
+                        271,
+                    ),
                     relative_mass: DecimalKdl(
                         271.13393,
                     ),
@@ -4443,7 +5131,9 @@ AtomicDatabaseKdl {
             name: "Bohrium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 272,
+                    mass_number: NonZeroU32Kdl(
+                        272,
+                    ),
                     relative_mass: DecimalKdl(
                         272.13826,
                     ),
@@ -4458,7 +5148,9 @@ AtomicDatabaseKdl {
             name: "Hassium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 270,
+                    mass_number: NonZeroU32Kdl(
+                        270,
+                    ),
                     relative_mass: DecimalKdl(
                         270.13429,
                     ),
@@ -4473,7 +5165,9 @@ AtomicDatabaseKdl {
             name: "Meitnerium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 276,
+                    mass_number: NonZeroU32Kdl(
+                        276,
+                    ),
                     relative_mass: DecimalKdl(
                         276.15159,
                     ),
@@ -4488,7 +5182,9 @@ AtomicDatabaseKdl {
             name: "Darmstadtium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 281,
+                    mass_number: NonZeroU32Kdl(
+                        281,
+                    ),
                     relative_mass: DecimalKdl(
                         281.16451,
                     ),
@@ -4503,7 +5199,9 @@ AtomicDatabaseKdl {
             name: "Roentgenium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 280,
+                    mass_number: NonZeroU32Kdl(
+                        280,
+                    ),
                     relative_mass: DecimalKdl(
                         280.16514,
                     ),
@@ -4518,7 +5216,9 @@ AtomicDatabaseKdl {
             name: "Copernicium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 285,
+                    mass_number: NonZeroU32Kdl(
+                        285,
+                    ),
                     relative_mass: DecimalKdl(
                         285.17712,
                     ),
@@ -4533,7 +5233,9 @@ AtomicDatabaseKdl {
             name: "Nihonium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 284,
+                    mass_number: NonZeroU32Kdl(
+                        284,
+                    ),
                     relative_mass: DecimalKdl(
                         284.17873,
                     ),
@@ -4548,7 +5250,9 @@ AtomicDatabaseKdl {
             name: "Flerovium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 289,
+                    mass_number: NonZeroU32Kdl(
+                        289,
+                    ),
                     relative_mass: DecimalKdl(
                         289.19042,
                     ),
@@ -4563,7 +5267,9 @@ AtomicDatabaseKdl {
             name: "Moscovium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 288,
+                    mass_number: NonZeroU32Kdl(
+                        288,
+                    ),
                     relative_mass: DecimalKdl(
                         288.19274,
                     ),
@@ -4578,7 +5284,9 @@ AtomicDatabaseKdl {
             name: "Livermorium",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 293,
+                    mass_number: NonZeroU32Kdl(
+                        293,
+                    ),
                     relative_mass: DecimalKdl(
                         293.20449,
                     ),
@@ -4593,7 +5301,9 @@ AtomicDatabaseKdl {
             name: "Tennessine",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 292,
+                    mass_number: NonZeroU32Kdl(
+                        292,
+                    ),
                     relative_mass: DecimalKdl(
                         292.20746,
                     ),
@@ -4608,7 +5318,9 @@ AtomicDatabaseKdl {
             name: "Oganesson",
             isotopes: [
                 IsotopeKdl {
-                    mass_number: 294,
+                    mass_number: NonZeroU32Kdl(
+                        294,
+                    ),
                     relative_mass: DecimalKdl(
                         294.21392,
                     ),

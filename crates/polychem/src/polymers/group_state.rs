@@ -8,10 +8,10 @@ impl Display for GroupState {
             f,
             "{}",
             match self {
-                GroupState::Free => "free",
-                GroupState::Modified(_) => "modified",
-                GroupState::Donor(_) => "a donor",
-                GroupState::Acceptor(_) => "an acceptor",
+                Self::Free => "free",
+                Self::Modified(_) => "modified",
+                Self::Donor(_) => "a donor",
+                Self::Acceptor(_) => "an acceptor",
             }
         )
     }

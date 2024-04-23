@@ -6,8 +6,8 @@ use crate::OffsetKind;
 impl OffsetKind {
     pub fn offset<T: Neg<Output = T>>(self, value: T) -> T {
         match self {
-            OffsetKind::Add => value,
-            OffsetKind::Remove => -value,
+            Self::Add => value,
+            Self::Remove => -value,
         }
     }
 }

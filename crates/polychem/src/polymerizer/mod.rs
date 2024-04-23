@@ -12,7 +12,7 @@ pub struct Polymerizer<'a, 'p> {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub struct PolymerizerState<'a, 'p> {
+pub(crate) struct PolymerizerState<'a, 'p> {
     atomic_db: &'a AtomicDatabase,
     polymer_db: &'p PolymerDatabase<'a>,
     next_id: Id,

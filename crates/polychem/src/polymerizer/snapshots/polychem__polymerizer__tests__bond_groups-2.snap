@@ -1,9 +1,0 @@
----
-source: crates/polychem/src/polymerizer/mod.rs
-description: invalid_bond
-expression: out
----
-  × failed to form "Peptide" bond between residue 2 (Alanine) and residue 3
-  │ (N-Acetylglucosamine) due to an issue with the acceptor
-  ╰─▶   × the functional group "Amino" at="N-Terminal" does not exist on
-        │ residue 3

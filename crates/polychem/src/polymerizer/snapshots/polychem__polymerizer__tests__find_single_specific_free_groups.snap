@@ -1,7 +1,0 @@
----
-source: crates/polychem/src/polymerizer/mod.rs
-description: group_occupied
-expression: out
----
-  × the functional group "Hydroxyl" at="Nonreducing End" of residue 1 was
-  │ already an acceptor, but must be free

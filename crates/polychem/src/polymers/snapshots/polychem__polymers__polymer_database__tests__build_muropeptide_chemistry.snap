@@ -4,7 +4,8 @@ expression: db
 ---
 PolymerDatabase(
   bonds: {
-    "Charged": BondDescription(
+    "Chr": BondDescription(
+      name: "Charged",
       from: Target(
         group: "Hydroxyl",
         location: Some("6-Position"),
@@ -17,70 +18,16 @@ PolymerDatabase(
       ),
       lost: ChemicalComposition(
         chemical_formula: [],
-        particle_offset: Some((Add, 2, Particle(
+        particle_offset: Some((Add, Count(2), Particle(
           symbol: "p",
           name: "Proton",
-          mass: "1.007276466621",
-          charge: 1,
+          mass: Mass("1.007276466621"),
+          charge: Charge(1),
         ))),
       ),
     ),
-    "Crosslink": BondDescription(
-      from: Target(
-        group: "Carboxyl",
-        location: Some("C-Terminal"),
-        residue: None,
-      ),
-      to: Target(
-        group: "Amino",
-        location: None,
-        residue: None,
-      ),
-      lost: ChemicalComposition(
-        chemical_formula: [
-          (Element(
-            symbol: "H",
-            name: "Hydrogen",
-            mass_number: None,
-            isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
-              ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
-              ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
-                abundance: None,
-              ),
-            },
-          ), 2),
-          (Element(
-            symbol: "O",
-            name: "Oxygen",
-            mass_number: None,
-            isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
-              ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
-              ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
-              ),
-            },
-          ), 1),
-        ],
-        particle_offset: None,
-      ),
-    ),
-    "Glycosidic": BondDescription(
+    "Gly": BondDescription(
+      name: "Glycosidic",
       from: Target(
         group: "Hydroxyl",
         location: Some("Reducing End"),
@@ -98,44 +45,101 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
     ),
-    "Peptide": BondDescription(
+    "Link": BondDescription(
+      name: "Stem Peptide Crosslink",
+      from: Target(
+        group: "Carboxyl",
+        location: Some("C-Terminal"),
+        residue: None,
+      ),
+      to: Target(
+        group: "Amino",
+        location: None,
+        residue: None,
+      ),
+      lost: ChemicalComposition(
+        chemical_formula: [
+          (Element(
+            symbol: "H",
+            name: "Hydrogen",
+            mass_number: None,
+            isotopes: {
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
+              ),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
+              ),
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
+                abundance: None,
+              ),
+            },
+          ), Count(2)),
+          (Element(
+            symbol: "O",
+            name: "Oxygen",
+            mass_number: None,
+            isotopes: {
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
+              ),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
+              ),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
+              ),
+            },
+          ), Count(1)),
+        ],
+        particle_offset: None,
+      ),
+    ),
+    "Pep": BondDescription(
+      name: "Peptide",
       from: Target(
         group: "Carboxyl",
         location: Some("C-Terminal"),
@@ -153,44 +157,45 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
     ),
     "Stem": BondDescription(
+      name: "MurNAc -> Stem Peptide",
       from: Target(
         group: "Carboxyl",
         location: Some("Lactyl Ether"),
@@ -208,39 +213,39 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -256,20 +261,20 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -280,58 +285,58 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 3),
+          ), Count(3)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -352,39 +357,39 @@ PolymerDatabase(
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -395,35 +400,35 @@ PolymerDatabase(
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -444,39 +449,39 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -496,11 +501,11 @@ PolymerDatabase(
       name: "Calcium Adduct",
       lost: ChemicalComposition(
         chemical_formula: [],
-        particle_offset: Some((Add, 1, Particle(
+        particle_offset: Some((Add, Count(1), Particle(
           symbol: "p",
           name: "Proton",
-          mass: "1.007276466621",
-          charge: 1,
+          mass: Mass("1.007276466621"),
+          charge: Charge(1),
         ))),
       ),
       gained: ChemicalComposition(
@@ -510,38 +515,38 @@ PolymerDatabase(
             name: "Calcium",
             mass_number: None,
             isotopes: {
-              40: Isotope(
-                relative_mass: "39.962590863",
-                abundance: Some("0.96941"),
+              MassNumber(40): Isotope(
+                relative_mass: Mass("39.962590863"),
+                abundance: Some(Abundance("0.96941")),
               ),
-              42: Isotope(
-                relative_mass: "41.95861783",
-                abundance: Some("0.00647"),
+              MassNumber(42): Isotope(
+                relative_mass: Mass("41.95861783"),
+                abundance: Some(Abundance("0.00647")),
               ),
-              43: Isotope(
-                relative_mass: "42.95876644",
-                abundance: Some("0.00135"),
+              MassNumber(43): Isotope(
+                relative_mass: Mass("42.95876644"),
+                abundance: Some(Abundance("0.00135")),
               ),
-              44: Isotope(
-                relative_mass: "43.95548156",
-                abundance: Some("0.02086"),
+              MassNumber(44): Isotope(
+                relative_mass: Mass("43.95548156"),
+                abundance: Some(Abundance("0.02086")),
               ),
-              46: Isotope(
-                relative_mass: "45.9536890",
-                abundance: Some("0.00004"),
+              MassNumber(46): Isotope(
+                relative_mass: Mass("45.9536890"),
+                abundance: Some(Abundance("0.00004")),
               ),
-              48: Isotope(
-                relative_mass: "47.95252276",
-                abundance: Some("0.00187"),
+              MassNumber(48): Isotope(
+                relative_mass: Mass("47.95252276"),
+                abundance: Some(Abundance("0.00187")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
-        particle_offset: Some((Remove, 2, Particle(
+        particle_offset: Some((Remove, Count(2), Particle(
           symbol: "e",
           name: "Electron",
-          mass: "0.000548579909065",
-          charge: -1,
+          mass: Mass("0.000548579909065"),
+          charge: Charge(-1),
         ))),
       ),
       targets: [
@@ -571,58 +576,58 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 3),
+          ), Count(3)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -633,20 +638,20 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -667,20 +672,20 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -691,39 +696,39 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 3),
+          ), Count(3)),
         ],
         particle_offset: None,
       ),
@@ -744,20 +749,20 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -768,31 +773,31 @@ PolymerDatabase(
             name: "Phosphorus",
             mass_number: None,
             isotopes: {
-              31: Isotope(
-                relative_mass: "30.97376199842",
-                abundance: Some("1"),
+              MassNumber(31): Isotope(
+                relative_mass: Mass("30.97376199842"),
+                abundance: Some(Abundance("1")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 3),
+          ), Count(3)),
         ],
         particle_offset: None,
       ),
@@ -817,20 +822,20 @@ PolymerDatabase(
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -853,73 +858,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 3),
+          ), Count(3)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 7),
+          ), Count(7)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -943,73 +948,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 4),
+          ), Count(4)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 10),
+          ), Count(10)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -1037,96 +1042,96 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 3),
+          ), Count(3)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 7),
+          ), Count(7)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "S",
             name: "Sulfur",
             mass_number: None,
             isotopes: {
-              32: Isotope(
-                relative_mass: "31.9720711744",
-                abundance: Some("0.9499"),
+              MassNumber(32): Isotope(
+                relative_mass: Mass("31.9720711744"),
+                abundance: Some(Abundance("0.9499")),
               ),
-              33: Isotope(
-                relative_mass: "32.9714589098",
-                abundance: Some("0.0075"),
+              MassNumber(33): Isotope(
+                relative_mass: Mass("32.9714589098"),
+                abundance: Some(Abundance("0.0075")),
               ),
-              34: Isotope(
-                relative_mass: "33.967867004",
-                abundance: Some("0.0425"),
+              MassNumber(34): Isotope(
+                relative_mass: Mass("33.967867004"),
+                abundance: Some(Abundance("0.0425")),
               ),
-              36: Isotope(
-                relative_mass: "35.96708071",
-                abundance: Some("0.0001"),
+              MassNumber(36): Isotope(
+                relative_mass: Mass("35.96708071"),
+                abundance: Some(Abundance("0.0001")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -1150,73 +1155,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 4),
+          ), Count(4)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 7),
+          ), Count(7)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 4),
+          ), Count(4)),
         ],
         particle_offset: None,
       ),
@@ -1244,73 +1249,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 5),
+          ), Count(5)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 9),
+          ), Count(9)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 4),
+          ), Count(4)),
         ],
         particle_offset: None,
       ),
@@ -1338,73 +1343,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 9),
+          ), Count(9)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 11),
+          ), Count(11)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -1428,73 +1433,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 5),
+          ), Count(5)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -1518,73 +1523,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 6),
+          ), Count(6)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 9),
+          ), Count(9)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 3),
+          ), Count(3)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -1608,73 +1613,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 6),
+          ), Count(6)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 13),
+          ), Count(13)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -1698,73 +1703,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 7),
+          ), Count(7)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 14),
+          ), Count(14)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 4),
+          ), Count(4)),
         ],
         particle_offset: None,
       ),
@@ -1796,73 +1801,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 6),
+          ), Count(6)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 14),
+          ), Count(14)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -1890,73 +1895,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 6),
+          ), Count(6)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 13),
+          ), Count(13)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -1980,96 +1985,96 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 5),
+          ), Count(5)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 11),
+          ), Count(11)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "S",
             name: "Sulfur",
             mass_number: None,
             isotopes: {
-              32: Isotope(
-                relative_mass: "31.9720711744",
-                abundance: Some("0.9499"),
+              MassNumber(32): Isotope(
+                relative_mass: Mass("31.9720711744"),
+                abundance: Some(Abundance("0.9499")),
               ),
-              33: Isotope(
-                relative_mass: "32.9714589098",
-                abundance: Some("0.0075"),
+              MassNumber(33): Isotope(
+                relative_mass: Mass("32.9714589098"),
+                abundance: Some(Abundance("0.0075")),
               ),
-              34: Isotope(
-                relative_mass: "33.967867004",
-                abundance: Some("0.0425"),
+              MassNumber(34): Isotope(
+                relative_mass: Mass("33.967867004"),
+                abundance: Some(Abundance("0.0425")),
               ),
-              36: Isotope(
-                relative_mass: "35.96708071",
-                abundance: Some("0.0001"),
+              MassNumber(36): Isotope(
+                relative_mass: Mass("35.96708071"),
+                abundance: Some(Abundance("0.0001")),
               ),
             },
-          ), 1),
+          ), Count(1)),
         ],
         particle_offset: None,
       ),
@@ -2093,73 +2098,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 4),
+          ), Count(4)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 8),
+          ), Count(8)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 3),
+          ), Count(3)),
         ],
         particle_offset: None,
       ),
@@ -2187,73 +2192,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 5),
+          ), Count(5)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 12),
+          ), Count(12)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -2281,73 +2286,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 5),
+          ), Count(5)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 9),
+          ), Count(9)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -2371,73 +2376,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 5),
+          ), Count(5)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 10),
+          ), Count(10)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 3),
+          ), Count(3)),
         ],
         particle_offset: None,
       ),
@@ -2465,73 +2470,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 6),
+          ), Count(6)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 14),
+          ), Count(14)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 4),
+          ), Count(4)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -2555,73 +2560,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 3),
+          ), Count(3)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 7),
+          ), Count(7)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 3),
+          ), Count(3)),
         ],
         particle_offset: None,
       ),
@@ -2645,73 +2650,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 4),
+          ), Count(4)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 9),
+          ), Count(9)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 3),
+          ), Count(3)),
         ],
         particle_offset: None,
       ),
@@ -2735,73 +2740,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 4),
+          ), Count(4)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 9),
+          ), Count(9)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 3),
+          ), Count(3)),
         ],
         particle_offset: None,
       ),
@@ -2825,73 +2830,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 5),
+          ), Count(5)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 11),
+          ), Count(11)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -2915,73 +2920,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 11),
+          ), Count(11)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 12),
+          ), Count(12)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 2),
+          ), Count(2)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 2),
+          ), Count(2)),
         ],
         particle_offset: None,
       ),
@@ -3022,73 +3027,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 9),
+          ), Count(9)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 11),
+          ), Count(11)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 3),
+          ), Count(3)),
         ],
         particle_offset: None,
       ),
@@ -3112,73 +3117,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 5),
+          ), Count(5)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 9),
+          ), Count(9)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 5),
+          ), Count(5)),
         ],
         particle_offset: None,
       ),
@@ -3202,73 +3207,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 8),
+          ), Count(8)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 15),
+          ), Count(15)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 6),
+          ), Count(6)),
         ],
         particle_offset: None,
       ),
@@ -3300,73 +3305,73 @@ PolymerDatabase(
             name: "Carbon",
             mass_number: None,
             isotopes: {
-              12: Isotope(
-                relative_mass: "12.0000000",
-                abundance: Some("0.9893"),
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
               ),
-              13: Isotope(
-                relative_mass: "13.00335483507",
-                abundance: Some("0.0107"),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
               ),
-              14: Isotope(
-                relative_mass: "14.0032419884",
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
                 abundance: None,
               ),
             },
-          ), 11),
+          ), Count(11)),
           (Element(
             symbol: "H",
             name: "Hydrogen",
             mass_number: None,
             isotopes: {
-              1: Isotope(
-                relative_mass: "1.00782503223",
-                abundance: Some("0.999885"),
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
               ),
-              2: Isotope(
-                relative_mass: "2.01410177812",
-                abundance: Some("0.000115"),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
               ),
-              3: Isotope(
-                relative_mass: "3.0160492779",
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
                 abundance: None,
               ),
             },
-          ), 19),
+          ), Count(19)),
           (Element(
             symbol: "N",
             name: "Nitrogen",
             mass_number: None,
             isotopes: {
-              14: Isotope(
-                relative_mass: "14.00307400443",
-                abundance: Some("0.99636"),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
               ),
-              15: Isotope(
-                relative_mass: "15.00010889888",
-                abundance: Some("0.00364"),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
               ),
             },
-          ), 1),
+          ), Count(1)),
           (Element(
             symbol: "O",
             name: "Oxygen",
             mass_number: None,
             isotopes: {
-              16: Isotope(
-                relative_mass: "15.99491461957",
-                abundance: Some("0.99757"),
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
               ),
-              17: Isotope(
-                relative_mass: "16.99913175650",
-                abundance: Some("0.00038"),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
               ),
-              18: Isotope(
-                relative_mass: "17.99915961286",
-                abundance: Some("0.00205"),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
               ),
             },
-          ), 8),
+          ), Count(8)),
         ],
         particle_offset: None,
       ),

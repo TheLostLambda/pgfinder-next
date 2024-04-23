@@ -1,8 +1,0 @@
----
-source: crates/polychem/src/polymers/residue.rs
-description: "alanine.add_offsets(proton(OffsetKind::Add), Count::MAX)"
-expression: out
----
-  × failed to apply the offset modification +4294967295xp to residue 0
-  │ (Alanine)
-  ╰─▶   × the count 8589934590 is too large to represent using 32 bits

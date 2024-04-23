@@ -3,8 +3,6 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-use itertools::Itertools;
-
 use crate::{AverageMass, Element, Isotope, Mass, MassNumber, Massive, MonoisotopicMass, Result};
 
 use super::{
@@ -37,7 +35,7 @@ impl<'a> Element<'a> {
         let (symbol, ElementDescription { name, isotopes }) = db
             .elements
             .get_key_value(symbol)
-            .ok_or_else(|| AtomicLookupError::Element(symbol.to_owned()))?;
+            .ok_or_else(|| AtomicLookupError::element(symbol))?;
 
         let element = Self {
             symbol,
@@ -59,19 +57,15 @@ impl<'a> Element<'a> {
     ) -> Result<Self, AtomicLookupError> {
         if let Some(mass_number) = mass_number {
             if !isotopes.contains_key(&mass_number) {
-                return Err(AtomicLookupError::Isotope(
-                    symbol.to_owned(),
+                return Err(AtomicLookupError::isotope(
+                    symbol,
                     mass_number,
-                    name.to_owned(),
-                    isotopes.keys().copied().sorted().collect(),
+                    name,
+                    isotopes,
                 ));
             }
         } else if !isotopes.values().any(|i| i.abundance.is_some()) {
-            return Err(AtomicLookupError::Abundance(
-                name.to_owned(),
-                symbol.to_owned(),
-                isotopes.keys().copied().sorted().collect(),
-            ));
+            return Err(AtomicLookupError::abundance(name, symbol, isotopes));
         }
 
         Ok(element)

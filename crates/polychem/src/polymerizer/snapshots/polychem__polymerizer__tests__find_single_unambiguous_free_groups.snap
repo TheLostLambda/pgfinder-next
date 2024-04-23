@@ -1,6 +1,0 @@
----
-source: crates/polychem/src/polymerizer/mod.rs
-description: zero_groups
-expression: out
----
-  × attemped to find zero free groups, but you must look for at least one
