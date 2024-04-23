@@ -1,22 +1,11 @@
-use nom::{
-    branch::alt,
-    character::complete::char,
-    combinator::{map, opt},
-    sequence::{pair, terminated, tuple},
-    Parser,
-};
-use nom_miette::{into, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
+use nom::{branch::alt, character::complete::char, sequence::terminated, Parser};
+use nom_miette::{wrap_err, LabeledParseError};
 
-use crate::{
-    polymerizer::Polymerizer, AnyModification, AtomicDatabase, Count, Modification, NamedMod,
-    OffsetMod, PolychemError, PolymerDatabase,
-};
+use crate::{Count, ModificationId, Polymer};
 
 use super::{
-    chemical_composition::chemical_composition,
     count,
     errors::{ParseResult, PolychemErrorKind},
-    offset_kind,
 };
 
 // FIXME: The errors for these parsers need to be tested and improved!
@@ -24,48 +13,36 @@ use super::{
 
 /// Any Modification = Named Modification | Offset Modification
 pub fn any<'a, 'p, 's, K>(
-    polymerizer: &Polymerizer<'a, 'p>,
+    polymer: &mut Polymer<'a, 'p>,
     identifier: impl Parser<&'s str, &'s str, LabeledParseError<'s, K>>,
-) -> impl FnMut(&'s str) -> ParseResult<AnyModification<'a, 'p>, K>
+) -> impl FnMut(&'s str) -> ParseResult<ModificationId, K>
 where
-    K: LabeledErrorKind + From<PolychemErrorKind> + FromExternalError<'s, Box<PolychemError>>,
+    K: From<PolychemErrorKind> + From<nom::error::ErrorKind>,
 {
-    alt((
-        into(named(polymerizer.polymer_db(), identifier)),
-        into(offset::<K>(polymerizer.atomic_db())),
-    ))
+    alt((named(polymer, identifier), offset::<K>(polymer)))
 }
 
 // FIXME: I probably need to add a lot of `wrap_err`s around these parsers!
 /// Named Modification = [ Multiplier ] , Identifier
 pub fn named<'a, 'p, 's, K>(
-    db: &'p PolymerDatabase<'a>,
-    identifier: impl Parser<&'s str, &'s str, LabeledParseError<'s, K>>,
-) -> impl FnMut(&'s str) -> ParseResult<Modification<NamedMod<'a, 'p>>, K>
+    _polymer: &mut Polymer<'a, 'p>,
+    _identifier: impl Parser<&'s str, &'s str, LabeledParseError<'s, K>>,
+) -> impl FnMut(&'s str) -> ParseResult<ModificationId, K>
 where
-    K: LabeledErrorKind + From<PolychemErrorKind> + FromExternalError<'s, Box<PolychemError>>,
+    K: From<PolychemErrorKind> + From<nom::error::ErrorKind>,
 {
-    let named_mod = map_res(identifier, |abbr| NamedMod::new(db, abbr));
-    let parser = pair(opt(into(multiplier)), named_mod);
-    map(parser, |(multiplier, named_mod)| {
-        Modification::new(multiplier.unwrap_or(1), named_mod)
-    })
+    |_| todo!()
 }
 
 /// Offset Modification = Offset Kind , [ Multiplier ] ,
 ///   Chemical Composition ;
-pub fn offset<'a, 's, K: From<PolychemErrorKind> + LabeledErrorKind>(
-    db: &'a AtomicDatabase,
-) -> impl FnMut(&'s str) -> ParseResult<Modification<OffsetMod<'a>>, K> {
-    let parser = tuple((offset_kind, opt(multiplier), chemical_composition(db)));
-    // FIXME: Remove this `into` combinator after updating all sub-parsers to be generic! Well, maybe I only make the
-    // public parsers generic...
-    into(map(parser, |(kind, multiplier, composition)| {
-        Modification::new(
-            multiplier.unwrap_or(1),
-            OffsetMod::new_with_composition(kind, composition),
-        )
-    }))
+pub fn offset<'a, 's, K>(
+    _polymer: &mut Polymer<'a, '_>,
+) -> impl FnMut(&'s str) -> ParseResult<ModificationId, K>
+where
+    K: From<PolychemErrorKind>,
+{
+    |_| todo!()
 }
 
 /// Multiplier = Count , "x" ;
@@ -81,12 +58,13 @@ mod tests {
         character::complete::{alpha1, alphanumeric1},
         combinator::recognize,
         multi::many0,
+        sequence::pair,
     };
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
     use super::*;
-    use crate::{Charged, Massive};
+    use crate::{AtomicDatabase, PolymerDatabase};
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
@@ -106,11 +84,19 @@ mod tests {
 
     #[test]
     fn test_multiplier() {
+        macro_rules! assert_multiplier {
+            ($input:literal, $output:literal, $count:expr) => {
+                assert_eq!(
+                    multiplier($input),
+                    Ok(($output, Count::new($count).unwrap()))
+                );
+            };
+        }
         // Valid Multipliers
-        assert_eq!(multiplier("1x"), Ok(("", 1)));
-        assert_eq!(multiplier("10x"), Ok(("", 10)));
-        assert_eq!(multiplier("422x"), Ok(("", 422)));
-        assert_eq!(multiplier("9999x"), Ok(("", 9999)));
+        assert_multiplier!("1x", "", 1);
+        assert_multiplier!("10x", "", 10);
+        assert_multiplier!("422x", "", 422);
+        assert_multiplier!("9999x", "", 9999);
         // Invalid Multipliers
         assert!(multiplier("1").is_err());
         assert!(multiplier("10").is_err());
@@ -124,19 +110,21 @@ mod tests {
         assert!(multiplier("+H").is_err());
         assert!(multiplier("[H]").is_err());
         // Multiple Multipliers
-        assert_eq!(multiplier("1xOH"), Ok(("OH", 1)));
-        assert_eq!(multiplier("42xHeH"), Ok(("HeH", 42)));
+        assert_multiplier!("1xOH", "OH", 1);
+        assert_multiplier!("42xHeH", "HeH", 42);
     }
 
     #[test]
     #[allow(clippy::cognitive_complexity)]
     fn test_named_modification() {
-        let mut named_modification = named(&POLYMER_DB, identifier);
+        let mut named_modification = named(todo!(), identifier);
         macro_rules! assert_offset_mass {
             ($input:literal, $output:literal, $mass:expr) => {
                 let (rest, modification) = named_modification($input).unwrap();
                 assert_eq!(rest, $output);
-                assert_eq!(modification.monoisotopic_mass(), $mass);
+                // TODO: Need to get the monoisotopic mass of the modification, extracted from the `Polymer`...
+                assert_eq!(dec!(0), $mass);
+                // FIXME: This also needs to test charge!
             };
         }
         // Valid Named Modifications
@@ -183,13 +171,14 @@ mod tests {
     #[test]
     #[allow(clippy::cognitive_complexity)]
     fn test_offset_modification() {
-        let mut offset_modification = offset::<PolychemErrorKind>(&ATOMIC_DB);
+        let mut offset_modification = offset::<PolychemErrorKind>(todo!());
         macro_rules! assert_offset_mz {
             ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
                 let (rest, modification) = offset_modification($input).unwrap();
                 assert_eq!(rest, $output);
-                assert_eq!(modification.monoisotopic_mass(), $mass);
-                assert_eq!(modification.charge(), $charge);
+                // TODO: Need to get modification from `Polymer`, then check mass and charge!
+                assert_eq!(dec!(0), $mass);
+                assert_eq!(0, $charge);
             };
         }
         // Valid Offset Modifications

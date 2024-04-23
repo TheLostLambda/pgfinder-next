@@ -4,26 +4,26 @@
 pub mod parser;
 
 // FIXME: Blocks need separating and reordering!
-use polychem::{AnyModification, Residue};
+use polychem::{ModificationId, ResidueId};
 
-pub struct Muropeptide<'a> {
-    monomers: Vec<Monomer<'a>>,
+pub struct Muropeptide {
+    monomers: Vec<Monomer>,
     connections: Vec<Connection>,
-    modifications: Vec<AnyModification<'a, 'a>>,
+    modifications: Vec<ModificationId>,
 }
 
-struct Monomer<'a> {
-    glycan: Vec<Monosaccharide<'a>>,
-    peptide: Vec<AminoAcid<'a>>,
+struct Monomer {
+    glycan: Vec<Monosaccharide>,
+    peptide: Vec<AminoAcid>,
 }
 
 type Connection = Vec<ConnectionKind>;
 
-type Monosaccharide<'a> = Residue<'a, 'a>;
+type Monosaccharide = ResidueId;
 
-struct AminoAcid<'a> {
-    residue: Residue<'a, 'a>,
-    lateral_chain: Option<LateralChain<'a>>,
+struct AminoAcid {
+    residue: ResidueId,
+    lateral_chain: Option<LateralChain>,
 }
 
 enum ConnectionKind {
@@ -31,9 +31,9 @@ enum ConnectionKind {
     Crosslink(Vec<CrosslinkDescriptor>),
 }
 
-struct LateralChain<'a> {
+struct LateralChain {
     direction: PeptideDirection,
-    peptide: Vec<UnbranchedAminoAcid<'a>>,
+    peptide: Vec<UnbranchedAminoAcid>,
 }
 
 enum CrosslinkDescriptor {
@@ -47,7 +47,7 @@ enum PeptideDirection {
     NToC,
 }
 
-type UnbranchedAminoAcid<'a> = Residue<'a, 'a>;
+type UnbranchedAminoAcid = ResidueId;
 
 type Position = u8;
 

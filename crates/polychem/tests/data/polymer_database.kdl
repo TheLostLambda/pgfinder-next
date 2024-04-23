@@ -15,7 +15,7 @@ bonds {
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
-    Xlink "Stem Peptide Crosslink" {
+    Link "Stem Peptide Crosslink" {
         from "Carboxyl" at="C-Terminal"
         to "Amino"
         lost "H2O"

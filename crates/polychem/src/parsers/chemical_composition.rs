@@ -108,7 +108,10 @@ fn element_symbol(i: &str) -> ParseResult<&str> {
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
     let opening_bracket = expect(char('['), PolychemErrorKind::ExpectedIsotopeStart);
-    let mass_number = wrap_err(count, PolychemErrorKind::ExpectedMassNumber);
+    let mass_number = map(
+        wrap_err(count, PolychemErrorKind::ExpectedMassNumber),
+        |c| MassNumber(c.0),
+    );
     let closing_bracket = expect(cut(char(']')), PolychemErrorKind::ExpectedIsotopeEnd);
     delimited(
         opening_bracket,
@@ -180,10 +183,18 @@ mod tests {
 
     #[test]
     fn test_isotope_expr() {
+        macro_rules! assert_isotope_expr {
+            ($input:literal, $output:literal, $mass_number:literal, $symbol:literal) => {
+                assert_eq!(
+                    isotope_expr($input),
+                    Ok(($output, (MassNumber::new($mass_number).unwrap(), $symbol)))
+                );
+            };
+        }
         // Valid Isotope Expressions
-        assert_eq!(isotope_expr("[1H]"), Ok(("", (1, "H"))));
-        assert_eq!(isotope_expr("[18O]"), Ok(("", (18, "O"))));
-        assert_eq!(isotope_expr("[37Cl]"), Ok(("", (37, "Cl"))));
+        assert_isotope_expr!("[1H]", "", 1, "H");
+        assert_isotope_expr!("[18O]", "", 18, "O");
+        assert_isotope_expr!("[37Cl]", "", 37, "Cl");
         // Invalid Isotope Expressions
         assert!(isotope_expr("H").is_err());
         assert!(isotope_expr("[H]").is_err());
@@ -194,8 +205,8 @@ mod tests {
         assert!(isotope_expr("[-18O]").is_err());
         assert!(isotope_expr("[+18O]").is_err());
         // Multiple Isotope Expressions
-        assert_eq!(isotope_expr("[13C]O2"), Ok(("O2", (13, "C"))));
-        assert_eq!(isotope_expr("[3He]H"), Ok(("H", (3, "He"))));
+        assert_isotope_expr!("[13C]O2", "O2", 13, "C");
+        assert_isotope_expr!("[3He]H", "H", 3, "He");
     }
 
     #[test]
@@ -268,7 +279,7 @@ mod tests {
             ($input:literal, $output:literal, $count:literal, $name:literal ) => {
                 assert_eq!(
                     particle_offset($input).map(|(r, (c, p))| (r, (c, p.name))),
-                    Ok(($output, ($count, $name)))
+                    Ok(($output, (Count::new($count).unwrap(), $name)))
                 );
             };
         }
@@ -315,7 +326,7 @@ mod tests {
                         };
                         (r, (name, c))
                     }),
-                    Ok(($output, ($name.to_owned(), $count)))
+                    Ok(($output, ($name.to_owned(), Count::new($count).unwrap())))
                 );
             };
         }

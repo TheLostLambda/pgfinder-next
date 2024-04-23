@@ -3,7 +3,7 @@ use nom::{error::ErrorKind, IResult};
 use nom_miette::{FromExternalError, LabeledError, LabeledErrorKind, LabeledParseError};
 use thiserror::Error;
 
-use crate::{atoms::errors::AtomicLookupError, PolychemError};
+use crate::{atoms::errors::AtomicLookupError, errors::PolychemError};
 
 pub(crate) type CompositionError = LabeledError<PolychemErrorKind>;
 pub type ParseResult<'a, O, K = PolychemErrorKind> = IResult<&'a str, O, LabeledParseError<'a, K>>;

@@ -11,9 +11,9 @@ use nom::{
 };
 use nom_miette::{map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
-    parsers::{errors::PolychemErrorKind, lowercase, modification, uppercase},
-    polymerizer::Polymerizer,
-    AnyModification, PolychemError,
+    errors::PolychemError,
+    parsers::{errors::PolychemErrorKind, modification, uppercase},
+    ModificationId, Polymer,
 };
 use thiserror::Error;
 
@@ -21,25 +21,25 @@ use crate::{AminoAcid, LateralChain, Monomer, Monosaccharide, UnbranchedAminoAci
 
 // FIXME: Paste all of these EBNF comments into another file and make sure they are valid!
 /// Monomer = Glycan , [ "-" , Peptide ] | Peptide ;
-fn monomer<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Monomer<'a>> {
+fn monomer<'a, 'p, 's>(
+    _polymer: &mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<Monomer> {
     |_| todo!()
 }
 
 // =
 
 /// Glycan = { Monosaccharide }- ;
-fn glycan<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide<'a>>> {
+fn glycan<'a, 'p, 's>(
+    _polymer: &mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide>> {
     |_| todo!()
 }
 
 /// Peptide = { Amino Acid }- ;
-fn peptide<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid<'a>>> {
+fn peptide<'a, 'p, 's>(
+    _polymer: &mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid>> {
     |_| todo!()
 }
 
@@ -49,17 +49,16 @@ fn peptide<'a, 's>(
 // instance here? Everything is using 'a...
 // FIXME: Add modifications
 /// Monosaccharide = lowercase , [ Modifications ] ;
-fn monosaccharide<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide<'a>> {
-    let parser = recognize(lowercase);
-    map_res(parser, |abbr| polymerizer.residue(abbr))
+fn monosaccharide<'a, 'p, 's>(
+    _polymer: &'a mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide> {
+    |_| todo!()
 }
 
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
-fn amino_acid<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<AminoAcid<'a>> {
+fn amino_acid<'a, 'p, 's>(
+    _polymer: &mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<AminoAcid> {
     |_| todo!()
 }
 
@@ -67,13 +66,13 @@ fn amino_acid<'a, 's>(
 
 /// Modifications = "(" , Any Modification ,
 ///   { { " " } , "," , { " " } , Any Modification } , ")" ;
-fn modifications<'a, 's>(
-    polymerizer: &Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<AnyModification<'a, 'a>>> {
+fn modifications<'a, 'p, 's>(
+    polymer: &mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<ModificationId>> {
     let separator = delimited(space0, char(','), space0);
     delimited(
         char('('),
-        separated_list1(separator, modification::any(polymerizer, identifier)),
+        separated_list1(separator, modification::any(polymer, identifier)),
         char(')'),
     )
 }
@@ -81,25 +80,20 @@ fn modifications<'a, 's>(
 // FIXME: Make private again!
 // FIXME: Switch to a more efficient modification application API
 /// Unbranched Amino Acid = uppercase , [ Modifications ] ;
-pub fn unbranched_amino_acid<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid<'a>> {
-    let parser = pair(recognize(uppercase), opt(modifications(polymerizer)));
-    map_res(parser, |(abbr, modifications)| {
-        let mut amino_acid = polymerizer.residue(abbr)?;
-        for modification in modifications.into_iter().flatten() {
-            polymerizer.modify(modification, &mut amino_acid)?;
-        }
-        Ok(amino_acid)
-    })
+pub fn unbranched_amino_acid<'a, 'p, 's>(
+    polymer: &'a mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid> {
+    let _parser = pair(recognize(uppercase), opt(modifications(polymer)));
+    // TODO: Apply modifications to the residues they follow here!
+    |_| todo!()
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
 #[allow(clippy::doc_link_with_quotes)]
 /// Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
 ///   { Unbranched Amino Acid }- , "]" ;
-fn lateral_chain<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
+fn lateral_chain<'a, 'p, 's>(
+    _polymer: &mut Polymer<'a, 'p>,
 ) -> impl FnMut(&'s str) -> ParseResult<LateralChain> {
     |_| todo!()
 }
@@ -195,16 +189,15 @@ mod tests {
     #[test]
     #[allow(clippy::cognitive_complexity)]
     fn test_modifications() {
-        let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut modifications = modifications(&polymerizer);
+        let polymerizer = todo!();
+        let mut modifications = modifications(&mut polymerizer);
         macro_rules! assert_offset_mz {
             ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
                 let (rest, modification) = modifications($input).unwrap();
                 assert_eq!(rest, $output);
-                let net_mass: Decimal = modification.iter().map(|m| m.monoisotopic_mass()).sum();
-                assert_eq!(net_mass, $mass);
-                let net_charge: Charge = modification.iter().map(|m| m.charge()).sum();
-                assert_eq!(net_charge, $charge);
+                // TODO: Assert these are equal to the values provided!
+                let net_mass = todo!();
+                let net_charge = todo!();
             };
         }
         // Valid Modifications
@@ -306,13 +299,14 @@ mod tests {
 
     #[test]
     fn test_monosaccharide() {
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut polymerizer = todo!();
         let mut monosaccharide = monosaccharide(&mut polymerizer);
         macro_rules! assert_monosaccharide_name {
             ($input:literal, $output:literal, $name:literal) => {
                 assert_eq!(
-                    monosaccharide($input).map(|(r, e)| (r, e.name())),
-                    Ok(($output, $name))
+                    monosaccharide($input).map(|(r, e)| (r, todo!())),
+                    // TODO: Replace with $name
+                    Ok(($output, todo!()))
                 );
             };
         }
@@ -338,13 +332,14 @@ mod tests {
     #[ignore]
     #[test]
     fn test_unbranched_amino_acid() {
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        let mut polymerizer = todo!();
         let mut unbranched_amino_acid = unbranched_amino_acid(&mut polymerizer);
         macro_rules! assert_unbranched_aa_name {
             ($input:literal, $output:literal, $name:literal) => {
                 assert_eq!(
-                    unbranched_amino_acid($input).map(|(r, e)| (r, e.name())),
-                    Ok(($output, $name))
+                    unbranched_amino_acid($input).map(|(r, e)| (r, todo!())),
+                    // TODO: Replace with $name
+                    Ok(($output, todo!()))
                 );
             };
         }

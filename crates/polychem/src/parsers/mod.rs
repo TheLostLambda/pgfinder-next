@@ -7,7 +7,7 @@ use nom::{
     combinator::{cut, map, not},
     sequence::preceded,
 };
-use nom_miette::{expect, into, LabeledErrorKind};
+use nom_miette::{expect, into};
 
 use crate::{Count, OffsetKind};
 
@@ -23,7 +23,7 @@ use self::errors::{ParseResult, PolychemErrorKind};
 ///   ;
 pub fn uppercase<K>(i: &str) -> ParseResult<char, K>
 where
-    K: LabeledErrorKind + From<PolychemErrorKind>,
+    K: From<PolychemErrorKind> + From<nom::error::ErrorKind>,
 {
     let parser = satisfy(|c| c.is_ascii_uppercase());
     into(expect(parser, PolychemErrorKind::ExpectedUppercase))(i)
@@ -37,7 +37,7 @@ where
 ///   ;
 pub fn lowercase<K>(i: &str) -> ParseResult<char, K>
 where
-    K: LabeledErrorKind + From<PolychemErrorKind>,
+    K: From<PolychemErrorKind> + From<nom::error::ErrorKind>,
 {
     let parser = satisfy(|c| c.is_ascii_lowercase());
     into(expect(parser, PolychemErrorKind::ExpectedLowercase))(i)

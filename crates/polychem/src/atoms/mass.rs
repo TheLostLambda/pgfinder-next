@@ -14,7 +14,6 @@ macro_rules! mass_conversion_impls {
                     Self(value.0)
                 }
             }
-
         )+
     };
 }

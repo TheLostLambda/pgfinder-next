@@ -1,5 +1,5 @@
 // Standard Library Imports
-use std::{ops::Deref, str::FromStr};
+use std::{num::NonZeroU32, ops::Deref, str::FromStr};
 
 // External Crate Imports
 use ahash::HashMap;
@@ -107,7 +107,7 @@ struct ParticleKdl {
 #[derive(Debug, Decode)]
 struct IsotopeKdl {
     #[knuffel(argument)]
-    mass_number: u32,
+    mass_number: NonZeroU32Kdl,
     #[knuffel(argument)]
     relative_mass: DecimalKdl,
     #[knuffel(argument)]
@@ -155,6 +155,56 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
                     value,
                     format!(
                         "expected a decimal number, found {}",
+                        Kind::from(unsupported)
+                    ),
+                ));
+                Ok(Self::default())
+            }
+        }
+    }
+}
+
+// Parsing of KDL Numbers to NonZeroU32 ================================================================================
+
+#[derive(Debug)]
+struct NonZeroU32Kdl(NonZeroU32);
+
+impl Default for NonZeroU32Kdl {
+    fn default() -> Self {
+        // SAFETY: 1 isn't 0, so this should never panic
+        Self(NonZeroU32::new(1).unwrap())
+    }
+}
+
+impl<S: ErrorSpan> DecodeScalar<S> for NonZeroU32Kdl {
+    fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
+        if let Some(t) = type_name {
+            ctx.emit_error(DecodeError::TypeName {
+                span: t.span().clone(),
+                found: Some(t.deref().clone()),
+                expected: ExpectedType::no_type(),
+                rust_type: "NonZeroU32",
+            });
+        }
+    }
+
+    fn raw_decode(
+        value: &Spanned<Literal, S>,
+        ctx: &mut Context<S>,
+    ) -> Result<Self, DecodeError<S>> {
+        match &**value {
+            Literal::Int(Integer(Radix::Dec, s)) => match s.parse() {
+                Ok(d) => Ok(Self(d)),
+                Err(e) => {
+                    ctx.emit_error(DecodeError::conversion(value, Box::new(e)));
+                    Ok(Self::default())
+                }
+            },
+            unsupported => {
+                ctx.emit_error(DecodeError::unsupported(
+                    value,
+                    format!(
+                        "expected a non-zero, decimal integer, found {}",
                         Kind::from(unsupported)
                     ),
                 ));
@@ -238,7 +288,7 @@ impl From<IsotopeKdl> for IsotopeEntry {
         }: IsotopeKdl,
     ) -> Self {
         (
-            MassNumber(mass_number),
+            MassNumber(mass_number.0),
             Isotope {
                 relative_mass: Mass(relative_mass.0),
                 abundance: abundance.map(|a| Abundance(a.0)),
@@ -440,5 +490,11 @@ mod tests {
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
         assert!(res.is_err());
         assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn non_zero_tests() {
+        // TODO: Properly test NonZeroU32Kdl parsing and error reporting!
+        todo!()
     }
 }

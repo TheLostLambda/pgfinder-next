@@ -74,9 +74,6 @@ mod atoms {
 }
 
 mod polymers {
-    use divan::Bencher;
-    use polychem::Residue;
-
     use super::*;
 
     #[divan::bench]
@@ -85,13 +82,9 @@ mod polymers {
     }
 
     #[divan::bench]
-    fn parse_residues(bencher: Bencher) {
-        let abbrs: Vec<_> = ('A'..'Z').map(|c| c.to_string()).collect();
-        bencher.bench_local(|| {
-            for abbr in &abbrs {
-                black_box(Residue::new(&POLYMER_DB, abbr, 0).unwrap());
-            }
-        });
+    fn parse_residues() {
+        // TODO: Benchmark residue parsing / creation via `Polymer`
+        todo!()
     }
 }
 

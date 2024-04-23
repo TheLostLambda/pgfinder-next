@@ -6,7 +6,7 @@ use std::{
 
 use rust_decimal::Decimal;
 
-use crate::{Charge, Count, Mass};
+use crate::{AverageMass, Charge, Count, Mass, MonoisotopicMass};
 
 impl Count {
     pub(crate) fn new(n: u32) -> Option<Self> {
@@ -14,13 +14,23 @@ impl Count {
     }
 }
 
-impl Mul<Mass> for Count {
-    type Output = Mass;
+macro_rules! mass_mul_impls {
+    // NOTE: `$mass_type` is a `tt` since it actually has to play the role of both a type (`ty`) and expression (`expr`)
+    // in this impl, and `tt` appears to be the only way to pull off that sort of "metavariable polymorphism"
+    ($($mass_type:tt),+ $(,)?) => {
+        $(
+            impl Mul<$mass_type> for Count {
+                type Output = $mass_type;
 
-    fn mul(self, rhs: Mass) -> Self::Output {
-        Mass(Decimal::from(self.0.get()) * rhs.0)
-    }
+                fn mul(self, rhs: $mass_type) -> Self::Output {
+                    $mass_type(Decimal::from(self.0.get()) * rhs.0)
+                }
+            }
+        )+
+    };
 }
+
+mass_mul_impls!(Mass, MonoisotopicMass, AverageMass);
 
 impl Mul<Charge> for Count {
     type Output = Charge;

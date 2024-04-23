@@ -21,19 +21,19 @@ fn molecule_info(formula: &str) -> Result<String> {
     let mut buf = String::new();
     let molecule = ChemicalComposition::new(&DB, formula)?;
 
-    let mono_mass = molecule.monoisotopic_mass().round_dp(6);
-    let avg_mass = molecule.average_mass().round_dp(4);
+    let mono_mass = molecule.monoisotopic_mass();
+    let avg_mass = molecule.average_mass();
     let charge = molecule.charge();
 
-    writeln!(buf, "Monoisotopic Mass: {mono_mass}").unwrap();
-    writeln!(buf, "Average Mass: {avg_mass}").unwrap();
+    writeln!(buf, "Monoisotopic Mass: {mono_mass:.6}").unwrap();
+    writeln!(buf, "Average Mass: {avg_mass:.4}").unwrap();
     writeln!(buf, "Charge: {charge}").unwrap();
 
-    if charge != 0 {
-        let mono_mz = molecule.monoisotopic_mz().unwrap().round_dp(6);
-        let avg_mz = molecule.average_mz().unwrap().round_dp(4);
-        writeln!(buf, "Monoisotopic m/z: {mono_mz}").unwrap();
-        writeln!(buf, "Average m/z: {avg_mz}").unwrap();
+    if i64::from(charge) != 0 {
+        let mono_mz = molecule.monoisotopic_mz().unwrap();
+        let avg_mz = molecule.average_mz().unwrap();
+        writeln!(buf, "Monoisotopic m/z: {mono_mz:.6}").unwrap();
+        writeln!(buf, "Average m/z: {avg_mz:.4}").unwrap();
     }
 
     writeln!(buf).unwrap();

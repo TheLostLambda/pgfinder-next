@@ -11,7 +11,7 @@ mod testing_tools;
 use std::num::NonZeroU32;
 
 use derive_more::{Add, AddAssign, Display, From, Into, IsVariant, Neg, Sub, SubAssign, Sum};
-use polymerizer::Polymerizer;
+use polymerizer::PolymerizerState;
 use serde::Serialize;
 
 // External Crate Imports
@@ -29,16 +29,16 @@ pub use polymers::polymer_database::PolymerDatabase;
 // indicate references to the PolymerDatabase
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 pub struct Polymer<'a, 'p> {
-    // DESIGN: The `Polymerizer` struct keeps track of fields that are only useful when adding new components to the
-    // current polymer. Abstracting those fields out into a `Polymerizer` helps to separate concerns, and makes it
-    // clearer that the `residues`, `modifications`, and `bonds` fields are, by themselves, a complete description of
+    // DESIGN: The `PolymerizerState` struct keeps track of fields that are only useful when adding new components to
+    // the current polymer. Abstracting those fields out into a `PolymerizerState` helps to separate concerns, and makes
+    // it clearer that the `residues`, `modifications`, and `bonds` fields are, by themselves, a complete description of
     // the `Polymer`s structure. A discarded alternative was two versions of the `Polymer` struct ("complete" and
     // "non-complete" versions), which would have introduced additional complexity to the user API, and the free group
-    // index lost by discarding the `Polymerizer` would have needed to be reconstructed during fragmentation anyways
-    // for quick group lookup. Having two structs just for the ID counter and database references didn't seem worth it.
-    // This decision accepts the downside of increasing the size of the `Polymer` struct.
+    // index lost by discarding the `PolymerizerState` would have needed to be reconstructed during fragmentation
+    // anyways for quick group lookup. Having two structs just for the ID counter and database references didn't seem
+    // worth it. This decision accepts the downside of increasing the size of the `Polymer` struct.
     #[serde(skip)]
-    polymerizer: Polymerizer<'a, 'p>,
+    polymerizer_state: PolymerizerState<'a, 'p>,
     // NOTE: Whilst the `Polymerizer` struct is defined elsewhere, the following fields are part of the core polymer
     // representation and are therefore defined in this file, with `impl`s added in separate modules as needed.
     residues: HashMap<ResidueId, Residue<'a, 'p>>,
@@ -133,7 +133,7 @@ struct Modification<K> {
     kind: K,
 }
 
-pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
+type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 struct Bond<'a, 'p> {
@@ -152,7 +152,7 @@ struct Element<'a> {
     isotopes: &'a HashMap<MassNumber, Isotope>,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Into, Serialize)]
 pub struct Count(NonZeroU32);
 
 // MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
@@ -182,7 +182,7 @@ enum AnyMod<'a, 'p> {
 #[derive(
     Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, From, Into, Serialize,
 )]
-pub struct MassNumber(u32);
+pub struct MassNumber(NonZeroU32);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 struct Isotope {

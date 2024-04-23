@@ -5,6 +5,7 @@ mod count;
 mod element;
 pub mod errors;
 mod mass;
+mod mass_number;
 mod mz;
 mod offset_kind;
 mod particle;

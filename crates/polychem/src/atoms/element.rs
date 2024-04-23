@@ -23,9 +23,9 @@ impl<'a> Element<'a> {
     pub(crate) fn new_isotope(
         db: &'a AtomicDatabase,
         symbol: impl AsRef<str>,
-        mass_number: impl Into<MassNumber>,
+        mass_number: MassNumber,
     ) -> Result<Self, AtomicLookupError> {
-        Self::lookup(db, symbol, Some(mass_number.into()))
+        Self::lookup(db, symbol, Some(mass_number))
     }
 
     fn lookup(
@@ -144,6 +144,10 @@ mod tests {
 
     static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
+    fn mn(c: u32) -> MassNumber {
+        MassNumber::new(c).unwrap()
+    }
+
     #[test]
     fn new_element() {
         // Sucessfully lookup elements that exist
@@ -171,28 +175,28 @@ mod tests {
             name,
             mass_number,
             isotopes,
-        } = Element::new_isotope(&DB, "C", 13).unwrap();
+        } = Element::new_isotope(&DB, "C", mn(13)).unwrap();
         assert_eq!(symbol, "C");
         assert_eq!(name, "Carbon");
-        assert_eq!(mass_number, Some(MassNumber(13)));
+        assert_eq!(mass_number, MassNumber::new(13));
         let mut isotopes: Vec<_> = isotopes.iter().collect();
         isotopes.sort_unstable_by(|(a, _), (b, _)| a.cmp(b));
         assert_debug_snapshot!(isotopes);
         // Fail to lookup isotopes for elements that don't exist
-        assert_miette_snapshot!(Element::new_isotope(&DB, "R", 42));
+        assert_miette_snapshot!(Element::new_isotope(&DB, "R", mn(42)));
         // Fail to lookup isotopes that don't exist
-        assert_miette_snapshot!(Element::new_isotope(&DB, "C", 15));
+        assert_miette_snapshot!(Element::new_isotope(&DB, "C", mn(15)));
     }
 
     #[test]
     fn element_display() {
         let c = Element::new(&DB, "C").unwrap();
         assert_eq!(c.to_string(), "C");
-        let c13 = Element::new_isotope(&DB, "C", 13).unwrap();
+        let c13 = Element::new_isotope(&DB, "C", mn(13)).unwrap();
         assert_eq!(c13.to_string(), "[13C]");
         let th = Element::new(&DB, "Th").unwrap();
         assert_eq!(th.to_string(), "Th");
-        let th230 = Element::new_isotope(&DB, "Th", 230).unwrap();
+        let th230 = Element::new_isotope(&DB, "Th", mn(230)).unwrap();
         assert_eq!(th230.to_string(), "[230Th]");
     }
 
@@ -225,18 +229,22 @@ mod tests {
     #[test]
     fn isotope_masses() {
         // Get masses for an element with natural abundances
-        let c13_mono = Element::new_isotope(&DB, "C", 13)
+        let c13_mono = Element::new_isotope(&DB, "C", mn(13))
             .unwrap()
             .monoisotopic_mass();
         assert_eq!(c13_mono, MonoisotopicMass(dec!(13.00335483507)));
-        let c13_avg = Element::new_isotope(&DB, "C", 13).unwrap().average_mass();
+        let c13_avg = Element::new_isotope(&DB, "C", mn(13))
+            .unwrap()
+            .average_mass();
         assert_eq!(c13_avg, AverageMass(dec!(13.00335483507)));
         // Get masses for an element without natural abundances
-        let tc99_mono = Element::new_isotope(&DB, "Tc", 99)
+        let tc99_mono = Element::new_isotope(&DB, "Tc", mn(99))
             .unwrap()
             .monoisotopic_mass();
         assert_eq!(tc99_mono, MonoisotopicMass(dec!(98.9062508)));
-        let tc99_avg = Element::new_isotope(&DB, "Tc", 99).unwrap().average_mass();
+        let tc99_avg = Element::new_isotope(&DB, "Tc", mn(99))
+            .unwrap()
+            .average_mass();
         assert_eq!(tc99_avg, AverageMass(dec!(98.9062508)));
     }
 }

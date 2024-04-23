@@ -1,4 +1,4 @@
-use divan::{black_box, AllocProfiler};
+use divan::AllocProfiler;
 use once_cell::sync::Lazy;
 use polychem::{atoms::atomic_database, AtomicDatabase, PolymerDatabase};
 
@@ -21,22 +21,5 @@ fn main() {
 }
 
 mod polymers {
-    use divan::Bencher;
-    use muropeptide::parser::unbranched_amino_acid;
-    use polychem::polymerizer::Polymerizer;
-
-    use super::*;
-
-    // FIXME: Will probably blow this away...
-    #[divan::bench(sample_count = 100, sample_size = 10)]
-    fn residues_with_modifications(bencher: Bencher) {
-        let amino_acids = AMINO_ACIDS.repeat(1000);
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut residue_builder = unbranched_amino_acid(&mut polymerizer);
-        bencher.bench_local(move || {
-            for abbr in &amino_acids {
-                black_box(residue_builder(abbr).unwrap());
-            }
-        });
-    }
+    // TODO: Add some benchmarks here!
 }
