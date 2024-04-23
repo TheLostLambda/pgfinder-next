@@ -81,6 +81,7 @@ mod polymers {
         PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
     }
 
+    #[ignore]
     #[divan::bench]
     fn parse_residues() {
         // TODO: Benchmark residue parsing / creation via `Polymer`
