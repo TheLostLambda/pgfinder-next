@@ -92,7 +92,7 @@ impl<'a> ChemicalComposition<'a> {
 
 #[cfg(test)]
 mod tests {
-    use ahash::{HashMap, HashMapExt};
+    use ahash::{AHasher, HashMap, HashMapExt, HashSet};
     use miette::IntoDiagnostic;
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
@@ -218,6 +218,39 @@ mod tests {
                 (4, "C11H10ON2".to_owned()),
             ]
         );
+    }
+
+    #[test]
+    fn are_hashes_unique() {
+        let formulae = [
+            "2p",
+            "C11H10ON2",
+            "C37H63N7O21+p",
+            "Ca-2e",
+            "Cr2O7+2e",
+            "D2O",
+            "H2O",
+            "K-e",
+            "NH2+2p",
+            "NH2[99Tc]",
+            "NH3+p",
+            "Na-e",
+            "OH+e",
+            "[13C]11H10O[15N]2",
+            "[2H]2O",
+            "[37Cl]5-2p",
+            "p",
+        ];
+        let hashes: HashSet<_> = formulae
+            .iter()
+            .map(|formula| {
+                let mut hasher = AHasher::default();
+                let composition = ChemicalComposition::new(&DB, formula).unwrap();
+                composition.hash(&mut hasher);
+                hasher.finish()
+            })
+            .collect();
+        assert_eq!(hashes.len(), formulae.len());
     }
 
     #[test]
