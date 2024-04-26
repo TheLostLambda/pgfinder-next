@@ -1,7 +1,0 @@
----
-source: crates/polychem/src/polymers/residue.rs
-description: alanine.group_state_mut(&sidechain_amino)
-expression: out
----
-  × the functional group "Amino" at="Sidechain" could not be found on the
-  │ residue Alanine (A)

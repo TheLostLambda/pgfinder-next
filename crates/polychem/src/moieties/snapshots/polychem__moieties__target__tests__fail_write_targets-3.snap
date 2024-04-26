@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/moieties/target.rs
+description: "write!(&mut buf[..], \"{target}\").into_diagnostic()"
+expression: out
+---
+  × failed to write whole buffer

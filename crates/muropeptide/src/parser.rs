@@ -12,7 +12,7 @@ use nom::{
 use nom_miette::{wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
     errors::PolychemError,
-    parsers::{errors::PolychemErrorKind, modification, uppercase},
+    parsers::{errors::PolychemErrorKind, modifications, primitives::uppercase},
     ModificationId, Polymer,
 };
 use thiserror::Error;
@@ -72,7 +72,7 @@ fn modifications<'a, 'p, 's>(
     let separator = delimited(space0, char(','), space0);
     delimited(
         char('('),
-        separated_list1(separator, modification::any(polymer, identifier)),
+        separated_list1(separator, modifications::any(polymer, identifier)),
         char(')'),
     )
 }

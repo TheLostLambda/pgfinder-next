@@ -2,8 +2,8 @@
 
 pub mod atoms;
 pub mod errors;
+pub mod moieties;
 pub mod parsers;
-pub mod polymerizer;
 pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
@@ -11,7 +11,7 @@ mod testing_tools;
 use std::num::NonZeroU32;
 
 use derive_more::{Add, AddAssign, Display, From, Into, IsVariant, Neg, Sub, SubAssign, Sum};
-use polymerizer::PolymerizerState;
+use polymers::polymerizer::PolymerizerState;
 use serde::Serialize;
 
 // External Crate Imports
@@ -21,7 +21,7 @@ use rust_decimal::Decimal;
 // FIXME: Work on what's publicly exported / part of the API! — maybe create a prelude?
 pub use atoms::atomic_database::AtomicDatabase;
 pub use errors::Result;
-pub use polymers::polymer_database::PolymerDatabase;
+pub use moieties::polymer_database::PolymerDatabase;
 
 // Core Data Types =====================================================================================================
 

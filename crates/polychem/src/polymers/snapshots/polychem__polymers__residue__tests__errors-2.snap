@@ -1,6 +1,0 @@
----
-source: crates/polychem/src/polymers/residue.rs
-description: super_amino
-expression: out
----
-  × the residue "Sa" could not be found in the supplied polymer database

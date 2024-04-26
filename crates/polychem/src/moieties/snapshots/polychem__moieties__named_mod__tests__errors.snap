@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/moieties/named_mod.rs
+description: magnesium
+expression: out
+---
+  × the modification "Mg" could not be found in the supplied polymer database

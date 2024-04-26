@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/moieties/bond.rs
+description: disulfide
+expression: out
+---
+  × the bond "Disulfide" could not be found in the supplied polymer database

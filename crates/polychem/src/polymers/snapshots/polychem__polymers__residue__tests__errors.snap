@@ -1,6 +1,0 @@
----
-source: crates/polychem/src/polymers/residue.rs
-description: sucrose
-expression: out
----
-  × the residue "s" could not be found in the supplied polymer database

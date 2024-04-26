@@ -11,9 +11,8 @@ use nom_miette::{expect, map_res, wrap_err};
 
 // Local Crate Imports
 use super::{
-    count,
     errors::{ParseResult, PolychemErrorKind},
-    lowercase, offset_kind, uppercase,
+    primitives::{count, lowercase, offset_kind, uppercase},
 };
 use crate::{
     AtomicDatabase, ChemicalComposition, Count, Element, MassNumber, OffsetKind, Particle,
