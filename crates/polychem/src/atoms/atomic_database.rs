@@ -356,6 +356,12 @@ mod tests {
     }
 
     #[test]
+    fn fail_parsing_atomic_database() {
+        let res = AtomicDatabase::new("test", "dark-matter");
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
     fn uppercase_particle_symbol() {
         let kdl = indoc! {r#"
             P "Proton" {
@@ -448,31 +454,27 @@ mod tests {
     fn decimal_underflow() {
         let kdl = "lossless 0.00000_00000_00000_00000_00000_0001";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(res.is_err());
         assert_miette_snapshot!(res);
     }
 
     #[test]
     fn decimal_scientific() {
         let kdl = "lossless 5.485_799_090_65e-4";
-        let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(&res.is_ok());
-        assert_eq!(res.unwrap()[0].0 .0, dec!(0.000548579909065));
+        let res = knuffel::parse::<Vec<Lossless>>("test", kdl).unwrap();
+        assert_eq!(res[0].0 .0, dec!(0.000548579909065));
     }
 
     #[test]
     fn decimal_from_integer() {
         let kdl = "lossless 1";
-        let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(&res.is_ok());
-        assert_eq!(res.unwrap()[0].0 .0, dec!(1));
+        let res = knuffel::parse::<Vec<Lossless>>("test", kdl).unwrap();
+        assert_eq!(res[0].0 .0, dec!(1));
     }
 
     #[test]
     fn decimal_lack_of_precision() {
         let kdl = "lossless 1e-42";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(res.is_err());
         assert_miette_snapshot!(res);
     }
 
@@ -480,7 +482,6 @@ mod tests {
     fn decimal_illegal_type() {
         let kdl = "lossless (pi)3.14";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(res.is_err());
         assert_miette_snapshot!(res);
     }
 
@@ -488,14 +489,65 @@ mod tests {
     fn decimal_from_bool() {
         let kdl = "lossless true";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(res.is_err());
         assert_miette_snapshot!(res);
     }
 
-    #[ignore]
+    #[derive(Debug, Decode)]
+    struct NonZero(#[knuffel(argument)] NonZeroU32Kdl);
+
     #[test]
-    fn non_zero_tests() {
-        // TODO: Properly test NonZeroU32Kdl parsing and error reporting!
-        todo!()
+    fn nonzero_positive() {
+        let kdl = "nonzero 42";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl).unwrap();
+        assert_eq!(res[0].0 .0.get(), 42);
+    }
+
+    #[test]
+    fn nonzero_negative() {
+        let kdl = "nonzero -42";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_zero() {
+        let kdl = "nonzero 0";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_decimal() {
+        let kdl = "nonzero 3.14";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_scientific() {
+        let kdl = "nonzero 3.14e-2";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_hex() {
+        let kdl = "nonzero 0xAB";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_type() {
+        let kdl = "nonzero (count)42";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_bool() {
+        let kdl = "nonzero false";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
     }
 }

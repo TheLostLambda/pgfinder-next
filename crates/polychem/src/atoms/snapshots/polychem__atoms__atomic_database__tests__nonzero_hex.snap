@@ -1,0 +1,14 @@
+---
+source: crates/polychem/src/atoms/atomic_database.rs
+description: res
+expression: out
+---
+  × error parsing KDL
+
+Error: 
+  × expected a non-zero, decimal integer, found integer
+   ╭─[test:1:9]
+ 1 │ nonzero 0xAB
+   ·         ──┬─
+   ·           ╰── unsupported value
+   ╰────

@@ -1,0 +1,16 @@
+---
+source: crates/polychem/src/atoms/atomic_database.rs
+description: res
+expression: out
+---
+  × error parsing KDL
+
+Error: 
+  × an error occured during scalar conversion
+  ╰─▶   × number would be zero for non-zero type
+      
+   ╭─[test:1:9]
+ 1 │ nonzero 0
+   ·         ┬
+   ·         ╰── invalid value
+   ╰────
