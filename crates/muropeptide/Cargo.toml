@@ -9,7 +9,7 @@ miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"
 nom-miette = { path = "../nom-miette" }
 polychem = { path = "../polychem" }
-thiserror = "1.0.58"
+thiserror = "1.0.59"
 
 [dev-dependencies]
 divan = "0.1.14"
