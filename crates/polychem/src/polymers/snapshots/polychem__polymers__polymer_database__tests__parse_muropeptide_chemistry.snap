@@ -30,6 +30,7 @@ PolymerDatabaseKdl {
                         value: "H2O",
                     },
                 ),
+                gained: None,
             },
             BondKdl {
                 abbr: "Pep",
@@ -56,6 +57,7 @@ PolymerDatabaseKdl {
                         value: "H2O",
                     },
                 ),
+                gained: None,
             },
             BondKdl {
                 abbr: "Stem",
@@ -84,6 +86,7 @@ PolymerDatabaseKdl {
                         value: "H2O",
                     },
                 ),
+                gained: None,
             },
             BondKdl {
                 abbr: "Link",
@@ -108,6 +111,7 @@ PolymerDatabaseKdl {
                         value: "H2O",
                     },
                 ),
+                gained: None,
             },
             BondKdl {
                 abbr: "Chr",
@@ -132,6 +136,37 @@ PolymerDatabaseKdl {
                         value: "2p",
                     },
                 ),
+                gained: None,
+            },
+            BondKdl {
+                abbr: "Sulf",
+                name: "Persulfide Bridge",
+                from: TargetKdl {
+                    span: <SPAN>,
+                    group: "Hydroxyl",
+                    location: Some(
+                        "6-Position",
+                    ),
+                    residue: None,
+                },
+                to: TargetKdl {
+                    span: <SPAN>,
+                    group: "Carboxyl",
+                    location: None,
+                    residue: None,
+                },
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "S",
+                    },
+                ),
             },
         ],
     },
@@ -140,6 +175,16 @@ PolymerDatabaseKdl {
             ModificationKdl {
                 abbr: "Am",
                 name: "Amidation",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Carboxyl",
+                        location: Some(
+                            "Sidechain",
+                        ),
+                        residue: None,
+                    },
+                ],
                 lost: Some(
                     Spanned {
                         span: <SPAN>,
@@ -152,20 +197,20 @@ PolymerDatabaseKdl {
                         value: "NH2",
                     },
                 ),
-                targets: [
-                    TargetKdl {
-                        span: <SPAN>,
-                        group: "Carboxyl",
-                        location: Some(
-                            "Sidechain",
-                        ),
-                        residue: None,
-                    },
-                ],
             },
             ModificationKdl {
                 abbr: "Ac",
                 name: "O-Acetylation",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: Some(
+                            "6-Position",
+                        ),
+                        residue: None,
+                    },
+                ],
                 lost: Some(
                     Spanned {
                         span: <SPAN>,
@@ -178,6 +223,10 @@ PolymerDatabaseKdl {
                         value: "C2H3O",
                     },
                 ),
+            },
+            ModificationKdl {
+                abbr: "Poly",
+                name: "Wall Polymer Linkage",
                 targets: [
                     TargetKdl {
                         span: <SPAN>,
@@ -188,10 +237,6 @@ PolymerDatabaseKdl {
                         residue: None,
                     },
                 ],
-            },
-            ModificationKdl {
-                abbr: "Poly",
-                name: "Wall Polymer Linkage",
                 lost: Some(
                     Spanned {
                         span: <SPAN>,
@@ -204,20 +249,20 @@ PolymerDatabaseKdl {
                         value: "PO3",
                     },
                 ),
-                targets: [
-                    TargetKdl {
-                        span: <SPAN>,
-                        group: "Hydroxyl",
-                        location: Some(
-                            "6-Position",
-                        ),
-                        residue: None,
-                    },
-                ],
             },
             ModificationKdl {
                 abbr: "DeAc",
                 name: "De-N-Acetylation",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Acetyl",
+                        location: Some(
+                            "Secondary Amide",
+                        ),
+                        residue: None,
+                    },
+                ],
                 lost: Some(
                     Spanned {
                         span: <SPAN>,
@@ -230,27 +275,10 @@ PolymerDatabaseKdl {
                         value: "H",
                     },
                 ),
-                targets: [
-                    TargetKdl {
-                        span: <SPAN>,
-                        group: "Acetyl",
-                        location: Some(
-                            "Secondary Amide",
-                        ),
-                        residue: None,
-                    },
-                ],
             },
             ModificationKdl {
                 abbr: "Red",
                 name: "Reduced",
-                lost: None,
-                gained: Some(
-                    Spanned {
-                        span: <SPAN>,
-                        value: "H2",
-                    },
-                ),
                 targets: [
                     TargetKdl {
                         span: <SPAN>,
@@ -261,17 +289,17 @@ PolymerDatabaseKdl {
                         residue: None,
                     },
                 ],
+                lost: None,
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2",
+                    },
+                ),
             },
             ModificationKdl {
                 abbr: "Anh",
                 name: "1,6-Anhydro",
-                lost: Some(
-                    Spanned {
-                        span: <SPAN>,
-                        value: "H2O",
-                    },
-                ),
-                gained: None,
                 targets: [
                     TargetKdl {
                         span: <SPAN>,
@@ -284,10 +312,25 @@ PolymerDatabaseKdl {
                         ),
                     },
                 ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2O",
+                    },
+                ),
+                gained: None,
             },
             ModificationKdl {
                 abbr: "Met",
                 name: "O-Methylation",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: None,
+                        residue: None,
+                    },
+                ],
                 lost: Some(
                     Spanned {
                         span: <SPAN>,
@@ -300,30 +343,10 @@ PolymerDatabaseKdl {
                         value: "CH3",
                     },
                 ),
-                targets: [
-                    TargetKdl {
-                        span: <SPAN>,
-                        group: "Hydroxyl",
-                        location: None,
-                        residue: None,
-                    },
-                ],
             },
             ModificationKdl {
                 abbr: "Ca",
                 name: "Calcium Adduct",
-                lost: Some(
-                    Spanned {
-                        span: <SPAN>,
-                        value: "p",
-                    },
-                ),
-                gained: Some(
-                    Spanned {
-                        span: <SPAN>,
-                        value: "Ca-2e",
-                    },
-                ),
                 targets: [
                     TargetKdl {
                         span: <SPAN>,
@@ -344,6 +367,18 @@ PolymerDatabaseKdl {
                         residue: None,
                     },
                 ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "p",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "Ca-2e",
+                    },
+                ),
             },
         ],
     },

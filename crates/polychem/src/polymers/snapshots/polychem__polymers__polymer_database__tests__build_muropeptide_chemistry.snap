@@ -6,6 +6,19 @@ PolymerDatabase(
   bonds: {
     "Chr": BondDescription(
       name: "Charged",
+      lost: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: Some((Add, Count(2), Particle(
+          symbol: "p",
+          name: "Proton",
+          mass: Mass("1.007276466621"),
+          charge: Charge(1),
+        ))),
+      ),
+      gained: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: None,
+      ),
       from: Target(
         group: "Hydroxyl",
         location: Some("6-Position"),
@@ -16,18 +29,56 @@ PolymerDatabase(
         location: None,
         residue: None,
       ),
-      lost: ChemicalComposition(
-        chemical_formula: [],
-        particle_offset: Some((Add, Count(2), Particle(
-          symbol: "p",
-          name: "Proton",
-          mass: Mass("1.007276466621"),
-          charge: Charge(1),
-        ))),
-      ),
     ),
     "Gly": BondDescription(
       name: "Glycosidic",
+      lost: ChemicalComposition(
+        chemical_formula: [
+          (Element(
+            symbol: "H",
+            name: "Hydrogen",
+            mass_number: None,
+            isotopes: {
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
+              ),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
+              ),
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
+                abundance: None,
+              ),
+            },
+          ), Count(2)),
+          (Element(
+            symbol: "O",
+            name: "Oxygen",
+            mass_number: None,
+            isotopes: {
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
+              ),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
+              ),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
+              ),
+            },
+          ), Count(1)),
+        ],
+        particle_offset: None,
+      ),
+      gained: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: None,
+      ),
       from: Target(
         group: "Hydroxyl",
         location: Some("Reducing End"),
@@ -38,6 +89,9 @@ PolymerDatabase(
         location: Some("Nonreducing End"),
         residue: None,
       ),
+    ),
+    "Link": BondDescription(
+      name: "Stem Peptide Crosslink",
       lost: ChemicalComposition(
         chemical_formula: [
           (Element(
@@ -81,9 +135,10 @@ PolymerDatabase(
         ],
         particle_offset: None,
       ),
-    ),
-    "Link": BondDescription(
-      name: "Stem Peptide Crosslink",
+      gained: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: None,
+      ),
       from: Target(
         group: "Carboxyl",
         location: Some("C-Terminal"),
@@ -94,6 +149,9 @@ PolymerDatabase(
         location: None,
         residue: None,
       ),
+    ),
+    "Pep": BondDescription(
+      name: "Peptide",
       lost: ChemicalComposition(
         chemical_formula: [
           (Element(
@@ -137,9 +195,10 @@ PolymerDatabase(
         ],
         particle_offset: None,
       ),
-    ),
-    "Pep": BondDescription(
-      name: "Peptide",
+      gained: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: None,
+      ),
       from: Target(
         group: "Carboxyl",
         location: Some("C-Terminal"),
@@ -150,6 +209,9 @@ PolymerDatabase(
         location: Some("N-Terminal"),
         residue: None,
       ),
+    ),
+    "Stem": BondDescription(
+      name: "MurNAc -> Stem Peptide",
       lost: ChemicalComposition(
         chemical_formula: [
           (Element(
@@ -193,9 +255,10 @@ PolymerDatabase(
         ],
         particle_offset: None,
       ),
-    ),
-    "Stem": BondDescription(
-      name: "MurNAc -> Stem Peptide",
+      gained: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: None,
+      ),
       from: Target(
         group: "Carboxyl",
         location: Some("Lactyl Ether"),
@@ -206,6 +269,9 @@ PolymerDatabase(
         location: Some("N-Terminal"),
         residue: None,
       ),
+    ),
+    "Sulf": BondDescription(
+      name: "Persulfide Bridge",
       lost: ChemicalComposition(
         chemical_formula: [
           (Element(
@@ -227,27 +293,46 @@ PolymerDatabase(
               ),
             },
           ), Count(2)),
+        ],
+        particle_offset: None,
+      ),
+      gained: ChemicalComposition(
+        chemical_formula: [
           (Element(
-            symbol: "O",
-            name: "Oxygen",
+            symbol: "S",
+            name: "Sulfur",
             mass_number: None,
             isotopes: {
-              MassNumber(16): Isotope(
-                relative_mass: Mass("15.99491461957"),
-                abundance: Some(Abundance("0.99757")),
+              MassNumber(32): Isotope(
+                relative_mass: Mass("31.9720711744"),
+                abundance: Some(Abundance("0.9499")),
               ),
-              MassNumber(17): Isotope(
-                relative_mass: Mass("16.99913175650"),
-                abundance: Some(Abundance("0.00038")),
+              MassNumber(33): Isotope(
+                relative_mass: Mass("32.9714589098"),
+                abundance: Some(Abundance("0.0075")),
               ),
-              MassNumber(18): Isotope(
-                relative_mass: Mass("17.99915961286"),
-                abundance: Some(Abundance("0.00205")),
+              MassNumber(34): Isotope(
+                relative_mass: Mass("33.967867004"),
+                abundance: Some(Abundance("0.0425")),
+              ),
+              MassNumber(36): Isotope(
+                relative_mass: Mass("35.96708071"),
+                abundance: Some(Abundance("0.0001")),
               ),
             },
           ), Count(1)),
         ],
         particle_offset: None,
+      ),
+      from: Target(
+        group: "Hydroxyl",
+        location: Some("6-Position"),
+        residue: None,
+      ),
+      to: Target(
+        group: "Carboxyl",
+        location: None,
+        residue: None,
       ),
     ),
   },

@@ -52,9 +52,10 @@ type Residues<'a> = HashMap<String, ResidueDescription<'a>>;
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct BondDescription<'a> {
     pub name: String,
+    pub lost: ChemicalComposition<'a>,
+    pub gained: ChemicalComposition<'a>,
     pub from: Target,
     pub to: Target,
-    pub lost: ChemicalComposition<'a>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -134,6 +135,8 @@ struct BondKdl {
     to: TargetKdl,
     #[knuffel(child, unwrap(argument))]
     lost: Option<ChemicalCompositionKdl>,
+    #[knuffel(child, unwrap(argument))]
+    gained: Option<ChemicalCompositionKdl>,
 }
 
 #[derive(Debug, Decode)]
@@ -143,12 +146,12 @@ struct ModificationKdl {
     abbr: String,
     #[knuffel(argument)]
     name: String,
+    #[knuffel(children(name = "targeting", non_empty))]
+    targets: Vec<TargetKdl>,
     #[knuffel(child, unwrap(argument))]
     lost: Option<ChemicalCompositionKdl>,
     #[knuffel(child, unwrap(argument))]
     gained: Option<ChemicalCompositionKdl>,
-    #[knuffel(children(name = "targeting", non_empty))]
-    targets: Vec<TargetKdl>,
 }
 
 #[derive(Debug, Decode)]
@@ -371,6 +374,7 @@ impl<'a: 't, 't> ValidateInto<'t, BondEntry<'a>> for BondKdl {
                 from: self.from.validate(ctx.1)?,
                 to: self.to.validate(ctx.1)?,
                 lost: self.lost.validate(ctx.0)?,
+                gained: self.gained.validate(ctx.0)?,
             },
         ))
     }

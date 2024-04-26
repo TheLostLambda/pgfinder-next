@@ -26,6 +26,13 @@ bonds {
         to "Carboxyl"
         lost "2p"
     }
+    // NOTE: Modification added for testing only!
+    Sulf "Persulfide Bridge" {
+        from "Hydroxyl" at="6-Position"
+        to "Carboxyl"
+        lost "H2"
+        gained "S"
+    }
 }
 
 modifications {

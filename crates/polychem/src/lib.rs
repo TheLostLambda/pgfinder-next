@@ -140,6 +140,7 @@ struct Bond<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
     lost: &'p ChemicalComposition<'a>,
+    gained: &'p ChemicalComposition<'a>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

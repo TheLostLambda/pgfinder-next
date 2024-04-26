@@ -6,8 +6,18 @@ use super::polymer_database::{BondDescription, PolymerDatabase};
 
 impl<'a, 'p> Bond<'a, 'p> {
     pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>) -> Result<Self> {
-        let (abbr, BondDescription { name, lost, .. }) = Self::lookup_description(db, abbr)?;
-        Ok(Self { abbr, name, lost })
+        let (
+            abbr,
+            BondDescription {
+                name, lost, gained, ..
+            },
+        ) = Self::lookup_description(db, abbr)?;
+        Ok(Self {
+            abbr,
+            name,
+            lost,
+            gained,
+        })
     }
 
     pub(crate) fn lookup_description(
@@ -23,17 +33,17 @@ impl<'a, 'p> Bond<'a, 'p> {
 
 impl Massive for Bond<'_, '_> {
     fn monoisotopic_mass(&self) -> MonoisotopicMass {
-        -self.lost.monoisotopic_mass()
+        self.gained.monoisotopic_mass() - self.lost.monoisotopic_mass()
     }
 
     fn average_mass(&self) -> AverageMass {
-        -self.lost.average_mass()
+        self.gained.average_mass() - self.lost.average_mass()
     }
 }
 
 impl Charged for Bond<'_, '_> {
     fn charge(&self) -> Charge {
-        -self.lost.charge()
+        self.gained.charge() - self.lost.charge()
     }
 }
 
@@ -85,6 +95,11 @@ mod tests {
             charged.monoisotopic_mass(),
             MonoisotopicMass(dec!(-2.014552933242))
         );
+        let persulfide = Bond::new(&POLYMER_DB, "Sulf").unwrap();
+        assert_eq!(
+            persulfide.monoisotopic_mass(),
+            MonoisotopicMass(dec!(29.95642110994))
+        );
     }
 
     #[test]
@@ -101,6 +116,11 @@ mod tests {
         );
         let charged = Bond::new(&POLYMER_DB, "Chr").unwrap();
         assert_eq!(charged.average_mass(), AverageMass(dec!(-2.014552933242)));
+        let persulfide = Bond::new(&POLYMER_DB, "Sulf").unwrap();
+        assert_eq!(
+            persulfide.average_mass(),
+            AverageMass(dec!(30.04890589801550530))
+        );
     }
 
     #[test]
@@ -111,6 +131,8 @@ mod tests {
         assert_eq!(stem.charge(), Charge(0));
         let charged = Bond::new(&POLYMER_DB, "Chr").unwrap();
         assert_eq!(charged.charge(), Charge(-2));
+        let persulfide = Bond::new(&POLYMER_DB, "Sulf").unwrap();
+        assert_eq!(persulfide.charge(), Charge(0));
     }
 
     #[test]
@@ -124,6 +146,8 @@ mod tests {
             charged.monoisotopic_mz(),
             Some(MonoisotopicMz(dec!(-1.007276466621)))
         );
+        let persulfide = Bond::new(&POLYMER_DB, "Sulf").unwrap();
+        assert_eq!(persulfide.monoisotopic_mz(), None);
     }
 
     #[test]
@@ -134,5 +158,7 @@ mod tests {
         assert_eq!(stem.average_mz(), None);
         let charged = Bond::new(&POLYMER_DB, "Chr").unwrap();
         assert_eq!(charged.average_mz(), Some(AverageMz(dec!(-1.007276466621))));
+        let persulfide = Bond::new(&POLYMER_DB, "Sulf").unwrap();
+        assert_eq!(persulfide.average_mz(), None);
     }
 }

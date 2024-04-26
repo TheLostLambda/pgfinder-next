@@ -5,6 +5,14 @@ expression: bonds.unwrap()
 {
   "Gly": BondDescription(
     name: "Glycosidic",
+    lost: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
+    gained: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
     from: Target(
       group: "Hydroxyl",
       location: Some("Reducing End"),
@@ -15,23 +23,9 @@ expression: bonds.unwrap()
       location: Some("Nonreducing End"),
       residue: None,
     ),
-    lost: ChemicalComposition(
-      chemical_formula: [],
-      particle_offset: None,
-    ),
   ),
   "Stem": BondDescription(
     name: "MurNAc -> Stem Peptide",
-    from: Target(
-      group: "Carboxyl",
-      location: Some("Lactyl Ether"),
-      residue: Some("N-Acetylmuramic Acid"),
-    ),
-    to: Target(
-      group: "Amino",
-      location: Some("N-Terminal"),
-      residue: None,
-    ),
     lost: ChemicalComposition(
       chemical_formula: [
         (Element(
@@ -74,6 +68,20 @@ expression: bonds.unwrap()
         ), Count(1)),
       ],
       particle_offset: None,
+    ),
+    gained: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
+    from: Target(
+      group: "Carboxyl",
+      location: Some("Lactyl Ether"),
+      residue: Some("N-Acetylmuramic Acid"),
+    ),
+    to: Target(
+      group: "Amino",
+      location: Some("N-Terminal"),
+      residue: None,
     ),
   ),
 }
