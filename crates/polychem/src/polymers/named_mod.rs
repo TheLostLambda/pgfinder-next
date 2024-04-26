@@ -26,6 +26,11 @@ impl<'a, 'p> NamedMod<'a, 'p> {
         self.abbr
     }
 
+    #[must_use]
+    pub const fn name(&self) -> &'p str {
+        self.name
+    }
+
     pub(crate) fn lookup_description(
         db: &'p PolymerDatabase<'a>,
         abbr: impl AsRef<str>,
@@ -97,6 +102,25 @@ mod tests {
         assert_eq!(
             named_mod.monoisotopic_mass(),
             named_modification.monoisotopic_mass()
+        );
+    }
+
+    #[test]
+    fn names_and_abbrs() {
+        let mods = [
+            NamedMod::new(&POLYMER_DB, "Am").unwrap(),
+            NamedMod::new(&POLYMER_DB, "Ac").unwrap(),
+            NamedMod::new(&POLYMER_DB, "DeAc").unwrap(),
+            NamedMod::new(&POLYMER_DB, "Ca").unwrap(),
+        ];
+        assert_eq!(
+            mods.map(|m| (m.abbr(), m.name())),
+            [
+                ("Am", "Amidation"),
+                ("Ac", "O-Acetylation"),
+                ("DeAc", "De-N-Acetylation"),
+                ("Ca", "Calcium Adduct")
+            ]
         );
     }
 

@@ -377,3 +377,63 @@ macro_rules! charged_ref_impls {
 charged_ref_impls!(&T, &mut T, Box<T>);
 
 impl<T: Massive + Charged> ChargedParticle for T {}
+
+#[cfg(test)]
+mod tests {
+    use rust_decimal_macros::dec;
+
+    use super::*;
+
+    #[derive(Clone)]
+    struct Chonky;
+
+    impl Massive for Chonky {
+        fn monoisotopic_mass(&self) -> MonoisotopicMass {
+            MonoisotopicMass(dec!(42))
+        }
+
+        fn average_mass(&self) -> AverageMass {
+            AverageMass(dec!(42.42))
+        }
+    }
+
+    #[test]
+    fn massive_blanket_impls() {
+        let big_boi = Chonky;
+        let chonky_ref = &big_boi;
+        let chonky_mut = &mut big_boi.clone();
+        let chonky_box = Box::new(big_boi.clone());
+        assert_eq!(big_boi.monoisotopic_mass(), chonky_ref.monoisotopic_mass());
+        assert_eq!(
+            chonky_ref.monoisotopic_mass(),
+            chonky_mut.monoisotopic_mass(),
+        );
+        assert_eq!(
+            chonky_mut.monoisotopic_mass(),
+            chonky_box.monoisotopic_mass(),
+        );
+        assert_eq!(big_boi.average_mass(), chonky_ref.average_mass());
+        assert_eq!(chonky_ref.average_mass(), chonky_mut.average_mass());
+        assert_eq!(chonky_mut.average_mass(), chonky_box.average_mass());
+    }
+
+    #[derive(Clone)]
+    struct Pikachu;
+
+    impl Charged for Pikachu {
+        fn charge(&self) -> Charge {
+            Charge(9001)
+        }
+    }
+
+    #[test]
+    fn charged_blanket_impls() {
+        let yellow_rat = Pikachu;
+        let pikachu_ref = &yellow_rat;
+        let pikachu_mut = &mut yellow_rat.clone();
+        let pikachu_box = Box::new(yellow_rat.clone());
+        assert_eq!(yellow_rat.charge(), pikachu_ref.charge());
+        assert_eq!(pikachu_ref.charge(), pikachu_mut.charge());
+        assert_eq!(pikachu_mut.charge(), pikachu_box.charge());
+    }
+}

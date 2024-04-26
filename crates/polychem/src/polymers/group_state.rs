@@ -9,9 +9,9 @@ impl Display for GroupState {
             "{}",
             match self {
                 Self::Free => "free",
-                Self::Modified(_) => "modified",
-                Self::Donor(_) => "a donor",
-                Self::Acceptor(_) => "an acceptor",
+                Self::Modified(..) => "modified",
+                Self::Donor(..) => "a donor",
+                Self::Acceptor(..) => "an acceptor",
             }
         )
     }
@@ -19,7 +19,28 @@ impl Display for GroupState {
 
 #[cfg(test)]
 mod tests {
+    use crate::{BondId, ModificationId};
+
     use super::*;
+
+    #[test]
+    fn display_group_state() {
+        let states = [
+            GroupState::Free,
+            GroupState::Modified(ModificationId(0)),
+            GroupState::Donor(BondId(0)),
+            GroupState::Acceptor(BondId(0)),
+        ];
+        assert_eq!(
+            states.map(|gs| gs.to_string()),
+            [
+                "free".to_owned(),
+                "modified".to_owned(),
+                "a donor".to_owned(),
+                "an acceptor".to_owned()
+            ]
+        );
+    }
 
     #[test]
     fn default_and_is_variant_derives() {

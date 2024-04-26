@@ -99,8 +99,6 @@ impl<'a, V> Index<'a, V> {
             .collect()
     }
 
-    // FIXME: Should this be returning a HashSet? Probably not. Faster to collect into a Vec, and I know they will be
-    // unique already anyways!
     pub fn matches_with_targets(
         &self,
         target: impl Into<Target<&'a str>>,
@@ -163,8 +161,8 @@ impl<'a> From<&'a Target> for Target<&'a str> {
     }
 }
 
-impl<'a> From<&'a Target<&'a str>> for Target {
-    fn from(value: &'a Target<&'a str>) -> Self {
+impl<'a> From<Target<&'a str>> for Target {
+    fn from(value: Target<&'a str>) -> Self {
         Self::new(
             value.group.to_owned(),
             value.location.map(ToOwned::to_owned),
@@ -202,8 +200,12 @@ type ResidueMap<'a, T> = HashMap<Option<&'a str>, T>;
 #[cfg(test)]
 mod tests {
     use ahash::HashSet;
+    use miette::IntoDiagnostic;
+    use std::io::Write;
 
     use once_cell::sync::Lazy;
+
+    use crate::testing_tools::assert_miette_snapshot;
 
     use super::*;
 
@@ -250,6 +252,27 @@ mod tests {
             TARGET_LIST[2].0.to_string(),
             r#""Amino" at="N-Terminal" of="Alanine""#
         );
+    }
+
+    #[test]
+    fn fail_write_targets() {
+        let target = TARGET_LIST[2].0;
+        let mut buf = [0_u8; 1];
+        assert_miette_snapshot!(write!(&mut buf[..], "{target}").into_diagnostic());
+        let mut buf = [0_u8; 10];
+        assert_miette_snapshot!(write!(&mut buf[..], "{target}").into_diagnostic());
+        let mut buf = [0_u8; 25];
+        assert_miette_snapshot!(write!(&mut buf[..], "{target}").into_diagnostic());
+    }
+
+    #[test]
+    fn to_and_from_owned_targets() {
+        let target: Target<&str> = TARGET_LIST[0].0;
+        let mut owned_target: Target = target.into();
+        let borrowed_target: Target<&str> = (&owned_target).into();
+        // Assign to same variable to ensure `Target` and `Target<String>` types are the same!
+        owned_target = Target::<String>::from(borrowed_target);
+        drop(owned_target);
     }
 
     #[test]

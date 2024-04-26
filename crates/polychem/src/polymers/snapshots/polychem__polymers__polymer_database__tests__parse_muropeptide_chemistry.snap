@@ -427,6 +427,14 @@ PolymerDatabaseKdl {
             },
             ResidueKdl {
                 span: <SPAN>,
+                residue_type: "Monosaccharide",
+                abbr: "x",
+                name: "Unknown Monosaccharide",
+                composition: None,
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
                 residue_type: "AminoAcid",
                 abbr: "A",
                 name: "Alanine",
@@ -602,6 +610,19 @@ PolymerDatabaseKdl {
                         location: "Sidechain",
                     },
                 ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "K2+",
+                name: "Lysine 2+",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C6H12N2O2+2p",
+                    },
+                ),
+                functional_groups: [],
             },
             ResidueKdl {
                 span: <SPAN>,

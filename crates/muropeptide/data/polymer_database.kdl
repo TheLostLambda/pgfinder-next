@@ -74,6 +74,9 @@ residues {
         composition "C11H19NO8"
         functional-group "Carboxyl" at="Lactyl Ether"
     }
+    Monosaccharide "x" "Unknown Monosaccharide" {
+        composition null
+    }
 
     AminoAcid "A" "Alanine" {
         composition "C3H7NO2"

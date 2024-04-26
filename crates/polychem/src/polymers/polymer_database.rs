@@ -248,6 +248,7 @@ impl<'a> ValidateInto<'a, Residues<'a>> for ResiduesKdl {
             .into_iter()
             .map(|r| r.validate((ctx, &types)))
             .collect()
+        // TODO: Report an error if any residues are defined twice / have the same abbr!
     }
 }
 
@@ -351,6 +352,7 @@ impl<'a: 't, 't> ValidateInto<'t, Bonds<'a>> for BondsKdl {
 
     fn validate(self, ctx: Self::Context) -> ChemResult<Bonds<'a>> {
         self.bonds.into_iter().map(|b| b.validate(ctx)).collect()
+        // TODO: Report an error if any bonds are defined twice / have the same abbr!
     }
 }
 
@@ -400,6 +402,7 @@ impl<'a: 't, 't> ValidateInto<'t, Modifications<'a>> for ModificationsKdl {
             .into_iter()
             .map(|m| m.validate(ctx))
             .collect()
+        // TODO: Report an error if any modifications are defined twice / have the same abbr!
     }
 }
 

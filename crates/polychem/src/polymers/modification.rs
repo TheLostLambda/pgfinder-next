@@ -103,12 +103,17 @@ mod tests {
 
     use crate::{
         atoms::atomic_database::AtomicDatabase, polymers::polymer_database::PolymerDatabase,
-        AverageMz, ChargedParticle, MonoisotopicMz, OffsetKind, OffsetMod,
+        AverageMz, ChargedParticle, ChemicalComposition, MonoisotopicMz, OffsetKind, OffsetMod,
     };
 
     use super::*;
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+
+    static H2O: Lazy<ChemicalComposition> =
+        Lazy::new(|| ChemicalComposition::new(&ATOMIC_DB, "H2O").unwrap());
+    static CA: Lazy<ChemicalComposition> =
+        Lazy::new(|| ChemicalComposition::new(&ATOMIC_DB, "Ca-2e").unwrap());
 
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
         PolymerDatabase::new(
@@ -125,25 +130,15 @@ mod tests {
 
     #[test]
     fn modifcation_display() {
-        let water_gain = Modification::new(
-            c(1),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gain = Modification::new(c(1), OffsetMod::new(OffsetKind::Add, H2O.clone()));
         assert_eq!(water_gain.to_string(), "+H2O");
-        let water_loss = Modification::new(
-            c(1),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_loss = Modification::new(c(1), OffsetMod::new(OffsetKind::Remove, H2O.clone()));
         assert_eq!(water_loss.to_string(), "-H2O");
-        let double_water_gain = Modification::new(
-            c(2),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let double_water_gain =
+            Modification::new(c(2), OffsetMod::new(OffsetKind::Add, H2O.clone()));
         assert_eq!(double_water_gain.to_string(), "+2xH2O");
-        let double_water_loss = Modification::new(
-            c(2),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let double_water_loss =
+            Modification::new(c(2), OffsetMod::new(OffsetKind::Remove, H2O.clone()));
         assert_eq!(double_water_loss.to_string(), "-2xH2O");
 
         let amidation = Modification::new(c(1), NamedMod::new(&POLYMER_DB, "Am").unwrap());
@@ -151,25 +146,15 @@ mod tests {
         let double_amidation = Modification::new(c(2), NamedMod::new(&POLYMER_DB, "Am").unwrap());
         assert_eq!(double_amidation.to_string(), "2xAm");
 
-        let water_gain = Modification::new(
-            c(1),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gain = Modification::new(c(1), AnyMod::offset(OffsetKind::Add, H2O.clone()));
         assert_eq!(water_gain.to_string(), "+H2O");
-        let water_loss = Modification::new(
-            c(1),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_loss = Modification::new(c(1), AnyMod::offset(OffsetKind::Remove, H2O.clone()));
         assert_eq!(water_loss.to_string(), "-H2O");
-        let double_water_gain = Modification::new(
-            c(2),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let double_water_gain =
+            Modification::new(c(2), AnyMod::offset(OffsetKind::Add, H2O.clone()));
         assert_eq!(double_water_gain.to_string(), "+2xH2O");
-        let double_water_loss = Modification::new(
-            c(2),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let double_water_loss =
+            Modification::new(c(2), AnyMod::offset(OffsetKind::Remove, H2O.clone()));
         assert_eq!(double_water_loss.to_string(), "-2xH2O");
 
         let amidation = Modification::new(c(1), AnyMod::named(&POLYMER_DB, "Am").unwrap());
@@ -205,35 +190,23 @@ mod tests {
             MonoisotopicMass(dec!(155.81686894624348))
         );
 
-        let water_gained = Modification::new(
-            c(4),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(4), OffsetMod::new(OffsetKind::Add, H2O.clone()));
         assert_eq!(
             water_gained.monoisotopic_mass(),
             MonoisotopicMass(dec!(72.04225873612))
         );
-        let water_lost = Modification::new(
-            c(3),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(3), OffsetMod::new(OffsetKind::Remove, H2O.clone()));
         assert_eq!(
             water_lost.monoisotopic_mass(),
             MonoisotopicMass(dec!(-54.03169405209))
         );
         // Masses checked against https://bioportal.bioontology.org/ontologies/UBERON
-        let ca_gained = Modification::new(
-            c(2),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(2), OffsetMod::new(OffsetKind::Add, CA.clone()));
         assert_eq!(
             ca_gained.monoisotopic_mass(),
             MonoisotopicMass(dec!(79.92298740636374))
         );
-        let ca_lost = Modification::new(
-            c(1),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(1), OffsetMod::new(OffsetKind::Remove, CA.clone()));
         assert_eq!(
             ca_lost.monoisotopic_mass(),
             MonoisotopicMass(dec!(-39.961493703181870))
@@ -261,35 +234,23 @@ mod tests {
             MonoisotopicMass(dec!(38.954217236560870))
         );
 
-        let water_gained = Modification::new(
-            c(1),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(1), AnyMod::offset(OffsetKind::Add, H2O.clone()));
         assert_eq!(
             water_gained.monoisotopic_mass(),
             MonoisotopicMass(dec!(18.01056468403))
         );
-        let water_lost = Modification::new(
-            c(2),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(2), AnyMod::offset(OffsetKind::Remove, H2O.clone()));
         assert_eq!(
             water_lost.monoisotopic_mass(),
             MonoisotopicMass(dec!(-36.02112936806))
         );
         // Masses checked against https://bioportal.bioontology.org/ontologies/UBERON
-        let ca_gained = Modification::new(
-            c(3),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(3), AnyMod::offset(OffsetKind::Add, CA.clone()));
         assert_eq!(
             ca_gained.monoisotopic_mass(),
             MonoisotopicMass(dec!(119.88448110954561))
         );
-        let ca_lost = Modification::new(
-            c(4),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(4), AnyMod::offset(OffsetKind::Remove, CA.clone()));
         assert_eq!(
             ca_lost.monoisotopic_mass(),
             MonoisotopicMass(dec!(-159.84597481272748))
@@ -324,35 +285,23 @@ mod tests {
         );
 
         // Masses checked against https://www.unimod.org/modifications_list.php
-        let water_gained = Modification::new(
-            c(4),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(4), OffsetMod::new(OffsetKind::Add, H2O.clone()));
         assert_eq!(
             water_gained.average_mass(),
             AverageMass(dec!(72.06114572971933040))
         );
-        let water_lost = Modification::new(
-            c(3),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(3), OffsetMod::new(OffsetKind::Remove, H2O.clone()));
         assert_eq!(
             water_lost.average_mass(),
             AverageMass(dec!(-54.04585929728949780))
         );
         // Masses checked against https://bioportal.bioontology.org/ontologies/UBERON
-        let ca_gained = Modification::new(
-            c(2),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(2), OffsetMod::new(OffsetKind::Add, CA.clone()));
         assert_eq!(
             ca_gained.average_mass(),
             AverageMass(dec!(80.153850702399200))
         );
-        let ca_lost = Modification::new(
-            c(1),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(1), OffsetMod::new(OffsetKind::Remove, CA.clone()));
         assert_eq!(
             ca_lost.average_mass(),
             AverageMass(dec!(-40.076925351199600))
@@ -380,35 +329,23 @@ mod tests {
             AverageMass(dec!(39.069648884578600))
         );
 
-        let water_gained = Modification::new(
-            c(1),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(1), AnyMod::offset(OffsetKind::Add, H2O.clone()));
         assert_eq!(
             water_gained.average_mass(),
             AverageMass(dec!(18.01528643242983260))
         );
-        let water_lost = Modification::new(
-            c(2),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(2), AnyMod::offset(OffsetKind::Remove, H2O.clone()));
         assert_eq!(
             water_lost.average_mass(),
             AverageMass(dec!(-36.03057286485966520))
         );
         // Masses checked against https://bioportal.bioontology.org/ontologies/UBERON
-        let ca_gained = Modification::new(
-            c(3),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(3), AnyMod::offset(OffsetKind::Add, CA.clone()));
         assert_eq!(
             ca_gained.average_mass(),
             AverageMass(dec!(120.230776053598800))
         );
-        let ca_lost = Modification::new(
-            c(4),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(4), AnyMod::offset(OffsetKind::Remove, CA.clone()));
         assert_eq!(
             ca_lost.average_mass(),
             AverageMass(dec!(-160.307701404798400))
@@ -426,25 +363,13 @@ mod tests {
         let calcium = Modification::new(c(4), NamedMod::new(&POLYMER_DB, "Ca").unwrap());
         assert_eq!(calcium.charge(), Charge(4));
 
-        let water_gained = Modification::new(
-            c(4),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(4), OffsetMod::new(OffsetKind::Add, H2O.clone()));
         assert_eq!(water_gained.charge(), Charge(0));
-        let water_lost = Modification::new(
-            c(3),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(3), OffsetMod::new(OffsetKind::Remove, H2O.clone()));
         assert_eq!(water_lost.charge(), Charge(0));
-        let ca_gained = Modification::new(
-            c(2),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(2), OffsetMod::new(OffsetKind::Add, CA.clone()));
         assert_eq!(ca_gained.charge(), Charge(4));
-        let ca_lost = Modification::new(
-            c(1),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(1), OffsetMod::new(OffsetKind::Remove, CA.clone()));
         assert_eq!(ca_lost.charge(), Charge(-2));
 
         let amidation = Modification::new(c(4), AnyMod::named(&POLYMER_DB, "Am").unwrap());
@@ -456,25 +381,13 @@ mod tests {
         let calcium = Modification::new(c(1), AnyMod::named(&POLYMER_DB, "Ca").unwrap());
         assert_eq!(calcium.charge(), Charge(1));
 
-        let water_gained = Modification::new(
-            c(1),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(1), AnyMod::offset(OffsetKind::Add, H2O.clone()));
         assert_eq!(water_gained.charge(), Charge(0));
-        let water_lost = Modification::new(
-            c(2),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(2), AnyMod::offset(OffsetKind::Remove, H2O.clone()));
         assert_eq!(water_lost.charge(), Charge(0));
-        let ca_gained = Modification::new(
-            c(3),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(3), AnyMod::offset(OffsetKind::Add, CA.clone()));
         assert_eq!(ca_gained.charge(), Charge(6));
-        let ca_lost = Modification::new(
-            c(4),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(4), AnyMod::offset(OffsetKind::Remove, CA.clone()));
         assert_eq!(ca_lost.charge(), Charge(-8));
     }
 
@@ -492,28 +405,16 @@ mod tests {
             Some(MonoisotopicMz(dec!(38.954217236560870)))
         );
 
-        let water_gained = Modification::new(
-            c(4),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(4), OffsetMod::new(OffsetKind::Add, H2O.clone()));
         assert_eq!(water_gained.monoisotopic_mz(), None);
-        let water_lost = Modification::new(
-            c(3),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(3), OffsetMod::new(OffsetKind::Remove, H2O.clone()));
         assert_eq!(water_lost.monoisotopic_mz(), None);
-        let ca_gained = Modification::new(
-            c(2),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(2), OffsetMod::new(OffsetKind::Add, CA.clone()));
         assert_eq!(
             ca_gained.monoisotopic_mz(),
             Some(MonoisotopicMz(dec!(19.980746851590935)))
         );
-        let ca_lost = Modification::new(
-            c(1),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(1), OffsetMod::new(OffsetKind::Remove, CA.clone()));
         assert_eq!(
             ca_lost.monoisotopic_mz(),
             Some(MonoisotopicMz(dec!(-19.980746851590935)))
@@ -531,28 +432,16 @@ mod tests {
             Some(MonoisotopicMz(dec!(38.954217236560870)))
         );
 
-        let water_gained = Modification::new(
-            c(1),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(1), AnyMod::offset(OffsetKind::Add, H2O.clone()));
         assert_eq!(water_gained.monoisotopic_mz(), None);
-        let water_lost = Modification::new(
-            c(2),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(2), AnyMod::offset(OffsetKind::Remove, H2O.clone()));
         assert_eq!(water_lost.monoisotopic_mz(), None);
-        let ca_gained = Modification::new(
-            c(3),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(3), AnyMod::offset(OffsetKind::Add, CA.clone()));
         assert_eq!(
             ca_gained.monoisotopic_mz(),
             Some(MonoisotopicMz(dec!(19.980746851590935)))
         );
-        let ca_lost = Modification::new(
-            c(4),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(4), AnyMod::offset(OffsetKind::Remove, CA.clone()));
         assert_eq!(
             ca_lost.monoisotopic_mz(),
             Some(MonoisotopicMz(dec!(-19.980746851590935)))
@@ -573,28 +462,16 @@ mod tests {
             Some(AverageMz(dec!(39.069648884578600)))
         );
 
-        let water_gained = Modification::new(
-            c(4),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(4), OffsetMod::new(OffsetKind::Add, H2O.clone()));
         assert_eq!(water_gained.average_mz(), None);
-        let water_lost = Modification::new(
-            c(3),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(3), OffsetMod::new(OffsetKind::Remove, H2O.clone()));
         assert_eq!(water_lost.average_mz(), None);
-        let ca_gained = Modification::new(
-            c(2),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(2), OffsetMod::new(OffsetKind::Add, CA.clone()));
         assert_eq!(
             ca_gained.average_mz(),
             Some(AverageMz(dec!(20.0384626755998)))
         );
-        let ca_lost = Modification::new(
-            c(1),
-            OffsetMod::new(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(1), OffsetMod::new(OffsetKind::Remove, CA.clone()));
         assert_eq!(
             ca_lost.average_mz(),
             Some(AverageMz(dec!(-20.0384626755998)))
@@ -612,28 +489,16 @@ mod tests {
             Some(AverageMz(dec!(39.069648884578600)))
         );
 
-        let water_gained = Modification::new(
-            c(1),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "H2O").unwrap(),
-        );
+        let water_gained = Modification::new(c(1), AnyMod::offset(OffsetKind::Add, H2O.clone()));
         assert_eq!(water_gained.average_mz(), None);
-        let water_lost = Modification::new(
-            c(2),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "H2O").unwrap(),
-        );
+        let water_lost = Modification::new(c(2), AnyMod::offset(OffsetKind::Remove, H2O.clone()));
         assert_eq!(water_lost.average_mz(), None);
-        let ca_gained = Modification::new(
-            c(3),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Add, "Ca-2e").unwrap(),
-        );
+        let ca_gained = Modification::new(c(3), AnyMod::offset(OffsetKind::Add, CA.clone()));
         assert_eq!(
             ca_gained.average_mz(),
             Some(AverageMz(dec!(20.0384626755998)))
         );
-        let ca_lost = Modification::new(
-            c(4),
-            AnyMod::offset(&ATOMIC_DB, OffsetKind::Remove, "Ca-2e").unwrap(),
-        );
+        let ca_lost = Modification::new(c(4), AnyMod::offset(OffsetKind::Remove, CA.clone()));
         assert_eq!(
             ca_lost.average_mz(),
             Some(AverageMz(dec!(-20.0384626755998)))

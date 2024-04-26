@@ -1886,6 +1886,101 @@ PolymerDatabase(
         ),
       ],
     ),
+    "K2+": ResidueDescription(
+      name: "Lysine 2+",
+      composition: ChemicalComposition(
+        chemical_formula: [
+          (Element(
+            symbol: "C",
+            name: "Carbon",
+            mass_number: None,
+            isotopes: {
+              MassNumber(12): Isotope(
+                relative_mass: Mass("12.0000000"),
+                abundance: Some(Abundance("0.9893")),
+              ),
+              MassNumber(13): Isotope(
+                relative_mass: Mass("13.00335483507"),
+                abundance: Some(Abundance("0.0107")),
+              ),
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.0032419884"),
+                abundance: None,
+              ),
+            },
+          ), Count(6)),
+          (Element(
+            symbol: "H",
+            name: "Hydrogen",
+            mass_number: None,
+            isotopes: {
+              MassNumber(1): Isotope(
+                relative_mass: Mass("1.00782503223"),
+                abundance: Some(Abundance("0.999885")),
+              ),
+              MassNumber(2): Isotope(
+                relative_mass: Mass("2.01410177812"),
+                abundance: Some(Abundance("0.000115")),
+              ),
+              MassNumber(3): Isotope(
+                relative_mass: Mass("3.0160492779"),
+                abundance: None,
+              ),
+            },
+          ), Count(12)),
+          (Element(
+            symbol: "N",
+            name: "Nitrogen",
+            mass_number: None,
+            isotopes: {
+              MassNumber(14): Isotope(
+                relative_mass: Mass("14.00307400443"),
+                abundance: Some(Abundance("0.99636")),
+              ),
+              MassNumber(15): Isotope(
+                relative_mass: Mass("15.00010889888"),
+                abundance: Some(Abundance("0.00364")),
+              ),
+            },
+          ), Count(2)),
+          (Element(
+            symbol: "O",
+            name: "Oxygen",
+            mass_number: None,
+            isotopes: {
+              MassNumber(16): Isotope(
+                relative_mass: Mass("15.99491461957"),
+                abundance: Some(Abundance("0.99757")),
+              ),
+              MassNumber(17): Isotope(
+                relative_mass: Mass("16.99913175650"),
+                abundance: Some(Abundance("0.00038")),
+              ),
+              MassNumber(18): Isotope(
+                relative_mass: Mass("17.99915961286"),
+                abundance: Some(Abundance("0.00205")),
+              ),
+            },
+          ), Count(2)),
+        ],
+        particle_offset: Some((Add, Count(2), Particle(
+          symbol: "p",
+          name: "Proton",
+          mass: Mass("1.007276466621"),
+          charge: Charge(1),
+        ))),
+      ),
+      functional_groups: [
+        FunctionalGroupDescription(
+          name: "Amino",
+          location: "N-Terminal",
+        ),
+        FunctionalGroupDescription(
+          name: "Carboxyl",
+          location: "C-Terminal",
+        ),
+      ],
+    ),
     "L": ResidueDescription(
       name: "Leucine",
       composition: ChemicalComposition(
@@ -3383,6 +3478,31 @@ PolymerDatabase(
         FunctionalGroupDescription(
           name: "Carboxyl",
           location: "Lactyl Ether",
+        ),
+        FunctionalGroupDescription(
+          name: "Hydroxyl",
+          location: "6-Position",
+        ),
+        FunctionalGroupDescription(
+          name: "Hydroxyl",
+          location: "Nonreducing End",
+        ),
+        FunctionalGroupDescription(
+          name: "Hydroxyl",
+          location: "Reducing End",
+        ),
+      ],
+    ),
+    "x": ResidueDescription(
+      name: "Unknown Monosaccharide",
+      composition: ChemicalComposition(
+        chemical_formula: [],
+        particle_offset: None,
+      ),
+      functional_groups: [
+        FunctionalGroupDescription(
+          name: "Acetyl",
+          location: "Secondary Amide",
         ),
         FunctionalGroupDescription(
           name: "Hydroxyl",

@@ -95,6 +95,9 @@ residues {
         composition "C11H19NO8"
         functional-group "Carboxyl" at="Lactyl Ether"
     }
+    Monosaccharide "x" "Unknown Monosaccharide" {
+        composition null
+    }
 
     AminoAcid "A" "Alanine" {
         composition "C3H7NO2"
@@ -134,6 +137,10 @@ residues {
     AminoAcid "K" "Lysine" {
         composition "C6H14N2O2"
         functional-group "Amino" at="Sidechain"
+    }
+    // NOTE: Residue added for testing only!
+    AminoAcid "K2+" "Lysine 2+" {
+        composition "C6H12N2O2+2p"
     }
     AminoAcid "L" "Leucine" {
         composition "C6H13NO2"

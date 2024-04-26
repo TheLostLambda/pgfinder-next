@@ -92,8 +92,11 @@ impl<'a> ChemicalComposition<'a> {
 
 #[cfg(test)]
 mod tests {
+    use ahash::{HashMap, HashMapExt};
+    use miette::IntoDiagnostic;
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
+    use std::io::Write;
 
     use crate::testing_tools::assert_miette_snapshot;
 
@@ -162,6 +165,59 @@ mod tests {
             let composition = ChemicalComposition::new(&DB, formula).unwrap();
             assert_eq!(composition.to_string(), formula);
         }
+    }
+
+    #[test]
+    fn composition_fail_write() {
+        let just_particle = ChemicalComposition::new(&DB, "3e").unwrap();
+        let mut buf = [0_u8; 1];
+        assert_miette_snapshot!(write!(&mut buf[..], "{just_particle}").into_diagnostic());
+
+        let both = ChemicalComposition::new(&DB, "NH2+2p").unwrap();
+        let mut buf = [0_u8; 2];
+        assert_miette_snapshot!(write!(&mut buf[..], "{both}").into_diagnostic());
+        let mut buf = [0_u8; 3];
+        assert_miette_snapshot!(write!(&mut buf[..], "{both}").into_diagnostic());
+    }
+
+    #[test]
+    fn composition_hash() {
+        let formulae = [
+            "2p",
+            "C11H10ON2",
+            "2p",
+            "Cr2O7+2e",
+            "K-e",
+            "C11H10ON2",
+            "NH2+2p",
+            "C11H10ON2",
+            "K-e",
+            "C11H10ON2",
+            "[37Cl]5-2p",
+            "[37Cl]5-2p",
+            "K-e",
+        ];
+        let mut counts: HashMap<_, usize> = HashMap::with_capacity(formulae.len());
+        for formula in formulae {
+            let composition = ChemicalComposition::new(&DB, formula).unwrap();
+            *counts.entry(composition).or_default() += 1;
+        }
+        let mut counts: Vec<_> = counts
+            .into_iter()
+            .map(|(c, n)| (n, c.to_string()))
+            .collect();
+        counts.sort_unstable();
+        assert_eq!(
+            counts,
+            vec![
+                (1, "Cr2O7+2e".to_owned()),
+                (1, "NH2+2p".to_owned()),
+                (2, "2p".to_owned()),
+                (2, "[37Cl]5-2p".to_owned()),
+                (3, "K-e".to_owned()),
+                (4, "C11H10ON2".to_owned()),
+            ]
+        );
     }
 
     #[test]
