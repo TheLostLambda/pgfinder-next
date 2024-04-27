@@ -603,7 +603,7 @@ mod tests {
 
     #[test]
     fn parse_muropeptide_chemistry() {
-        let db: PolymerDatabaseKdl = knuffel::parse("polymer_database.kdl", KDL).unwrap();
+        let db: PolymerDatabaseKdl = knuffel::parse("test_polymer_database.kdl", KDL).unwrap();
         with_settings!({filters => vec![
             (r"Span\([^)]*\)", "<SPAN>"),
         ]}, {
@@ -613,7 +613,7 @@ mod tests {
 
     #[test]
     fn build_muropeptide_chemistry() {
-        let db = PolymerDatabase::new(&DB, "polymer_database.kdl", KDL).unwrap();
+        let db = PolymerDatabase::new(&DB, "test_polymer_database.kdl", KDL).unwrap();
         assert_ron_snapshot!(db, {
             ".bonds, .modifications, .residues" => insta::sorted_redaction(),
             ".**.isotopes, .**.functional_groups" => insta::sorted_redaction()

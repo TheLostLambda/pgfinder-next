@@ -64,7 +64,7 @@ mod tests {
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
-            "polymer_database.kdl",
+            "test_polymer_database.kdl",
             include_str!("../../tests/data/polymer_database.kdl"),
         )
         .unwrap()
