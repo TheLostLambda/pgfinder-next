@@ -19,8 +19,9 @@ const FORMULAS: [&str; 5] = [
 
 static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
-static POLYMER_DB: Lazy<PolymerDatabase> =
-    Lazy::new(|| PolymerDatabase::new(&ATOMIC_DB, "test_polymer_database.kdl", POLYMER_KDL).unwrap());
+static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    PolymerDatabase::new(&ATOMIC_DB, "test_polymer_database.kdl", POLYMER_KDL).unwrap()
+});
 
 static COMPOSITIONS: Lazy<Vec<ChemicalComposition>> = Lazy::new(|| {
     FORMULAS
