@@ -427,8 +427,7 @@ impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
         let target_index: Index<_> = targets_and_spans.iter().map(|(t, s)| (t, *s)).collect();
         for (target, span) in &targets_and_spans {
             let overlapping_targets: Vec<_> = target_index
-                .matches(target)
-                .into_iter()
+                .matches(target, |_, _, _, s| s)
                 .copied()
                 .filter(|s| s != span)
                 .collect();

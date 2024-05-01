@@ -9,9 +9,10 @@ use std::{
 // External Crate Imports
 use ahash::{HashMap, HashMapExt};
 
+use crate::{FunctionalGroup, Residue};
+
 // Public API ==========================================================================================================
 
-// FIXME: I think this trait bound is okay, since this isn't public API anyways!
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct Target<S = String> {
@@ -30,6 +31,15 @@ impl<S: Borrow<str>> Target<S> {
     }
 }
 
+impl<'p> Target<&'p str> {
+    pub const fn from_residue_and_group(
+        residue: &Residue<'_, 'p>,
+        group: &FunctionalGroup<'p>,
+    ) -> Self {
+        Self::new(group.name, Some(group.location), Some(residue.name))
+    }
+}
+
 impl<S: Borrow<str> + Eq> Target<S> {
     pub fn matches(&self, other: &Self) -> bool {
         self.group == other.group
@@ -39,18 +49,18 @@ impl<S: Borrow<str> + Eq> Target<S> {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub struct Index<'a, V = ()> {
-    index: GroupMap<'a, V>,
+pub struct Index<'p, V = ()> {
+    index: GroupMap<'p, V>,
 }
 
-impl<'a, V> Index<'a, V> {
+impl<'p, V> Index<'p, V> {
     pub fn new() -> Self {
         Self {
             index: HashMap::new(),
         }
     }
 
-    pub fn insert(&mut self, target: impl Into<Target<&'a str>>, value: V) -> Option<V> {
+    pub fn insert(&mut self, target: impl Into<Target<&'p str>>, value: V) -> Option<V> {
         match self.entry(target) {
             Entry::Occupied(mut e) => Some(e.insert(value)),
             Entry::Vacant(e) => {
@@ -60,7 +70,7 @@ impl<'a, V> Index<'a, V> {
         }
     }
 
-    pub fn entry(&mut self, target: impl Into<Target<&'a str>>) -> Entry<Option<&'a str>, V> {
+    pub fn entry(&mut self, target: impl Into<Target<&'p str>>) -> Entry<Option<&'p str>, V> {
         let Target {
             group,
             location,
@@ -74,7 +84,7 @@ impl<'a, V> Index<'a, V> {
             .entry(residue)
     }
 
-    pub fn get_mut(&mut self, target: impl Into<Target<&'a str>>) -> Option<&mut V> {
+    pub fn get_mut(&mut self, target: impl Into<Target<&'p str>>) -> Option<&mut V> {
         let Target {
             group,
             location,
@@ -86,53 +96,56 @@ impl<'a, V> Index<'a, V> {
             .and_then(|rs| rs.get_mut(&residue))
     }
 
-    pub fn contains_target(&self, target: impl Into<Target<&'a str>>) -> bool {
+    pub fn contains_target(&self, target: impl Into<Target<&'p str>>) -> bool {
         // PERF: Could be further optimized, see commit 9044078
-        !self.matches_with_targets(target).is_empty()
+        self.matches(target, |_, _, _, _| ()).next().is_some()
     }
 
-    pub fn matches(&self, target: impl Into<Target<&'a str>>) -> Vec<&V> {
-        // PERF: Could also be faster if I never constructed the Targets I'm throwing away here
-        self.matches_with_targets(target)
-            .into_iter()
-            .map(|(_, v)| v)
-            .collect()
-    }
-
-    pub fn matches_with_targets(
-        &self,
-        target: impl Into<Target<&'a str>>,
-    ) -> Vec<(Target<&'a str>, &V)> {
+    // PERF: How well do these dynamic iterators chain — e.g. in the `matches()` method? Would it be faster to go back
+    // to `collect()`ing into a `Vec`? This solution is lazy, but adds trait-object overhead!
+    pub fn matches<'s, I: 's>(
+        &'s self,
+        target: impl Into<Target<&'p str>>,
+        item: impl Fn(&'p str, Option<&'p str>, Option<&'p str>, &'s V) -> I + Copy + 's,
+    ) -> Box<dyn Iterator<Item = I> + 's> {
         let Target {
             group,
             location,
             residue,
         } = target.into();
 
-        // NOTE: Although this approach repeats Vec::new, it avoids the nesting of the equivalent if-let approach
+        // NOTE: Although this approach repeats `iter::empty()`, it avoids the nesting of the equivalent if-let approach
         let Some(locations) = self.index.get(group) else {
-            return Vec::new();
+            return Box::new(iter::empty());
         };
 
         if location.is_none() {
-            return locations
-                .iter()
-                .flat_map(|(&l, rs)| rs.iter().map(move |(&r, v)| (Target::new(group, l, r), v)))
-                .collect();
+            return Box::new(
+                locations
+                    .iter()
+                    .flat_map(move |(&l, rs)| rs.iter().map(move |(&r, v)| item(group, l, r, v))),
+            );
         }
         let Some(residues) = locations.get(&location) else {
-            return Vec::new();
+            return Box::new(iter::empty());
         };
 
         if residue.is_none() {
-            return residues
-                .iter()
-                .map(|(&r, v)| (Target::new(group, location, r), v))
-                .collect();
+            return Box::new(
+                residues
+                    .iter()
+                    .map(move |(&r, v)| item(group, location, r, v)),
+            );
         }
-        residues.get(&residue).map_or_else(Vec::new, |v| {
-            vec![(Target::new(group, location, residue), v)]
-        })
+        // NOTE: Type inference seems to get confused by `iter::once` and `iter::empty` having different types in the
+        // `map_or_else` version. I suspect this is just because the `Box`s haven't been type-erased into trait-objects
+        // at that point, and the manual casting is certainly messier than this!
+        #[allow(clippy::option_if_let_else)]
+        if let Some(v) = residues.get(&residue) {
+            Box::new(iter::once(item(group, location, residue, v)))
+        } else {
+            Box::new(iter::empty())
+        }
     }
 }
 
@@ -151,8 +164,8 @@ impl<S: Borrow<str>> Display for Target<S> {
     }
 }
 
-impl<'a> From<&'a Target> for Target<&'a str> {
-    fn from(value: &'a Target) -> Self {
+impl<'p> From<&'p Target> for Target<&'p str> {
+    fn from(value: &'p Target) -> Self {
         Self {
             group: &value.group,
             location: value.location.as_deref(),
@@ -161,8 +174,8 @@ impl<'a> From<&'a Target> for Target<&'a str> {
     }
 }
 
-impl<'a> From<Target<&'a str>> for Target {
-    fn from(value: Target<&'a str>) -> Self {
+impl<'p> From<Target<&'p str>> for Target {
+    fn from(value: Target<&'p str>) -> Self {
         Self::new(
             value.group.to_owned(),
             value.location.map(ToOwned::to_owned),
@@ -173,7 +186,7 @@ impl<'a> From<Target<&'a str>> for Target {
 
 // Collecting an Iterator of Targets Into a TargetIndex ================================================================
 
-impl<'a, V, K: Into<Target<&'a str>>> FromIterator<(K, V)> for Index<'a, V> {
+impl<'p, V, K: Into<Target<&'p str>>> FromIterator<(K, V)> for Index<'p, V> {
     fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
         let mut index = Self::new();
         for (k, v) in iter {
@@ -183,17 +196,17 @@ impl<'a, V, K: Into<Target<&'a str>>> FromIterator<(K, V)> for Index<'a, V> {
     }
 }
 
-impl<'a, K: Into<Target<&'a str>>> FromIterator<K> for Index<'a> {
+impl<'p, K: Into<Target<&'p str>>> FromIterator<K> for Index<'p> {
     fn from_iter<T: IntoIterator<Item = K>>(iter: T) -> Self {
         iter.into_iter().zip(iter::repeat(())).collect()
     }
 }
 
-// Private Types =======================================================================================================
+// Private Types  ======================================================================================================
 
-type GroupMap<'a, T> = HashMap<&'a str, LocationMap<'a, T>>;
-type LocationMap<'a, T> = HashMap<Option<&'a str>, ResidueMap<'a, T>>;
-type ResidueMap<'a, T> = HashMap<Option<&'a str>, T>;
+type GroupMap<'p, T> = HashMap<&'p str, LocationMap<'p, T>>;
+type LocationMap<'p, T> = HashMap<Option<&'p str>, ResidueMap<'p, T>>;
+type ResidueMap<'p, T> = HashMap<Option<&'p str>, T>;
 
 // Module Tests ========================================================================================================
 
@@ -318,14 +331,22 @@ mod tests {
     fn get_nonexistent_group() {
         let index: Index<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Carboxyl", None, None);
-        assert!(index.matches(amino).is_empty());
+        assert!(!index.contains_target(amino));
+    }
+
+    impl<'p, V> Index<'p, V> {
+        // NOTE: Probably not super useful public API, but if it does end up being useful outside of these tests, it
+        // can be made public again
+        fn get_values(&'p self, target: impl Into<Target<&'p str>>) -> Vec<&V> {
+            self.matches(target, |_, _, _, v| v).collect()
+        }
     }
 
     #[test]
     fn get_group() {
         let index: Index<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", None, None);
-        let mut values = index.matches(amino);
+        let mut values = index.get_values(amino);
         values.sort_unstable();
         assert_eq!(
             values,
@@ -337,7 +358,7 @@ mod tests {
     fn get_group_location() {
         let index: Index<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), None);
-        let mut values = index.matches(amino);
+        let mut values = index.get_values(amino);
         values.sort_unstable();
         assert_eq!(values, vec![&"group-location", &"group-location-residue"]);
     }
@@ -346,7 +367,7 @@ mod tests {
     fn get_group_location_residue() {
         let index: Index<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), Some("Alanine"));
-        let mut values = index.matches(amino);
+        let mut values = index.get_values(amino);
         values.sort_unstable();
         assert_eq!(values, vec![&"group-location-residue"]);
     }
@@ -355,12 +376,12 @@ mod tests {
     fn update_values() {
         let mut index: Index<_> = TARGET_LIST.iter().copied().collect();
         let amino = Target::new("Amino", Some("N-Terminal"), Some("Alanine"));
-        let mut values = index.matches(amino);
+        let mut values = index.get_values(amino);
         values.sort_unstable();
         assert_eq!(values, vec![&"group-location-residue"]);
 
         *index.get_mut(amino).unwrap() = "residue-group-location?";
-        let mut values = index.matches(amino);
+        let mut values = index.get_values(amino);
         values.sort_unstable();
         assert_eq!(values, vec![&"residue-group-location?"]);
     }
@@ -376,14 +397,11 @@ mod tests {
         ]
     });
 
-    impl<'a, V> Index<'a, V> {
-        // NOTE: Probably not super useful public API, but it does make the logic of `TargetIndex::get_key_value` way
-        // easier to test — it it does end up being useful outside of these tests, it can be made public again
-        fn get_residues(&'a self, target: impl Into<Target<&'a str>>) -> HashSet<&'a str> {
-            self.matches_with_targets(target)
-                .into_iter()
-                .filter_map(|(t, _)| t.residue)
-                .collect()
+    impl<'p, V> Index<'p, V> {
+        // NOTE: Probably not super useful public API, but if it does end up being useful outside of these tests, it
+        // can be made public again
+        fn get_residues(&'p self, target: impl Into<Target<&'p str>>) -> HashSet<&'p str> {
+            self.matches(target, |_, _, r, _| r.unwrap()).collect()
         }
     }
 

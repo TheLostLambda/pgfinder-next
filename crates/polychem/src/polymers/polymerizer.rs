@@ -1,18 +1,13 @@
 use ahash::{HashMap, HashMapExt};
 
-use crate::{moieties::target::Index, AtomicDatabase, Id, Polymer, PolymerDatabase, ResidueId};
+use crate::{AtomicDatabase, Polymer, PolymerDatabase};
+
+use super::polymerizer_state::PolymerizerState;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Polymerizer<'a, 'p> {
     atomic_db: &'a AtomicDatabase,
     polymer_db: &'p PolymerDatabase<'a>,
-}
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub(crate) struct PolymerizerState<'a, 'p> {
-    pub polymerizer: Polymerizer<'a, 'p>,
-    pub next_id: Id,
-    pub free_groups: Index<'p, HashMap<ResidueId, bool>>,
 }
 
 impl<'a, 'p> Polymerizer<'a, 'p> {
@@ -25,12 +20,18 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
     }
 
     #[must_use]
+    pub const fn atomic_db(&self) -> &'a AtomicDatabase {
+        self.atomic_db
+    }
+
+    #[must_use]
+    pub const fn polymer_db(&self) -> &'p PolymerDatabase<'a> {
+        self.polymer_db
+    }
+
+    #[must_use]
     pub fn new_polymer(&self) -> Polymer {
-        let polymerizer_state = PolymerizerState {
-            polymerizer: *self,
-            next_id: Id::default(),
-            free_groups: Index::new(),
-        };
+        let polymerizer_state = PolymerizerState::new(self);
         Polymer {
             polymerizer_state,
             residues: HashMap::new(),
@@ -47,7 +48,6 @@ mod tests {
     use super::*;
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
@@ -58,11 +58,20 @@ mod tests {
     });
 
     #[test]
+    fn recover_databases() {
+        let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        assert_eq!(polymerizer.atomic_db(), &*ATOMIC_DB);
+        assert_eq!(polymerizer.polymer_db(), &*POLYMER_DB);
+    }
+
+    #[test]
     fn new_polymer() {
         let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
         let polymer: Polymer = polymerizer.new_polymer();
         assert_eq!(polymer.polymerizer_state.polymerizer, polymerizer);
-        assert_eq!(polymer.polymerizer_state.next_id, 0);
-        assert_eq!(polymer.polymerizer_state.free_groups, Index::new());
+        assert_eq!(
+            polymer.polymerizer_state,
+            PolymerizerState::new(&polymerizer)
+        );
     }
 }

@@ -11,7 +11,7 @@ mod testing_tools;
 use std::num::NonZeroU32;
 
 use derive_more::{Add, AddAssign, Display, From, Into, IsVariant, Neg, Sub, SubAssign, Sum};
-use polymers::polymerizer::PolymerizerState;
+use polymers::polymerizer_state::PolymerizerState;
 use serde::Serialize;
 
 // External Crate Imports
@@ -55,7 +55,7 @@ pub struct Polymer<'a, 'p> {
 pub struct ResidueId(Id);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-struct Residue<'a, 'p> {
+pub struct Residue<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
     composition: &'p ChemicalComposition<'a>,

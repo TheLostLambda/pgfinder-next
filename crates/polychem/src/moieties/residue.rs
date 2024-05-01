@@ -44,7 +44,9 @@ impl<'a, 'p> Residue<'a, 'p> {
         self.name
     }
 
-    pub fn functional_groups(&self) -> impl Iterator<Item = (FunctionalGroup, GroupState)> {
+    pub fn functional_groups(
+        &self,
+    ) -> impl Iterator<Item = (FunctionalGroup<'p>, GroupState)> + '_ {
         self.functional_groups.iter().map(|(&fg, &gs)| (fg, gs))
     }
 
