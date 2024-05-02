@@ -10,6 +10,7 @@ members = [
   "crates/polychem",
   "crates/smithereens",
 ]
+exclude = ["worktrees/"]
 
 # FIXME: Does this actually apply to this base-level crate?
 [workspace.lints.rust]
