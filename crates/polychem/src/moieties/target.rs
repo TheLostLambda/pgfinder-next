@@ -184,6 +184,14 @@ impl<'p> From<Target<&'p str>> for Target {
     }
 }
 
+// NOTE: Sometimes you might end up with `&Target<&str>`, but `Target<&str>` is `Copy`, so you can just dereference to
+// get the desired `Target<&str>` type. This is helpful when dealing with the items of `&[Target<&str>]` containers!
+impl<'p> From<&Self> for Target<&'p str> {
+    fn from(value: &Self) -> Self {
+        *value
+    }
+}
+
 // Collecting an Iterator of Targets Into a TargetIndex ================================================================
 
 impl<'p, V, K: Into<Target<&'p str>>> FromIterator<(K, V)> for Index<'p, V> {
