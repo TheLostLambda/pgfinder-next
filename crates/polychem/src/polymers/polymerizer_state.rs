@@ -51,9 +51,15 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
                 .insert(id, state);
         }
     }
+}
 
+// Private Methods =====================================================================================================
+
+// TODO: Some of these group-finding methods should be made public for users of `polychem` to manually search for groups
+// to modify / bond. I'm not certain what that API will look like just yet, so that's why these are currently private!
+impl<'a, 'p> PolymerizerState<'a, 'p> {
     #[must_use]
-    pub fn polymer_groups<T: Into<Target<&'p str>>>(
+    fn polymer_groups<T: Into<Target<&'p str>>>(
         &self,
         targets: impl IntoIterator<Item = T>,
     ) -> HashMap<FunctionalGroup<'p>, Cow<'_, HashMap<ResidueId, GroupState>>> {
@@ -85,7 +91,7 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
         deduplicated_groups
     }
 
-    pub fn residue_groups<T: Into<Target<&'p str>>>(
+    fn residue_groups<T: Into<Target<&'p str>>>(
         &self,
         targets: impl IntoIterator<Item = T>,
         residue: ResidueId,
@@ -95,7 +101,7 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
             .filter_map(move |(fg, ids)| ids.get(&residue).map(|&gs| (fg, gs)))
     }
 
-    pub fn free_residue_groups<T: Into<Target<&'p str>>>(
+    fn free_residue_groups<T: Into<Target<&'p str>>>(
         &self,
         targets: impl IntoIterator<Item = T>,
         residue: ResidueId,
