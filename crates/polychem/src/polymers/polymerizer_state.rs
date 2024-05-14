@@ -278,6 +278,17 @@ mod tests {
         // Adding in an overlapping (subset) target doesn't change the result
         let n_terminal = Target::new("Amino", Some("N-Terminal"), None);
         assert_polymer_groups!(&[amino, carboxyl, n_terminal], both_groups);
+
+        // Looking for a particular type of residue restricts the results
+        let alanine_n_terminal = Target::new("Amino", Some("N-Terminal"), Some("Alanine"));
+        let alanine_n_terminal_groups = vec![(
+            FunctionalGroup::new("Amino", "N-Terminal"),
+            vec![
+                (ResidueId(0), GroupState::Free),
+                (ResidueId(1), GroupState::Free),
+            ],
+        )];
+        assert_polymer_groups!(&[alanine_n_terminal], alanine_n_terminal_groups);
     }
 
     #[test]
