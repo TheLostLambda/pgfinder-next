@@ -93,13 +93,24 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
             .into_iter()
             .filter_map(move |(fg, ids)| ids.get(&residue).map(|&gs| (fg, gs)))
     }
+
+    pub fn free_residue_groups<T: Into<Target<&'p str>>>(
+        &self,
+        targets: impl IntoIterator<Item = T>,
+        residue: ResidueId,
+    ) -> impl Iterator<Item = FunctionalGroup<'p>> + '_ {
+        self.residue_groups(targets, residue)
+            .filter_map(|(fg, gs)| gs.is_free().then_some(fg))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
 
-    use crate::{moieties::target::Target, AtomicDatabase, PolymerDatabase, Residue};
+    use crate::{
+        moieties::target::Target, AtomicDatabase, ModificationId, PolymerDatabase, Residue,
+    };
 
     use super::*;
 
@@ -312,5 +323,53 @@ mod tests {
         let lys_both_groups = [lys_amino_groups, carboxyl_groups].concat();
         assert_residue_groups!(&[amino, carboxyl], ResidueId(0), ala_both_groups);
         assert_residue_groups!(&[amino, carboxyl], ResidueId(1), lys_both_groups);
+    }
+
+    #[test]
+    fn free_residue_groups() {
+        let mut state = PolymerizerState::new(&POLYMERIZER);
+        let mut alanine = Residue::new(&POLYMER_DB, "A").unwrap();
+        let mut lysine = Residue::new(&POLYMER_DB, "K").unwrap();
+
+        // Manually modify a couple of groups so that they are filtered out later
+        let c_terminal_carboxyl = FunctionalGroup::new("Carboxyl", "C-Terminal");
+        *alanine.group_state_mut(&c_terminal_carboxyl).unwrap() =
+            GroupState::Modified(ModificationId(42));
+        let sidechain_amino = FunctionalGroup::new("Amino", "Sidechain");
+        *lysine.group_state_mut(&sidechain_amino).unwrap() =
+            GroupState::Modified(ModificationId(9001));
+
+        state.index_residue_groups(ResidueId(0), &alanine);
+        state.index_residue_groups(ResidueId(1), &lysine);
+
+        macro_rules! assert_free_residue_groups {
+            ($targets:expr, $residue:expr, $output:expr) => {
+                let mut groups: Vec<_> = state.free_residue_groups($targets, $residue).collect();
+                groups.sort_unstable();
+                assert_eq!(groups, $output)
+            };
+        }
+        let amino = Target::new("Amino", None, None);
+        let amino_groups = vec![FunctionalGroup::new("Amino", "N-Terminal")];
+        assert_free_residue_groups!(&[amino], ResidueId(0), amino_groups);
+
+        // Because the sidechain group is modified, it isn't returned, and the result looks the same as that for alanine
+        assert_free_residue_groups!(&[amino], ResidueId(1), amino_groups);
+
+        // A more specific target will only show the N-Terminal Amino group (regardless of Ala vs Lys)
+        let n_terminal = Target::new("Amino", Some("N-Terminal"), None);
+        assert_free_residue_groups!(&[n_terminal], ResidueId(0), amino_groups);
+        assert_free_residue_groups!(&[n_terminal], ResidueId(1), amino_groups);
+
+        // Carboxyl groups are only present at the C-Terminal, and is already modified for alanine!
+        let carboxyl = Target::new("Carboxyl", None, None);
+        let carboxyl_groups = vec![FunctionalGroup::new("Carboxyl", "C-Terminal")];
+        assert_free_residue_groups!(&[carboxyl], ResidueId(0), Vec::new());
+        assert_free_residue_groups!(&[carboxyl], ResidueId(1), carboxyl_groups);
+
+        // Looking for both Amino and Carboxyl targets merges the results
+        let both_groups = [amino_groups.clone(), carboxyl_groups].concat();
+        assert_free_residue_groups!(&[amino, carboxyl], ResidueId(0), amino_groups);
+        assert_free_residue_groups!(&[amino, carboxyl], ResidueId(1), both_groups);
     }
 }

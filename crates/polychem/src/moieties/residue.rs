@@ -59,6 +59,18 @@ impl<'a, 'p> Residue<'a, 'p> {
             PolychemError::group_lookup(*functional_group, self.name, self.abbr).into()
         })
     }
+
+    // NOTE: This cannot be public API — it would let users invalidate the polymerizer group-state index / cache
+    pub(crate) fn group_state_mut(
+        &mut self,
+        functional_group: &FunctionalGroup<'p>,
+    ) -> Result<&mut GroupState> {
+        self.functional_groups
+            .get_mut(functional_group)
+            .ok_or_else(|| {
+                PolychemError::group_lookup(*functional_group, self.name, self.abbr).into()
+            })
+    }
 }
 
 impl Massive for Residue<'_, '_> {
