@@ -52,6 +52,7 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
         }
     }
 
+    #[must_use]
     pub fn polymer_groups<T: Into<Target<&'p str>>>(
         &self,
         targets: impl IntoIterator<Item = T>,
