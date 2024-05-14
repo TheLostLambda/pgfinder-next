@@ -83,6 +83,16 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
         }
         deduplicated_groups
     }
+
+    pub fn residue_groups<T: Into<Target<&'p str>>>(
+        &self,
+        targets: impl IntoIterator<Item = T>,
+        residue: ResidueId,
+    ) -> impl Iterator<Item = (FunctionalGroup<'p>, GroupState)> + '_ {
+        self.polymer_groups(targets)
+            .into_iter()
+            .filter_map(move |(fg, ids)| ids.get(&residue).map(|&gs| (fg, gs)))
+    }
 }
 
 #[cfg(test)]
@@ -250,5 +260,57 @@ mod tests {
         // Adding in an overlapping (subset) target doesn't change the result
         let n_terminal = Target::new("Amino", Some("N-Terminal"), None);
         assert_polymer_groups!(&[amino, carboxyl, n_terminal], both_groups);
+    }
+
+    #[test]
+    fn residue_groups() {
+        let mut state = PolymerizerState::new(&POLYMERIZER);
+        let alanine = Residue::new(&POLYMER_DB, "A").unwrap();
+        let lysine = Residue::new(&POLYMER_DB, "K").unwrap();
+        state.index_residue_groups(ResidueId(0), &alanine);
+        state.index_residue_groups(ResidueId(1), &lysine);
+
+        macro_rules! assert_residue_groups {
+            ($targets:expr, $residue:expr, $output:expr) => {
+                let mut groups: Vec<_> = state.residue_groups($targets, $residue).collect();
+                groups.sort_unstable();
+                assert_eq!(groups, $output)
+            };
+        }
+        let amino = Target::new("Amino", None, None);
+        let ala_amino_groups = vec![(
+            FunctionalGroup::new("Amino", "N-Terminal"),
+            GroupState::Free,
+        )];
+        assert_residue_groups!(&[amino], ResidueId(0), ala_amino_groups);
+
+        let lys_amino_groups = vec![
+            (
+                FunctionalGroup::new("Amino", "N-Terminal"),
+                GroupState::Free,
+            ),
+            (FunctionalGroup::new("Amino", "Sidechain"), GroupState::Free),
+        ];
+        assert_residue_groups!(&[amino], ResidueId(1), lys_amino_groups);
+
+        // A more specific target will only show the N-Terminal Amino group (regardless of Ala vs Lys)
+        let n_terminal = Target::new("Amino", Some("N-Terminal"), None);
+        assert_residue_groups!(&[n_terminal], ResidueId(0), ala_amino_groups);
+        assert_residue_groups!(&[n_terminal], ResidueId(1), ala_amino_groups);
+
+        // Carboxyl groups are only present at the C-Terminal
+        let carboxyl = Target::new("Carboxyl", None, None);
+        let carboxyl_groups = vec![(
+            FunctionalGroup::new("Carboxyl", "C-Terminal"),
+            GroupState::Free,
+        )];
+        assert_residue_groups!(&[carboxyl], ResidueId(0), carboxyl_groups);
+        assert_residue_groups!(&[carboxyl], ResidueId(1), carboxyl_groups);
+
+        // Looking for both Amino and Carboxyl targets merges the results
+        let ala_both_groups = [ala_amino_groups, carboxyl_groups.clone()].concat();
+        let lys_both_groups = [lys_amino_groups, carboxyl_groups].concat();
+        assert_residue_groups!(&[amino, carboxyl], ResidueId(0), ala_both_groups);
+        assert_residue_groups!(&[amino, carboxyl], ResidueId(1), lys_both_groups);
     }
 }
