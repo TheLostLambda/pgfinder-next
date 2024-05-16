@@ -61,7 +61,9 @@ impl FindFreeGroupsError {
         needed_groups: usize,
         free_groups: &HashSet<FunctionalGroup>,
     ) -> Self {
-        let free_group_names = free_groups.iter().map(ToString::to_string).collect();
+        let mut free_group_names: Vec<_> = free_groups.iter().map(ToString::to_string).collect();
+        free_group_names.sort_unstable();
+
         Self::AmbiguousGroups {
             residue_id,
             needed_groups,
@@ -74,14 +76,17 @@ impl FindFreeGroupsError {
         needed_groups: usize,
         groups_and_states: Vec<(FunctionalGroup, GroupState)>,
     ) -> Self {
-        let group_names_and_states: Vec<_> = groups_and_states
+        let mut group_names_and_states: Vec<_> = groups_and_states
             .into_iter()
             .map(|(fg, gs)| (fg.to_string(), gs))
             .collect();
+        group_names_and_states.sort_unstable();
+
         let free_groups = group_names_and_states
             .iter()
             .filter(|(_, gs)| gs.is_free())
             .count();
+
         Self::GroupsOccupied {
             residue_id,
             free_groups,
@@ -96,12 +101,17 @@ impl FindFreeGroupsError {
         needed_groups: usize,
         free_groups: &HashSet<FunctionalGroup>,
     ) -> Self {
-        let valid_targets = valid_targets
+        let mut valid_targets: Vec<_> = valid_targets
             .into_iter()
             .map(|t| Target::from(t.into()))
             .collect();
-        let free_group_names: Vec<_> = free_groups.iter().map(ToString::to_string).collect();
+        valid_targets.sort_unstable();
+
+        let mut free_group_names: Vec<_> = free_groups.iter().map(ToString::to_string).collect();
+        free_group_names.sort_unstable();
+
         let free_groups = free_group_names.len();
+
         Self::TooFewMatchingGroups {
             residue_id,
             valid_targets,
@@ -117,11 +127,23 @@ pub fn comma_list<I: Display>(items: impl IntoIterator<Item = I>, final_sep: &st
     let mut items: Vec<_> = items.into_iter().map(|i| i.to_string()).collect();
     let len = items.len();
     if len > 1 {
-        items.sort_unstable();
         let last_item = items.last_mut().unwrap();
         let last_item_with_sep = format!("{final_sep} {last_item}");
         *last_item = last_item_with_sep;
     }
     let sep = if len > 2 { ", " } else { " " };
     items.join(sep)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_comma_list() {
+        assert_eq!(comma_list::<&str>([], "whatever"), "");
+        assert_eq!(comma_list(["A"], "whatever"), "A");
+        assert_eq!(comma_list(["A", "B"], "or"), "A or B");
+        assert_eq!(comma_list(["B", "C", "A"], "and"), "B, C, and A");
+    }
 }

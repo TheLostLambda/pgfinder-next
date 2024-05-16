@@ -481,4 +481,52 @@ mod tests {
         let all_groups_occupied = state.find_any_free_groups([hydroxyl], ResidueId(0), 1);
         assert_miette_snapshot!(all_groups_occupied);
     }
+
+    #[test]
+    fn find_multiple_unambiguous_free_groups() {
+        let mut state = PolymerizerState::new(&POLYMERIZER);
+        let mut murnac = Residue::new(&POLYMER_DB, "m").unwrap();
+        state.index_residue_groups(ResidueId(0), &murnac);
+
+        let hydroxyl = Target::new("Hydroxyl", None, None);
+        let hydroxyl_groups = state
+            .find_any_free_groups([hydroxyl], ResidueId(0), 3)
+            .unwrap();
+        assert_eq!(hydroxyl_groups.len(), 3);
+        for location in ["Reducing End", "Nonreducing End", "6-Position"] {
+            assert!(hydroxyl_groups.contains(&FunctionalGroup::new("Hydroxyl", location)));
+        }
+
+        let too_few_hydroxyl_groups = state.find_any_free_groups([hydroxyl], ResidueId(0), 4);
+        assert_miette_snapshot!(too_few_hydroxyl_groups);
+
+        let ambiguous_group = state.find_any_free_groups([hydroxyl], ResidueId(0), 2);
+        assert_miette_snapshot!(ambiguous_group);
+
+        let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
+        *murnac.group_state_mut(&nonreducing_end).unwrap() =
+            GroupState::Modified(ModificationId(42));
+        state.index_residue_groups(ResidueId(0), &murnac);
+        let groups_occupied = state.find_any_free_groups([hydroxyl], ResidueId(0), 3);
+        assert_miette_snapshot!(groups_occupied);
+
+        let remaining_hydroxyl_groups = state
+            .find_any_free_groups([hydroxyl], ResidueId(0), 2)
+            .unwrap();
+        assert_eq!(remaining_hydroxyl_groups.len(), 2);
+        for location in ["Reducing End", "6-Position"] {
+            assert!(remaining_hydroxyl_groups.contains(&FunctionalGroup::new("Hydroxyl", location)));
+        }
+
+        let lysine = Residue::new(&POLYMER_DB, "K").unwrap();
+        state.index_residue_groups(ResidueId(1), &lysine);
+        let n_terminal = Target::new("Amino", Some("N-Terminal"), None);
+        let carboxyl = Target::new("Carboxyl", None, None);
+        let terminals = state
+            .find_any_free_groups([n_terminal, carboxyl], ResidueId(1), 2)
+            .unwrap();
+        assert_eq!(terminals.len(), 2);
+        assert!(terminals.contains(&FunctionalGroup::new("Amino", "N-Terminal")));
+        assert!(terminals.contains(&FunctionalGroup::new("Carboxyl", "C-Terminal")));
+    }
 }
