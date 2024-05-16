@@ -1,0 +1,10 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: ambiguous_group
+expression: out
+---
+  × residue 0 contains more than 1 free target group: "Hydroxyl" at="6-
+  │ Position", "Hydroxyl" at="Nonreducing End", and "Hydroxyl" at="Reducing
+  │ End"
+  help: to resolve this ambiguity, specify the exact functional group to
+        modify
