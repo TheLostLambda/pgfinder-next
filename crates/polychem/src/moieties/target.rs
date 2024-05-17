@@ -149,7 +149,7 @@ impl<'p, V> Index<'p, V> {
     }
 }
 
-// Target Printing and Borrowing =======================================================================================
+// Target Printing, Conversion, and Borrowing ==========================================================================
 
 impl<S: Borrow<str>> Display for Target<S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -164,13 +164,19 @@ impl<S: Borrow<str>> Display for Target<S> {
     }
 }
 
+impl<'p> From<FunctionalGroup<'p>> for Target<&'p str> {
+    fn from(value: FunctionalGroup<'p>) -> Self {
+        Self::new(value.name, Some(value.location), None)
+    }
+}
+
 impl<'p> From<&'p Target> for Target<&'p str> {
     fn from(value: &'p Target) -> Self {
-        Self {
-            group: &value.group,
-            location: value.location.as_deref(),
-            residue: value.residue.as_deref(),
-        }
+        Self::new(
+            &value.group,
+            value.location.as_deref(),
+            value.residue.as_deref(),
+        )
     }
 }
 

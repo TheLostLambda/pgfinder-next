@@ -1,0 +1,7 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: still_invalid_target
+expression: out
+---
+  × expected a target group matching "Crazy" or "Hydroxyl", but got "Amino"
+  │ at="N-Terminal"

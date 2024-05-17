@@ -1,0 +1,7 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: group_occupied
+expression: out
+---
+  × the functional group "Hydroxyl" at="Nonreducing End" of residue 0 was
+  │ already modified, but must be free

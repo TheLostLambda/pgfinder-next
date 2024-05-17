@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::{moieties::target::Target, FunctionalGroup, GroupState, ResidueId};
 
-#[derive(Debug, Clone, Diagnostic, Error)]
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Diagnostic, Error)]
 pub enum FindFreeGroupsError {
     #[error("residue {residue_id} contains more than {needed_groups} free target group{}: {}",
         if .needed_groups == &1 { "" } else { "s" },
@@ -21,6 +21,17 @@ pub enum FindFreeGroupsError {
         free_group_names: Vec<String>,
     },
 
+    #[error("encountered a duplicate target group: {group_name}")]
+    #[diagnostic(help("check for typos, or try removing the duplicate target group"))]
+    DuplicateTargetGroup { group_name: String },
+
+    #[error("the functional group {group_name} of residue {residue_id} was already {group_state}, but must be free")]
+    GroupOccupied {
+        group_name: String,
+        residue_id: ResidueId,
+        group_state: GroupState,
+    },
+
     #[error(
         "{} functional groups on residue {residue_id} matching the target were free{}: {}",
         if .needed_groups > &1 { "too few" } else { "no" },
@@ -32,6 +43,30 @@ pub enum FindFreeGroupsError {
         free_groups: usize,
         needed_groups: usize,
         group_names_and_states: Vec<(String, GroupState)>,
+    },
+
+    #[error(
+        "expected a target group matching {}, but got {target_group}",
+        comma_list(.valid_targets, "or")
+    )]
+    InvalidTargetGroup {
+        valid_targets: Vec<Target>,
+        target_group: Target,
+    },
+
+    #[error("failed to find multiple of the requested free groups")]
+    MultipleMissingFreeGroups {
+        #[related]
+        errors: Vec<Self>,
+    },
+
+    #[error("no target groups were provided, but you must provide at least one group to look for")]
+    NoTargetGroups,
+
+    #[error("the functional group {group_name} does not exist on residue {residue_id}")]
+    NonexistentGroup {
+        group_name: String,
+        residue_id: ResidueId,
     },
 
     #[error("{} functional groups on residue {residue_id} matched the target {}{}",
@@ -56,7 +91,7 @@ pub enum FindFreeGroupsError {
 }
 
 impl FindFreeGroupsError {
-    pub(crate) fn ambiguous_groups(
+    pub fn ambiguous_groups(
         residue_id: ResidueId,
         needed_groups: usize,
         free_groups: &HashSet<FunctionalGroup>,
@@ -71,7 +106,27 @@ impl FindFreeGroupsError {
         }
     }
 
-    pub(crate) fn groups_occupied(
+    pub fn duplicate_target_group(group: &FunctionalGroup) -> Self {
+        let group_name = group.to_string();
+
+        Self::DuplicateTargetGroup { group_name }
+    }
+
+    pub fn group_occupied(
+        group: &FunctionalGroup,
+        residue_id: ResidueId,
+        group_state: GroupState,
+    ) -> Self {
+        let group_name = group.to_string();
+
+        Self::GroupOccupied {
+            group_name,
+            residue_id,
+            group_state,
+        }
+    }
+
+    pub fn groups_occupied(
         residue_id: ResidueId,
         needed_groups: usize,
         groups_and_states: Vec<(FunctionalGroup, GroupState)>,
@@ -95,14 +150,53 @@ impl FindFreeGroupsError {
         }
     }
 
-    pub(crate) fn too_few_matching_groups<'p, T: Into<Target<&'p str>>>(
+    pub fn invalid_target_group<'t, 'p, T: 'p>(
+        valid_targets: &'t [T],
+        target_group: Target<&'p str>,
+    ) -> Self
+    where
+        &'t T: Into<Target<&'p str>>,
+    {
+        let mut valid_targets: Vec<_> = valid_targets
+            .iter()
+            .map(|t| Target::from(t.into()))
+            .collect();
+        valid_targets.sort_unstable();
+
+        let target_group = Target::from(target_group);
+
+        Self::InvalidTargetGroup {
+            valid_targets,
+            target_group,
+        }
+    }
+
+    pub fn multiple_missing_free_groups(mut errors: Vec<Self>) -> Self {
+        errors.sort_unstable();
+
+        Self::MultipleMissingFreeGroups { errors }
+    }
+
+    pub fn nonexistent_group(group: &FunctionalGroup, residue_id: ResidueId) -> Self {
+        let group_name = group.to_string();
+
+        Self::NonexistentGroup {
+            group_name,
+            residue_id,
+        }
+    }
+
+    pub fn too_few_matching_groups<'t, 'p, T: 'p>(
         residue_id: ResidueId,
-        valid_targets: impl IntoIterator<Item = T>,
+        valid_targets: &'t [T],
         needed_groups: usize,
         free_groups: &HashSet<FunctionalGroup>,
-    ) -> Self {
+    ) -> Self
+    where
+        &'t T: Into<Target<&'p str>>,
+    {
         let mut valid_targets: Vec<_> = valid_targets
-            .into_iter()
+            .iter()
             .map(|t| Target::from(t.into()))
             .collect();
         valid_targets.sort_unstable();
