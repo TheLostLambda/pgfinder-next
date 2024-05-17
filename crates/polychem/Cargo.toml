@@ -7,7 +7,7 @@ edition = "2021"
 [dependencies]
 ahash = "0.8.11"
 getrandom = { version = "0.2", features = ["js"] }
-itertools = "0.12.1"
+itertools = "0.13.0"
 knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
 # miette = "7.2.0"
 miette = { git = "https://github.com/TheLostLambda/miette" }
