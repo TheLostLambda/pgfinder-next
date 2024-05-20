@@ -12,40 +12,56 @@ pub type Result<T, E = Box<PolychemError>> = std::result::Result<T, E>;
 pub enum PolychemError {
     #[error(transparent)]
     #[diagnostic(transparent)]
-    Composition(#[from] CompositionError),
+    Composition {
+        #[from]
+        error: CompositionError,
+    },
 
-    #[error("the residue {0:?} could not be found in the supplied polymer database")]
-    ResidueLookup(String),
+    #[error("the residue {abbr:?} could not be found in the supplied polymer database")]
+    ResidueLookup { abbr: String },
 
-    #[error("the modification {0:?} could not be found in the supplied polymer database")]
-    ModificationLookup(String),
+    #[error("the modification {abbr:?} could not be found in the supplied polymer database")]
+    ModificationLookup { abbr: String },
 
-    #[error("the bond {0:?} could not be found in the supplied polymer database")]
-    BondLookup(String),
+    #[error("the bond {abbr:?} could not be found in the supplied polymer database")]
+    BondLookup { abbr: String },
 
-    #[error("the functional group {0} could not be found on the residue {1} ({2})")]
-    GroupLookup(String, String, String),
+    #[error("the functional group {group_name} could not be found on the residue {name} ({abbr})")]
+    GroupLookup {
+        group_name: String,
+        name: String,
+        abbr: String,
+    },
 }
 
-// FIXME: Move this to it's own errors.rs module? Bring the enum along too?
 impl PolychemError {
     pub(crate) fn residue_lookup(abbr: &str) -> Self {
-        Self::ResidueLookup(abbr.to_owned())
+        let abbr = abbr.to_owned();
+
+        Self::ResidueLookup { abbr }
     }
 
     pub(crate) fn modification_lookup(abbr: &str) -> Self {
-        Self::ModificationLookup(abbr.to_owned())
+        let abbr = abbr.to_owned();
+
+        Self::ModificationLookup { abbr }
     }
 
     pub(crate) fn bond_lookup(abbr: &str) -> Self {
-        Self::BondLookup(abbr.to_owned())
+        let abbr = abbr.to_owned();
+
+        Self::BondLookup { abbr }
     }
 
-    pub(crate) fn group_lookup(functional_group: FunctionalGroup, name: &str, abbr: &str) -> Self {
-        Self::GroupLookup(
-            functional_group.to_string(),
-            name.to_owned(),
-            abbr.to_owned(),
-        )
+    pub(crate) fn group_lookup(group: FunctionalGroup, name: &str, abbr: &str) -> Self {
+        let group_name = group.to_string();
+        let name = name.to_owned();
+        let abbr = abbr.to_owned();
+
+        Self::GroupLookup {
+            group_name,
+            name,
+            abbr,
+        }
     }
 }
