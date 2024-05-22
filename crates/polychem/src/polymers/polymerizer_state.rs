@@ -1,4 +1,4 @@
-use std::{borrow::Cow, cmp::Ordering, collections::hash_map::Entry};
+use std::{borrow::Cow, cmp::Ordering, collections::hash_map::Entry, mem};
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 
@@ -50,6 +50,16 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
                 .or_default()
                 .insert(id, state);
         }
+    }
+
+    pub fn update_group_index(
+        &mut self,
+        target: impl Into<Target<&'p str>>,
+        residue: ResidueId,
+        state: GroupState,
+    ) -> Option<GroupState> {
+        let residue_state = self.group_index.get_mut(target)?.get_mut(&residue)?;
+        Some(mem::replace(residue_state, state))
     }
 
     pub fn find_any_free_groups<'t, T: 'p>(
@@ -351,6 +361,106 @@ mod tests {
             ),
         ];
         assert_targeted_groups!(carboxyl, carboxyl_groups);
+    }
+
+    #[test]
+    fn update_group_index() {
+        let mut state = PolymerizerState::new(&POLYMERIZER);
+        let alanine = Residue::new(&POLYMER_DB, "A").unwrap();
+        let lysine = Residue::new(&POLYMER_DB, "K").unwrap();
+        state.index_residue_groups(ResidueId(0), &alanine);
+        state.index_residue_groups(ResidueId(1), &alanine);
+        state.index_residue_groups(ResidueId(2), &lysine);
+
+        macro_rules! assert_targeted_group {
+            ($target:expr, $output:expr) => {
+                let mut groups: Vec<_> = state
+                    .group_index
+                    .matches($target, |_, _, _, m| m.iter().map(|(&r, &g)| (r, g)))
+                    .flatten()
+                    .collect();
+                groups.sort_unstable();
+                assert_eq!(groups, $output)
+            };
+        }
+
+        let n_terminal = |residue| Target::new("Amino", Some("N-Terminal"), residue);
+        let n_terminal_groups = vec![
+            (ResidueId(0), GroupState::Free),
+            (ResidueId(1), GroupState::Free),
+            (ResidueId(2), GroupState::Free),
+        ];
+        assert_targeted_group!(n_terminal(None), n_terminal_groups);
+
+        let previous_state = state.update_group_index(
+            n_terminal(Some("Alanine")),
+            ResidueId(0),
+            GroupState::Modified(ModificationId(42)),
+        );
+        let n_terminal_groups = vec![
+            (ResidueId(0), GroupState::Modified(ModificationId(42))),
+            (ResidueId(1), GroupState::Free),
+            (ResidueId(2), GroupState::Free),
+        ];
+        assert_eq!(previous_state, Some(GroupState::Free));
+        assert_targeted_group!(n_terminal(None), n_terminal_groups);
+
+        let previous_state = state.update_group_index(
+            n_terminal(Some("Lysine")),
+            ResidueId(2),
+            GroupState::Acceptor(BondId(314)),
+        );
+        let n_terminal_groups = vec![
+            (ResidueId(0), GroupState::Modified(ModificationId(42))),
+            (ResidueId(1), GroupState::Free),
+            (ResidueId(2), GroupState::Acceptor(BondId(314))),
+        ];
+        assert_eq!(previous_state, Some(GroupState::Free));
+        assert_targeted_group!(n_terminal(None), n_terminal_groups);
+
+        let previous_state = state.update_group_index(
+            n_terminal(Some("Alanine")),
+            ResidueId(0),
+            GroupState::Donor(BondId(42)),
+        );
+        let n_terminal_groups = vec![
+            (ResidueId(0), GroupState::Donor(BondId(42))),
+            (ResidueId(1), GroupState::Free),
+            (ResidueId(2), GroupState::Acceptor(BondId(314))),
+        ];
+        assert_eq!(
+            previous_state,
+            Some(GroupState::Modified(ModificationId(42)))
+        );
+        assert_targeted_group!(n_terminal(None), n_terminal_groups);
+
+        let c_terminal = |residue| Target::new("Carboxyl", Some("C-Terminal"), residue);
+        let previous_state = state.update_group_index(
+            c_terminal(Some("Alanine")),
+            ResidueId(1),
+            GroupState::Donor(BondId(1337)),
+        );
+        let c_terminal_groups = vec![
+            (ResidueId(0), GroupState::Free),
+            (ResidueId(1), GroupState::Donor(BondId(1337))),
+            (ResidueId(2), GroupState::Free),
+        ];
+        assert_eq!(previous_state, Some(GroupState::Free));
+        assert_targeted_group!(c_terminal(None), c_terminal_groups);
+
+        let sidechain = Target::new("Amino", Some("Sidechain"), Some("Lysine"));
+        let residue_found = state.update_group_index(sidechain, ResidueId(2), GroupState::Free);
+        assert!(residue_found.is_some());
+
+        let residue_not_found = state.update_group_index(sidechain, ResidueId(1), GroupState::Free);
+        assert!(residue_not_found.is_none());
+
+        let crazy = Target::new("Silly", Some("Goofy"), None);
+        let group_not_found = state.update_group_index(crazy, ResidueId(1), GroupState::Free);
+        assert!(group_not_found.is_none());
+
+        let group_still_not_found = state.update_group_index(crazy, ResidueId(2), GroupState::Free);
+        assert!(group_still_not_found.is_none());
     }
 
     #[test]
