@@ -220,9 +220,15 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
             .map(|group| {
                 let current_target = Target::from(group);
 
-                let theoretically_possible = targets
-                    .iter()
-                    .any(|possible_target| current_target.matches(&possible_target.into()));
+                let theoretically_possible = targets.iter().any(|possible_target| {
+                    // NOTE: The `residue` field of each target is cleared since it's impossible for the
+                    // `current_target` (which contains only a `group` and `location`) to ever match a "complete"
+                    // target that specifies a `residue`
+                    let Target {
+                        group, location, ..
+                    } = possible_target.into();
+                    current_target.matches(&Target::new(group, location, None))
+                });
                 // NOTE: Utterly perplexed as to why I need to add the turbofish — `::<Target<&str>>` — below...
                 // Without it, Rust expects `current_target` to be `T`? Perhaps calling a self method means inheriting
                 // the caller's generic parameters? Feels like a borderline compiler bug...

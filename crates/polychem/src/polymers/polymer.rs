@@ -1,3 +1,5 @@
+use core::slice;
+
 use crate::{
     errors::PolychemError,
     moieties::{polymer_database::BondDescription, target::Target},
@@ -5,6 +7,8 @@ use crate::{
     GroupState, Massive, ModificationInfo, MonoisotopicMass, Polymer, PolymerDatabase, Residue,
     ResidueId, Result,
 };
+
+use super::{errors::FindFreeGroupsError, polymerizer_state::PolymerizerState};
 
 impl<'a, 'p> Polymer<'a, 'p> {
     #[must_use]
@@ -36,6 +40,54 @@ impl<'a, 'p> Polymer<'a, 'p> {
         donor: ResidueId,
         acceptor: ResidueId,
     ) -> Result<BondId> {
+        // NOTE: Perhaps this explicit type annotation for `state` won't be necessary after the compiler improves its
+        // type inference...
+        let accessor = |state: &PolymerizerState<'a, 'p>, target, residue| {
+            state.find_any_free_groups(&[target], residue, 1)
+        };
+        self.bond_with_accessors(abbr, donor, accessor, acceptor, accessor)
+    }
+
+    pub fn bond_groups(
+        &mut self,
+        abbr: impl AsRef<str>,
+        donor: ResidueId,
+        donor_group: &FunctionalGroup<'p>,
+        acceptor: ResidueId,
+        acceptor_group: &FunctionalGroup<'p>,
+    ) -> Result<BondId> {
+        // NOTE: Perhaps this explicit type annotation for `state` won't be necessary after the compiler improves its
+        // type inference...
+        let accessor = |group| {
+            move |state: &PolymerizerState<'a, 'p>, target, residue| {
+                state.find_these_free_groups(&[target], residue, slice::from_ref(group))
+            }
+        };
+        self.bond_with_accessors(
+            abbr,
+            donor,
+            accessor(donor_group),
+            acceptor,
+            accessor(acceptor_group),
+        )
+    }
+}
+
+// Private Methods =====================================================================================================
+
+impl<'a, 'p> Polymer<'a, 'p> {
+    fn bond_with_accessors<A, I>(
+        &mut self,
+        abbr: impl AsRef<str>,
+        donor: ResidueId,
+        donor_accessor: A,
+        acceptor: ResidueId,
+        acceptor_accessor: A,
+    ) -> Result<BondId>
+    where
+        A: Fn(&PolymerizerState<'a, 'p>, &'p Target, ResidueId) -> Result<I, FindFreeGroupsError>,
+        I: Iterator<Item = FunctionalGroup<'p>>,
+    {
         let (
             abbr,
             BondDescription {
@@ -55,32 +107,26 @@ impl<'a, 'p> Polymer<'a, 'p> {
             return residue_error(acceptor);
         };
 
-        let bond_error = |donor_or_acceptor: &'p str| {
-            |e| {
-                PolychemError::bond(
-                    abbr,
-                    donor,
-                    donor_residue.name(),
-                    acceptor,
-                    acceptor_residue.name(),
-                    donor_or_acceptor,
-                    e,
-                )
-            }
+        let find_free_group = |accessor: A, target, residue, donor_or_acceptor| {
+            accessor(&self.polymerizer_state, target, residue)
+                // SAFETY: All accessors yield at least one group if they return `Ok`, so this unwrap shouldn't fail!
+                .map(|mut gs| gs.next().unwrap())
+                .map_err(|e| {
+                    PolychemError::bond(
+                        abbr,
+                        donor,
+                        donor_residue.name(),
+                        acceptor,
+                        acceptor_residue.name(),
+                        donor_or_acceptor,
+                        e,
+                    )
+                })
         };
-        macro_rules! find_free_group {
-            ($target:ident, $residue:ident) => {
-                self.polymerizer_state
-                    .find_any_free_groups(&[$target], $residue, 1)
-                    // SAFETY: We've just asked `find_any_free_groups()` to give us 1 group, so this unwrap never fails!
-                    .map(|mut gs| gs.next().unwrap())
-                    .map_err(bond_error(stringify!($residue)))?
-            };
-        }
 
         // Avoid partial updates by performing validation of both group updates *before* updating either group
-        let donor_group = find_free_group!(from, donor);
-        let acceptor_group = find_free_group!(to, acceptor);
+        let donor_group = find_free_group(donor_accessor, from, donor, "donor")?;
+        let acceptor_group = find_free_group(acceptor_accessor, to, acceptor, "acceptor")?;
 
         let bond = Bond {
             abbr,
@@ -97,11 +143,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
 
         Ok(id)
     }
-}
 
-// Private Methods =====================================================================================================
-
-impl<'a, 'p> Polymer<'a, 'p> {
     fn update_group(
         &mut self,
         residue_id: ResidueId,
@@ -368,6 +410,82 @@ mod tests {
             .is_free());
 
         let nonexistent_bond = polymer.bond_residues("Super", murnac, alanine);
+        assert_miette_snapshot!(nonexistent_bond);
+    }
+
+    #[test]
+    fn bond_groups() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let murnac = polymer.new_residue("m").unwrap();
+        let alanine = polymer.new_residue("A").unwrap();
+        assert_polymer!(polymer, 382.15874504254, 382.36421782581807210);
+
+        let lactyl = FunctionalGroup::new("Carboxyl", "Lactyl Ether");
+        let n_terminal = FunctionalGroup::new("Amino", "N-Terminal");
+        polymer
+            .bond_groups("Stem", murnac, &lactyl, alanine, &n_terminal)
+            .unwrap();
+        assert_polymer!(polymer, 364.14818035851, 364.34893139338823950);
+        assert!(polymer
+            .residue(murnac)
+            .unwrap()
+            .group_state(&lactyl)
+            .unwrap()
+            .is_donor());
+        assert!(polymer
+            .residue(alanine)
+            .unwrap()
+            .group_state(&n_terminal)
+            .unwrap()
+            .is_acceptor());
+
+        // Use *`bond_residues()`* to check that an A-K link is indeed ambiguous
+        let lysine = polymer.new_residue("K").unwrap();
+        let ambigious_bond = polymer.bond_residues("Link", alanine, lysine);
+        assert_miette_snapshot!(ambigious_bond);
+
+        // But that ambiguity can be resolved using `bond_groups()`:
+        let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
+        let sidechain = FunctionalGroup::new("Amino", "Sidechain");
+        polymer
+            .bond_groups("Link", alanine, &c_terminal, lysine, &sidechain)
+            .unwrap();
+        assert_polymer!(polymer, 492.24314337370, 492.52144716967893560);
+        assert!(polymer
+            .residue(alanine)
+            .unwrap()
+            .group_state(&c_terminal)
+            .unwrap()
+            .is_donor());
+        assert!(polymer
+            .residue(lysine)
+            .unwrap()
+            .group_state(&sidechain)
+            .unwrap()
+            .is_acceptor());
+        // But the n_terminal of lysine remains untouched:
+        assert!(polymer
+            .residue(lysine)
+            .unwrap()
+            .group_state(&n_terminal)
+            .unwrap()
+            .is_free());
+
+        let groups_not_free = polymer.bond_groups("Stem", murnac, &lactyl, alanine, &n_terminal);
+        assert_miette_snapshot!(groups_not_free);
+
+        let glcnac = polymer.new_residue("g").unwrap();
+        let invalid_bond = polymer.bond_groups("Pep", lysine, &c_terminal, glcnac, &n_terminal);
+        assert_miette_snapshot!(invalid_bond);
+        // When bonding fails due to the acceptor, make sure that the donor remains untouched
+        assert!(polymer
+            .residue(lysine)
+            .unwrap()
+            .group_state(&c_terminal)
+            .unwrap()
+            .is_free());
+
+        let nonexistent_bond = polymer.bond_groups("Super", murnac, &lactyl, alanine, &n_terminal);
         assert_miette_snapshot!(nonexistent_bond);
     }
 }

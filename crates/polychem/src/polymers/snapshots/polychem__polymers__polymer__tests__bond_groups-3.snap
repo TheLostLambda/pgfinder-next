@@ -1,0 +1,9 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: invalid_bond
+expression: out
+---
+  × failed to form "Pep" bond between residue 3 (Lysine) and residue 5 (N-
+  │ Acetylglucosamine) due to an issue with the acceptor
+  ╰─▶   × the functional group "Amino" at="N-Terminal" does not exist on
+        │ residue 5
