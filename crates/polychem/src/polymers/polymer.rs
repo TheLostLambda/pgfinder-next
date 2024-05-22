@@ -1,6 +1,9 @@
 use crate::{
-    AtomicDatabase, AverageMass, BondInfo, Charge, Charged, Massive, ModificationInfo,
-    MonoisotopicMass, Polymer, PolymerDatabase, Residue, ResidueId, Result,
+    errors::PolychemError,
+    moieties::{polymer_database::BondDescription, target::Target},
+    AtomicDatabase, AverageMass, Bond, BondId, BondInfo, Charge, Charged, FunctionalGroup,
+    GroupState, Massive, ModificationInfo, MonoisotopicMass, Polymer, PolymerDatabase, Residue,
+    ResidueId, Result,
 };
 
 impl<'a, 'p> Polymer<'a, 'p> {
@@ -25,6 +28,101 @@ impl<'a, 'p> Polymer<'a, 'p> {
     #[must_use]
     pub fn residue(&self, id: ResidueId) -> Option<&Residue<'a, 'p>> {
         self.residues.get(&id)
+    }
+
+    pub fn bond_residues(
+        &mut self,
+        abbr: impl AsRef<str>,
+        donor: ResidueId,
+        acceptor: ResidueId,
+    ) -> Result<BondId> {
+        let (
+            abbr,
+            BondDescription {
+                name,
+                lost,
+                gained,
+                from,
+                to,
+            },
+        ) = Bond::lookup_description(self.polymer_db(), abbr)?;
+
+        let residue_error = |id| Err(PolychemError::residue_not_in_polymer(id).into());
+        let Some(donor_residue) = self.residue(donor) else {
+            return residue_error(donor);
+        };
+        let Some(acceptor_residue) = self.residue(acceptor) else {
+            return residue_error(acceptor);
+        };
+
+        let bond_error = |donor_or_acceptor: &'p str| {
+            |e| {
+                PolychemError::bond(
+                    abbr,
+                    donor,
+                    donor_residue.name(),
+                    acceptor,
+                    acceptor_residue.name(),
+                    donor_or_acceptor,
+                    e,
+                )
+            }
+        };
+        macro_rules! find_free_group {
+            ($target:ident, $residue:ident) => {
+                self.polymerizer_state
+                    .find_any_free_groups(&[$target], $residue, 1)
+                    // SAFETY: We've just asked `find_any_free_groups()` to give us 1 group, so this unwrap never fails!
+                    .map(|mut gs| gs.next().unwrap())
+                    .map_err(bond_error(stringify!($residue)))?
+            };
+        }
+
+        // Avoid partial updates by performing validation of both group updates *before* updating either group
+        let donor_group = find_free_group!(from, donor);
+        let acceptor_group = find_free_group!(to, acceptor);
+
+        let bond = Bond {
+            abbr,
+            name,
+            lost,
+            gained,
+        };
+        let id = BondId(self.polymerizer_state.next_id());
+        let bond_info = BondInfo(donor, bond, acceptor);
+        self.bonds.insert(id, bond_info);
+
+        self.update_group(donor, &donor_group, GroupState::Donor(id));
+        self.update_group(acceptor, &acceptor_group, GroupState::Acceptor(id));
+
+        Ok(id)
+    }
+}
+
+// Private Methods =====================================================================================================
+
+impl<'a, 'p> Polymer<'a, 'p> {
+    fn update_group(
+        &mut self,
+        residue_id: ResidueId,
+        group: &FunctionalGroup<'p>,
+        state: GroupState,
+    ) {
+        // SAFETY: `update_group()` is only called if the `residue_id` was found in the `group_index` of
+        // `self.polymerizer_state`, and if a residue is present in the `group_index`, it should be present in the
+        // `Polymer` as well!
+        let residue = self.residues.get_mut(&residue_id).unwrap();
+        let target = Target::from_residue_and_group(residue, group);
+
+        // SAFETY: As long as this particular residue-group combination has been vetted by `find_*_free_groups()`, this
+        // `unwrap()` shouldn't panic!
+        self.polymerizer_state
+            .update_group_index(target, residue_id, state)
+            .unwrap();
+
+        // SAFETY: Same as above, getting the `group` from `find_*_free_groups()` means this shouldn't ever panic!
+        let group_state = residue.group_state_mut(group).unwrap();
+        *group_state = state;
     }
 }
 
@@ -69,7 +167,7 @@ mod tests {
 
     use crate::{
         polymers::polymerizer::Polymerizer, testing_tools::assert_miette_snapshot, ChargedParticle,
-        ResidueId,
+        FunctionalGroup, ModificationId, ResidueId,
     };
 
     use super::*;
@@ -123,6 +221,78 @@ mod tests {
     }
 
     #[test]
+    fn update_group() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let first_alanine = polymer.new_residue("A").unwrap();
+        let second_alanine = polymer.new_residue("A").unwrap();
+        let lysine = polymer.new_residue("K").unwrap();
+
+        macro_rules! assert_residue_and_index_state {
+            ($group:expr, $residues_and_states:expr) => {
+                for (residue_id, state) in $residues_and_states {
+                    let residue = polymer.residue(residue_id).unwrap();
+                    let target = Target::from_residue_and_group(residue, $group);
+                    let residue_state = *residue.group_state($group).unwrap();
+                    let index_state = polymer
+                        .polymerizer_state
+                        .residue_groups(&[target], residue_id)
+                        .next()
+                        .unwrap()
+                        .1;
+
+                    assert_eq!(residue_state, state);
+                    assert_eq!(index_state, state);
+                }
+            };
+        }
+
+        let n_terminal = FunctionalGroup::new("Amino", "N-Terminal");
+        let n_terminal_groups = [
+            (first_alanine, GroupState::Free),
+            (second_alanine, GroupState::Free),
+            (lysine, GroupState::Free),
+        ];
+        assert_residue_and_index_state!(&n_terminal, n_terminal_groups);
+
+        polymer.update_group(
+            first_alanine,
+            &n_terminal,
+            GroupState::Modified(ModificationId(42)),
+        );
+        let n_terminal_groups = [
+            (first_alanine, GroupState::Modified(ModificationId(42))),
+            (second_alanine, GroupState::Free),
+            (lysine, GroupState::Free),
+        ];
+        assert_residue_and_index_state!(&n_terminal, n_terminal_groups);
+
+        polymer.update_group(lysine, &n_terminal, GroupState::Acceptor(BondId(314)));
+        let n_terminal_groups = [
+            (first_alanine, GroupState::Modified(ModificationId(42))),
+            (second_alanine, GroupState::Free),
+            (lysine, GroupState::Acceptor(BondId(314))),
+        ];
+        assert_residue_and_index_state!(&n_terminal, n_terminal_groups);
+
+        polymer.update_group(first_alanine, &n_terminal, GroupState::Donor(BondId(42)));
+        let n_terminal_groups = [
+            (first_alanine, GroupState::Donor(BondId(42))),
+            (second_alanine, GroupState::Free),
+            (lysine, GroupState::Acceptor(BondId(314))),
+        ];
+        assert_residue_and_index_state!(&n_terminal, n_terminal_groups);
+
+        let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
+        polymer.update_group(second_alanine, &c_terminal, GroupState::Donor(BondId(1337)));
+        let c_terminal_groups = [
+            (ResidueId(0), GroupState::Free),
+            (ResidueId(1), GroupState::Donor(BondId(1337))),
+            (ResidueId(2), GroupState::Free),
+        ];
+        assert_residue_and_index_state!(&c_terminal, c_terminal_groups);
+    }
+
+    #[test]
     fn new_residue() {
         let mut polymer = POLYMERIZER.new_polymer();
         let residues = STEM_RESIDUES.map(|abbr| polymer.new_residue(abbr).unwrap());
@@ -149,5 +319,55 @@ mod tests {
 
         let missing_residue = polymer.residue(ResidueId(8));
         assert_eq!(missing_residue, None);
+    }
+
+    #[test]
+    fn bond_residues() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let murnac = polymer.new_residue("m").unwrap();
+        let alanine = polymer.new_residue("A").unwrap();
+        assert_polymer!(polymer, 382.15874504254, 382.36421782581807210);
+
+        polymer.bond_residues("Stem", murnac, alanine).unwrap();
+        assert_polymer!(polymer, 364.14818035851, 364.34893139338823950);
+
+        let lactyl = FunctionalGroup::new("Carboxyl", "Lactyl Ether");
+        let n_terminal = FunctionalGroup::new("Amino", "N-Terminal");
+        assert!(polymer
+            .residue(murnac)
+            .unwrap()
+            .group_state(&lactyl)
+            .unwrap()
+            .is_donor());
+        assert!(polymer
+            .residue(alanine)
+            .unwrap()
+            .group_state(&n_terminal)
+            .unwrap()
+            .is_acceptor());
+
+        let all_groups_occupied = polymer.bond_residues("Stem", murnac, alanine);
+        assert_miette_snapshot!(all_groups_occupied);
+
+        // Try looking for residues that aren't present in this polymer
+        let donor_not_in_polymer = polymer.bond_residues("Stem", ResidueId(2), alanine);
+        assert_miette_snapshot!(donor_not_in_polymer);
+        let acceptor_not_in_polymer = polymer.bond_residues("Stem", murnac, ResidueId(3));
+        assert_miette_snapshot!(acceptor_not_in_polymer);
+
+        let glcnac = polymer.new_residue("g").unwrap();
+        let no_matching_groups = polymer.bond_residues("Pep", alanine, glcnac);
+        assert_miette_snapshot!(no_matching_groups);
+        // When bonding fails due to the acceptor, make sure that the donor remains untouched
+        let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
+        assert!(polymer
+            .residue(alanine)
+            .unwrap()
+            .group_state(&c_terminal)
+            .unwrap()
+            .is_free());
+
+        let nonexistent_bond = polymer.bond_residues("Super", murnac, alanine);
+        assert_miette_snapshot!(nonexistent_bond);
     }
 }

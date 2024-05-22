@@ -198,6 +198,13 @@ impl<'p> From<&Self> for Target<&'p str> {
     }
 }
 
+// NOTE: Similarly, you may end up with `&&Target` which needs dereferencing before conversion
+impl<'p> From<&&'p Target> for Target<&'p str> {
+    fn from(value: &&'p Target) -> Self {
+        Self::from(*value)
+    }
+}
+
 // Collecting an Iterator of Targets Into a TargetIndex ================================================================
 
 impl<'p, V, K: Into<Target<&'p str>>> FromIterator<(K, V)> for Index<'p, V> {

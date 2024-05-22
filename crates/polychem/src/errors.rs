@@ -1,7 +1,10 @@
 use miette::Diagnostic;
 use thiserror::Error;
 
-use crate::{parsers::errors::CompositionError, FunctionalGroup};
+use crate::{
+    parsers::errors::CompositionError, polymers::errors::FindFreeGroupsError, FunctionalGroup,
+    ResidueId,
+};
 
 pub type Result<T, E = Box<PolychemError>> = std::result::Result<T, E>;
 
@@ -32,6 +35,26 @@ pub enum PolychemError {
         name: String,
         abbr: String,
     },
+
+    #[error(
+        "failed to form {abbr:?} bond between residue {donor_id} ({donor_name}) and residue {acceptor_id} \
+        ({acceptor_name}) due to an issue with the {donor_or_acceptor}"
+    )]
+    Bond {
+        abbr: String,
+        donor_id: ResidueId,
+        donor_name: String,
+        acceptor_id: ResidueId,
+        acceptor_name: String,
+        donor_or_acceptor: String,
+        #[source]
+        #[diagnostic_source]
+        source: FindFreeGroupsError,
+    },
+
+    #[error("residue {id} could not be found in the current polymer")]
+    #[diagnostic(help("this residue may belong to another polymer, or may have been previously deleted from this one"))]
+    ResidueNotInPolymer { id: ResidueId },
 }
 
 impl PolychemError {
@@ -63,5 +86,37 @@ impl PolychemError {
             name,
             abbr,
         }
+    }
+
+    pub(crate) fn bond(
+        abbr: &str,
+        donor_id: ResidueId,
+        donor_name: &str,
+        acceptor_id: ResidueId,
+        acceptor_name: &str,
+        donor_or_acceptor: &str,
+        source: FindFreeGroupsError,
+    ) -> Self {
+        let abbr = abbr.to_owned();
+        let donor_name = donor_name.to_owned();
+        let acceptor_name = acceptor_name.to_owned();
+        let donor_or_acceptor = donor_or_acceptor.to_owned();
+
+        Self::Bond {
+            abbr,
+            donor_id,
+            donor_name,
+            acceptor_id,
+            acceptor_name,
+            donor_or_acceptor,
+            source,
+        }
+    }
+
+    // FIXME: Perhaps all of my error constructors should be marked with #[must_use]... Or the type should be? Clippy
+    // has only caught this one, but I need to make this more consistent!
+    #[must_use]
+    pub const fn residue_not_in_polymer(id: ResidueId) -> Self {
+        Self::ResidueNotInPolymer { id }
     }
 }

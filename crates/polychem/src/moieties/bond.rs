@@ -5,6 +5,7 @@ use crate::{
 use super::polymer_database::{BondDescription, PolymerDatabase};
 
 impl<'a, 'p> Bond<'a, 'p> {
+    // FIXME: Should this be public / exist at all? I'm using `lookup_description()` everywhere anyways?
     pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>) -> Result<Self> {
         let (
             abbr,
