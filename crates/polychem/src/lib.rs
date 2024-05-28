@@ -22,6 +22,7 @@ use rust_decimal::Decimal;
 pub use atoms::atomic_database::AtomicDatabase;
 pub use errors::Result;
 pub use moieties::polymer_database::PolymerDatabase;
+pub use polymers::polymerizer::Polymerizer;
 
 // Core Data Types =====================================================================================================
 

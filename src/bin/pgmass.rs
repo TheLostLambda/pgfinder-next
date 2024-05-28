@@ -11,28 +11,28 @@ fn main() {
     let mut rl = DefaultEditor::new().unwrap();
     while let Ok(formula) = rl.readline("Peptidoglycan: ") {
         rl.add_history_entry(&formula).unwrap();
-        match molecule_info(&formula) {
+        match pg_info(&formula) {
             Ok(info) => print!("{info}"),
             Err(diagnostic) => render_error(*diagnostic),
         }
     }
 }
 
-fn molecule_info(formula: &str) -> Result<String> {
+fn pg_info(formula: &str) -> Result<String> {
     let mut buf = String::new();
-    let molecule = ChemicalComposition::new(&DB, formula)?;
+    let pg = ChemicalComposition::new(&DB, formula)?;
 
-    let mono_mass = molecule.monoisotopic_mass();
-    let avg_mass = molecule.average_mass();
-    let charge = molecule.charge();
+    let mono_mass = pg.monoisotopic_mass();
+    let avg_mass = pg.average_mass();
+    let charge = pg.charge();
 
     writeln!(buf, "Monoisotopic Mass: {mono_mass:.6}").unwrap();
     writeln!(buf, "Average Mass: {avg_mass:.4}").unwrap();
     writeln!(buf, "Charge: {charge}").unwrap();
 
     if i64::from(charge) != 0 {
-        let mono_mz = molecule.monoisotopic_mz().unwrap();
-        let avg_mz = molecule.average_mz().unwrap();
+        let mono_mz = pg.monoisotopic_mz().unwrap();
+        let avg_mz = pg.average_mz().unwrap();
         writeln!(buf, "Monoisotopic m/z: {mono_mz:.6}").unwrap();
         writeln!(buf, "Average m/z: {avg_mz:.4}").unwrap();
     }

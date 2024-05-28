@@ -19,6 +19,7 @@ struct Monomer {
 
 type Connection = Vec<ConnectionKind>;
 
+// FIXME: Should I actually be using newtypes here? Needs a bit of API thought...
 type Monosaccharide = ResidueId;
 
 struct AminoAcid {

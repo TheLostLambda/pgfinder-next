@@ -33,7 +33,7 @@ Crosslink Descriptors = Crosslink Descriptor ,
 
 Monosaccharide = lowercase ;
 
-Amino Acid = uppercase ;
+Amino Acid = [ lowercase ] , uppercase ;
 
 Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
   { Amino Acid , [ Modifications ] }- , "]" ;

@@ -6,18 +6,28 @@ use nom::{
     combinator::{opt, recognize},
     error::ErrorKind,
     multi::{many0, separated_list1},
-    sequence::{delimited, pair},
+    sequence::{delimited, pair, preceded},
     IResult,
 };
-use nom_miette::{wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
+use nom_miette::{map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
     errors::PolychemError,
-    parsers::{errors::PolychemErrorKind, modifications, primitives::uppercase},
+    parsers::{
+        errors::PolychemErrorKind,
+        modifications,
+        primitives::{lowercase, uppercase},
+    },
     ModificationId, Polymer,
 };
 use thiserror::Error;
 
 use crate::{AminoAcid, LateralChain, Monomer, Monosaccharide, UnbranchedAminoAcid};
+
+// FIXME: A horrible hack that's needed to specify the lifetimes captured by `impl FnMut(...) -> ...` correctly. Once
+// Rust 2024 is stabilized, however, this hack can be removed. Keep an eye on:
+// https://github.com/rust-lang/rust/issues/117587
+trait Captures<U> {}
+impl<T: ?Sized, U> Captures<U> for T {}
 
 // FIXME: Paste all of these EBNF comments into another file and make sure they are valid!
 /// Monomer = Glycan , [ "-" , Peptide ] | Peptide ;
@@ -45,14 +55,13 @@ fn peptide<'a, 'p, 's>(
 
 // =
 
-// FIXME: Don't know if it's a great idea to tie together the lifetimes of the chemical databases and the polymerizer
-// instance here? Everything is using 'a...
 // FIXME: Add modifications
 /// Monosaccharide = lowercase , [ Modifications ] ;
-fn monosaccharide<'a, 'p, 's>(
-    _polymer: &'a mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide> {
-    |_| todo!()
+fn monosaccharide<'m, 'a, 'p, 's>(
+    polymer: &'m mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide> + Captures<(&'m (), &'a (), &'p ())> {
+    let parser = recognize(lowercase);
+    map_res(parser, |abbr| polymer.new_residue(abbr))
 }
 
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
@@ -77,15 +86,13 @@ fn modifications<'a, 'p, 's>(
     )
 }
 
-// FIXME: Make private again!
-// FIXME: Switch to a more efficient modification application API
-/// Unbranched Amino Acid = uppercase , [ Modifications ] ;
-pub fn unbranched_amino_acid<'a, 'p, 's>(
-    polymer: &'a mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid> {
-    let _parser = pair(recognize(uppercase), opt(modifications(polymer)));
-    // TODO: Apply modifications to the residues they follow here!
-    |_| todo!()
+// FIXME: Add modifications
+/// Unbranched Amino Acid = [ lowercase ] , uppercase , [ Modifications ] ;
+fn unbranched_amino_acid<'m, 'a, 'p, 's>(
+    polymer: &'m mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid> + Captures<(&'m (), &'a (), &'p ())> {
+    let parser = recognize(preceded(opt(lowercase), uppercase));
+    map_res(parser, |abbr| polymer.new_residue(abbr))
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
@@ -169,20 +176,21 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
-    use polychem::{AtomicDatabase, PolymerDatabase};
+    use polychem::{AtomicDatabase, PolymerDatabase, Polymerizer};
 
     use super::*;
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "polymer_database.kdl",
-            include_str!("../data/polymer_database.kdl"),
+            include_str!("../tests/data/polymer_database.kdl"),
         )
         .unwrap()
     });
+
+    static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
     #[ignore]
     #[test]
@@ -224,19 +232,82 @@ mod tests {
         assert_eq!(identifier("C2H𝟨O"), Ok(("𝟨O", "C2H")));
     }
 
-    #[ignore]
+    // FIXME: Unfininshed! Needs modification support — same with unbranched_amino_acid!
     #[test]
     fn test_monosaccharide() {
-        // TODO: Restore from git!
-        todo!();
+        let mut polymer = POLYMERIZER.new_polymer();
+
+        macro_rules! assert_monosaccharide_name {
+            ($input:literal, $output:literal, $name:literal) => {
+                let (rest, id) = monosaccharide(&mut polymer)($input).unwrap();
+                assert_eq!(
+                    (rest, polymer.residue(id).unwrap().name()),
+                    ($output, $name)
+                );
+            };
+        }
+
+        // Valid Monosaccharides
+        assert_monosaccharide_name!("g", "", "N-Acetylglucosamine");
+        assert_monosaccharide_name!("m", "", "N-Acetylmuramic Acid");
+        // Multiple Monosaccharides
+        assert_monosaccharide_name!("gm", "m", "N-Acetylglucosamine");
+        assert_monosaccharide_name!("m-A", "-A", "N-Acetylmuramic Acid");
+
+        let mut monosaccharide = monosaccharide(&mut polymer);
+        // Invalid Monosaccharides
+        assert!(monosaccharide("P").is_err());
+        assert!(monosaccharide("EP").is_err());
+        assert!(monosaccharide("1h").is_err());
+        assert!(monosaccharide("+m").is_err());
+        assert!(monosaccharide("-g").is_err());
+        assert!(monosaccharide("[h]").is_err());
+        // Non-Existent Monosaccharides
+        assert!(monosaccharide("s").is_err());
+        assert!(monosaccharide("f").is_err());
     }
 
     // FIXME: Unfininshed! Needs modification support — same with monosaccharide!
-    #[ignore]
     #[test]
     fn test_unbranched_amino_acid() {
-        // TODO: Restore from git!
-        todo!();
+        let mut polymer = POLYMERIZER.new_polymer();
+
+        macro_rules! assert_unbranched_aa_name {
+            ($input:literal, $output:literal, $name:literal) => {
+                let (rest, id) = unbranched_amino_acid(&mut polymer)($input).unwrap();
+                assert_eq!(
+                    (rest, polymer.residue(id).unwrap().name()),
+                    ($output, $name)
+                );
+            };
+        }
+
+        // Valid Unbranched Amino Acids
+        assert_unbranched_aa_name!("A", "", "Alanine");
+        assert_unbranched_aa_name!("E", "", "Glutamic Acid");
+        assert_unbranched_aa_name!("J", "", "Diaminopimelic Acid");
+        // Multiple Unbranched Amino Acids
+        assert_unbranched_aa_name!("AEJA", "EJA", "Alanine");
+        assert_unbranched_aa_name!("EJA", "JA", "Glutamic Acid");
+        assert_unbranched_aa_name!("JA", "A", "Diaminopimelic Acid");
+        // Valid Isomeric Unbranched Amino Acids
+        assert_unbranched_aa_name!("yE", "", "γ-Glutamate");
+        assert_unbranched_aa_name!("eK", "", "ε-Lysine");
+        // Multiple Isomeric Unbranched Amino Acids
+        assert_unbranched_aa_name!("yEJA", "JA", "γ-Glutamate");
+        assert_unbranched_aa_name!("eK[GGGGG]", "[GGGGG]", "ε-Lysine");
+
+        let mut unbranched_amino_acid = unbranched_amino_acid(&mut polymer);
+        // Invalid Unbranched Amino Acids
+        assert!(unbranched_amino_acid("p").is_err());
+        assert!(unbranched_amino_acid("eP").is_err());
+        assert!(unbranched_amino_acid("1H").is_err());
+        assert!(unbranched_amino_acid("+M").is_err());
+        assert!(unbranched_amino_acid("-G").is_err());
+        assert!(unbranched_amino_acid("[H]").is_err());
+        // Non-Existent Unbranched Amino Acids
+        assert!(unbranched_amino_acid("iA").is_err());
+        assert!(unbranched_amino_acid("yK").is_err());
     }
 
     // FIXME: Add a test that checks all of the errors using `assert_miette_snapshot`! Maybe make that a crate?
