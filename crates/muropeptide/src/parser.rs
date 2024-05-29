@@ -27,6 +27,7 @@ use crate::{AminoAcid, LateralChain, Monomer, Monosaccharide, UnbranchedAminoAci
 
 // FIXME: Need to think about if these should really live in another KDL config?
 const PEPTIDE_BOND: &str = "Pep";
+const GLYCOSIDIC_BOND: &str = "Gly";
 
 // FIXME: A horrible hack that's needed to specify the lifetimes captured by `impl FnMut(...) -> ...` correctly. Once
 // Rust 2024 is stabilized, however, this hack can be removed. Keep an eye on:
@@ -45,10 +46,16 @@ fn monomer<'a, 'p, 's>(
 // =
 
 /// Glycan = { Monosaccharide }- ;
-fn glycan<'a, 'p, 's>(
-    _polymer: &mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide>> {
-    |_| todo!()
+fn glycan<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide>> + Captures<(&'c (), &'a (), &'p ())> {
+    let parser = many1(monosaccharide(polymer));
+    map_res(parser, |residues| {
+        let _ = polymer
+            .borrow_mut()
+            .bond_chain(GLYCOSIDIC_BOND, &residues)?;
+        Ok(residues)
+    })
 }
 
 // FIXME: This is using the wrong amino acid parser — needs lateral chain support!
@@ -402,6 +409,88 @@ mod tests {
             89.04767846918,
             89.09330602867854225
         );
+    }
+
+    // FIXME: Add modification testing!
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_glycan() {
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_glycan = glycan(&polymer);
+        macro_rules! assert_chain_residues_and_masses {
+            ($input:literal, $output:literal, $residues:expr, $mono_mass:literal, $avg_mass:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, parsed_ids) = glycan(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+
+                let polymer = polymer.borrow();
+                let parsed_ids: Vec<_> = parsed_ids
+                    .into_iter()
+                    .map(|id| polymer.residue(id).unwrap().name())
+                    .collect();
+                let residues = Vec::from($residues);
+                assert_eq!(parsed_ids, residues);
+
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mono_mass));
+                assert_eq!(Decimal::from(polymer.average_mass()), dec!($avg_mass));
+            };
+        }
+
+        // Valid Glycans
+        assert_chain_residues_and_masses!(
+            "gmgm",
+            "",
+            [
+                "N-Acetylglucosamine",
+                "N-Acetylmuramic Acid",
+                "N-Acetylglucosamine",
+                "N-Acetylmuramic Acid"
+            ],
+            974.37031350523,
+            974.91222678113779720
+        );
+        assert_chain_residues_and_masses!(
+            "gm",
+            "",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            496.19043909463,
+            496.46375660678381490
+        );
+        assert_chain_residues_and_masses!(
+            "g",
+            "",
+            ["N-Acetylglucosamine"],
+            221.08993720530,
+            221.20813124207411765
+        );
+        assert_chain_residues_and_masses!(
+            "m",
+            "",
+            ["N-Acetylmuramic Acid"],
+            293.11106657336,
+            293.27091179713952985
+        );
+        // Invalid Glycans
+        assert!(err_glycan("Y").is_err());
+        assert!(err_glycan("Ygm").is_err());
+        assert!(err_glycan("-AEJA").is_err());
+        assert!(err_glycan("[GGGGG]").is_err());
+        assert!(err_glycan("EA=gm-AEJA").is_err());
+        assert!(err_glycan("(Am)").is_err());
+        // Non-Existent Glycan Residues
+        assert!(err_glycan("y").is_err());
+        assert!(err_glycan("fp").is_err());
+        // Multiple Glycans
+        assert_chain_residues_and_masses!(
+            "gm-AEJ",
+            "-AEJ",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            496.19043909463,
+            496.46375660678381490
+        );
+        assert_chain_residues_and_masses!("xAJgmK", "AJgmK", ["Unknown Monosaccharide"], 0.0, 0.0);
     }
     // FIXME: Add a test that checks all of the errors using `assert_miette_snapshot`! Maybe make that a crate?
 }
