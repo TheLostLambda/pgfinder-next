@@ -1,3 +1,4 @@
+// FIXME: Honestly, it might be better to use something like `chumsky` instead of forcing `nom` to handle errors well
 use std::fmt::Display;
 
 use ahash::{HashMap, HashMapExt};

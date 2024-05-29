@@ -23,7 +23,7 @@ type Connection = Vec<ConnectionKind>;
 type Monosaccharide = ResidueId;
 
 struct AminoAcid {
-    residue: ResidueId,
+    residue: UnbranchedAminoAcid,
     lateral_chain: Option<LateralChain>,
 }
 

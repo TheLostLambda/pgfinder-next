@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use miette::Diagnostic;
 use nom::{
     branch::alt,
@@ -5,7 +7,7 @@ use nom::{
     character::complete::{alpha1, alphanumeric1, char, space0},
     combinator::{opt, recognize},
     error::ErrorKind,
-    multi::{many0, separated_list1},
+    multi::{many0, many1, separated_list1},
     sequence::{delimited, pair, preceded},
     IResult,
 };
@@ -22,6 +24,9 @@ use polychem::{
 use thiserror::Error;
 
 use crate::{AminoAcid, LateralChain, Monomer, Monosaccharide, UnbranchedAminoAcid};
+
+// FIXME: Need to think about if these should really live in another KDL config?
+const PEPTIDE_BOND: &str = "Pep";
 
 // FIXME: A horrible hack that's needed to specify the lifetimes captured by `impl FnMut(...) -> ...` correctly. Once
 // Rust 2024 is stabilized, however, this hack can be removed. Keep an eye on:
@@ -46,22 +51,29 @@ fn glycan<'a, 'p, 's>(
     |_| todo!()
 }
 
+// FIXME: This is using the wrong amino acid parser — needs lateral chain support!
 /// Peptide = { Amino Acid }- ;
-fn peptide<'a, 'p, 's>(
-    _polymer: &mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid>> {
-    |_| todo!()
+fn peptide<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<UnbranchedAminoAcid>> + Captures<(&'c (), &'a (), &'p ())>
+{
+    // FIXME: Change to branched amino acid!
+    let parser = many1(unbranched_amino_acid(polymer));
+    map_res(parser, |residues| {
+        let _ = polymer.borrow_mut().bond_chain(PEPTIDE_BOND, &residues)?;
+        Ok(residues)
+    })
 }
 
 // =
 
 // FIXME: Add modifications
 /// Monosaccharide = lowercase , [ Modifications ] ;
-fn monosaccharide<'m, 'a, 'p, 's>(
-    polymer: &'m mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide> + Captures<(&'m (), &'a (), &'p ())> {
+fn monosaccharide<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = recognize(lowercase);
-    map_res(parser, |abbr| polymer.new_residue(abbr))
+    map_res(parser, |abbr| polymer.borrow_mut().new_residue(abbr))
 }
 
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
@@ -88,11 +100,11 @@ fn modifications<'a, 'p, 's>(
 
 // FIXME: Add modifications
 /// Unbranched Amino Acid = [ lowercase ] , uppercase , [ Modifications ] ;
-fn unbranched_amino_acid<'m, 'a, 'p, 's>(
-    polymer: &'m mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid> + Captures<(&'m (), &'a (), &'p ())> {
+fn unbranched_amino_acid<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = recognize(preceded(opt(lowercase), uppercase));
-    map_res(parser, |abbr| polymer.new_residue(abbr))
+    map_res(parser, |abbr| polymer.borrow_mut().new_residue(abbr))
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
@@ -176,7 +188,9 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
-    use polychem::{AtomicDatabase, PolymerDatabase, Polymerizer};
+    use polychem::{AtomicDatabase, Massive, PolymerDatabase, Polymerizer};
+    use rust_decimal::Decimal;
+    use rust_decimal_macros::dec;
 
     use super::*;
 
@@ -235,13 +249,14 @@ mod tests {
     // FIXME: Unfininshed! Needs modification support — same with unbranched_amino_acid!
     #[test]
     fn test_monosaccharide() {
-        let mut polymer = POLYMERIZER.new_polymer();
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
 
+        let mut monosaccharide = monosaccharide(&polymer);
         macro_rules! assert_monosaccharide_name {
             ($input:literal, $output:literal, $name:literal) => {
-                let (rest, id) = monosaccharide(&mut polymer)($input).unwrap();
+                let (rest, id) = monosaccharide($input).unwrap();
                 assert_eq!(
-                    (rest, polymer.residue(id).unwrap().name()),
+                    (rest, polymer.borrow().residue(id).unwrap().name()),
                     ($output, $name)
                 );
             };
@@ -250,11 +265,6 @@ mod tests {
         // Valid Monosaccharides
         assert_monosaccharide_name!("g", "", "N-Acetylglucosamine");
         assert_monosaccharide_name!("m", "", "N-Acetylmuramic Acid");
-        // Multiple Monosaccharides
-        assert_monosaccharide_name!("gm", "m", "N-Acetylglucosamine");
-        assert_monosaccharide_name!("m-A", "-A", "N-Acetylmuramic Acid");
-
-        let mut monosaccharide = monosaccharide(&mut polymer);
         // Invalid Monosaccharides
         assert!(monosaccharide("P").is_err());
         assert!(monosaccharide("EP").is_err());
@@ -265,18 +275,22 @@ mod tests {
         // Non-Existent Monosaccharides
         assert!(monosaccharide("s").is_err());
         assert!(monosaccharide("f").is_err());
+        // Multiple Monosaccharides
+        assert_monosaccharide_name!("gm", "m", "N-Acetylglucosamine");
+        assert_monosaccharide_name!("m-A", "-A", "N-Acetylmuramic Acid");
     }
 
     // FIXME: Unfininshed! Needs modification support — same with monosaccharide!
     #[test]
     fn test_unbranched_amino_acid() {
-        let mut polymer = POLYMERIZER.new_polymer();
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
 
+        let mut unbranched_amino_acid = unbranched_amino_acid(&polymer);
         macro_rules! assert_unbranched_aa_name {
             ($input:literal, $output:literal, $name:literal) => {
-                let (rest, id) = unbranched_amino_acid(&mut polymer)($input).unwrap();
+                let (rest, id) = unbranched_amino_acid($input).unwrap();
                 assert_eq!(
-                    (rest, polymer.residue(id).unwrap().name()),
+                    (rest, polymer.borrow().residue(id).unwrap().name()),
                     ($output, $name)
                 );
             };
@@ -286,18 +300,8 @@ mod tests {
         assert_unbranched_aa_name!("A", "", "Alanine");
         assert_unbranched_aa_name!("E", "", "Glutamic Acid");
         assert_unbranched_aa_name!("J", "", "Diaminopimelic Acid");
-        // Multiple Unbranched Amino Acids
-        assert_unbranched_aa_name!("AEJA", "EJA", "Alanine");
-        assert_unbranched_aa_name!("EJA", "JA", "Glutamic Acid");
-        assert_unbranched_aa_name!("JA", "A", "Diaminopimelic Acid");
-        // Valid Isomeric Unbranched Amino Acids
         assert_unbranched_aa_name!("yE", "", "γ-Glutamate");
         assert_unbranched_aa_name!("eK", "", "ε-Lysine");
-        // Multiple Isomeric Unbranched Amino Acids
-        assert_unbranched_aa_name!("yEJA", "JA", "γ-Glutamate");
-        assert_unbranched_aa_name!("eK[GGGGG]", "[GGGGG]", "ε-Lysine");
-
-        let mut unbranched_amino_acid = unbranched_amino_acid(&mut polymer);
         // Invalid Unbranched Amino Acids
         assert!(unbranched_amino_acid("p").is_err());
         assert!(unbranched_amino_acid("eP").is_err());
@@ -308,7 +312,96 @@ mod tests {
         // Non-Existent Unbranched Amino Acids
         assert!(unbranched_amino_acid("iA").is_err());
         assert!(unbranched_amino_acid("yK").is_err());
+        // Multiple Unbranched Amino Acids
+        assert_unbranched_aa_name!("AEJA", "EJA", "Alanine");
+        assert_unbranched_aa_name!("EJA", "JA", "Glutamic Acid");
+        assert_unbranched_aa_name!("JA", "A", "Diaminopimelic Acid");
+        assert_unbranched_aa_name!("yEJA", "JA", "γ-Glutamate");
+        assert_unbranched_aa_name!("eK[GGGGG]", "[GGGGG]", "ε-Lysine");
     }
 
+    // FIXME: Add modification testing!
+    // FIXME: Add lateral chain testing!
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_peptide() {
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_peptide = peptide(&polymer);
+        macro_rules! assert_chain_residues_and_masses {
+            ($input:literal, $output:literal, $residues:expr, $mono_mass:literal, $avg_mass:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, parsed_ids) = peptide(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+
+                let polymer = polymer.borrow();
+                let parsed_ids: Vec<_> = parsed_ids
+                    .into_iter()
+                    .map(|id| polymer.residue(id).unwrap().name())
+                    .collect();
+                let residues = Vec::from($residues);
+                assert_eq!(parsed_ids, residues);
+
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mono_mass));
+                assert_eq!(Decimal::from(polymer.average_mass()), dec!($avg_mass));
+            };
+        }
+
+        // Valid Peptides
+        assert_chain_residues_and_masses!(
+            "AEJA",
+            "",
+            ["Alanine", "Glutamic Acid", "Diaminopimelic Acid", "Alanine"],
+            461.21217759741,
+            461.46756989305707095
+        );
+        assert_chain_residues_and_masses!(
+            "AyEJA",
+            "",
+            ["Alanine", "γ-Glutamate", "Diaminopimelic Acid", "Alanine"],
+            461.21217759741,
+            461.46756989305707095
+        );
+        assert_chain_residues_and_masses!(
+            "AE",
+            "",
+            ["Alanine", "Glutamic Acid"],
+            218.09027155793,
+            218.20748877514586040
+        );
+        assert_chain_residues_and_masses!(
+            "A",
+            "",
+            ["Alanine"],
+            89.04767846918,
+            89.09330602867854225
+        );
+        // Invalid Peptides
+        assert!(err_peptide("y").is_err());
+        assert!(err_peptide("yrE").is_err());
+        assert!(err_peptide("-AEJA").is_err());
+        assert!(err_peptide("[GGGGG]").is_err());
+        assert!(err_peptide("gm-AEJA").is_err());
+        assert!(err_peptide("(Am)").is_err());
+        // Non-Existent Peptide Residues
+        assert!(err_peptide("AEJiA").is_err());
+        assert!(err_peptide("AQyK").is_err());
+        // Multiple Peptides
+        assert_chain_residues_and_masses!(
+            "AE=gm-AEJ",
+            "=gm-AEJ",
+            ["Alanine", "Glutamic Acid"],
+            218.09027155793,
+            218.20748877514586040
+        );
+        assert_chain_residues_and_masses!(
+            "AeeK",
+            "eeK",
+            ["Alanine"],
+            89.04767846918,
+            89.09330602867854225
+        );
+    }
     // FIXME: Add a test that checks all of the errors using `assert_miette_snapshot`! Maybe make that a crate?
 }
