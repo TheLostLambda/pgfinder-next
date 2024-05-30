@@ -4,27 +4,32 @@
 pub mod parser;
 
 // FIXME: Blocks need separating and reordering!
-use polychem::{ModificationId, ResidueId};
+use polychem::{ModificationId, Polymer, ResidueId};
 
-pub struct Muropeptide {
-    monomers: Vec<Monomer>,
+pub struct Muropeptide<'a, 'p, T = ResidueId> {
+    polymer: Polymer<'a, 'p>,
+    monomers: Vec<Monomer<T>>,
     connections: Vec<Connection>,
     modifications: Vec<ModificationId>,
 }
 
-struct Monomer {
-    glycan: Vec<Monosaccharide>,
-    peptide: Vec<AminoAcid>,
+// FIXME: Make private again
+pub struct Monomer<T> {
+    glycan: Vec<Monosaccharide<T>>,
+    // FIXME: Delete me!
+    peptide: Vec<UnbranchedAminoAcid<T>>,
+    // FIXME: Uncomment
+    // peptide: Vec<AminoAcid>,
 }
 
 type Connection = Vec<ConnectionKind>;
 
 // FIXME: Should I actually be using newtypes here? Needs a bit of API thought...
-type Monosaccharide = ResidueId;
+type Monosaccharide<T> = T;
 
-struct AminoAcid {
-    residue: UnbranchedAminoAcid,
-    lateral_chain: Option<LateralChain>,
+struct AminoAcid<T> {
+    residue: UnbranchedAminoAcid<T>,
+    lateral_chain: Option<LateralChain<T>>,
 }
 
 enum ConnectionKind {
@@ -32,9 +37,9 @@ enum ConnectionKind {
     Crosslink(Vec<CrosslinkDescriptor>),
 }
 
-struct LateralChain {
+struct LateralChain<T> {
     direction: PeptideDirection,
-    peptide: Vec<UnbranchedAminoAcid>,
+    peptide: Vec<UnbranchedAminoAcid<T>>,
 }
 
 enum CrosslinkDescriptor {
@@ -48,9 +53,11 @@ enum PeptideDirection {
     NToC,
 }
 
-type UnbranchedAminoAcid = ResidueId;
+type UnbranchedAminoAcid<T> = T;
 
 type Position = u8;
+
+type ResidueAbbr<'s> = &'s str;
 
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)

@@ -1,10 +1,23 @@
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
 use once_cell::sync::Lazy;
-use polychem::{AtomicDatabase, Charged, ChargedParticle, ChemicalComposition, Massive, Result};
+use polychem::{
+    AtomicDatabase, Charged, ChargedParticle, ChemicalComposition, Massive, PolymerDatabase,
+    Polymerizer, Result,
+};
 use rustyline::DefaultEditor;
-use std::fmt::Write;
+use std::{cell::RefCell, fmt::Write};
 
-static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    PolymerDatabase::new(
+        &ATOMIC_DB,
+        "polymer_database.kdl",
+        include_str!("../../crates/muropeptide/data/polymer_database.kdl"),
+    )
+    .unwrap()
+});
+
+static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
 // FIXME: This entire binary is just copy-pasted, but needs to be rewritten for PG!
 fn main() {
@@ -20,19 +33,24 @@ fn main() {
 
 fn pg_info(formula: &str) -> Result<String> {
     let mut buf = String::new();
-    let pg = ChemicalComposition::new(&DB, formula)?;
+    let polymer = RefCell::new(POLYMERIZER.new_polymer());
+    // FIXME: Handle this error properly!
+    let (rest, _) = (muropeptide::parser::monomer(&polymer))(formula).unwrap();
+    writeln!(buf, "Unparsed Input: {rest}").unwrap();
 
-    let mono_mass = pg.monoisotopic_mass();
-    let avg_mass = pg.average_mass();
-    let charge = pg.charge();
+    let polymer = polymer.borrow();
+
+    let mono_mass = polymer.monoisotopic_mass();
+    let avg_mass = polymer.average_mass();
+    let charge = polymer.charge();
 
     writeln!(buf, "Monoisotopic Mass: {mono_mass:.6}").unwrap();
     writeln!(buf, "Average Mass: {avg_mass:.4}").unwrap();
     writeln!(buf, "Charge: {charge}").unwrap();
 
     if i64::from(charge) != 0 {
-        let mono_mz = pg.monoisotopic_mz().unwrap();
-        let avg_mz = pg.average_mz().unwrap();
+        let mono_mz = polymer.monoisotopic_mz().unwrap();
+        let avg_mz = polymer.average_mz().unwrap();
         writeln!(buf, "Monoisotopic m/z: {mono_mz:.6}").unwrap();
         writeln!(buf, "Average m/z: {avg_mz:.4}").unwrap();
     }
