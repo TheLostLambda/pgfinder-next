@@ -168,7 +168,7 @@ fn multiplier(i: &str) -> ParseResult<Count> {
 ///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
 ///   | "V" | "W" | "X" | "Y" | "Z"
 ///   ;
-pub(crate) fn uppercase(i: &str) -> ParseResult<char> {
+pub fn uppercase(i: &str) -> ParseResult<char> {
     let parser = satisfy(|c| c.is_ascii_uppercase());
     expect(parser, MuropeptideErrorKind::ExpectedUppercase)(i)
 }
@@ -179,13 +179,13 @@ pub(crate) fn uppercase(i: &str) -> ParseResult<char> {
 ///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
 ///   | "v" | "w" | "x" | "y" | "z"
 ///   ;
-pub(crate) fn lowercase(i: &str) -> ParseResult<char> {
+pub fn lowercase(i: &str) -> ParseResult<char> {
     let parser = satisfy(|c| c.is_ascii_lowercase());
     expect(parser, MuropeptideErrorKind::ExpectedLowercase)(i)
 }
 
 /// Count = digit - "0" , { digit } ;
-pub(crate) fn count(i: &str) -> ParseResult<Count> {
+pub fn count(i: &str) -> ParseResult<Count> {
     let not_zero = expect(
         cut(not(char('0'))),
         MuropeptideErrorKind::ExpectedNoLeadingZero,
@@ -478,6 +478,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn test_monomer() {
         macro_rules! assert_monomer {
             ($input:literal, $output:literal, $glycan:expr, $peptide:expr) => {
@@ -515,7 +516,6 @@ mod tests {
 
     #[ignore]
     #[test]
-    #[allow(clippy::cognitive_complexity)]
     fn test_modifications() {
         // TODO: Restore from git!
         todo!();

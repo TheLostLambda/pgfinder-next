@@ -8,8 +8,8 @@ const GLYCOSIDIC_BOND: &str = "Gly";
 const STEM_BOND: &str = "Stem";
 
 #[derive(Debug)]
-pub enum BuilderError {}
-type BuilderResult<T> = Result<T, BuilderError>;
+pub enum Error {}
+type BuilderResult<T> = Result<T, Error>;
 
 pub trait Build<'m, 'a, 'p> {
     type Into;

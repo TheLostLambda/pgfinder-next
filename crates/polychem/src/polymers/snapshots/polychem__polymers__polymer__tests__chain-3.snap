@@ -1,8 +1,0 @@
----
-source: crates/polychem/src/polymers/polymer.rs
-description: nonexistent_residue
-expression: out
----
-  × residue 4 could not be found in the current polymer
-  help: this residue may belong to another polymer, or may have been
-        previously deleted from this one
