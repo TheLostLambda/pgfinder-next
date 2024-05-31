@@ -34,6 +34,22 @@ impl<'a, 'p> Polymer<'a, 'p> {
         self.residues.get(&id)
     }
 
+    pub fn new_chain(
+        &mut self,
+        abbr: impl AsRef<str>,
+        residues: &[impl AsRef<str>],
+    ) -> Result<(
+        impl Iterator<Item = ResidueId>,
+        impl Iterator<Item = BondId>,
+    )> {
+        let residue_ids: Vec<_> = residues
+            .iter()
+            .map(|abbr| self.new_residue(abbr))
+            .collect::<Result<_, _>>()?;
+        let bond_ids = self.bond_chain(abbr, &residue_ids)?;
+        Ok((residue_ids.into_iter(), bond_ids))
+    }
+
     pub fn bond_residues(
         &mut self,
         abbr: impl AsRef<str>,
@@ -508,7 +524,7 @@ mod tests {
     }
 
     #[test]
-    fn chain() {
+    fn bond_chain() {
         let mut polymer = POLYMERIZER.new_polymer();
         let residues = STEM_RESIDUES.map(|abbr| polymer.new_residue(abbr).unwrap());
         let polymer_without_bonds = polymer.clone();
@@ -545,6 +561,57 @@ mod tests {
         assert_miette_snapshot!(nonexistent_bond);
 
         let nonexistent_residue = bond_chain!("Pep", &[ResidueId(3), ResidueId(4)]);
+        assert_miette_snapshot!(nonexistent_residue);
+    }
+
+    #[test]
+    fn new_chain() {
+        // NOTE: A macro since using a closure leads to borrow-checker issues...
+        macro_rules! bond_chain {
+            ($abbr:literal, $residues:expr) => {{
+                let mut polymer = POLYMERIZER.new_polymer();
+                polymer
+                    .new_chain($abbr, $residues)
+                    .map(|(residue_ids, bond_ids)| {
+                        (
+                            polymer,
+                            residue_ids.collect::<Vec<_>>(),
+                            bond_ids.collect::<Vec<_>>(),
+                        )
+                    })
+            }};
+        }
+
+        // Building chains of 1 or 0 residues results in no bonds
+        let empty: &[&str] = &[];
+        let (polymer, residues, bonds) = bond_chain!("Pep", empty).unwrap();
+        assert!(residues.is_empty());
+        assert!(bonds.is_empty());
+        assert_polymer!(polymer, 0.0, 0.0);
+
+        let (polymer, residues, bonds) = bond_chain!("Pep", &["A"]).unwrap();
+        assert_eq!(residues, vec![ResidueId(0)]);
+        assert!(bonds.is_empty());
+        assert_polymer!(polymer, 89.04767846918, 89.09330602867854225);
+
+        // Then actually build a full chain (3 bonds for 4 residues)
+        let (polymer, residues, bonds) = bond_chain!("Pep", &STEM_RESIDUES).unwrap();
+        assert_eq!(
+            residues,
+            vec![ResidueId(0), ResidueId(1), ResidueId(2), ResidueId(3)]
+        );
+        assert_eq!(bonds, vec![BondId(4), BondId(5), BondId(6)]);
+        assert_polymer!(polymer, 461.21217759741, 461.46756989305707095);
+        assert_ron_snapshot!(polymer, {
+            ".**.composition, .**.lost, .**.gained" => "<FORMULA>",
+            ".**.residues, .**.bonds" => insta::sorted_redaction(),
+            ".**.functional_groups" => insta::sorted_redaction()
+        });
+
+        let nonexistent_bond = bond_chain!("?", &STEM_RESIDUES);
+        assert_miette_snapshot!(nonexistent_bond);
+
+        let nonexistent_residue = bond_chain!("Pep", &["A", "yE", "J"]);
         assert_miette_snapshot!(nonexistent_residue);
     }
 }

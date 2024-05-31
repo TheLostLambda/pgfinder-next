@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: nonexistent_bond
+expression: out
+---
+  × the bond "?" could not be found in the supplied polymer database

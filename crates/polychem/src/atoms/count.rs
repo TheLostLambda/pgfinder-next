@@ -9,7 +9,7 @@ use rust_decimal::Decimal;
 use crate::{AverageMass, Charge, Count, Mass, MonoisotopicMass};
 
 impl Count {
-    pub(crate) fn new(n: u32) -> Option<Self> {
+    pub fn new(n: u32) -> Option<Self> {
         NonZeroU32::new(n).map(Self)
     }
 }

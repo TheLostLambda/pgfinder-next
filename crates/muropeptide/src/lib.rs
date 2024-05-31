@@ -1,20 +1,63 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 
+mod parser;
 // FIXME: Probably make private again...
-pub mod parser;
+pub mod builder;
 
+use builder::Build;
+use nom_miette::final_parser;
+use parser::multimer;
 // FIXME: Blocks need separating and reordering!
-use polychem::{ModificationId, Polymer, ResidueId};
+use polychem::{
+    AverageMass, Charged, Massive, ModificationId, MonoisotopicMass, Polymer, Polymerizer,
+    ResidueId,
+};
 
-pub struct Muropeptide<'a, 'p, T = ResidueId> {
+pub struct Muropeptide<'a, 'p> {
     polymer: Polymer<'a, 'p>,
+    // FIXME: Field and type naming?
+    structure: Multimer<ResidueId>,
+}
+
+impl<'a, 'p> Muropeptide<'a, 'p> {
+    // FIXME: Replace `()` with a real error type!
+    pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self, ()> {
+        // FIXME: Correctly handle and forward errors here!
+        let multimer = final_parser(multimer)(structure.as_ref()).unwrap();
+        let mut polymer = polymerizer.new_polymer();
+
+        // FIXME: Correctly handle and forward errors here!
+        let structure = multimer.build(&mut polymer).unwrap();
+
+        Ok(Muropeptide { polymer, structure })
+    }
+}
+
+impl Massive for Muropeptide<'_, '_> {
+    fn monoisotopic_mass(&self) -> MonoisotopicMass {
+        self.polymer.monoisotopic_mass()
+    }
+
+    fn average_mass(&self) -> AverageMass {
+        self.polymer.average_mass()
+    }
+}
+
+impl Charged for Muropeptide<'_, '_> {
+    fn charge(&self) -> polychem::Charge {
+        self.polymer.charge()
+    }
+}
+
+// FIXME: Don't know if I love this naming... Wish I could have two `Muropeptide`s... One with the `polymer` and one
+// without that's just used in the AST...
+struct Multimer<T> {
     monomers: Vec<Monomer<T>>,
     connections: Vec<Connection>,
     modifications: Vec<ModificationId>,
 }
 
-// FIXME: Make private again
-pub struct Monomer<T> {
+struct Monomer<T> {
     glycan: Vec<Monosaccharide<T>>,
     // FIXME: Delete me!
     peptide: Vec<UnbranchedAminoAcid<T>>,
@@ -25,6 +68,7 @@ pub struct Monomer<T> {
 type Connection = Vec<ConnectionKind>;
 
 // FIXME: Should I actually be using newtypes here? Needs a bit of API thought...
+// FIXME: This will need to be a struct that stores a modification now!
 type Monosaccharide<T> = T;
 
 struct AminoAcid<T> {
@@ -58,6 +102,59 @@ type UnbranchedAminoAcid<T> = T;
 type Position = u8;
 
 type ResidueAbbr<'s> = &'s str;
+type ModificationAbbr<'s> = &'s str;
+
+#[cfg(test)]
+mod tests {
+    use once_cell::sync::Lazy;
+    use polychem::{AtomicDatabase, PolymerDatabase, Polymerizer};
+
+    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+        PolymerDatabase::new(
+            &ATOMIC_DB,
+            "polymer_database.kdl",
+            include_str!("../tests/data/polymer_database.kdl"),
+        )
+        .unwrap()
+    });
+
+    static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+
+    macro_rules! assert_polymer {
+        ($polymer:expr, $mono_mass:literal, $avg_mass:literal) => {
+            assert_eq!(
+                $polymer.monoisotopic_mass(),
+                MonoisotopicMass(dec!($mono_mass))
+            );
+            assert_eq!($polymer.average_mass(), AverageMass(dec!($avg_mass)));
+            assert_eq!($polymer.charge(), Charge(0));
+            assert_eq!($polymer.monoisotopic_mz(), None);
+            assert_eq!($polymer.average_mz(), None);
+        };
+
+        ($polymer:expr, $mono_mass:literal, $avg_mass:literal, $charge:literal, $mono_mz:literal, $avg_mz:literal) => {
+            assert_eq!(
+                $polymer.monoisotopic_mass(),
+                MonoisotopicMass(dec!($mono_mass))
+            );
+            assert_eq!($polymer.average_mass(), AverageMass(dec!($avg_mass)));
+            assert_eq!($polymer.charge(), Charge($charge));
+            assert_eq!(
+                $polymer.monoisotopic_mz(),
+                Some(MonoisotopicMz(dec!($mono_mz)))
+            );
+            assert_eq!($polymer.average_mz(), Some(AverageMz(dec!($avg_mz))));
+        };
+    }
+
+    #[ignore]
+    #[test]
+    fn basic_monomers() {
+        // TODO: Fill in after automatic MurNAc reduction is implemented!
+        todo!()
+    }
+}
 
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)

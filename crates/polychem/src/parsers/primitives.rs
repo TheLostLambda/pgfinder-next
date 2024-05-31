@@ -3,13 +3,11 @@ use nom::{
     combinator::{cut, map, not},
     sequence::preceded,
 };
-use nom_miette::{expect, into};
+use nom_miette::expect;
 
 use crate::{Count, OffsetKind};
 
 use super::errors::{ParseResult, PolychemErrorKind};
-
-// FIXME: Make sure that all public parsers return a generic ErrorKind!
 
 /// uppercase
 ///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
@@ -17,12 +15,9 @@ use super::errors::{ParseResult, PolychemErrorKind};
 ///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
 ///   | "V" | "W" | "X" | "Y" | "Z"
 ///   ;
-pub fn uppercase<K>(i: &str) -> ParseResult<char, K>
-where
-    K: From<PolychemErrorKind> + From<nom::error::ErrorKind>,
-{
+pub(crate) fn uppercase(i: &str) -> ParseResult<char> {
     let parser = satisfy(|c| c.is_ascii_uppercase());
-    into(expect(parser, PolychemErrorKind::ExpectedUppercase))(i)
+    expect(parser, PolychemErrorKind::ExpectedUppercase)(i)
 }
 
 /// lowercase
@@ -31,12 +26,9 @@ where
 ///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
 ///   | "v" | "w" | "x" | "y" | "z"
 ///   ;
-pub fn lowercase<K>(i: &str) -> ParseResult<char, K>
-where
-    K: From<PolychemErrorKind> + From<nom::error::ErrorKind>,
-{
+pub(crate) fn lowercase(i: &str) -> ParseResult<char> {
     let parser = satisfy(|c| c.is_ascii_lowercase());
-    into(expect(parser, PolychemErrorKind::ExpectedLowercase))(i)
+    expect(parser, PolychemErrorKind::ExpectedLowercase)(i)
 }
 
 /// Count = digit - "0" , { digit } ;
@@ -64,7 +56,6 @@ mod tests {
 
     #[test]
     fn test_uppercase() {
-        let uppercase = uppercase::<PolychemErrorKind>;
         // Ensure the complete uppercase ASCII alphabet is present
         for c in 'A'..='Z' {
             assert_eq!(uppercase(&c.to_string()), Ok(("", c)));
@@ -80,7 +71,6 @@ mod tests {
 
     #[test]
     fn test_lowercase() {
-        let lowercase = lowercase::<PolychemErrorKind>;
         // Ensure the complete lowercase ASCII alphabet is present
         for c in 'a'..='z' {
             assert_eq!(lowercase(&c.to_string()), Ok(("", c)));

@@ -30,7 +30,7 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
     }
 
     #[must_use]
-    pub fn new_polymer(&self) -> Polymer {
+    pub fn new_polymer(&self) -> Polymer<'a, 'p> {
         let polymerizer_state = PolymerizerState::new(self);
         Polymer {
             polymerizer_state,

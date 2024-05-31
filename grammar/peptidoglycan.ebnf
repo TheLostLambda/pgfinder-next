@@ -3,7 +3,11 @@ Muropeptide = Monomer , { Connection , Monomer } , [ Connection ] , [ { " " }- ,
   | Crosslinks , [ { " " }- , Modifications ]
   ) ] ;
 
-Monomer = Glycan , [ "-" , Peptide ] | Peptide ;
+Monomer
+  = Glycan , "-" , Peptide
+  | Peptide
+  | Glycan
+  ;
 
 Connection
   = "=" (* Crosslink *)
