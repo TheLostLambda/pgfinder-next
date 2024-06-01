@@ -5,12 +5,27 @@ use std::{
 };
 
 use rust_decimal::Decimal;
+use static_assertions::const_assert;
 
 use crate::{AverageMass, Charge, Count, Mass, MonoisotopicMass};
 
 impl Count {
+    const BITS: u32 = NonZeroU32::BITS;
+
     pub fn new(n: u32) -> Option<Self> {
         NonZeroU32::new(n).map(Self)
+    }
+}
+
+// NOTE: Since this will only panic on 16-bit platforms, I couldn't test a `TryFrom` impl if I wanted to — I don't want
+// to add an entire error-handling code path that could never possibly be run.
+#[allow(clippy::fallible_impl_from)]
+impl From<Count> for usize {
+    fn from(value: Count) -> Self {
+        const_assert!(usize::BITS >= Count::BITS);
+        // SAFETY: The above assertion prevents compilation on platforms with fewer bits than the type used to
+        // represent `Count`. If this code compiles, then this `.unwrap()` will never panic.
+        usize::try_from(value.0.get()).unwrap()
     }
 }
 
@@ -52,6 +67,6 @@ impl Display for Count {
 
 impl Default for Count {
     fn default() -> Self {
-        Self(NonZeroU32::new(1).unwrap())
+        Self::new(1).unwrap()
     }
 }

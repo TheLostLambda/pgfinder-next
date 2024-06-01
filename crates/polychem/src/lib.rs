@@ -115,7 +115,7 @@ pub enum GroupState {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-struct NamedMod<'a, 'p> {
+pub struct NamedMod<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
     lost: &'p ChemicalComposition<'a>,
@@ -123,13 +123,13 @@ struct NamedMod<'a, 'p> {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-struct OffsetMod<'a> {
+pub struct OffsetMod<'a> {
     kind: OffsetKind,
     composition: ChemicalComposition<'a>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-struct Modification<K> {
+pub struct Modification<K> {
     multiplier: Count,
     kind: K,
 }
@@ -173,7 +173,7 @@ struct Particle<'a> {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-enum AnyMod<'a, 'p> {
+pub enum AnyMod<'a, 'p> {
     Named(NamedMod<'a, 'p>),
     Offset(OffsetMod<'a>),
 }
