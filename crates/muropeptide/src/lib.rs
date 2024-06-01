@@ -1,12 +1,11 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 
 mod parser;
-// FIXME: Probably make private again...
-pub mod builder;
 
-use builder::Build;
+use std::cell::RefCell;
+
 use nom_miette::final_parser;
-use parser::multimer;
+use parser::monomer;
 // FIXME: Blocks need separating and reordering!
 use polychem::{
     AverageMass, Charged, Massive, ModificationId, MonoisotopicMass, Polymer, Polymerizer,
@@ -15,21 +14,24 @@ use polychem::{
 
 pub struct Muropeptide<'a, 'p> {
     polymer: Polymer<'a, 'p>,
-    // FIXME: Field and type naming?
-    structure: Multimer<ResidueId>,
+    monomers: Vec<Monomer>,
+    connections: Vec<Connection>,
+    modifications: Vec<ModificationId>,
 }
 
 impl<'a, 'p> Muropeptide<'a, 'p> {
     // FIXME: Replace `()` with a real error type!
     pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self, ()> {
+        let polymer = RefCell::new(polymerizer.new_polymer());
         // FIXME: Correctly handle and forward errors here!
-        let multimer = final_parser(multimer)(structure.as_ref()).unwrap();
-        let mut polymer = polymerizer.new_polymer();
+        let monomer = final_parser(monomer(&polymer))(structure.as_ref()).unwrap();
 
-        // FIXME: Correctly handle and forward errors here!
-        let structure = multimer.build(&mut polymer).unwrap();
-
-        Ok(Muropeptide { polymer, structure })
+        Ok(Muropeptide {
+            polymer: polymer.into_inner(),
+            monomers: vec![monomer],
+            connections: Vec::new(),
+            modifications: Vec::new(),
+        })
     }
 }
 
@@ -49,18 +51,10 @@ impl Charged for Muropeptide<'_, '_> {
     }
 }
 
-// FIXME: Don't know if I love this naming... Wish I could have two `Muropeptide`s... One with the `polymer` and one
-// without that's just used in the AST...
-struct Multimer<T> {
-    monomers: Vec<Monomer<T>>,
-    connections: Vec<Connection>,
-    modifications: Vec<ModificationId>,
-}
-
-struct Monomer<T> {
-    glycan: Vec<Monosaccharide<T>>,
+struct Monomer {
+    glycan: Vec<Monosaccharide>,
     // FIXME: Delete me!
-    peptide: Vec<UnbranchedAminoAcid<T>>,
+    peptide: Vec<UnbranchedAminoAcid>,
     // FIXME: Uncomment
     // peptide: Vec<AminoAcid>,
 }
@@ -69,11 +63,11 @@ type Connection = Vec<ConnectionKind>;
 
 // FIXME: Should I actually be using newtypes here? Needs a bit of API thought...
 // FIXME: This will need to be a struct that stores a modification now!
-type Monosaccharide<T> = T;
+type Monosaccharide = ResidueId;
 
-struct AminoAcid<T> {
-    residue: UnbranchedAminoAcid<T>,
-    lateral_chain: Option<LateralChain<T>>,
+struct AminoAcid {
+    residue: UnbranchedAminoAcid,
+    lateral_chain: Option<LateralChain>,
 }
 
 enum ConnectionKind {
@@ -81,9 +75,9 @@ enum ConnectionKind {
     Crosslink(Vec<CrosslinkDescriptor>),
 }
 
-struct LateralChain<T> {
+struct LateralChain {
     direction: PeptideDirection,
-    peptide: Vec<UnbranchedAminoAcid<T>>,
+    peptide: Vec<UnbranchedAminoAcid>,
 }
 
 enum CrosslinkDescriptor {
@@ -97,12 +91,9 @@ enum PeptideDirection {
     NToC,
 }
 
-type UnbranchedAminoAcid<T> = T;
+type UnbranchedAminoAcid = ResidueId;
 
 type Position = u8;
-
-type ResidueAbbr<'s> = &'s str;
-type ModificationAbbr<'s> = &'s str;
 
 #[cfg(test)]
 mod tests {
