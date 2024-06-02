@@ -71,10 +71,18 @@ pub fn monomer<'c, 'a, 'p, 's>(
     // // FIXME: Add a `map_res` wrapping this final parser
     // parser
 
-    let glycan_only = map(glycan(polymer), |glycan| Monomer {
-        glycan,
-        peptide: Vec::new(),
-    });
+    let polymer_a = polymer.clone();
+    let glycan_only = move |i| {
+        map(glycan(&polymer_a), |glycan| {
+            (
+                polymer_a.clone(),
+                Monomer {
+                    glycan,
+                    peptide: Vec::new(),
+                },
+            )
+        })(i)
+    };
 
     let glycan_and_peptide = map_res(
         separated_pair(glycan(polymer), char('-'), peptide(polymer)),
@@ -96,9 +104,13 @@ pub fn monomer<'c, 'a, 'p, 's>(
         peptide,
     });
 
-    let parser = alt((glycan_and_peptide, glycan_only, peptide_only));
+    move |i| {
+        let (str, (polymer_x, monomer)) = glycan_only(i)?;
+        polymer.swap(&polymer_x);
+        Ok((str, monomer))
+    }
+    // let (polymer, parser) = alt((glycan_and_peptide, glycan_only, peptide_only));
     // FIXME: Add a `map_res` wrapping this final parser
-    parser
 }
 
 // =
