@@ -4,6 +4,8 @@ mod parser;
 
 use std::cell::RefCell;
 
+use nom::combinator::all_consuming;
+use nom_locate::LocatedSpan;
 use nom_miette::final_parser;
 use parser::monomer;
 // FIXME: Blocks need separating and reordering!
@@ -22,16 +24,18 @@ pub struct Muropeptide<'a, 'p> {
 impl<'a, 'p> Muropeptide<'a, 'p> {
     // FIXME: Replace `()` with a real error type!
     pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self, ()> {
-        let polymer = RefCell::new(polymerizer.new_polymer());
-        // FIXME: Correctly handle and forward errors here!
-        let monomer = final_parser(monomer(&polymer))(structure.as_ref()).unwrap();
+        // let polymer = polymerizer.new_polymer();
+        // let input = LocatedSpan::new_extra(structure.as_ref(), polymer);
+        // // FIXME: Correctly handle and forward errors here!
+        // let (_, monomer) = monomer(input).unwrap();
 
-        Ok(Muropeptide {
-            polymer: polymer.into_inner(),
-            monomers: vec![monomer],
-            connections: Vec::new(),
-            modifications: Vec::new(),
-        })
+        // Ok(Muropeptide {
+        //     polymer,
+        //     monomers: vec![monomer],
+        //     connections: Vec::new(),
+        //     modifications: Vec::new(),
+        // })
+        todo!()
     }
 }
 

@@ -42,7 +42,8 @@ pub struct Polymer<'a, 'p> {
     polymerizer_state: PolymerizerState<'a, 'p>,
     // NOTE: Whilst the `Polymerizer` struct is defined elsewhere, the following fields are part of the core polymer
     // representation and are therefore defined in this file, with `impl`s added in separate modules as needed.
-    residues: HashMap<ResidueId, Residue<'a, 'p>>,
+    // FIXME: No no no! Must be made private again!
+    pub residues: HashMap<ResidueId, Residue<'a, 'p>>,
     modifications: HashMap<ModificationId, ModificationInfo<'a, 'p>>,
     bonds: HashMap<BondId, BondInfo<'a, 'p>>,
 }
