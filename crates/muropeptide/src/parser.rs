@@ -39,35 +39,64 @@ impl<T: ?Sized, U> Captures<U> for T {}
 pub fn monomer<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
 ) -> impl FnMut(&'s str) -> ParseResult<Monomer> + Captures<(&'c (), &'a (), &'p ())> {
-    let optional_peptide = opt(preceded(char('-'), cut(peptide(polymer))));
-    let glycan_and_peptide = map_res(
-        pair(glycan(polymer), optional_peptide),
-        |(glycan, peptide)| {
-            if let Some(peptide) = peptide {
-                // SAFETY: Both the `glycan` and `peptide` parsers ensure at least one residue is present, so `.last()` and
-                // `.first()` will never return `None`!
-                let donor = *glycan.last().unwrap();
-                let acceptor = *peptide.first().unwrap();
+    // let optional_peptide = opt(preceded(char('-'), cut(peptide(polymer))));
+    // let glycan_and_peptide = map_res(
+    //     pair(glycan(polymer), optional_peptide),
+    //     |(glycan, peptide)| {
+    //         if let Some(peptide) = peptide {
+    //             // SAFETY: Both the `glycan` and `peptide` parsers ensure at least one residue is present, so `.last()` and
+    //             // `.first()` will never return `None`!
+    //             let donor = *glycan.last().unwrap();
+    //             let acceptor = *peptide.first().unwrap();
 
-                polymer
-                    .borrow_mut()
-                    .bond_residues(STEM_BOND, donor, acceptor)?;
-                Ok(Monomer { glycan, peptide })
-            } else {
-                Ok(Monomer {
-                    glycan,
-                    peptide: Vec::new(),
-                })
-            }
+    //             polymer
+    //                 .borrow_mut()
+    //                 .bond_residues(STEM_BOND, donor, acceptor)?;
+    //             Ok(Monomer { glycan, peptide })
+    //         } else {
+    //             Ok(Monomer {
+    //                 glycan,
+    //                 peptide: Vec::new(),
+    //             })
+    //         }
+    //     },
+    // );
+
+    // let just_peptide = map(peptide(polymer), |peptide| Monomer {
+    //     glycan: Vec::new(),
+    //     peptide,
+    // });
+
+    // let parser = alt((glycan_and_peptide, just_peptide));
+    // // FIXME: Add a `map_res` wrapping this final parser
+    // parser
+
+    let glycan_only = map(glycan(polymer), |glycan| Monomer {
+        glycan,
+        peptide: Vec::new(),
+    });
+
+    let glycan_and_peptide = map_res(
+        separated_pair(glycan(polymer), char('-'), peptide(polymer)),
+        |(glycan, peptide)| {
+            // SAFETY: Both the `glycan` and `peptide` parsers ensure at least one residue is present, so `.last()` and
+            // `.first()` will never return `None`!
+            let donor = *glycan.last().unwrap();
+            let acceptor = *peptide.first().unwrap();
+
+            polymer
+                .borrow_mut()
+                .bond_residues(STEM_BOND, donor, acceptor)?;
+            Ok(Monomer { glycan, peptide })
         },
     );
 
-    let just_peptide = map(peptide(polymer), |peptide| Monomer {
+    let peptide_only = map(peptide(polymer), |peptide| Monomer {
         glycan: Vec::new(),
         peptide,
     });
 
-    let parser = alt((glycan_and_peptide, just_peptide));
+    let parser = alt((glycan_and_peptide, glycan_only, peptide_only));
     // FIXME: Add a `map_res` wrapping this final parser
     parser
 }
