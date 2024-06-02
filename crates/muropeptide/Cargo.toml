@@ -8,7 +8,6 @@ edition = "2021"
 miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"
 nom-miette = { path = "../nom-miette" }
-nom_locate = "4.2.0"
 polychem = { path = "../polychem" }
 thiserror = "1.0.59"
 
