@@ -7,11 +7,11 @@ use nom::{
     sequence::{delimited, pair},
     Parser,
 };
-use nom_miette::{expect, map_res, wrap_err};
+use nom_miette::{expect, into, map_res, wrap_err};
 
 // Local Crate Imports
 use super::{
-    errors::{ParseResult, PolychemErrorKind},
+    errors::{ParseResult, PolychemErrorKind, UserErrorKind},
     primitives::{count, lowercase, offset_kind, uppercase},
 };
 use crate::{
@@ -24,9 +24,9 @@ use crate::{
 ///   = { Atomic Offset }- , [ Offset Kind , Particle Offset ]
 ///   | Particle Offset
 ///   ;
-pub fn chemical_composition<'a, 's>(
+pub fn chemical_composition<'a, 's, K: UserErrorKind>(
     db: &'a AtomicDatabase,
-) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {
+) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>, K> {
     let chemical_formula = many1(atomic_offset(db));
     let optional_particle_offset = opt(pair(offset_kind, cut(particle_offset(db))));
     let atoms_and_particles = map(
@@ -49,7 +49,10 @@ pub fn chemical_composition<'a, 's>(
     });
 
     let parser = alt((atoms_and_particles, just_particles));
-    wrap_err(parser, PolychemErrorKind::ExpectedChemicalComposition)
+    into(wrap_err(
+        parser,
+        PolychemErrorKind::ExpectedChemicalComposition,
+    ))
 }
 
 // Private Sub-Parsers =================================================================================================
@@ -373,7 +376,7 @@ mod tests {
     #[test]
     #[allow(clippy::cognitive_complexity)]
     fn test_chemical_composition() {
-        let mut chemical_composition = chemical_composition(&DB);
+        let mut chemical_composition = chemical_composition::<PolychemErrorKind>(&DB);
         macro_rules! check_composition_snapshot {
             ($input:literal, $output:literal) => {
                 let (

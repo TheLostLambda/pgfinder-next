@@ -3,11 +3,13 @@ use nom::{
     combinator::{cut, map, not},
     sequence::preceded,
 };
-use nom_miette::expect;
+use nom_miette::{expect, into};
 
 use crate::{Count, OffsetKind};
 
-use super::errors::{ParseResult, PolychemErrorKind};
+use super::errors::{ParseResult, PolychemErrorKind, UserErrorKind};
+
+// FIXME: Make sure that all public parsers return a generic ErrorKind!
 
 /// uppercase
 ///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
@@ -15,9 +17,9 @@ use super::errors::{ParseResult, PolychemErrorKind};
 ///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
 ///   | "V" | "W" | "X" | "Y" | "Z"
 ///   ;
-pub(crate) fn uppercase(i: &str) -> ParseResult<char> {
+pub fn uppercase<K: UserErrorKind>(i: &str) -> ParseResult<char, K> {
     let parser = satisfy(|c| c.is_ascii_uppercase());
-    expect(parser, PolychemErrorKind::ExpectedUppercase)(i)
+    into(expect(parser, PolychemErrorKind::ExpectedUppercase))(i)
 }
 
 /// lowercase
@@ -26,23 +28,23 @@ pub(crate) fn uppercase(i: &str) -> ParseResult<char> {
 ///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
 ///   | "v" | "w" | "x" | "y" | "z"
 ///   ;
-pub(crate) fn lowercase(i: &str) -> ParseResult<char> {
+pub fn lowercase<K: UserErrorKind>(i: &str) -> ParseResult<char, K> {
     let parser = satisfy(|c| c.is_ascii_lowercase());
-    expect(parser, PolychemErrorKind::ExpectedLowercase)(i)
+    into(expect(parser, PolychemErrorKind::ExpectedLowercase))(i)
 }
 
 /// Count = digit - "0" , { digit } ;
-pub(crate) fn count(i: &str) -> ParseResult<Count> {
+pub fn count<K: UserErrorKind>(i: &str) -> ParseResult<Count, K> {
     let not_zero = expect(
         cut(not(char('0'))),
         PolychemErrorKind::ExpectedNoLeadingZero,
     );
     let digits = expect(u32, PolychemErrorKind::ExpectedDigit);
-    map(preceded(not_zero, digits), |c| Count::new(c).unwrap())(i)
+    into(map(preceded(not_zero, digits), |c| Count::new(c).unwrap()))(i)
 }
 
 /// Offset Kind = "+" | "-" ;
-pub(crate) fn offset_kind(i: &str) -> ParseResult<OffsetKind> {
+pub fn offset_kind<K: UserErrorKind>(i: &str) -> ParseResult<OffsetKind, K> {
     map(one_of("+-"), |c| match c {
         '+' => OffsetKind::Add,
         '-' => OffsetKind::Remove,
@@ -56,6 +58,7 @@ mod tests {
 
     #[test]
     fn test_uppercase() {
+        let uppercase = uppercase::<PolychemErrorKind>;
         // Ensure the complete uppercase ASCII alphabet is present
         for c in 'A'..='Z' {
             assert_eq!(uppercase(&c.to_string()), Ok(("", c)));
@@ -71,6 +74,7 @@ mod tests {
 
     #[test]
     fn test_lowercase() {
+        let lowercase = lowercase::<PolychemErrorKind>;
         // Ensure the complete lowercase ASCII alphabet is present
         for c in 'a'..='z' {
             assert_eq!(lowercase(&c.to_string()), Ok(("", c)));
@@ -86,6 +90,7 @@ mod tests {
 
     #[test]
     fn test_count() {
+        let count = count::<PolychemErrorKind>;
         // Valid Counts
         assert_eq!(count("1"), Ok(("", Count::new(1).unwrap())));
         assert_eq!(count("10"), Ok(("", Count::new(10).unwrap())));
@@ -106,6 +111,7 @@ mod tests {
 
     #[test]
     fn test_offset_kind() {
+        let offset_kind = offset_kind::<PolychemErrorKind>;
         // Valid Offset Kinds
         assert_eq!(offset_kind("+"), Ok(("", OffsetKind::Add)));
         assert_eq!(offset_kind("-"), Ok(("", OffsetKind::Remove)));

@@ -4,18 +4,21 @@ use miette::Diagnostic;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, alphanumeric1, char, satisfy, space0, u32},
-    combinator::{cut, map, not, opt, recognize},
+    character::complete::{alpha1, alphanumeric1, char},
+    combinator::{cut, map, opt, recognize},
     error::ErrorKind,
-    multi::{many0, many1, separated_list1},
-    sequence::{delimited, pair, preceded, separated_pair, terminated},
+    multi::{many0, many1},
+    sequence::{pair, preceded, terminated},
     IResult,
 };
-use nom_miette::{
-    expect, map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError,
-};
+use nom_miette::{map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
-    errors::PolychemError, parsers::errors::PolychemErrorKind, Count, ModificationId, Polymer,
+    errors::PolychemError,
+    parsers::{
+        errors::PolychemErrorKind,
+        primitives::{count, lowercase, uppercase},
+    },
+    Count, ModificationId, Polymer,
 };
 use thiserror::Error;
 
@@ -124,7 +127,7 @@ fn amino_acid<'a, 'p, 's>(
 /// Modifications = "(" , Any Modification ,
 ///   { { " " } , "," , { " " } , Any Modification } , ")" ;
 fn modifications<'a, 'p, 's>(
-    polymer: &mut Polymer<'a, 'p>,
+    _polymer: &mut Polymer<'a, 'p>,
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<ModificationId>> {
     // let separator = delimited(space0, char(','), space0);
     // delimited(
@@ -193,38 +196,6 @@ fn multiplier(i: &str) -> ParseResult<Count> {
     parser(i)
 }
 
-/// uppercase
-///   = "A" | "B" | "C" | "D" | "E" | "F" | "G"
-///   | "H" | "I" | "J" | "K" | "L" | "M" | "N"
-///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
-///   | "V" | "W" | "X" | "Y" | "Z"
-///   ;
-pub fn uppercase(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_uppercase());
-    expect(parser, MuropeptideErrorKind::ExpectedUppercase)(i)
-}
-
-/// lowercase
-///   = "a" | "b" | "c" | "d" | "e" | "f" | "g"
-///   | "h" | "i" | "j" | "k" | "l" | "m" | "n"
-///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
-///   | "v" | "w" | "x" | "y" | "z"
-///   ;
-pub fn lowercase(i: &str) -> ParseResult<char> {
-    let parser = satisfy(|c| c.is_ascii_lowercase());
-    expect(parser, MuropeptideErrorKind::ExpectedLowercase)(i)
-}
-
-/// Count = digit - "0" , { digit } ;
-pub fn count(i: &str) -> ParseResult<Count> {
-    let not_zero = expect(
-        cut(not(char('0'))),
-        MuropeptideErrorKind::ExpectedNoLeadingZero,
-    );
-    let digits = expect(u32, MuropeptideErrorKind::ExpectedDigit);
-    map(preceded(not_zero, digits), |c| Count::new(c).unwrap())(i)
-}
-
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideErrorKind>>;
 
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
@@ -240,23 +211,6 @@ pub enum MuropeptideErrorKind {
     #[diagnostic(transparent)]
     #[error(transparent)]
     CompositionError(#[from] PolychemErrorKind),
-
-    // FIXME: Update this help message to talk about PG structures, not chemical compositions!
-    #[diagnostic(help(
-        "a 0 value doesn't make sense here, if you've mistakenly included a leading zero, like \
-        NH02, try just NH2 instead"
-    ))]
-    #[error("counts cannot start with 0")]
-    ExpectedNoLeadingZero,
-
-    #[error("expected an ASCII digit 1-9")]
-    ExpectedDigit,
-
-    #[error("expected an uppercase ASCII letter")]
-    ExpectedUppercase,
-
-    #[error("expected a lowercase ASCII letter")]
-    ExpectedLowercase,
 
     #[diagnostic(help(
         "this is an internal error that you shouldn't ever see! If you have gotten this error, \

@@ -8,6 +8,9 @@ use crate::{atoms::errors::AtomicLookupError, errors::PolychemError};
 pub(crate) type CompositionError = LabeledError<PolychemErrorKind>;
 pub type ParseResult<'a, O, K = PolychemErrorKind> = IResult<&'a str, O, LabeledParseError<'a, K>>;
 
+pub trait UserErrorKind: From<PolychemErrorKind> + From<ErrorKind> {}
+impl<T: From<PolychemErrorKind> + From<ErrorKind>> UserErrorKind for T {}
+
 // NOTE: Public so that other parsers using `chemical_composition` as a building block can inspect errors — I should
 // consider finding a way to make this more private in the future, or at least mark it as #[non_exhaustive] so that it
 // doesn't end up becoming SemVer nightmare...
