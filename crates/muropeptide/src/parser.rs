@@ -256,7 +256,6 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 }
 
 #[cfg(test)]
-
 mod tests {
     use once_cell::sync::Lazy;
     use polychem::{AtomicDatabase, Massive, PolymerDatabase, Polymerizer};
@@ -555,6 +554,177 @@ mod tests {
             496.46375660678381490
         );
         assert_chain_residues_and_masses!("xAJgmK", "AJgmK", ["Unknown Monosaccharide"], 0.0, 0.0);
+    }
+
+    // FIXME: Add modification testing!
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    #[allow(clippy::too_many_lines)]
+    fn test_monomer() {
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_monomer = monomer(&polymer);
+        macro_rules! assert_monomer_residues_and_masses {
+            ($input:literal, $output:literal, $glycan:expr, $peptide:expr, $mono_mass:literal, $avg_mass:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, Monomer { glycan, peptide }) = monomer(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+
+                let polymer = polymer.borrow();
+                let glycan: Vec<_> = glycan
+                    .into_iter()
+                    .map(|id| polymer.residue(id).unwrap().name())
+                    .collect();
+                let peptide: Vec<_> = peptide
+                    .into_iter()
+                    .map(|id| polymer.residue(id).unwrap().name())
+                    .collect();
+                assert_eq!(glycan, Vec::<&str>::from($glycan));
+                assert_eq!(peptide, Vec::<&str>::from($peptide));
+
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mono_mass));
+                assert_eq!(Decimal::from(polymer.average_mass()), dec!($avg_mass));
+            };
+        }
+
+        // Valid Monomers
+        assert_monomer_residues_and_masses!(
+            "gmgm",
+            "",
+            [
+                "N-Acetylglucosamine",
+                "N-Acetylmuramic Acid",
+                "N-Acetylglucosamine",
+                "N-Acetylmuramic Acid"
+            ],
+            [],
+            974.37031350523,
+            974.91222678113779720
+        );
+        assert_monomer_residues_and_masses!(
+            "gm",
+            "",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            [],
+            496.19043909463,
+            496.46375660678381490
+        );
+        assert_monomer_residues_and_masses!(
+            "g",
+            "",
+            ["N-Acetylglucosamine"],
+            [],
+            221.08993720530,
+            221.20813124207411765
+        );
+        assert_monomer_residues_and_masses!(
+            "m",
+            "",
+            ["N-Acetylmuramic Acid"],
+            [],
+            293.11106657336,
+            293.27091179713952985
+        );
+        assert_monomer_residues_and_masses!(
+            "AEJA",
+            "",
+            [],
+            ["Alanine", "Glutamic Acid", "Diaminopimelic Acid", "Alanine"],
+            461.21217759741,
+            461.46756989305707095
+        );
+        assert_monomer_residues_and_masses!(
+            "AyEJA",
+            "",
+            [],
+            ["Alanine", "γ-Glutamate", "Diaminopimelic Acid", "Alanine"],
+            461.21217759741,
+            461.46756989305707095
+        );
+        assert_monomer_residues_and_masses!(
+            "AE",
+            "",
+            [],
+            ["Alanine", "Glutamic Acid"],
+            218.09027155793,
+            218.20748877514586040
+        );
+        assert_monomer_residues_and_masses!(
+            "A",
+            "",
+            [],
+            ["Alanine"],
+            89.04767846918,
+            89.09330602867854225
+        );
+        assert_monomer_residues_and_masses!(
+            "gm-AEJA",
+            "",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            ["Alanine", "Glutamic Acid", "Diaminopimelic Acid", "Alanine"],
+            939.39205200801,
+            939.91604006741105325
+        );
+        assert_monomer_residues_and_masses!(
+            "gm-AyEJA",
+            "",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            ["Alanine", "γ-Glutamate", "Diaminopimelic Acid", "Alanine"],
+            939.39205200801,
+            939.91604006741105325
+        );
+        // Invalid Monomers
+        assert!(err_monomer("-AEJA").is_err());
+        assert!(err_monomer("[GGGGG]").is_err());
+        assert!(err_monomer("(Am)").is_err());
+        // Non-Existent Monomer Residues & Bonds
+        assert!(err_monomer("y").is_err());
+        assert!(err_monomer("fp").is_err());
+        assert!(err_monomer("AEJiA").is_err());
+        assert!(err_monomer("AQyK").is_err());
+        assert!(err_monomer("g-A").is_err());
+        // Multiple Monomers
+        assert_monomer_residues_and_masses!(
+            "gm,AEJ",
+            ",AEJ",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            [],
+            496.19043909463,
+            496.46375660678381490
+        );
+        assert_monomer_residues_and_masses!(
+            "xAJgmK",
+            "AJgmK",
+            ["Unknown Monosaccharide"],
+            [],
+            0.0,
+            0.0
+        );
+        assert_monomer_residues_and_masses!(
+            "AE=gm-AEJ",
+            "=gm-AEJ",
+            [],
+            ["Alanine", "Glutamic Acid"],
+            218.09027155793,
+            218.20748877514586040
+        );
+        assert_monomer_residues_and_masses!(
+            "AeeK",
+            "eeK",
+            [],
+            ["Alanine"],
+            89.04767846918,
+            89.09330602867854225
+        );
+        assert_monomer_residues_and_masses!(
+            "gm-AE=gm-AEJA",
+            "=gm-AEJA",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            ["Alanine", "Glutamic Acid"],
+            696.27014596853,
+            696.65595894949984270
+        );
     }
 
     // FIXME: Add a test that checks all of the errors using `assert_miette_snapshot`! Maybe make that a crate?
