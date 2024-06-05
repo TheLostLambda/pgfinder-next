@@ -1,5 +1,7 @@
 use core::slice;
 
+use itertools::Itertools;
+
 use crate::{
     errors::PolychemError,
     moieties::{
@@ -8,7 +10,7 @@ use crate::{
     },
     AnyModification, AtomicDatabase, AverageMass, Bond, BondId, BondInfo, Charge, Charged,
     FunctionalGroup, GroupState, Massive, ModificationId, ModificationInfo, MonoisotopicMass,
-    NamedMod, Polymer, PolymerDatabase, Residue, ResidueId, Result,
+    NamedMod, Polymer, PolymerDatabase, Residue, ResidueGroup, ResidueId, Result,
 };
 
 use super::{errors::FindFreeGroupsError, polymerizer_state::PolymerizerState};
@@ -37,6 +39,35 @@ impl<'a, 'p> Polymer<'a, 'p> {
         Ok(id)
     }
 
+    pub fn remove_residue(&mut self, id: ResidueId) -> Option<Residue<'a, 'p>> {
+        let residue = self.residues.remove(&id);
+
+        if let Some(residue) = &residue {
+            self.polymerizer_state.unindex_residue_groups(id, residue);
+
+            for (_, state) in residue.functional_groups() {
+                match state {
+                    GroupState::Free => (),
+                    GroupState::Modified(id) => {
+                        self.modifications.remove(&id);
+                    }
+                    GroupState::Donor(id) => {
+                        if let Some(BondInfo(.., acceptor)) = self.bonds.remove(&id) {
+                            self.update_group(&acceptor, GroupState::Free);
+                        }
+                    }
+                    GroupState::Acceptor(id) => {
+                        if let Some(BondInfo(donor, ..)) = self.bonds.remove(&id) {
+                            self.update_group(&donor, GroupState::Free);
+                        }
+                    }
+                }
+            }
+        }
+
+        residue
+    }
+
     #[must_use]
     pub fn residue(&self, id: ResidueId) -> Option<&Residue<'a, 'p>> {
         self.residues.get(&id)
@@ -53,7 +84,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         let residue_ids: Vec<_> = residues
             .iter()
             .map(|abbr| self.new_residue(abbr))
-            .collect::<Result<_, _>>()?;
+            .try_collect()?;
         let bond_ids = self.bond_chain(abbr, &residue_ids)?;
         Ok((residue_ids.into_iter(), bond_ids))
     }
@@ -109,7 +140,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
             // SAFETY: The indexing of `residue_pair` should never fail, since `windows(2)` will always return a slice
             // containing at least two elements
             .map(|residue_pair| self.bond_residues(abbr, residue_pair[0], residue_pair[1]))
-            .collect::<Result<_>>()?;
+            .try_collect()?;
 
         Ok(bond_ids.into_iter())
     }
@@ -152,8 +183,8 @@ impl<'a, 'p> Polymer<'a, 'p> {
         target: ResidueId,
         number: usize,
     ) -> Result<impl Iterator<Item = ModificationId> + Captures<(&'a (), &'p ())>> {
-        let accessor = move |state: &PolymerizerState<'a, 'p>, target, residue| {
-            state.find_any_free_groups(&[target], residue, number)
+        let accessor = move |state: &PolymerizerState<'a, 'p>, targets, residue| {
+            state.find_any_free_groups(targets, residue, number)
         };
         self.modify_with_accessor(abbr, target, accessor)
     }
@@ -199,7 +230,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
                 .map(|mut gs| gs.next().unwrap())
                 .map_err(|e| {
                     PolychemError::bond(
-                        abbr,
+                        name,
                         donor,
                         donor_residue.name(),
                         acceptor,
@@ -214,18 +245,21 @@ impl<'a, 'p> Polymer<'a, 'p> {
         let donor_group = find_free_group(donor_accessor, from, donor, "donor")?;
         let acceptor_group = find_free_group(acceptor_accessor, to, acceptor, "acceptor")?;
 
+        let donor = ResidueGroup(donor, donor_group);
+        let acceptor = ResidueGroup(acceptor, acceptor_group);
+        let id = BondId(self.polymerizer_state.next_id());
+
+        self.update_group(&donor, GroupState::Donor(id));
+        self.update_group(&acceptor, GroupState::Acceptor(id));
+
         let bond = Bond {
             abbr,
             name,
             lost,
             gained,
         };
-        let id = BondId(self.polymerizer_state.next_id());
         let bond_info = BondInfo(donor, bond, acceptor);
         self.bonds.insert(id, bond_info);
-
-        self.update_group(donor, &donor_group, GroupState::Donor(id));
-        self.update_group(acceptor, &acceptor_group, GroupState::Acceptor(id));
 
         Ok(id)
     }
@@ -233,11 +267,11 @@ impl<'a, 'p> Polymer<'a, 'p> {
     fn modify_with_accessor<A, I>(
         &mut self,
         abbr: impl AsRef<str>,
-        target: ResidueId,
+        residue: ResidueId,
         accessor: A,
     ) -> Result<impl Iterator<Item = ModificationId>>
     where
-        A: Fn(&PolymerizerState<'a, 'p>, &'p Target, ResidueId) -> Result<I, FindFreeGroupsError>,
+        A: Fn(&PolymerizerState<'a, 'p>, &'p [Target], ResidueId) -> Result<I, FindFreeGroupsError>,
         I: Iterator<Item = FunctionalGroup<'p>>,
     {
         let (
@@ -250,32 +284,40 @@ impl<'a, 'p> Polymer<'a, 'p> {
             },
         ) = NamedMod::lookup_description(self.polymer_db(), abbr)?;
 
-        // let Some(target_residue) = self.residue(target) else {
-        //     return Err(PolychemError::residue_not_in_polymer(target).into());
-        // };
+        let Some(residue_ref) = self.residue(residue) else {
+            return Err(PolychemError::residue_not_in_polymer(residue).into());
+        };
 
-        // let target_groups = self
-        //     .find_free_groups(&targets, target, groups)
-        //     .map_err(|e| PolychemError::named_modification(name, abbr, target, e))?;
+        let target_groups = accessor(&self.polymerizer_state, targets, residue)
+            .map_err(|e| PolychemError::named_modification(name, residue, residue_ref.name(), e))?;
 
-        // let modified_state = GroupState::Modified(NamedMod {
-        //     abbr,
-        //     name,
-        //     lost,
-        //     gained,
-        // });
-        // self.update_groups(target, &target_groups, modified_state);
+        // NOTE: The reason this is `collect()`ed just to be turned back into an iterator is to ensure that this lazy
+        // `map()` code runs before the function returns. Otherwise the requested modifications would only be added to
+        // the `Polymer` after the caller has consumed the returned iterator of `ModificationId`s.
+        let modification_ids: Vec<_> = target_groups
+            .map(|group| {
+                let residue_group = ResidueGroup(residue, group);
+                let id = ModificationId(self.polymerizer_state.next_id());
+                self.update_group(&residue_group, GroupState::Modified(id));
 
-        // FIXME: Obviously incomplete!
-        Ok(std::iter::empty())
+                let modification = NamedMod {
+                    abbr,
+                    name,
+                    lost,
+                    gained,
+                };
+                let modification_info = ModificationInfo::Named(modification, residue_group);
+                self.modifications.insert(id, modification_info);
+
+                id
+            })
+            .collect();
+
+        Ok(modification_ids.into_iter())
     }
 
-    fn update_group(
-        &mut self,
-        residue_id: ResidueId,
-        group: &FunctionalGroup<'p>,
-        state: GroupState,
-    ) {
+    fn update_group(&mut self, residue_group: &ResidueGroup<'p>, state: GroupState) {
+        let &ResidueGroup(residue_id, ref group) = residue_group;
         // SAFETY: `update_group()` is only called if the `residue_id` was found in the `group_index` of
         // `self.polymerizer_state`, and if a residue is present in the `group_index`, it should be present in the
         // `Polymer` as well!
@@ -334,8 +376,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        polymers::polymerizer::Polymerizer, testing_tools::assert_miette_snapshot, ChargedParticle,
-        FunctionalGroup, ModificationId, ResidueId,
+        polymers::polymerizer::Polymerizer, testing_tools::assert_miette_snapshot, AverageMz,
+        ChargedParticle, FunctionalGroup, ModificationId, MonoisotopicMz, ResidueId,
     };
 
     use super::*;
@@ -423,8 +465,7 @@ mod tests {
         assert_residue_and_index_state!(&n_terminal, n_terminal_groups);
 
         polymer.update_group(
-            first_alanine,
-            &n_terminal,
+            &ResidueGroup(first_alanine, n_terminal),
             GroupState::Modified(ModificationId(42)),
         );
         let n_terminal_groups = [
@@ -434,7 +475,10 @@ mod tests {
         ];
         assert_residue_and_index_state!(&n_terminal, n_terminal_groups);
 
-        polymer.update_group(lysine, &n_terminal, GroupState::Acceptor(BondId(314)));
+        polymer.update_group(
+            &ResidueGroup(lysine, n_terminal),
+            GroupState::Acceptor(BondId(314)),
+        );
         let n_terminal_groups = [
             (first_alanine, GroupState::Modified(ModificationId(42))),
             (second_alanine, GroupState::Free),
@@ -442,7 +486,10 @@ mod tests {
         ];
         assert_residue_and_index_state!(&n_terminal, n_terminal_groups);
 
-        polymer.update_group(first_alanine, &n_terminal, GroupState::Donor(BondId(42)));
+        polymer.update_group(
+            &ResidueGroup(first_alanine, n_terminal),
+            GroupState::Donor(BondId(42)),
+        );
         let n_terminal_groups = [
             (first_alanine, GroupState::Donor(BondId(42))),
             (second_alanine, GroupState::Free),
@@ -451,7 +498,10 @@ mod tests {
         assert_residue_and_index_state!(&n_terminal, n_terminal_groups);
 
         let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
-        polymer.update_group(second_alanine, &c_terminal, GroupState::Donor(BondId(1337)));
+        polymer.update_group(
+            &ResidueGroup(second_alanine, c_terminal),
+            GroupState::Donor(BondId(1337)),
+        );
         let c_terminal_groups = [
             (ResidueId(0), GroupState::Free),
             (ResidueId(1), GroupState::Donor(BondId(1337))),
@@ -487,6 +537,44 @@ mod tests {
 
         let missing_residue = polymer.residue(ResidueId(8));
         assert_eq!(missing_residue, None);
+    }
+
+    #[test]
+    fn remove_residue() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let murnac = polymer.new_residue("m").unwrap();
+        let alanine = polymer.new_residue("A").unwrap();
+
+        polymer.bond_residues("Stem", murnac, alanine).unwrap();
+        assert_polymer!(polymer, 364.14818035851, 364.34893139338823950);
+
+        polymer.modify_only_group("Red", murnac).unwrap();
+        assert_polymer!(polymer, 366.16383042297, 366.36481290149979420);
+
+        polymer.modify_only_group("Ca", alanine).unwrap();
+        assert_polymer!(
+            polymer,
+            405.118047659530870,
+            405.43446178607839420,
+            1,
+            405.118047659530870,
+            405.43446178607839420
+        );
+
+        // Remove the MurNAc residue (and its modifications / bonds)
+        polymer.remove_residue(murnac);
+        assert_polymer!(
+            polymer,
+            128.001895705740870,
+            128.16295491325714225,
+            1,
+            128.001895705740870,
+            128.16295491325714225
+        );
+
+        // Clear the rest of the polymer
+        polymer.remove_residue(alanine);
+        assert_polymer!(polymer, 0.0, 0.0);
     }
 
     #[test]
@@ -714,15 +802,15 @@ mod tests {
         todo!()
     }
 
-    #[ignore]
     #[test]
     fn modify_only_group() {
         let mut polymer = POLYMERIZER.new_polymer();
         let murnac = polymer.new_residue("m").unwrap();
-        assert_polymer!(polymer, 293.11106657336, 0.0);
+        assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
 
-        polymer.modify_only_group("Anh", murnac).unwrap();
-        assert_polymer!(polymer, 275.10050188933, 0.0);
+        let modification_id = polymer.modify_only_group("Anh", murnac).unwrap();
+        assert_eq!(modification_id, ModificationId(1));
+        assert_polymer!(polymer, 275.10050188933, 275.25562536470969725);
         let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
         assert!(polymer
             .residue(murnac)
@@ -742,5 +830,112 @@ mod tests {
 
         let nonexistent_modification = polymer.modify_only_group("Arg", murnac);
         assert_miette_snapshot!(nonexistent_modification);
+    }
+
+    #[test]
+    fn modify_only_groups() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let murnac = polymer.new_residue("m").unwrap();
+        assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
+
+        // NOTE: A macro since using a closure leads to borrow-checker issues...
+        macro_rules! modify_only_groups {
+            ($abbr:literal, $target:expr, $number:expr) => {
+                polymer
+                    .modify_only_groups($abbr, $target, $number)
+                    .map(Itertools::collect_vec)
+            };
+        }
+
+        let modification_ids = modify_only_groups!("Met", murnac, 3).unwrap();
+        assert_eq!(
+            modification_ids,
+            vec![ModificationId(1), ModificationId(2), ModificationId(3)]
+        );
+        assert_polymer!(polymer, 335.15801676674, 335.35076401167994095);
+        let hydroxyl_groups = [
+            FunctionalGroup::new("Hydroxyl", "Reducing End"),
+            FunctionalGroup::new("Hydroxyl", "Nonreducing End"),
+            FunctionalGroup::new("Hydroxyl", "6-Position"),
+        ];
+        for hydroxyl_group in hydroxyl_groups {
+            assert!(polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&hydroxyl_group)
+                .unwrap()
+                .is_modified());
+        }
+
+        polymer.remove_residue(murnac);
+        let murnac = polymer.new_residue("m").unwrap();
+        assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
+
+        let modification_ids = modify_only_groups!("Ca", murnac, 4).unwrap();
+        assert_eq!(
+            modification_ids,
+            vec![
+                ModificationId(5),
+                ModificationId(6),
+                ModificationId(7),
+                ModificationId(8)
+            ]
+        );
+        assert_polymer!(
+            polymer,
+            448.927935519603480,
+            449.54950733545392985,
+            4,
+            112.231983879900870,
+            112.3873768338634824625
+        );
+
+        polymer.remove_residue(murnac);
+        let alanine = polymer.new_residue("A").unwrap();
+        assert_polymer!(polymer, 89.04767846918, 89.09330602867854225);
+        let modification_ids = modify_only_groups!("Ca", alanine, 2).unwrap();
+        assert_eq!(
+            modification_ids,
+            vec![ModificationId(10), ModificationId(11)]
+        );
+        assert_polymer!(
+            polymer,
+            166.956112942301740,
+            167.23260379783574225,
+            2,
+            83.478056471150870,
+            83.6163018989178711250
+        );
+
+        polymer.remove_residue(alanine);
+        let murnac = polymer.new_residue("m").unwrap();
+        let modification_ids = modify_only_groups!("Met", murnac, 3).unwrap();
+        assert_eq!(
+            modification_ids,
+            vec![ModificationId(13), ModificationId(14), ModificationId(15)]
+        );
+        let all_groups_occupied = modify_only_groups!("Ca", murnac, 4);
+        assert_miette_snapshot!(all_groups_occupied);
+        let still_all_groups_occupied = modify_only_groups!("Ca", murnac, 2);
+        assert_miette_snapshot!(still_all_groups_occupied);
+
+        assert_polymer!(polymer, 335.15801676674, 335.35076401167994095);
+        let modification_ids = modify_only_groups!("Ca", murnac, 1).unwrap();
+        assert_eq!(modification_ids, vec![ModificationId(16)]);
+        assert_polymer!(
+            polymer,
+            374.112234003300870,
+            374.42041289625854095,
+            1,
+            374.112234003300870,
+            374.42041289625854095
+        );
+
+        let residue_not_in_polymer = modify_only_groups!("Ca", ResidueId(42), 2);
+        assert_miette_snapshot!(residue_not_in_polymer);
+
+        let murnac = polymer.new_residue("m").unwrap();
+        let no_matching_groups = modify_only_groups!("Anh", murnac, 2);
+        assert_miette_snapshot!(no_matching_groups);
     }
 }

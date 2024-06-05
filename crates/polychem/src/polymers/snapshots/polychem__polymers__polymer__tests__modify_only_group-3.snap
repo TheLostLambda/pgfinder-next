@@ -1,0 +1,8 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: no_matching_groups
+expression: out
+---
+  × failed to apply Amidation modification to residue 0 (N-Acetylmuramic Acid)
+  ╰─▶   × no functional groups on residue 0 matched the target "Carboxyl"
+        │ at="Sidechain"

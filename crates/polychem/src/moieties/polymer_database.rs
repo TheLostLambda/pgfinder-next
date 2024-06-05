@@ -6,6 +6,7 @@ use std::{
 
 // External Crate Imports
 use ahash::{HashMap, HashMapExt};
+use itertools::Itertools;
 use knuffel::{
     span::{Span, Spanned},
     Decode,
@@ -422,7 +423,7 @@ impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
             .targets
             .into_iter()
             .map(|t| t.validate(ctx.1))
-            .collect::<Result<_, _>>()?;
+            .try_collect()?;
 
         let target_index: Index<_> = targets_and_spans.iter().map(|(t, s)| (t, *s)).collect();
         for (target, span) in &targets_and_spans {

@@ -36,12 +36,16 @@ pub enum PolychemError {
         abbr: String,
     },
 
+    #[error("residue {id} could not be found in the current polymer")]
+    #[diagnostic(help("this residue may belong to another polymer, or may have been previously deleted from this one"))]
+    ResidueNotInPolymer { id: ResidueId },
+
     #[error(
-        "failed to form {abbr:?} bond between residue {donor_id} ({donor_name}) and residue {acceptor_id} \
+        "failed to form {name} bond between residue {donor_id} ({donor_name}) and residue {acceptor_id} \
         ({acceptor_name}) due to an issue with the {donor_or_acceptor}"
     )]
     Bond {
-        abbr: String,
+        name: String,
         donor_id: ResidueId,
         donor_name: String,
         acceptor_id: ResidueId,
@@ -52,9 +56,15 @@ pub enum PolychemError {
         source: FindFreeGroupsError,
     },
 
-    #[error("residue {id} could not be found in the current polymer")]
-    #[diagnostic(help("this residue may belong to another polymer, or may have been previously deleted from this one"))]
-    ResidueNotInPolymer { id: ResidueId },
+    #[error("failed to apply {name} modification to residue {residue_id} ({residue_name})")]
+    NamedModification {
+        name: String,
+        residue_id: ResidueId,
+        residue_name: String,
+        #[source]
+        #[diagnostic_source]
+        source: FindFreeGroupsError,
+    },
 }
 
 impl PolychemError {
@@ -88,8 +98,15 @@ impl PolychemError {
         }
     }
 
+    // FIXME: Perhaps all of my error constructors should be marked with #[must_use]... Or the type should be? Clippy
+    // has only caught this one, but I need to make this more consistent!
+    #[must_use]
+    pub(crate) const fn residue_not_in_polymer(id: ResidueId) -> Self {
+        Self::ResidueNotInPolymer { id }
+    }
+
     pub(crate) fn bond(
-        abbr: &str,
+        name: &str,
         donor_id: ResidueId,
         donor_name: &str,
         acceptor_id: ResidueId,
@@ -97,13 +114,13 @@ impl PolychemError {
         donor_or_acceptor: &str,
         source: FindFreeGroupsError,
     ) -> Self {
-        let abbr = abbr.to_owned();
+        let name = name.to_owned();
         let donor_name = donor_name.to_owned();
         let acceptor_name = acceptor_name.to_owned();
         let donor_or_acceptor = donor_or_acceptor.to_owned();
 
         Self::Bond {
-            abbr,
+            name,
             donor_id,
             donor_name,
             acceptor_id,
@@ -113,10 +130,20 @@ impl PolychemError {
         }
     }
 
-    // FIXME: Perhaps all of my error constructors should be marked with #[must_use]... Or the type should be? Clippy
-    // has only caught this one, but I need to make this more consistent!
-    #[must_use]
-    pub const fn residue_not_in_polymer(id: ResidueId) -> Self {
-        Self::ResidueNotInPolymer { id }
+    pub(crate) fn named_modification(
+        name: &str,
+        residue_id: ResidueId,
+        residue_name: &str,
+        source: FindFreeGroupsError,
+    ) -> Self {
+        let name = name.to_owned();
+        let residue_name = residue_name.to_owned();
+
+        Self::NamedModification {
+            name,
+            residue_id,
+            residue_name,
+            source,
+        }
     }
 }

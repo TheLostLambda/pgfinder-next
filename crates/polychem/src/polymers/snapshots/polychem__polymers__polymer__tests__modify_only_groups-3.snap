@@ -1,0 +1,8 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: residue_not_in_polymer
+expression: out
+---
+  × residue 42 could not be found in the current polymer
+  help: this residue may belong to another polymer, or may have been
+        previously deleted from this one

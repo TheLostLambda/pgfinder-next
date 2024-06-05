@@ -95,58 +95,6 @@ type UnbranchedAminoAcid = ResidueId;
 
 type Position = u8;
 
-#[cfg(test)]
-mod tests {
-    use once_cell::sync::Lazy;
-    use polychem::{AtomicDatabase, PolymerDatabase, Polymerizer};
-
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
-        PolymerDatabase::new(
-            &ATOMIC_DB,
-            "polymer_database.kdl",
-            include_str!("../tests/data/polymer_database.kdl"),
-        )
-        .unwrap()
-    });
-
-    static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
-
-    macro_rules! assert_polymer {
-        ($polymer:expr, $mono_mass:literal, $avg_mass:literal) => {
-            assert_eq!(
-                $polymer.monoisotopic_mass(),
-                MonoisotopicMass(dec!($mono_mass))
-            );
-            assert_eq!($polymer.average_mass(), AverageMass(dec!($avg_mass)));
-            assert_eq!($polymer.charge(), Charge(0));
-            assert_eq!($polymer.monoisotopic_mz(), None);
-            assert_eq!($polymer.average_mz(), None);
-        };
-
-        ($polymer:expr, $mono_mass:literal, $avg_mass:literal, $charge:literal, $mono_mz:literal, $avg_mz:literal) => {
-            assert_eq!(
-                $polymer.monoisotopic_mass(),
-                MonoisotopicMass(dec!($mono_mass))
-            );
-            assert_eq!($polymer.average_mass(), AverageMass(dec!($avg_mass)));
-            assert_eq!($polymer.charge(), Charge($charge));
-            assert_eq!(
-                $polymer.monoisotopic_mz(),
-                Some(MonoisotopicMz(dec!($mono_mz)))
-            );
-            assert_eq!($polymer.average_mz(), Some(AverageMz(dec!($avg_mz))));
-        };
-    }
-
-    #[ignore]
-    #[test]
-    fn basic_monomers() {
-        // TODO: Fill in after automatic MurNAc reduction is implemented!
-        todo!()
-    }
-}
-
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)
 // 2) What should I do when I have several B-ion (O+) termini?

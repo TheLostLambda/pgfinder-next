@@ -3,7 +3,7 @@ source: crates/polychem/src/polymers/polymer.rs
 description: all_groups_occupied
 expression: out
 ---
-  × failed to form "Stem" bond between residue 0 (N-Acetylmuramic Acid) and
-  │ residue 1 (Alanine) due to an issue with the donor
+  × failed to form MurNAc -> Stem Peptide bond between residue 0 (N-
+  │ Acetylmuramic Acid) and residue 1 (Alanine) due to an issue with the donor
   ╰─▶   × no functional groups on residue 0 matching the target were free:
         │ "Carboxyl" at="Lactyl Ether" is a donor

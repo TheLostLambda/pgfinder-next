@@ -70,6 +70,13 @@ impl<'p, V> Index<'p, V> {
         }
     }
 
+    pub fn remove(&mut self, target: impl Into<Target<&'p str>>) -> Option<V> {
+        match self.entry(target) {
+            Entry::Occupied(e) => Some(e.remove()),
+            Entry::Vacant(_) => None,
+        }
+    }
+
     pub fn entry(&mut self, target: impl Into<Target<&'p str>>) -> Entry<Option<&'p str>, V> {
         let Target {
             group,
@@ -346,6 +353,19 @@ mod tests {
             iter_index.insert(TARGET_LIST[2].0, "new group-location-residue"),
             Some("first group-location-residue")
         );
+    }
+
+    #[test]
+    fn remove_target() {
+        let mut iter_index: Index<_> = TARGET_LIST.iter().take(2).copied().collect();
+
+        assert_eq!(iter_index.remove(TARGET_LIST[0].0), Some("group"));
+        assert_eq!(iter_index.remove(TARGET_LIST[1].0), Some("group-location"));
+        assert_eq!(iter_index.remove(TARGET_LIST[2].0), None);
+
+        assert_eq!(iter_index.remove(TARGET_LIST[0].0), None);
+        assert_eq!(iter_index.remove(TARGET_LIST[1].0), None);
+        assert_eq!(iter_index.remove(TARGET_LIST[2].0), None);
     }
 
     #[test]

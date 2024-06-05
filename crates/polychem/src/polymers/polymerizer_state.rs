@@ -52,6 +52,18 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
         }
     }
 
+    pub fn unindex_residue_groups(&mut self, id: ResidueId, residue: &Residue<'a, 'p>) {
+        for (group, _) in residue.functional_groups() {
+            let target = Target::from_residue_and_group(residue, &group);
+            if let Some(id_states) = self.group_index.get_mut(target) {
+                id_states.remove(&id);
+                if id_states.is_empty() {
+                    self.group_index.remove(target);
+                }
+            }
+        }
+    }
+
     pub fn update_group_index(
         &mut self,
         target: impl Into<Target<&'p str>>,
@@ -312,6 +324,7 @@ mod tests {
                 assert_eq!(groups, $output)
             };
         }
+
         let amino = Target::new("Amino", None, None);
         let amino_groups = vec![
             (
@@ -363,6 +376,113 @@ mod tests {
             ),
         ];
         assert_targeted_groups!(carboxyl, carboxyl_groups);
+    }
+
+    #[test]
+    fn unindex_residue_groups() {
+        let mut state = PolymerizerState::new(&POLYMERIZER);
+        let alanine = Residue::new(&POLYMER_DB, "A").unwrap();
+        let lysine = Residue::new(&POLYMER_DB, "K").unwrap();
+        state.index_residue_groups(ResidueId(0), &alanine);
+        state.index_residue_groups(ResidueId(1), &alanine);
+        state.index_residue_groups(ResidueId(2), &lysine);
+
+        macro_rules! assert_targeted_groups {
+            ($target:expr, $output:expr) => {
+                let mut groups: Vec<_> = state
+                    .group_index
+                    .matches($target, |g, l, r, m| {
+                        let mut id_states: Vec<_> = m.iter().map(|(&i, &f)| (i, f)).collect();
+                        id_states.sort_unstable();
+                        (Target::new(g, l, r), id_states)
+                    })
+                    .collect();
+                groups.sort_unstable();
+                assert_eq!(groups, $output)
+            };
+        }
+
+        let amino = Target::new("Amino", None, None);
+        let amino_groups = vec![
+            (
+                Target::new("Amino", Some("N-Terminal"), Some("Alanine")),
+                vec![
+                    (ResidueId(0), GroupState::Free),
+                    (ResidueId(1), GroupState::Free),
+                ],
+            ),
+            (
+                Target::new("Amino", Some("N-Terminal"), Some("Lysine")),
+                vec![(ResidueId(2), GroupState::Free)],
+            ),
+            (
+                Target::new("Amino", Some("Sidechain"), Some("Lysine")),
+                vec![(ResidueId(2), GroupState::Free)],
+            ),
+        ];
+        assert_targeted_groups!(amino, amino_groups);
+
+        let carboxyl = Target::new("Carboxyl", None, None);
+        let carboxyl_groups = vec![
+            (
+                Target::new("Carboxyl", Some("C-Terminal"), Some("Alanine")),
+                vec![
+                    (ResidueId(0), GroupState::Free),
+                    (ResidueId(1), GroupState::Free),
+                ],
+            ),
+            (
+                Target::new("Carboxyl", Some("C-Terminal"), Some("Lysine")),
+                vec![(ResidueId(2), GroupState::Free)],
+            ),
+        ];
+        assert_targeted_groups!(carboxyl, carboxyl_groups);
+
+        // And then remove one residue from the index
+        state.unindex_residue_groups(ResidueId(2), &lysine);
+
+        let amino_groups = vec![(
+            Target::new("Amino", Some("N-Terminal"), Some("Alanine")),
+            vec![
+                (ResidueId(0), GroupState::Free),
+                (ResidueId(1), GroupState::Free),
+            ],
+        )];
+        assert_targeted_groups!(amino, amino_groups);
+
+        let carboxyl_groups = vec![(
+            Target::new("Carboxyl", Some("C-Terminal"), Some("Alanine")),
+            vec![
+                (ResidueId(0), GroupState::Free),
+                (ResidueId(1), GroupState::Free),
+            ],
+        )];
+        assert_targeted_groups!(carboxyl, carboxyl_groups);
+
+        // And then remove one more
+        state.unindex_residue_groups(ResidueId(0), &alanine);
+
+        let amino_groups = vec![(
+            Target::new("Amino", Some("N-Terminal"), Some("Alanine")),
+            vec![(ResidueId(1), GroupState::Free)],
+        )];
+        assert_targeted_groups!(amino, amino_groups);
+
+        let carboxyl_groups = vec![(
+            Target::new("Carboxyl", Some("C-Terminal"), Some("Alanine")),
+            vec![(ResidueId(1), GroupState::Free)],
+        )];
+        assert_targeted_groups!(carboxyl, carboxyl_groups);
+
+        // Duplicate removals accomplish nothing
+        state.unindex_residue_groups(ResidueId(0), &alanine);
+        assert_targeted_groups!(amino, amino_groups);
+        assert_targeted_groups!(carboxyl, carboxyl_groups);
+
+        // But we can get rid of the last one
+        state.unindex_residue_groups(ResidueId(1), &alanine);
+        assert_targeted_groups!(amino, Vec::new());
+        assert_targeted_groups!(carboxyl, Vec::new());
     }
 
     #[test]
