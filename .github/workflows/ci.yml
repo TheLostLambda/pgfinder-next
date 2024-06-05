@@ -52,7 +52,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - run: just lint
-      - run: just annoy
 
   check_min_versions:
     name: Check Minimal Versions

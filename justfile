@@ -12,12 +12,9 @@ review:
 bench:
   cargo bench --workspace
 
+# FIXME: Get rid of these -A flags
 lint:
   cargo fmt --check
-  cargo clippy --workspace --tests
-
-# FIXME: Get rid of these -A flags
-annoy:
   cargo clippy --workspace --tests -- -W clippy::nursery -W clippy::pedantic -W clippy::cargo -A clippy::missing_errors_doc -A clippy::cargo_common_metadata -A clippy::multiple_crate_versions
 
 cov:
