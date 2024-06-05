@@ -25,7 +25,7 @@ impl From<Count> for usize {
         const_assert!(usize::BITS >= Count::BITS);
         // SAFETY: The above assertion prevents compilation on platforms with fewer bits than the type used to
         // represent `Count`. If this code compiles, then this `.unwrap()` will never panic.
-        usize::try_from(value.0.get()).unwrap()
+        Self::try_from(value.0.get()).unwrap()
     }
 }
 

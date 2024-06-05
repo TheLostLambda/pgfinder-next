@@ -540,6 +540,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn remove_residue() {
         let mut polymer = POLYMERIZER.new_polymer();
         let murnac = polymer.new_residue("m").unwrap();
@@ -833,6 +834,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn modify_only_groups() {
         let mut polymer = POLYMERIZER.new_polymer();
         let murnac = polymer.new_residue("m").unwrap();

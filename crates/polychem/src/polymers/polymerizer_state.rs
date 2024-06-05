@@ -43,8 +43,8 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
     }
 
     pub fn index_residue_groups(&mut self, id: ResidueId, residue: &Residue<'a, 'p>) {
-        for (group, state) in residue.functional_groups() {
-            let target = Target::from_residue_and_group(residue, &group);
+        for (group, &state) in residue.functional_groups() {
+            let target = Target::from_residue_and_group(residue, group);
             self.group_index
                 .entry(target)
                 .or_default()

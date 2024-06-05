@@ -44,14 +44,12 @@ impl<'a, 'p> Residue<'a, 'p> {
         self.name
     }
 
-    pub fn functional_groups(
-        &self,
-    ) -> impl Iterator<Item = (FunctionalGroup<'p>, GroupState)> + '_ {
-        self.functional_groups.iter().map(|(&fg, &gs)| (fg, gs))
+    pub fn functional_groups(&self) -> impl Iterator<Item = (&FunctionalGroup<'p>, &GroupState)> {
+        self.functional_groups.iter()
     }
 
-    pub fn offset_modifications(&self) -> impl Iterator<Item = ModificationId> + '_ {
-        self.offset_modifications.iter().copied()
+    pub fn offset_modifications(&self) -> impl Iterator<Item = &ModificationId> {
+        self.offset_modifications.iter()
     }
 
     pub fn group_state(&self, functional_group: &FunctionalGroup<'p>) -> Result<&GroupState> {
@@ -161,25 +159,25 @@ mod tests {
             groups,
             vec![
                 (
-                    FunctionalGroup {
+                    &FunctionalGroup {
                         name: "Amino",
                         location: "N-Terminal"
                     },
-                    GroupState::Donor(BondId(0))
+                    &GroupState::Donor(BondId(0))
                 ),
                 (
-                    FunctionalGroup {
+                    &FunctionalGroup {
                         name: "Amino",
                         location: "Sidechain"
                     },
-                    GroupState::Free
+                    &GroupState::Free
                 ),
                 (
-                    FunctionalGroup {
+                    &FunctionalGroup {
                         name: "Carboxyl",
                         location: "C-Terminal"
                     },
-                    GroupState::Modified(ModificationId(0))
+                    &GroupState::Modified(ModificationId(0))
                 ),
             ]
         );
@@ -196,7 +194,7 @@ mod tests {
 
         let mut mods: Vec<_> = alanine.offset_modifications().collect();
         mods.sort_unstable();
-        assert_eq!(mods, vec![ModificationId(0), ModificationId(1)]);
+        assert_eq!(mods, vec![&ModificationId(0), &ModificationId(1)]);
     }
 
     #[test]
