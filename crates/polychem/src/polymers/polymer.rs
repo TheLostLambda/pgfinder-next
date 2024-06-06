@@ -90,10 +90,12 @@ impl<'a, 'p> Polymer<'a, 'p> {
     ) -> Result<BondId> {
         // NOTE: Perhaps this explicit type annotation for `state` won't be necessary after the compiler improves its
         // type inference...
-        let accessor = |state: &PolymerizerState<'a, 'p>, target, residue| {
-            state.find_any_free_groups(&[target], residue, 1)
+        let accessor = |residue| {
+            move |state: &PolymerizerState<'a, 'p>, target| {
+                state.find_any_free_groups(&[target], residue, 1)
+            }
         };
-        self.bond_with_accessors(abbr, donor, accessor, acceptor, accessor)
+        self.bond_with_accessors(abbr, donor, accessor(donor), acceptor, accessor(acceptor))
     }
 
     pub fn bond_groups(
@@ -106,17 +108,17 @@ impl<'a, 'p> Polymer<'a, 'p> {
     ) -> Result<BondId> {
         // NOTE: Perhaps this explicit type annotation for `state` won't be necessary after the compiler improves its
         // type inference...
-        let accessor = |group| {
-            move |state: &PolymerizerState<'a, 'p>, target, residue| {
+        let accessor = |residue, group| {
+            move |state: &PolymerizerState<'a, 'p>, target| {
                 state.find_these_free_groups(&[target], residue, slice::from_ref(group))
             }
         };
         self.bond_with_accessors(
             abbr,
             donor,
-            accessor(donor_group),
+            accessor(donor, donor_group),
             acceptor,
-            accessor(acceptor_group),
+            accessor(acceptor, acceptor_group),
         )
     }
 
@@ -143,8 +145,8 @@ impl<'a, 'p> Polymer<'a, 'p> {
         // FIXME: Test that this can take NamedMod, OffsetMod, AnyMod, and Modification<_> with any of the preceeding —
         // that's six (6) test-cases in all!
         _modification: impl Into<AnyModification<'a, 'p>>,
-        _target: ResidueId,
-    ) -> Result<()> {
+        _residue: ResidueId,
+    ) -> Result<ModificationId> {
         // let Modification { multiplier, kind } = modification.into();
         // match kind {
         //     AnyMod::Named(kind) => {
@@ -162,9 +164,9 @@ impl<'a, 'p> Polymer<'a, 'p> {
     pub fn modify_only_group(
         &mut self,
         abbr: impl AsRef<str>,
-        target: ResidueId,
+        residue: ResidueId,
     ) -> Result<ModificationId> {
-        self.modify_only_groups(abbr, target, 1)
+        self.modify_only_groups(abbr, residue, 1)
             // SAFETY: The `self.modify_only_groups()` method should yield at least one group if it returns `Ok`, so
             // this indexing should never panic!
             .map(|ids| ids[0])
@@ -173,13 +175,37 @@ impl<'a, 'p> Polymer<'a, 'p> {
     pub fn modify_only_groups(
         &mut self,
         abbr: impl AsRef<str>,
-        target: ResidueId,
+        residue: ResidueId,
         number: usize,
     ) -> Result<Vec<ModificationId>> {
-        let accessor = |state: &PolymerizerState<'a, 'p>, targets, residue| {
+        let accessor = |state: &PolymerizerState<'a, 'p>, targets| {
             state.find_any_free_groups(targets, residue, number)
         };
-        self.modify_with_accessor(abbr, target, accessor)
+        self.modify_with_accessor(abbr, residue, accessor)
+    }
+
+    pub fn modify_group(
+        &mut self,
+        abbr: impl AsRef<str>,
+        residue: ResidueId,
+        group: &FunctionalGroup<'p>,
+    ) -> Result<ModificationId> {
+        self.modify_groups(abbr, residue, slice::from_ref(group))
+            // SAFETY: The `self.modify_groups()` method should yield at least one group if it returns `Ok`, so this
+            // indexing should never panic!
+            .map(|ids| ids[0])
+    }
+
+    pub fn modify_groups(
+        &mut self,
+        abbr: impl AsRef<str>,
+        residue: ResidueId,
+        groups: &[FunctionalGroup<'p>],
+    ) -> Result<Vec<ModificationId>> {
+        let accessor = |state: &PolymerizerState<'a, 'p>, targets| {
+            state.find_these_free_groups(targets, residue, groups)
+        };
+        self.modify_with_accessor(abbr, residue, accessor)
     }
 }
 
@@ -198,7 +224,6 @@ impl<'a, 'p> Polymer<'a, 'p> {
         A: Fn(
             &PolymerizerState<'a, 'p>,
             &'p Target,
-            ResidueId,
         ) -> Result<HashSet<FunctionalGroup<'p>>, FindFreeGroupsError>,
     {
         let (
@@ -220,8 +245,8 @@ impl<'a, 'p> Polymer<'a, 'p> {
             return residue_error(acceptor);
         };
 
-        let find_free_group = |accessor: A, target, residue, donor_or_acceptor| {
-            accessor(&self.polymerizer_state, target, residue)
+        let find_free_group = |accessor: A, target, donor_or_acceptor| {
+            accessor(&self.polymerizer_state, target)
                 // SAFETY: All accessors yield at least one group if they return `Ok`, so this unwrap shouldn't fail!
                 .map(|gs| gs.into_iter().next().unwrap())
                 .map_err(|e| {
@@ -238,8 +263,8 @@ impl<'a, 'p> Polymer<'a, 'p> {
         };
 
         // Avoid partial updates by performing validation of both group updates *before* updating either group
-        let donor_group = find_free_group(donor_accessor, from, donor, "donor")?;
-        let acceptor_group = find_free_group(acceptor_accessor, to, acceptor, "acceptor")?;
+        let donor_group = find_free_group(donor_accessor, from, "donor")?;
+        let acceptor_group = find_free_group(acceptor_accessor, to, "acceptor")?;
 
         let donor = ResidueGroup(donor, donor_group);
         let acceptor = ResidueGroup(acceptor, acceptor_group);
@@ -270,7 +295,6 @@ impl<'a, 'p> Polymer<'a, 'p> {
         A: Fn(
             &PolymerizerState<'a, 'p>,
             &'p [Target],
-            ResidueId,
         ) -> Result<HashSet<FunctionalGroup<'p>>, FindFreeGroupsError>,
     {
         let (
@@ -287,7 +311,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
             return Err(PolychemError::residue_not_in_polymer(residue).into());
         };
 
-        let target_groups = accessor(&self.polymerizer_state, targets, residue)
+        let target_groups = accessor(&self.polymerizer_state, targets)
             .map_err(|e| PolychemError::named_modification(name, residue, residue_ref.name(), e))?;
 
         let modification_ids = target_groups
@@ -912,5 +936,38 @@ mod tests {
         let murnac = polymer.new_residue("m").unwrap();
         let no_matching_groups = polymer.modify_only_groups("Anh", murnac, 2);
         assert_miette_snapshot!(no_matching_groups);
+    }
+
+    #[test]
+    fn modify_group() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let murnac = polymer.new_residue("m").unwrap();
+        assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
+
+        let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
+        polymer.modify_group("Met", murnac, &reducing_end).unwrap();
+        assert_polymer!(polymer, 307.12671663782, 307.29752920198633355);
+        assert!(polymer
+            .residue(murnac)
+            .unwrap()
+            .group_state(&reducing_end)
+            .unwrap()
+            .is_modified());
+
+        let modify_non_free_group = polymer.modify_group("Anh", murnac, &reducing_end);
+        assert_miette_snapshot!(modify_non_free_group);
+
+        let residue_from_wrong_polymer = polymer.modify_group("Anh", ResidueId(1), &reducing_end);
+        assert_miette_snapshot!(residue_from_wrong_polymer);
+
+        let invalid_group = polymer.modify_group("Ac", murnac, &reducing_end);
+        assert_miette_snapshot!(invalid_group);
+
+        let alanine = polymer.new_residue("A").unwrap();
+        let nonexistent_group = polymer.modify_group("Red", alanine, &reducing_end);
+        assert_miette_snapshot!(nonexistent_group);
+
+        let nonexistent_modification = polymer.modify_group("Arg", murnac, &reducing_end);
+        assert_miette_snapshot!(nonexistent_modification);
     }
 }

@@ -1,0 +1,9 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: invalid_group
+expression: out
+---
+  × failed to apply O-Acetylation modification to residue 0 (N-Acetylmuramic
+  │ Acid)
+  ╰─▶   × expected a target group matching "Hydroxyl" at="6-Position", but got
+        │ "Hydroxyl" at="Reducing End"

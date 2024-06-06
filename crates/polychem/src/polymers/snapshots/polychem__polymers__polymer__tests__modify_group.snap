@@ -1,0 +1,9 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: modify_non_free_group
+expression: out
+---
+  × failed to apply 1,6-Anhydro modification to residue 0 (N-Acetylmuramic
+  │ Acid)
+  ╰─▶   × the functional group "Hydroxyl" at="Reducing End" of residue 0 was
+        │ already modified, but must be free
