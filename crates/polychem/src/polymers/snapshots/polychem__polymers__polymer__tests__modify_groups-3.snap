@@ -1,0 +1,16 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: modify_multiple_errors
+expression: out
+---
+  × failed to apply 1,6-Anhydro modification to residue 0 (N-Acetylmuramic
+  │ Acid)
+  ╰─▶   × failed to find multiple of the requested free groups
+      
+      Error:
+        × the functional group "Hydroxyl" at="Reducing End" of residue 0 was
+        │ already modified, but must be free
+      
+      Error:
+        × expected a target group matching "Hydroxyl" at="Reducing End" of="N-
+        │ Acetylmuramic Acid", but got "Hydroxyl" at="6-Position"

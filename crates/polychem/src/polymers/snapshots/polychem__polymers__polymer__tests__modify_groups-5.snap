@@ -1,0 +1,15 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: nonexistent_group
+expression: out
+---
+  × failed to apply Reduced modification to residue 4 (Alanine)
+  ╰─▶   × failed to find multiple of the requested free groups
+      
+      Error:
+        × expected a target group matching "Hydroxyl" at="Reducing End", but
+        │ got "Hydroxyl" at="6-Position"
+      
+      Error:
+        × the functional group "Hydroxyl" at="Reducing End" does not exist on
+        │ residue 4

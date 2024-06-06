@@ -945,7 +945,8 @@ mod tests {
         assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
 
         let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
-        polymer.modify_group("Met", murnac, &reducing_end).unwrap();
+        let modification_id = polymer.modify_group("Met", murnac, &reducing_end).unwrap();
+        assert_eq!(modification_id, ModificationId(1));
         assert_polymer!(polymer, 307.12671663782, 307.29752920198633355);
         assert!(polymer
             .residue(murnac)
@@ -968,6 +969,77 @@ mod tests {
         assert_miette_snapshot!(nonexistent_group);
 
         let nonexistent_modification = polymer.modify_group("Arg", murnac, &reducing_end);
+        assert_miette_snapshot!(nonexistent_modification);
+    }
+
+    #[test]
+    fn modify_groups() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let murnac = polymer.new_residue("m").unwrap();
+        assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
+
+        let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
+        let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
+        let six_position = FunctionalGroup::new("Hydroxyl", "6-Position");
+
+        let modification_ids = polymer
+            .modify_groups("Met", murnac, &[nonreducing_end, six_position])
+            .unwrap();
+        assert_eq!(modification_ids, vec![ModificationId(1), ModificationId(2)]);
+        assert_polymer!(polymer, 321.14236670228, 321.32414660683313725);
+        assert!(polymer
+            .residue(murnac)
+            .unwrap()
+            .group_state(&reducing_end)
+            .unwrap()
+            .is_free());
+        assert!(polymer
+            .residue(murnac)
+            .unwrap()
+            .group_state(&nonreducing_end)
+            .unwrap()
+            .is_modified());
+        assert!(polymer
+            .residue(murnac)
+            .unwrap()
+            .group_state(&six_position)
+            .unwrap()
+            .is_modified());
+
+        let modify_non_free_group =
+            polymer.modify_groups("Ca", murnac, &[reducing_end, six_position]);
+        assert_miette_snapshot!(modify_non_free_group);
+
+        let modify_invalid_group =
+            polymer.modify_groups("Anh", murnac, &[reducing_end, six_position]);
+        assert_miette_snapshot!(modify_invalid_group);
+
+        let modification_ids = polymer
+            .modify_groups("Anh", murnac, &[reducing_end])
+            .unwrap();
+        assert_eq!(modification_ids, vec![ModificationId(3)]);
+        assert_polymer!(polymer, 303.13180201825, 303.30886017440330465);
+        assert!(polymer
+            .residue(murnac)
+            .unwrap()
+            .group_state(&reducing_end)
+            .unwrap()
+            .is_modified());
+
+        let modify_multiple_errors =
+            polymer.modify_groups("Anh", murnac, &[reducing_end, six_position]);
+        assert_miette_snapshot!(modify_multiple_errors);
+
+        let residue_from_wrong_polymer =
+            polymer.modify_groups("Anh", ResidueId(1337), &[reducing_end, six_position]);
+        assert_miette_snapshot!(residue_from_wrong_polymer);
+
+        let alanine = polymer.new_residue("A").unwrap();
+        let nonexistent_group =
+            polymer.modify_groups("Red", alanine, &[reducing_end, six_position]);
+        assert_miette_snapshot!(nonexistent_group);
+
+        let nonexistent_modification = polymer.modify_groups("Arg", murnac, &[reducing_end]);
         assert_miette_snapshot!(nonexistent_modification);
     }
 }
