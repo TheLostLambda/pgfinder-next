@@ -65,6 +65,10 @@ pub enum PolychemError {
         #[diagnostic_source]
         source: FindFreeGroupsError,
     },
+
+    // FIXME: I should think up a way to have offset modfication errors reported better in general... See 41e28b6
+    #[error("attempted to apply an offset modification with a multiplier of zero, but multipliers must be non-zero")]
+    ZeroMultiplier,
 }
 
 impl PolychemError {

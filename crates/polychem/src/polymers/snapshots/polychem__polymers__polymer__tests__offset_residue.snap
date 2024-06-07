@@ -1,0 +1,7 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: zero_multiplier
+expression: out
+---
+  × attempted to apply an offset modification with a multiplier of zero, but
+  │ multipliers must be non-zero

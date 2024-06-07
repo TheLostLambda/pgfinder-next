@@ -9,9 +9,10 @@ use crate::{
         polymer_database::{BondDescription, ModificationDescription},
         target::Target,
     },
-    AnyModification, AtomicDatabase, AverageMass, Bond, BondId, BondInfo, Charge, Charged,
-    FunctionalGroup, GroupState, Massive, ModificationId, ModificationInfo, MonoisotopicMass,
-    NamedMod, Polymer, PolymerDatabase, Residue, ResidueGroup, ResidueId, Result,
+    AnyMod, AnyModification, AtomicDatabase, AverageMass, Bond, BondId, BondInfo, Charge, Charged,
+    ChemicalComposition, Count, FunctionalGroup, GroupState, Massive, Modification, ModificationId,
+    ModificationInfo, MonoisotopicMass, NamedMod, OffsetKind, OffsetMod, Polymer, PolymerDatabase,
+    Residue, ResidueGroup, ResidueId, Result,
 };
 
 use super::{errors::FindFreeGroupsError, polymerizer_state::PolymerizerState};
@@ -140,25 +141,20 @@ impl<'a, 'p> Polymer<'a, 'p> {
         Ok(bond_ids)
     }
 
-    pub fn modify(
+    pub fn modify_residue(
         &mut self,
-        // FIXME: Test that this can take NamedMod, OffsetMod, AnyMod, and Modification<_> with any of the preceeding —
-        // that's six (6) test-cases in all!
-        _modification: impl Into<AnyModification<'a, 'p>>,
-        _residue: ResidueId,
-    ) -> Result<ModificationId> {
-        // let Modification { multiplier, kind } = modification.into();
-        // match kind {
-        //     AnyMod::Named(kind) => {
-        //         self.modify_with_optional_groups(kind.abbr(), target, multiplier)
-        //     }
-        //     AnyMod::Offset(kind) => {
-        //         // FIXME: Once `Polymerizer` is refactored to store residues, then turn this into a method on `self`
-        //         // FIXME: And when you do that, get rid of this nasty discard hack...
-        //         target.add_offsets(kind, multiplier).map(|_| ())
-        //     }
-        // }
-        todo!()
+        modification: impl Into<AnyModification<'a, 'p>>,
+        residue: ResidueId,
+    ) -> Result<Vec<ModificationId>> {
+        let Modification { multiplier, kind } = modification.into();
+        match kind {
+            AnyMod::Named(kind) => self.modify_only_groups(kind.abbr(), residue, multiplier.into()),
+            AnyMod::Offset(kind) => {
+                let modification = Modification::new(multiplier, kind);
+                self.offset_with_modification(modification, residue)
+                    .map(|id| vec![id])
+            }
+        }
     }
 
     pub fn modify_only_group(
@@ -206,6 +202,20 @@ impl<'a, 'p> Polymer<'a, 'p> {
             state.find_these_free_groups(targets, residue, groups)
         };
         self.modify_with_accessor(abbr, residue, accessor)
+    }
+
+    pub fn offset_residue(
+        &mut self,
+        kind: OffsetKind,
+        multiplier: u32,
+        formula: impl AsRef<str>,
+        residue: ResidueId,
+    ) -> Result<ModificationId> {
+        let count = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
+        let composition = ChemicalComposition::new(self.atomic_db(), formula)?;
+
+        let modification = Modification::new(count, OffsetMod::new(kind, composition));
+        self.offset_with_modification(modification, residue)
     }
 }
 
@@ -337,6 +347,24 @@ impl<'a, 'p> Polymer<'a, 'p> {
         Ok(modification_ids)
     }
 
+    fn offset_with_modification(
+        &mut self,
+        modification: Modification<OffsetMod<'a>>,
+        residue: ResidueId,
+    ) -> Result<ModificationId> {
+        let Some(residue_ref) = self.residues.get_mut(&residue) else {
+            return Err(PolychemError::residue_not_in_polymer(residue).into());
+        };
+
+        let id = ModificationId(self.polymerizer_state.next_id());
+        residue_ref.offset_modifications_mut().insert(id);
+
+        let modification_info = ModificationInfo::Offset(modification, residue);
+        self.modifications.insert(id, modification_info);
+
+        Ok(id)
+    }
+
     fn update_group(&mut self, residue_group: &ResidueGroup<'p>, state: GroupState) {
         let &ResidueGroup(residue_id, ref group) = residue_group;
         // SAFETY: `update_group()` is only called if the `residue_id` was found in the `group_index` of
@@ -398,7 +426,8 @@ mod tests {
 
     use crate::{
         polymers::polymerizer::Polymerizer, testing_tools::assert_miette_snapshot, AverageMz,
-        ChargedParticle, FunctionalGroup, ModificationId, MonoisotopicMz, ResidueId,
+        ChargedParticle, ChemicalComposition, FunctionalGroup, ModificationId, MonoisotopicMz,
+        OffsetKind, OffsetMod, ResidueId,
     };
 
     use super::*;
@@ -802,11 +831,39 @@ mod tests {
         assert_miette_snapshot!(nonexistent_residue);
     }
 
-    #[ignore]
     #[test]
-    fn modify() {
-        // TODO: Restore from git
-        todo!()
+    fn modify_residue() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let murnac = polymer.new_residue("m").unwrap();
+        assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
+
+        macro_rules! assert_modification_series {
+            ($($modification:expr => $mass:literal),+ $(,)?) => {
+                $(
+                    polymer
+                        .modify_residue($modification, murnac)
+                        .unwrap();
+                    assert_eq!(polymer.monoisotopic_mass(), MonoisotopicMass(dec!($mass)));
+                )+
+            };
+        }
+
+        assert_modification_series!(
+            NamedMod::new(&POLYMER_DB, "Anh").unwrap() => 275.10050188933,
+            OffsetMod::new(OffsetKind::Remove, ChemicalComposition::new(&ATOMIC_DB, "2p").unwrap()) => 273.085948956088,
+            AnyMod::named(&POLYMER_DB, "Ac").unwrap() => 315.096513640118,
+            AnyMod::offset(OffsetKind::Add, ChemicalComposition::new(&ATOMIC_DB, "C2H2O").unwrap()) => 357.107078324148,
+            Modification::new(Count::new(1).unwrap(), NamedMod::new(&POLYMER_DB, "Met").unwrap()) => 371.122728388608,
+            Modification::new(
+                Count::new(4).unwrap(),
+                OffsetMod::new(OffsetKind::Remove, ChemicalComposition::new(&ATOMIC_DB, "H2O").unwrap())
+            ) => 299.080469652488,
+            Modification::new(Count::new(1).unwrap(), AnyMod::named(&POLYMER_DB, "Ca").unwrap()) => 338.034686889048870,
+            Modification::new(
+                Count::new(5).unwrap(),
+                AnyMod::offset(OffsetKind::Add, ChemicalComposition::new(&ATOMIC_DB, "[99Tc]").unwrap())
+            ) => 832.565940889048870,
+        );
     }
 
     #[test]
@@ -1041,5 +1098,83 @@ mod tests {
 
         let nonexistent_modification = polymer.modify_groups("Arg", murnac, &[reducing_end]);
         assert_miette_snapshot!(nonexistent_modification);
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn offset_residue() {
+        let mut polymer = POLYMERIZER.new_polymer();
+        let alanine = polymer.new_residue("A").unwrap();
+        assert_polymer!(polymer, 89.04767846918, 89.09330602867854225);
+
+        let modification_id = polymer
+            .offset_residue(OffsetKind::Add, 1, "p", alanine)
+            .unwrap();
+        assert_eq!(modification_id, ModificationId(1));
+        assert_polymer!(
+            polymer,
+            90.054954935801,
+            90.10058249529954225,
+            1,
+            90.054954935801,
+            90.10058249529954225
+        );
+
+        let modification_id = polymer
+            .offset_residue(OffsetKind::Add, 2, "e", alanine)
+            .unwrap();
+        assert_eq!(modification_id, ModificationId(2));
+        assert_polymer!(
+            polymer,
+            90.056052095619130,
+            90.10167965511767225,
+            -1,
+            90.056052095619130,
+            90.10167965511767225
+        );
+
+        let murnac = polymer.new_residue("m").unwrap();
+        let modification_id = polymer
+            .offset_residue(OffsetKind::Add, 1, "H2O+p", murnac)
+            .unwrap();
+        assert_eq!(modification_id, ModificationId(4));
+        assert_polymer!(polymer, 402.184959819630130, 402.39515435130803470);
+
+        let modification_id = polymer
+            .offset_residue(OffsetKind::Remove, 4, "CO", alanine)
+            .unwrap();
+        assert_eq!(modification_id, ModificationId(5));
+        assert_polymer!(polymer, 290.205301341350130, 290.35459106709392710);
+
+        let mut alanine_offsets: Vec<_> = polymer
+            .residue(alanine)
+            .unwrap()
+            .offset_modifications()
+            .copied()
+            .collect();
+        alanine_offsets.sort_unstable();
+        assert_eq!(
+            alanine_offsets,
+            vec![ModificationId(1), ModificationId(2), ModificationId(5)]
+        );
+
+        let mut murnac_offsets: Vec<_> = polymer
+            .residue(murnac)
+            .unwrap()
+            .offset_modifications()
+            .copied()
+            .collect();
+        murnac_offsets.sort_unstable();
+        assert_eq!(murnac_offsets, vec![ModificationId(4)]);
+
+        let zero_multiplier = polymer.offset_residue(OffsetKind::Remove, 0, "H", alanine);
+        assert_miette_snapshot!(zero_multiplier);
+
+        let invalid_composition = polymer.offset_residue(OffsetKind::Add, 1, "H[2]O", alanine);
+        assert_miette_snapshot!(invalid_composition);
+
+        let residue_from_wrong_polymer =
+            polymer.offset_residue(OffsetKind::Add, 1, "H2O", ResidueId(4));
+        assert_miette_snapshot!(residue_from_wrong_polymer);
     }
 }

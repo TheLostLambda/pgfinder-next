@@ -86,7 +86,7 @@ pub enum FindFreeGroupsError {
         free_group_names: Vec<String>,
     },
 
-    #[error("attemped to find zero free groups, but you must look for at least one")]
+    #[error("attempted to find zero free groups, but you must look for at least one")]
     ZeroGroupNumber,
 }
 

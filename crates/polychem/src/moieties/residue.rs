@@ -8,7 +8,7 @@ use crate::{
 use super::polymer_database::{PolymerDatabase, ResidueDescription};
 
 impl<'a, 'p> Residue<'a, 'p> {
-    pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>) -> Result<Self> {
+    pub(crate) fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>) -> Result<Self> {
         let abbr = abbr.as_ref();
         let (
             abbr,
@@ -25,12 +25,13 @@ impl<'a, 'p> Residue<'a, 'p> {
             .iter()
             .map(|fg| (fg.into(), GroupState::default()))
             .collect();
+        let offset_modifications = HashSet::new();
         Ok(Self {
             abbr,
             name,
             composition,
             functional_groups,
-            offset_modifications: HashSet::new(),
+            offset_modifications,
         })
     }
 
@@ -68,6 +69,11 @@ impl<'a, 'p> Residue<'a, 'p> {
             .ok_or_else(|| {
                 PolychemError::group_lookup(*functional_group, self.name, self.abbr).into()
             })
+    }
+
+    // NOTE: This cannot be public API — it would let users invalidate `Polymer`s mapping of `ModificationId`s
+    pub(crate) fn offset_modifications_mut(&mut self) -> &mut HashSet<ModificationId> {
+        &mut self.offset_modifications
     }
 }
 
