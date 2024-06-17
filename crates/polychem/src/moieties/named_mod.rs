@@ -6,7 +6,7 @@ use crate::{
 use super::polymer_database::{ModificationDescription, PolymerDatabase};
 
 impl<'a, 'p> NamedMod<'a, 'p> {
-    pub fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>) -> Result<Self> {
+    pub(crate) fn new(db: &'p PolymerDatabase<'a>, abbr: impl AsRef<str>) -> Result<Self> {
         let (
             abbr,
             ModificationDescription {

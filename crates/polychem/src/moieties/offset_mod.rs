@@ -5,7 +5,7 @@ use crate::{
 
 impl<'a> OffsetMod<'a> {
     #[must_use]
-    pub const fn new(kind: OffsetKind, composition: ChemicalComposition<'a>) -> Self {
+    pub(crate) const fn new(kind: OffsetKind, composition: ChemicalComposition<'a>) -> Self {
         Self { kind, composition }
     }
 }

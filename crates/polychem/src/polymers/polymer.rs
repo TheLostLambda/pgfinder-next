@@ -70,6 +70,30 @@ impl<'a, 'p> Polymer<'a, 'p> {
         self.residues.get(&id)
     }
 
+    // FIXME: This feels a bit inconsistent with the `named_mod` that I've been using elsewhere? Maybe instead of
+    // `named_mod`s and `offset_mod`s, I should just go with `modification`s and `offset`s?
+    pub fn new_modification(
+        &mut self,
+        multiplier: u32,
+        abbr: impl AsRef<str>,
+    ) -> Result<ModificationId> {
+        let multiplier = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
+        let modification = Modification::new(multiplier, NamedMod::new(self.polymer_db(), abbr)?);
+
+        let id = ModificationId(self.polymerizer_state.next_id());
+        let modification_info = ModificationInfo::Unlocalized(modification.into());
+        self.modifications.insert(id, modification_info);
+
+        Ok(id)
+    }
+
+    // TODO: Add `remove_modification` and be sure to clear any groups the modification was attached to!
+
+    #[must_use]
+    pub fn modification(&self, id: ModificationId) -> Option<&ModificationInfo> {
+        self.modifications.get(&id)
+    }
+
     pub fn new_chain(
         &mut self,
         abbr: impl AsRef<str>,
@@ -141,6 +165,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         Ok(bond_ids)
     }
 
+    // FIXME: This should be renamed and made to take a `ModificationId`?
     pub fn modify_residue(
         &mut self,
         modification: impl Into<AnyModification<'a, 'p>>,
@@ -168,6 +193,8 @@ impl<'a, 'p> Polymer<'a, 'p> {
             .map(|ids| ids[0])
     }
 
+    // FIXME: Think about changing the argument order so that `number` comes first? Is that more consistent with
+    // `offset_residue()` and friends?
     pub fn modify_only_groups(
         &mut self,
         abbr: impl AsRef<str>,
@@ -211,10 +238,10 @@ impl<'a, 'p> Polymer<'a, 'p> {
         formula: impl AsRef<str>,
         residue: ResidueId,
     ) -> Result<ModificationId> {
-        let count = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
+        let multiplier = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
         let composition = ChemicalComposition::new(self.atomic_db(), formula)?;
 
-        let modification = Modification::new(count, OffsetMod::new(kind, composition));
+        let modification = Modification::new(multiplier, OffsetMod::new(kind, composition));
         self.offset_with_modification(modification, residue)
     }
 }
@@ -626,6 +653,43 @@ mod tests {
         // Clear the rest of the polymer
         polymer.remove_residue(alanine);
         assert_polymer!(polymer, 0.0, 0.0);
+    }
+
+    #[test]
+    fn new_modification() {
+        let mut polymer = POLYMERIZER.new_polymer();
+
+        let amidation = polymer.new_modification(1, "Am").unwrap();
+        assert_eq!(amidation, ModificationId(0));
+        assert_polymer!(polymer, -0.98401558291, -0.98476095881670255);
+
+        let double_amidation = polymer.new_modification(2, "Am").unwrap();
+        assert_eq!(double_amidation, ModificationId(1));
+        assert_polymer!(polymer, -2.95204674873, -2.95428287645010765);
+
+        let calcium = polymer.new_modification(2, "Ca").unwrap();
+        assert_eq!(calcium, ModificationId(2));
+        assert_polymer!(
+            polymer,
+            74.956387724391740,
+            75.18501489270709235,
+            2,
+            37.478193862195870,
+            37.5925074463535461750
+        );
+
+        let modification_refs =
+            [amidation, double_amidation, calcium].map(|id| polymer.modification(id).unwrap());
+        assert_ron_snapshot!(modification_refs, {
+            ".**.lost, .**.gained" => "<FORMULA>",
+            ".**.isotopes" => insta::sorted_redaction()
+        });
+
+        let nonexistent_modification = polymer.new_modification(1, "?");
+        assert_miette_snapshot!(nonexistent_modification);
+
+        let missing_modification = polymer.modification(ModificationId(8));
+        assert_eq!(missing_modification, None);
     }
 
     #[test]

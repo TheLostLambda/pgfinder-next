@@ -69,7 +69,7 @@ pub struct Residue<'a, 'p> {
 pub struct ModificationId(Id);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-enum ModificationInfo<'a, 'p> {
+pub enum ModificationInfo<'a, 'p> {
     Named(NamedMod<'a, 'p>, ResidueGroup<'p>),
     Offset(Modification<OffsetMod<'a>>, ResidueId),
     Unlocalized(AnyModification<'a, 'p>),
@@ -80,9 +80,9 @@ enum ModificationInfo<'a, 'p> {
 pub struct BondId(Id);
 
 // FIXME: Perhaps I should consider changing these `*Info` structs to have named fields? Is the donor -> acceptor order
-// obvious enough for internal use? Users of `polychem` should never see this...
+// obvious enough for users?
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-struct BondInfo<'a, 'p>(ResidueGroup<'p>, Bond<'a, 'p>, ResidueGroup<'p>);
+pub struct BondInfo<'a, 'p>(ResidueGroup<'p>, Bond<'a, 'p>, ResidueGroup<'p>);
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -122,9 +122,9 @@ pub struct NamedMod<'a, 'p> {
     gained: &'p ChemicalComposition<'a>,
 }
 
-// FIXME: Again, private, but should I be using named fields here?
+// FIXME: Should I be using named fields here?
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-struct ResidueGroup<'p>(ResidueId, FunctionalGroup<'p>);
+pub struct ResidueGroup<'p>(ResidueId, FunctionalGroup<'p>);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 pub struct OffsetMod<'a> {
