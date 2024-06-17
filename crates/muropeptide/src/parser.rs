@@ -316,6 +316,37 @@ mod tests {
         assert_eq!(identifier("C2H𝟨O"), Ok(("𝟨O", "C2H")));
     }
 
+    #[test]
+    fn test_multiplier() {
+        macro_rules! assert_multiplier {
+            ($input:literal, $output:literal, $count:literal) => {
+                let (rest, count) = multiplier($input).unwrap();
+                assert_eq!((rest, count.into()), ($output, $count));
+            };
+        }
+
+        // Valid Multipliers
+        assert_multiplier!("1x", "", 1);
+        assert_multiplier!("10x", "", 10);
+        assert_multiplier!("422x", "", 422);
+        assert_multiplier!("9999x", "", 9999);
+        // Invalid Multipliers
+        assert!(multiplier("1").is_err());
+        assert!(multiplier("10").is_err());
+        assert!(multiplier("422").is_err());
+        assert!(multiplier("9999").is_err());
+        assert!(multiplier("0").is_err());
+        assert!(multiplier("01").is_err());
+        assert!(multiplier("00145").is_err());
+        assert!(multiplier("H").is_err());
+        assert!(multiplier("p").is_err());
+        assert!(multiplier("+H").is_err());
+        assert!(multiplier("[H]").is_err());
+        // Multiple Multipliers
+        assert_multiplier!("1xOH", "OH", 1);
+        assert_multiplier!("42xHeH", "HeH", 42);
+    }
+
     // FIXME: Unfininshed! Needs modification support — same with unbranched_amino_acid!
     #[test]
     fn test_monosaccharide() {
