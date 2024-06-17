@@ -88,7 +88,7 @@ struct BondInfo<'a, 'p>(ResidueGroup<'p>, Bond<'a, 'p>, ResidueGroup<'p>);
 
 // NOTE: This underlying `Id` type is just a synonym since it's private to this crate — there is no way for users to
 // directly provide or modify `Id`s, so I don't need to worry about a newtype wrapper here
-type Id = usize;
+type Id = u64;
 
 #[derive(Clone, Eq, PartialEq, Debug, Default, Serialize)]
 pub struct ChemicalComposition<'a> {

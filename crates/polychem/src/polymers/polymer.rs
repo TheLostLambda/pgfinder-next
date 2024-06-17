@@ -172,7 +172,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         &mut self,
         abbr: impl AsRef<str>,
         residue: ResidueId,
-        number: usize,
+        number: u32,
     ) -> Result<Vec<ModificationId>> {
         let accessor = |state: &PolymerizerState<'a, 'p>, targets| {
             state.find_any_free_groups(targets, residue, number)

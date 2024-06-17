@@ -5,7 +5,6 @@ use std::{
 };
 
 use rust_decimal::Decimal;
-use static_assertions::const_assert;
 
 use crate::{AverageMass, Charge, Count, Mass, MonoisotopicMass};
 
@@ -17,15 +16,9 @@ impl Count {
     }
 }
 
-// NOTE: Since this will only panic on 16-bit platforms, I couldn't test a `TryFrom` impl if I wanted to — I don't want
-// to add an entire error-handling code path that could never possibly be run.
-#[allow(clippy::fallible_impl_from)]
-impl From<Count> for usize {
+impl From<Count> for u32 {
     fn from(value: Count) -> Self {
-        const_assert!(usize::BITS >= Count::BITS);
-        // SAFETY: The above assertion prevents compilation on platforms with fewer bits than the type used to
-        // represent `Count`. If this code compiles, then this `.unwrap()` will never panic.
-        Self::try_from(value.0.get()).unwrap()
+        value.0.get()
     }
 }
 
