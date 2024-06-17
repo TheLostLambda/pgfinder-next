@@ -8,7 +8,7 @@ pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
 
-use std::num::NonZeroU32;
+use std::num::NonZero;
 
 use derive_more::{Add, AddAssign, Display, From, Into, IsVariant, Neg, Sub, SubAssign, Sum};
 use polymers::polymerizer_state::PolymerizerState;
@@ -159,7 +159,7 @@ struct Element<'a> {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Into, Serialize)]
-pub struct Count(NonZeroU32);
+pub struct Count(NonZero<u32>);
 
 // MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
@@ -188,7 +188,7 @@ pub enum AnyMod<'a, 'p> {
 #[derive(
     Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, From, Into, Serialize,
 )]
-pub struct MassNumber(NonZeroU32);
+pub struct MassNumber(NonZero<u32>);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 struct Isotope {

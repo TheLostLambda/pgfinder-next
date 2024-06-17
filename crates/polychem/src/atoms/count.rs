@@ -1,6 +1,6 @@
 use std::{
     fmt::{self, Display, Formatter},
-    num::NonZeroU32,
+    num::NonZero,
     ops::Mul,
 };
 
@@ -9,10 +9,10 @@ use rust_decimal::Decimal;
 use crate::{AverageMass, Charge, Count, Mass, MonoisotopicMass};
 
 impl Count {
-    const BITS: u32 = NonZeroU32::BITS;
+    const BITS: u32 = NonZero::<u32>::BITS;
 
     pub fn new(n: u32) -> Option<Self> {
-        NonZeroU32::new(n).map(Self)
+        NonZero::new(n).map(Self)
     }
 }
 

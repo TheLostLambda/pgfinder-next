@@ -6,7 +6,7 @@ expression: out
   × error parsing KDL
 
 Error: 
-  × no type for NonZeroU32, found count
+  × no type for NonZero<u32>, found count
    ╭─[test:1:9]
  1 │ nonzero (count)42
    ·         ───┬───

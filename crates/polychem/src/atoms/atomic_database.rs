@@ -1,5 +1,5 @@
 // Standard Library Imports
-use std::{num::NonZeroU32, ops::Deref, str::FromStr};
+use std::{num::NonZero, ops::Deref, str::FromStr};
 
 // External Crate Imports
 use ahash::HashMap;
@@ -164,15 +164,15 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
     }
 }
 
-// Parsing of KDL Numbers to NonZeroU32 ================================================================================
+// Parsing of KDL Numbers to NonZero<u32> ==============================================================================
 
 #[derive(Debug)]
-struct NonZeroU32Kdl(NonZeroU32);
+struct NonZeroU32Kdl(NonZero<u32>);
 
 impl Default for NonZeroU32Kdl {
     fn default() -> Self {
         // SAFETY: 1 isn't 0, so this should never panic
-        Self(NonZeroU32::new(1).unwrap())
+        Self(NonZero::new(1).unwrap())
     }
 }
 
@@ -183,7 +183,7 @@ impl<S: ErrorSpan> DecodeScalar<S> for NonZeroU32Kdl {
                 span: t.span().clone(),
                 found: Some(t.deref().clone()),
                 expected: ExpectedType::no_type(),
-                rust_type: "NonZeroU32",
+                rust_type: "NonZero<u32>",
             });
         }
     }

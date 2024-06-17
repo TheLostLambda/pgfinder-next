@@ -1,9 +1,9 @@
-use std::num::NonZeroU32;
+use std::num::NonZero;
 
 use crate::MassNumber;
 
 impl MassNumber {
     pub(crate) fn new(n: u32) -> Option<Self> {
-        NonZeroU32::new(n).map(Self)
+        NonZero::new(n).map(Self)
     }
 }
