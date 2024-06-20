@@ -4,19 +4,20 @@ use miette::Diagnostic;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, alphanumeric1, char},
+    character::complete::{alpha1, alphanumeric1, char, space0},
     combinator::{cut, map, opt, recognize},
     error::ErrorKind,
-    multi::{many0, many1},
-    sequence::{pair, preceded, terminated},
+    multi::{many0, many1, separated_list1},
+    sequence::{delimited, pair, preceded, terminated, tuple},
     IResult,
 };
 use nom_miette::{map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
     errors::PolychemError,
     parsers::{
+        chemical_composition,
         errors::PolychemErrorKind,
-        primitives::{count, lowercase, uppercase},
+        primitives::{count, lowercase, offset_kind, uppercase},
     },
     Count, ModificationId, Polymer,
 };
@@ -126,16 +127,15 @@ fn amino_acid<'a, 'p, 's>(
 
 /// Modifications = "(" , Any Modification ,
 ///   { { " " } , "," , { " " } , Any Modification } , ")" ;
-fn modifications<'a, 'p, 's>(
-    _polymer: &mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<ModificationId>> {
-    // let separator = delimited(space0, char(','), space0);
-    // delimited(
-    //     char('('),
-    //     separated_list1(separator, modifications::any(polymer, identifier)),
-    //     char(')'),
-    // )
-    |_| todo!()
+fn modifications<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<ModificationId>> + Captures<(&'c (), &'a (), &'p ())> {
+    let separator = delimited(space0, char(','), space0);
+    delimited(
+        char('('),
+        separated_list1(separator, any_modification(polymer)),
+        char(')'),
+    )
 }
 
 // FIXME: Add modifications
@@ -166,12 +166,12 @@ fn identifier(i: &str) -> ParseResult<&str> {
     wrap_err(parser, MuropeptideErrorKind::ExpectedIdentifier)(i)
 }
 
-// /// Any Modification = Named Modification | Offset Modification
-// pub fn any_modification<'a, 'p, 's, K>(
-//     polymer: &mut Polymer<'a, 'p>,
-// ) -> impl FnMut(&'s str) -> ParseResult<ModificationId> {
-//     alt((named_modification(polymer), offset_modification(polymer)))
-// }
+/// Any Modification = Named Modification | Offset Modification
+pub fn any_modification<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
+    alt((named_modification(polymer), offset_modification(polymer)))
+}
 
 // FIXME: I probably need to add a lot of `wrap_err`s around these parsers!
 /// Named Modification = [ Multiplier ] , Identifier
@@ -186,13 +186,22 @@ pub fn named_modification<'c, 'a, 'p, 's>(
     })
 }
 
-// /// Offset Modification = Offset Kind , [ Multiplier ] ,
-// ///   Chemical Composition ;
-// pub fn offset_modification<'a, 's, K>(
-//     _polymer: &mut Polymer<'a, '_>,
-// ) -> impl FnMut(&'s str) -> ParseResult<ModificationId> {
-//     |_| todo!()
-// }
+/// Offset Modification = Offset Kind , [ Multiplier ] ,
+///   Chemical Composition ;
+pub fn offset_modification<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
+    let chemical_composition = chemical_composition(polymer.borrow().atomic_db());
+    let parser = tuple((offset_kind, opt(multiplier), chemical_composition));
+
+    map_res(parser, |(kind, multiplier, composition)| {
+        polymer.borrow_mut().new_offset_with_composition(
+            kind,
+            multiplier.unwrap_or_default(),
+            composition,
+        )
+    })
+}
 
 /// Multiplier = Count , "x" ;
 fn multiplier(i: &str) -> ParseResult<Count> {
@@ -263,7 +272,7 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
-    use polychem::{AtomicDatabase, Massive, PolymerDatabase, Polymerizer};
+    use polychem::{AtomicDatabase, Charged, Massive, PolymerDatabase, Polymerizer};
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
 
@@ -413,6 +422,70 @@ mod tests {
         // Multiple Named Modifications
         assert_named_modification!("Anh, Am", ", Am", 1, "1,6-Anhydro", -18.01056468403);
         assert_named_modification!("1xAm)JAA", ")JAA", 1, "Amidation", -0.98401558291);
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_offset_modification() {
+        use polychem::OffsetKind::{Add, Remove};
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_offset_modification = offset_modification(&polymer);
+        macro_rules! assert_offset_modification {
+            ($input:literal, $output:literal, $kind:ident, $multiplier:literal, $mass:literal, $charge:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, parsed_id) = offset_modification(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+
+                let polymer = polymer.borrow();
+                let modification = polymer
+                    .modification(parsed_id)
+                    .unwrap()
+                    .clone()
+                    .unwrap_unlocalized();
+
+                let kind = modification.kind().clone().unwrap_offset().kind();
+                assert_eq!(kind, $kind);
+
+                let multiplier = modification.multiplier();
+                assert_eq!(u32::from(multiplier), $multiplier);
+
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mass));
+                assert_eq!(i64::from(polymer.charge()), $charge);
+            };
+        }
+
+        // Valid Offset Modifications
+        assert_offset_modification!("+H2O", "", Add, 1, 18.01056468403, 0);
+        assert_offset_modification!("-H2O", "", Remove, 1, -18.01056468403, 0);
+        assert_offset_modification!("+2xH2O", "", Add, 2, 36.02112936806, 0);
+        assert_offset_modification!("-4xH2O", "", Remove, 4, -72.04225873612, 0);
+        assert_offset_modification!("-2p", "", Remove, 1, -2.014552933242, -2);
+        assert_offset_modification!("+H", "", Add, 1, 1.00782503223, 0);
+        assert_offset_modification!("+C2H2O-2e", "", Add, 1, 42.009467524211870, 2);
+        assert_offset_modification!("-3xC2H2O-2e", "", Remove, 3, -126.02840257263561, -6);
+        assert_offset_modification!("+NH3+p", "", Add, 1, 18.033825567741, 1);
+        assert_offset_modification!("+2xD2O", "", Add, 2, 40.04623635162, 0);
+        assert_offset_modification!("-2x[2H]2O", "", Remove, 2, -40.04623635162, 0);
+        assert_offset_modification!("+[37Cl]5-2p", "", Add, 1, 182.814960076758, -2);
+        assert_offset_modification!("-NH2[99Tc]", "", Remove, 1, -114.92497486889, 0);
+        // Invalid Offset Modifications
+        assert!(err_offset_modification(" ").is_err());
+        assert!(err_offset_modification("H2O").is_err());
+        assert!(err_offset_modification("(-H2O)").is_err());
+        assert!(err_offset_modification("+0xH2O").is_err());
+        assert!(err_offset_modification("2xH2O").is_err());
+        assert!(err_offset_modification("-2x3xH2O").is_err());
+        assert!(err_offset_modification("-2x+H2O").is_err());
+        assert!(err_offset_modification("+2[2H]").is_err());
+        assert!(err_offset_modification("-[H+p]O").is_err());
+        assert!(err_offset_modification("+NH2[100Tc]").is_err());
+        // Multiple Offset Modifications
+        assert_offset_modification!("+[37Cl]5-2p10", "10", Add, 1, 182.814960076758, -2);
+        assert_offset_modification!("+[2H]2O*H2O", "*H2O", Add, 1, 20.02311817581, 0);
+        assert_offset_modification!("+NH2{100Tc", "{100Tc", Add, 1, 16.01872406889, 0);
+        assert_offset_modification!("+C11H12N2O2 H2O", " H2O", Add, 1, 204.08987763476, 0);
     }
 
     #[ignore]

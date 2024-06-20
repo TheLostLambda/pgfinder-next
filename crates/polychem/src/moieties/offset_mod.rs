@@ -8,6 +8,11 @@ impl<'a> OffsetMod<'a> {
     pub(crate) const fn new(kind: OffsetKind, composition: ChemicalComposition<'a>) -> Self {
         Self { kind, composition }
     }
+
+    #[must_use]
+    pub const fn kind(&self) -> OffsetKind {
+        self.kind
+    }
 }
 
 impl<'a> From<OffsetMod<'a>> for Modification<OffsetMod<'a>> {

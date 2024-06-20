@@ -102,7 +102,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         multiplier: impl TryInto<Count>,
         composition: ChemicalComposition<'a>,
     ) -> Result<ModificationId> {
-        let modification = self.build_offset_mod_with_composition(kind, multiplier, composition)?;
+        let modification = Self::build_offset_mod_with_composition(kind, multiplier, composition)?;
         Ok(self.unlocalized_modification(modification))
     }
 
@@ -282,7 +282,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         composition: ChemicalComposition<'a>,
         residue: ResidueId,
     ) -> Result<ModificationId> {
-        let modification = self.build_offset_mod_with_composition(kind, multiplier, composition)?;
+        let modification = Self::build_offset_mod_with_composition(kind, multiplier, composition)?;
         self.offset_with_modification(modification, residue)
     }
 }
@@ -298,11 +298,10 @@ impl<'a, 'p> Polymer<'a, 'p> {
     ) -> Result<Modification<OffsetMod<'a>>> {
         let composition = ChemicalComposition::new(self.atomic_db(), formula)?;
 
-        self.build_offset_mod_with_composition(kind, multiplier, composition)
+        Self::build_offset_mod_with_composition(kind, multiplier, composition)
     }
 
     fn build_offset_mod_with_composition(
-        &self,
         kind: OffsetKind,
         multiplier: impl TryInto<Count>,
         composition: ChemicalComposition<'a>,
