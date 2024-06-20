@@ -1,0 +1,8 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: deleted_modification
+expression: out
+---
+  × modification 7 could not be found in the current polymer
+  help: this modification may belong to another polymer, or may have been
+        previously deleted from this one

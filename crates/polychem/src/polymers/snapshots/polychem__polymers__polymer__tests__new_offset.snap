@@ -1,0 +1,23 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+expression: modification_refs
+---
+(Unlocalized(Modification(
+  multiplier: Count(1),
+  kind: Offset(OffsetMod(
+    kind: Remove,
+    composition: "<FORMULA>",
+  )),
+)), Unlocalized(Modification(
+  multiplier: Count(2),
+  kind: Offset(OffsetMod(
+    kind: Add,
+    composition: "<FORMULA>",
+  )),
+)), Unlocalized(Modification(
+  multiplier: Count(3),
+  kind: Offset(OffsetMod(
+    kind: Remove,
+    composition: "<FORMULA>",
+  )),
+)))

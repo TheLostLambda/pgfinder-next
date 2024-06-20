@@ -24,6 +24,9 @@ pub use errors::Result;
 pub use moieties::polymer_database::PolymerDatabase;
 pub use polymers::polymerizer::Polymerizer;
 
+// FIXME: I've exported a lot of things that previously weren't exported! Make sure that all of that new public API has
+// as many traits automatically derived as possible!
+
 // Core Data Types =====================================================================================================
 
 // NOTE: For the types in this module, 'a lifetimes indicate references to the AtomicDatabase, whilst 'p lifetimes
@@ -68,7 +71,7 @@ pub struct Residue<'a, 'p> {
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Serialize)]
 pub struct ModificationId(Id);
 
-#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+#[derive(Clone, Eq, PartialEq, Debug, IsVariant, Serialize)]
 pub enum ModificationInfo<'a, 'p> {
     Named(NamedMod<'a, 'p>, ResidueGroup<'p>),
     Offset(Modification<OffsetMod<'a>>, ResidueId),

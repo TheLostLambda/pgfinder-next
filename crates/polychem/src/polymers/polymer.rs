@@ -80,11 +80,18 @@ impl<'a, 'p> Polymer<'a, 'p> {
         let multiplier = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
         let modification = Modification::new(multiplier, NamedMod::new(self.polymer_db(), abbr)?);
 
-        let id = ModificationId(self.polymerizer_state.next_id());
-        let modification_info = ModificationInfo::Unlocalized(modification.into());
-        self.modifications.insert(id, modification_info);
+        Ok(self.unlocalized_modification(modification))
+    }
 
-        Ok(id)
+    // FIXME: Again a bit unsure about the naming here...
+    pub fn new_offset(
+        &mut self,
+        kind: OffsetKind,
+        multiplier: u32,
+        formula: impl AsRef<str>,
+    ) -> Result<ModificationId> {
+        let modification = self.build_offset_mod(kind, multiplier, formula)?;
+        Ok(self.unlocalized_modification(modification))
     }
 
     // TODO: Add `remove_modification` and be sure to clear any groups the modification was attached to!
@@ -153,7 +160,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         residues: &[ResidueId],
     ) -> Result<Vec<BondId>> {
         let abbr = abbr.as_ref();
-        // NOTE: Once `array_windows()` is stabilised, it should be possible to pattern-match the `residue_pair` and
+        // NOTE: Once `array_windows()` is stabilized, it should be possible to pattern-match the `residue_pair` and
         // eliminate the need for any manual indexing. Keep an eye on the standard library!
         let bond_ids = residues
             .windows(2)
@@ -165,14 +172,28 @@ impl<'a, 'p> Polymer<'a, 'p> {
         Ok(bond_ids)
     }
 
-    // FIXME: This should be renamed and made to take a `ModificationId`?
-    pub fn modify_residue(
+    pub fn localize_modification(
         &mut self,
-        modification: impl Into<AnyModification<'a, 'p>>,
+        modification: ModificationId,
         residue: ResidueId,
     ) -> Result<Vec<ModificationId>> {
-        let Modification { multiplier, kind } = modification.into();
+        // NOTE: We're `remove()`-ing the modification here with the presumption that the user is trying to localize a
+        // currently unlocalized modification. In the error case where this is not true, the modification is reinserted
+        // into the map before returning an error. The avoids an extra lookup in the "happy path"
+        let Modification { multiplier, kind } = match self.modifications.remove(&modification) {
+            Some(ModificationInfo::Unlocalized(m)) => Ok(m),
+            Some(info) => {
+                let error = PolychemError::modification_already_localized(modification, &info);
+                self.modifications.insert(modification, info);
+                Err(error)
+            }
+            None => Err(PolychemError::modification_not_in_polymer(modification)),
+        }?;
+
         match kind {
+            // NOTE: We're only extracting the `abbr` since we'll need to perform another lookup to check for legal
+            // targets anyways, and we may also need to create more than one modification if the original, unlocalized
+            // modification had a multiplier greater than one!
             AnyMod::Named(kind) => self.modify_only_groups(kind.abbr(), residue, multiplier.into()),
             AnyMod::Offset(kind) => {
                 let modification = Modification::new(multiplier, kind);
@@ -238,10 +259,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         formula: impl AsRef<str>,
         residue: ResidueId,
     ) -> Result<ModificationId> {
-        let multiplier = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
-        let composition = ChemicalComposition::new(self.atomic_db(), formula)?;
-
-        let modification = Modification::new(multiplier, OffsetMod::new(kind, composition));
+        let modification = self.build_offset_mod(kind, multiplier, formula)?;
         self.offset_with_modification(modification, residue)
     }
 }
@@ -249,6 +267,30 @@ impl<'a, 'p> Polymer<'a, 'p> {
 // Private Methods =====================================================================================================
 
 impl<'a, 'p> Polymer<'a, 'p> {
+    fn build_offset_mod(
+        &self,
+        kind: OffsetKind,
+        multiplier: u32,
+        formula: impl AsRef<str>,
+    ) -> Result<Modification<OffsetMod<'a>>> {
+        let multiplier = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
+        let composition = ChemicalComposition::new(self.atomic_db(), formula)?;
+        let modification = Modification::new(multiplier, OffsetMod::new(kind, composition));
+
+        Ok(modification)
+    }
+
+    fn unlocalized_modification(
+        &mut self,
+        modification: impl Into<AnyModification<'a, 'p>>,
+    ) -> ModificationId {
+        let id = ModificationId(self.polymerizer_state.next_id());
+        let modification_info = ModificationInfo::Unlocalized(modification.into());
+        self.modifications.insert(id, modification_info);
+
+        id
+    }
+
     fn bond_with_accessors<A>(
         &mut self,
         abbr: impl AsRef<str>,
@@ -453,8 +495,7 @@ mod tests {
 
     use crate::{
         polymers::polymerizer::Polymerizer, testing_tools::assert_miette_snapshot, AverageMz,
-        ChargedParticle, ChemicalComposition, FunctionalGroup, ModificationId, MonoisotopicMz,
-        OffsetKind, OffsetMod, ResidueId,
+        ChargedParticle, FunctionalGroup, ModificationId, MonoisotopicMz, OffsetKind, ResidueId,
     };
 
     use super::*;
@@ -682,11 +723,52 @@ mod tests {
             [amidation, double_amidation, calcium].map(|id| polymer.modification(id).unwrap());
         assert_ron_snapshot!(modification_refs, {
             ".**.lost, .**.gained" => "<FORMULA>",
-            ".**.isotopes" => insta::sorted_redaction()
         });
+
+        let zero_multiplier = polymer.new_modification(0, "Ac");
+        assert_miette_snapshot!(zero_multiplier);
 
         let nonexistent_modification = polymer.new_modification(1, "?");
         assert_miette_snapshot!(nonexistent_modification);
+
+        let missing_modification = polymer.modification(ModificationId(8));
+        assert_eq!(missing_modification, None);
+    }
+
+    #[test]
+    fn new_offset() {
+        let mut polymer = POLYMERIZER.new_polymer();
+
+        let water_loss = polymer.new_offset(OffsetKind::Remove, 1, "H2O").unwrap();
+        assert_eq!(water_loss, ModificationId(0));
+        assert_polymer!(polymer, -18.01056468403, -18.01528643242983260);
+
+        let double_water_gain = polymer.new_offset(OffsetKind::Add, 2, "H2O").unwrap();
+        assert_eq!(double_water_gain, ModificationId(1));
+        assert_polymer!(polymer, 18.01056468403, 18.01528643242983260);
+
+        let triple_ammonium_loss = polymer.new_offset(OffsetKind::Remove, 3, "NH3+p").unwrap();
+        assert_eq!(triple_ammonium_loss, ModificationId(2));
+        assert_polymer!(
+            polymer,
+            -36.090912019193,
+            -36.09811938827255755,
+            -3,
+            -12.030304006397666666666666667,
+            -12.032706462757519183333333333
+        );
+
+        let modification_refs = [water_loss, double_water_gain, triple_ammonium_loss]
+            .map(|id| polymer.modification(id).unwrap());
+        assert_ron_snapshot!(modification_refs, {
+            ".**.composition" => "<FORMULA>",
+        });
+
+        let zero_multiplier = polymer.new_offset(OffsetKind::Remove, 0, "H");
+        assert_miette_snapshot!(zero_multiplier);
+
+        let invalid_composition = polymer.new_offset(OffsetKind::Add, 1, "H[2]O");
+        assert_miette_snapshot!(invalid_composition);
 
         let missing_modification = polymer.modification(ModificationId(8));
         assert_eq!(missing_modification, None);
@@ -896,38 +978,137 @@ mod tests {
     }
 
     #[test]
-    fn modify_residue() {
+    #[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
+    fn localize_modification() {
         let mut polymer = POLYMERIZER.new_polymer();
         let murnac = polymer.new_residue("m").unwrap();
         assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
 
-        macro_rules! assert_modification_series {
-            ($($modification:expr => $mass:literal),+ $(,)?) => {
-                $(
-                    polymer
-                        .modify_residue($modification, murnac)
-                        .unwrap();
-                    assert_eq!(polymer.monoisotopic_mass(), MonoisotopicMass(dec!($mass)));
-                )+
-            };
+        let anhydro = polymer.new_modification(1, "Anh").unwrap();
+        assert_eq!(anhydro, ModificationId(1));
+        assert_polymer!(polymer, 275.10050188933, 275.25562536470969725);
+        for (_, group_state) in polymer.residue(murnac).unwrap().functional_groups() {
+            assert!(group_state.is_free());
         }
 
-        assert_modification_series!(
-            NamedMod::new(&POLYMER_DB, "Anh").unwrap() => 275.10050188933,
-            OffsetMod::new(OffsetKind::Remove, ChemicalComposition::new(&ATOMIC_DB, "2p").unwrap()) => 273.085948956088,
-            AnyMod::named(&POLYMER_DB, "Ac").unwrap() => 315.096513640118,
-            AnyMod::offset(OffsetKind::Add, ChemicalComposition::new(&ATOMIC_DB, "C2H2O").unwrap()) => 357.107078324148,
-            Modification::new(Count::new(1).unwrap(), NamedMod::new(&POLYMER_DB, "Met").unwrap()) => 371.122728388608,
-            Modification::new(
-                Count::new(4).unwrap(),
-                OffsetMod::new(OffsetKind::Remove, ChemicalComposition::new(&ATOMIC_DB, "H2O").unwrap())
-            ) => 299.080469652488,
-            Modification::new(Count::new(1).unwrap(), AnyMod::named(&POLYMER_DB, "Ca").unwrap()) => 338.034686889048870,
-            Modification::new(
-                Count::new(5).unwrap(),
-                AnyMod::offset(OffsetKind::Add, ChemicalComposition::new(&ATOMIC_DB, "[99Tc]").unwrap())
-            ) => 832.565940889048870,
+        let moved_anhydro = polymer.localize_modification(anhydro, murnac).unwrap();
+        assert_eq!(moved_anhydro, vec![ModificationId(2)]);
+        assert_eq!(polymer.modification(anhydro), None);
+        assert_polymer!(polymer, 275.10050188933, 275.25562536470969725);
+        let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
+        assert!(polymer
+            .residue(murnac)
+            .unwrap()
+            .group_state(&reducing_end)
+            .unwrap()
+            .is_modified());
+
+        let triple_calcium = polymer.new_modification(3, "Ca").unwrap();
+        assert_eq!(triple_calcium, ModificationId(3));
+        assert_polymer!(
+            polymer,
+            391.963153599012610,
+            392.46457201844549725,
+            3,
+            130.65438453300420333333333333,
+            130.82152400614849908333333333
         );
+        for (&group, group_state) in polymer.residue(murnac).unwrap().functional_groups() {
+            if group != reducing_end {
+                assert!(group_state.is_free());
+            }
+        }
+
+        let moved_triple_calcium = polymer
+            .localize_modification(triple_calcium, murnac)
+            .unwrap();
+        assert_eq!(
+            moved_triple_calcium,
+            vec![ModificationId(4), ModificationId(5), ModificationId(6)]
+        );
+        assert_eq!(polymer.modification(triple_calcium), None);
+        assert_polymer!(
+            polymer,
+            391.963153599012610,
+            392.46457201844549725,
+            3,
+            130.65438453300420333333333333,
+            130.82152400614849908333333333
+        );
+        let n_acetyl = FunctionalGroup::new("Acetyl", "Secondary Amide");
+        for (&group, group_state) in polymer.residue(murnac).unwrap().functional_groups() {
+            if group != n_acetyl {
+                assert!(group_state.is_modified());
+            }
+        }
+
+        let phosphate = polymer.new_offset(OffsetKind::Add, 1, "PO4+3e").unwrap();
+        assert_eq!(phosphate, ModificationId(7));
+        assert_polymer!(polymer, 486.918219815439805, 487.43759945386580385);
+        assert_eq!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .offset_modifications()
+                .count(),
+            0
+        );
+
+        let moved_phosphate = polymer.localize_modification(phosphate, murnac).unwrap();
+        assert_eq!(moved_phosphate, vec![ModificationId(8)]);
+        assert_eq!(polymer.modification(phosphate), None);
+        assert_polymer!(polymer, 486.918219815439805, 487.43759945386580385);
+        assert_eq!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .offset_modifications()
+                .count(),
+            1
+        );
+
+        let quadruple_hydrogen_loss = polymer.new_offset(OffsetKind::Remove, 4, "H").unwrap();
+        assert_eq!(quadruple_hydrogen_loss, ModificationId(9));
+        assert_polymer!(polymer, 482.886919686519805, 483.40583643764269445);
+        assert_eq!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .offset_modifications()
+                .count(),
+            1
+        );
+
+        let moved_quadruple_hydrogen_loss = polymer
+            .localize_modification(quadruple_hydrogen_loss, murnac)
+            .unwrap();
+        assert_eq!(moved_quadruple_hydrogen_loss, vec![ModificationId(10)]);
+        assert_eq!(polymer.modification(quadruple_hydrogen_loss), None);
+        assert_polymer!(polymer, 482.886919686519805, 483.40583643764269445);
+        assert_eq!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .offset_modifications()
+                .count(),
+            2
+        );
+
+        let deleted_modification = polymer.localize_modification(phosphate, murnac);
+        assert_miette_snapshot!(deleted_modification);
+        // Make sure the polymer remains untouched!
+        assert_polymer!(polymer, 482.886919686519805, 483.40583643764269445);
+
+        let already_localized_offset = polymer.localize_modification(moved_phosphate[0], murnac);
+        assert_miette_snapshot!(already_localized_offset);
+        // Make sure the polymer remains untouched!
+        assert_polymer!(polymer, 482.886919686519805, 483.40583643764269445);
+
+        let already_localized_modification =
+            polymer.localize_modification(moved_anhydro[0], murnac);
+        assert_miette_snapshot!(already_localized_modification);
+        // Make sure the polymer remains untouched!
+        assert_polymer!(polymer, 482.886919686519805, 483.40583643764269445);
     }
 
     #[test]

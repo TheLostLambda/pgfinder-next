@@ -1,0 +1,8 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: already_localized_modification
+expression: out
+---
+  × failed to localize modification 2 since it was already localized as a
+  │ named modification
+  help: to localize a modification, it must start unlocalized

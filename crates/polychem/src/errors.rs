@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use crate::{
     parsers::errors::CompositionError, polymers::errors::FindFreeGroupsError, FunctionalGroup,
-    ResidueId,
+    ModificationId, ModificationInfo, ResidueId,
 };
 
 pub type Result<T, E = Box<PolychemError>> = std::result::Result<T, E>;
@@ -40,6 +40,12 @@ pub enum PolychemError {
     #[diagnostic(help("this residue may belong to another polymer, or may have been previously deleted from this one"))]
     ResidueNotInPolymer { id: ResidueId },
 
+    #[error("modification {id} could not be found in the current polymer")]
+    #[diagnostic(help(
+        "this modification may belong to another polymer, or may have been previously deleted from this one"
+    ))]
+    ModificationNotInPolymer { id: ModificationId },
+
     #[error(
         "failed to form {name} bond between residue {donor_id} ({donor_name}) and residue {acceptor_id} \
         ({acceptor_name}) due to an issue with the {donor_or_acceptor}"
@@ -66,8 +72,20 @@ pub enum PolychemError {
         source: FindFreeGroupsError,
     },
 
+    #[error(
+        "failed to localize modification {modification_id} since it was already localized as {modification_kind} \
+        modification"
+    )]
+    #[diagnostic(help("to localize a modification, it must start unlocalized"))]
+    ModificationAlreadyLocalized {
+        modification_id: ModificationId,
+        modification_kind: String,
+    },
+
     // FIXME: I should think up a way to have offset modfication errors reported better in general... See 41e28b6
-    #[error("attempted to apply an offset modification with a multiplier of zero, but multipliers must be non-zero")]
+    #[error(
+        "attempted to construct an offset modification with a multiplier of zero, but multipliers must be non-zero"
+    )]
     ZeroMultiplier,
 }
 
@@ -109,6 +127,11 @@ impl PolychemError {
         Self::ResidueNotInPolymer { id }
     }
 
+    #[must_use]
+    pub(crate) const fn modification_not_in_polymer(id: ModificationId) -> Self {
+        Self::ModificationNotInPolymer { id }
+    }
+
     pub(crate) fn bond(
         name: &str,
         donor_id: ResidueId,
@@ -148,6 +171,18 @@ impl PolychemError {
             residue_id,
             residue_name,
             source,
+        }
+    }
+
+    pub(crate) fn modification_already_localized(
+        modification_id: ModificationId,
+        modification_info: &ModificationInfo,
+    ) -> Self {
+        let modification_kind = modification_info.to_string();
+
+        Self::ModificationAlreadyLocalized {
+            modification_id,
+            modification_kind,
         }
     }
 }

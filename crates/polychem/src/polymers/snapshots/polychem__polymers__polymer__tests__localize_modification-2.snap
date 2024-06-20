@@ -1,0 +1,8 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: already_localized_offset
+expression: out
+---
+  × failed to localize modification 8 since it was already localized as an
+  │ offset modification
+  help: to localize a modification, it must start unlocalized
