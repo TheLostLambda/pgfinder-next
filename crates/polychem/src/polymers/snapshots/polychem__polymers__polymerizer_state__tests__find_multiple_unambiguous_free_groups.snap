@@ -1,0 +1,8 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: too_few_hydroxyl_groups
+expression: out
+---
+  × too few functional groups on residue 0 matched the target
+  │ "Hydroxyl" (3/4): "Hydroxyl" at="6-Position", "Hydroxyl" at="Nonreducing
+  │ End", and "Hydroxyl" at="Reducing End"

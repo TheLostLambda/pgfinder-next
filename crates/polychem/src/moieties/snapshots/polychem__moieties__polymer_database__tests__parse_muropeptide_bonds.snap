@@ -1,0 +1,87 @@
+---
+source: crates/polychem/src/moieties/polymer_database.rs
+expression: bonds.unwrap()
+---
+{
+  "Gly": BondDescription(
+    name: "Glycosidic",
+    lost: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
+    gained: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
+    from: Target(
+      group: "Hydroxyl",
+      location: Some("Reducing End"),
+      residue: None,
+    ),
+    to: Target(
+      group: "Hydroxyl",
+      location: Some("Nonreducing End"),
+      residue: None,
+    ),
+  ),
+  "Stem": BondDescription(
+    name: "MurNAc -> Stem Peptide",
+    lost: ChemicalComposition(
+      chemical_formula: [
+        (Element(
+          symbol: "H",
+          name: "Hydrogen",
+          mass_number: None,
+          isotopes: {
+            MassNumber(1): Isotope(
+              relative_mass: Mass("1.00782503223"),
+              abundance: Some(Abundance("0.999885")),
+            ),
+            MassNumber(2): Isotope(
+              relative_mass: Mass("2.01410177812"),
+              abundance: Some(Abundance("0.000115")),
+            ),
+            MassNumber(3): Isotope(
+              relative_mass: Mass("3.0160492779"),
+              abundance: None,
+            ),
+          },
+        ), Count(2)),
+        (Element(
+          symbol: "O",
+          name: "Oxygen",
+          mass_number: None,
+          isotopes: {
+            MassNumber(16): Isotope(
+              relative_mass: Mass("15.99491461957"),
+              abundance: Some(Abundance("0.99757")),
+            ),
+            MassNumber(17): Isotope(
+              relative_mass: Mass("16.99913175650"),
+              abundance: Some(Abundance("0.00038")),
+            ),
+            MassNumber(18): Isotope(
+              relative_mass: Mass("17.99915961286"),
+              abundance: Some(Abundance("0.00205")),
+            ),
+          },
+        ), Count(1)),
+      ],
+      particle_offset: None,
+    ),
+    gained: ChemicalComposition(
+      chemical_formula: [],
+      particle_offset: None,
+    ),
+    from: Target(
+      group: "Carboxyl",
+      location: Some("Lactyl Ether"),
+      residue: Some("N-Acetylmuramic Acid"),
+    ),
+    to: Target(
+      group: "Amino",
+      location: Some("N-Terminal"),
+      residue: None,
+    ),
+  ),
+}

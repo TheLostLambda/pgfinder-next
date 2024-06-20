@@ -1,20 +1,20 @@
 bonds {
-    Glycosidic {
+    Gly "Glycosidic" {
         from "Hydroxyl" at="Reducing End"
         to "Hydroxyl" at="Nonreducing End"
         lost "H2O"
     }
-    Peptide {
+    Pep "Peptide" {
         from "Carboxyl" at="C-Terminal"
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
-    Stem {
+    Stem "MurNAc -> Stem Peptide" {
         from "Carboxyl" at="Lactyl Ether" of="N-Acetylmuramic Acid"
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
-    Crosslink {
+    Link "Stem Peptide Crosslink" {
         from "Carboxyl" at="C-Terminal"
         to "Amino"
         lost "H2O"
@@ -73,6 +73,9 @@ residues {
     Monosaccharide "m" "N-Acetylmuramic Acid" {
         composition "C11H19NO8"
         functional-group "Carboxyl" at="Lactyl Ether"
+    }
+    Monosaccharide "x" "Unknown Monosaccharide" {
+        composition null
     }
 
     AminoAcid "A" "Alanine" {

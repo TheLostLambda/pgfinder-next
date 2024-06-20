@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/moieties/named_mod.rs
+description: potassium
+expression: out
+---
+  × the modification "K" could not be found in the supplied polymer database

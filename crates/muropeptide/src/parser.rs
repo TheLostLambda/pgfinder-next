@@ -1,65 +1,124 @@
+use std::cell::RefCell;
+
 use miette::Diagnostic;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, alphanumeric1, char, space0},
-    combinator::{opt, recognize},
+    character::complete::{alpha1, alphanumeric1, char},
+    combinator::{cut, map, opt, recognize},
     error::ErrorKind,
-    multi::{many0, separated_list1},
-    sequence::{delimited, pair},
+    multi::{many0, many1},
+    sequence::{pair, preceded, terminated},
     IResult,
 };
 use nom_miette::{map_res, wrap_err, FromExternalError, LabeledErrorKind, LabeledParseError};
 use polychem::{
-    parsers::{errors::PolychemErrorKind, lowercase, modification, uppercase},
-    polymerizer::Polymerizer,
-    AnyModification, PolychemError,
+    errors::PolychemError,
+    parsers::{
+        errors::PolychemErrorKind,
+        primitives::{count, lowercase, uppercase},
+    },
+    Count, ModificationId, Polymer,
 };
 use thiserror::Error;
 
 use crate::{AminoAcid, LateralChain, Monomer, Monosaccharide, UnbranchedAminoAcid};
 
+// FIXME: Need to think about if these should really live in another KDL config?
+const PEPTIDE_BOND: &str = "Pep";
+const GLYCOSIDIC_BOND: &str = "Gly";
+const STEM_BOND: &str = "Stem";
+
+// FIXME: A horrible hack that's needed to specify the lifetimes captured by `impl FnMut(...) -> ...` correctly. Once
+// Rust 2024 is stabilized, however, this hack can be removed. Keep an eye on:
+// https://github.com/rust-lang/rust/issues/117587
+// FIXME: Make private again
+pub trait Captures<U> {}
+impl<T: ?Sized, U> Captures<U> for T {}
+
 // FIXME: Paste all of these EBNF comments into another file and make sure they are valid!
 /// Monomer = Glycan , [ "-" , Peptide ] | Peptide ;
-fn monomer<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Monomer<'a>> {
-    |_| todo!()
+// FIXME: Make private again
+pub fn monomer<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<Monomer> + Captures<(&'c (), &'a (), &'p ())> {
+    let optional_peptide = opt(preceded(char('-'), cut(peptide(polymer))));
+    let glycan_and_peptide = map_res(
+        pair(glycan(polymer), optional_peptide),
+        |(glycan, peptide)| {
+            if let Some(peptide) = peptide {
+                // SAFETY: Both the `glycan` and `peptide` parsers ensure at least one residue is present, so `.last()` and
+                // `.first()` will never return `None`!
+                let donor = *glycan.last().unwrap();
+                let acceptor = *peptide.first().unwrap();
+
+                polymer
+                    .borrow_mut()
+                    .bond_residues(STEM_BOND, donor, acceptor)?;
+                Ok(Monomer { glycan, peptide })
+            } else {
+                Ok(Monomer {
+                    glycan,
+                    peptide: Vec::new(),
+                })
+            }
+        },
+    );
+
+    let just_peptide = map(peptide(polymer), |peptide| Monomer {
+        glycan: Vec::new(),
+        peptide,
+    });
+
+    let parser = alt((glycan_and_peptide, just_peptide));
+    // FIXME: Add a `map_res` wrapping this final parser
+    parser
 }
 
 // =
 
 /// Glycan = { Monosaccharide }- ;
-fn glycan<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide<'a>>> {
-    |_| todo!()
+fn glycan<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide>> + Captures<(&'c (), &'a (), &'p ())> {
+    let parser = many1(monosaccharide(polymer));
+    map_res(parser, |residues| {
+        let _ = polymer
+            .borrow_mut()
+            .bond_chain(GLYCOSIDIC_BOND, &residues)?;
+        Ok(residues)
+    })
 }
 
+// FIXME: This is using the wrong amino acid parser — needs lateral chain support!
 /// Peptide = { Amino Acid }- ;
-fn peptide<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid<'a>>> {
-    |_| todo!()
+fn peptide<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<UnbranchedAminoAcid>> + Captures<(&'c (), &'a (), &'p ())>
+{
+    // FIXME: Change to branched amino acid!
+    let parser = many1(unbranched_amino_acid(polymer));
+    map_res(parser, |residues| {
+        let _ = polymer.borrow_mut().bond_chain(PEPTIDE_BOND, &residues)?;
+        Ok(residues)
+    })
 }
 
 // =
 
-// FIXME: Don't know if it's a great idea to tie together the lifetimes of the chemical databases and the polymerizer
-// instance here? Everything is using 'a...
 // FIXME: Add modifications
 /// Monosaccharide = lowercase , [ Modifications ] ;
-fn monosaccharide<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide<'a>> {
+fn monosaccharide<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = recognize(lowercase);
-    map_res(parser, |abbr| polymerizer.residue(abbr))
+    map_res(parser, |abbr| polymer.borrow_mut().new_residue(abbr))
 }
 
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
-fn amino_acid<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<AminoAcid<'a>> {
+fn amino_acid<'a, 'p, 's>(
+    _polymer: &mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<AminoAcid> {
     |_| todo!()
 }
 
@@ -67,39 +126,33 @@ fn amino_acid<'a, 's>(
 
 /// Modifications = "(" , Any Modification ,
 ///   { { " " } , "," , { " " } , Any Modification } , ")" ;
-fn modifications<'a, 's>(
-    polymerizer: &Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<AnyModification<'a, 'a>>> {
-    let separator = delimited(space0, char(','), space0);
-    delimited(
-        char('('),
-        separated_list1(separator, modification::any(polymerizer, identifier)),
-        char(')'),
-    )
+fn modifications<'a, 'p, 's>(
+    _polymer: &mut Polymer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<Vec<ModificationId>> {
+    // let separator = delimited(space0, char(','), space0);
+    // delimited(
+    //     char('('),
+    //     separated_list1(separator, modifications::any(polymer, identifier)),
+    //     char(')'),
+    // )
+    |_| todo!()
 }
 
-// FIXME: Make private again!
-// FIXME: Switch to a more efficient modification application API
-/// Unbranched Amino Acid = uppercase , [ Modifications ] ;
-pub fn unbranched_amino_acid<'a, 's>(
-    polymerizer: &'a mut Polymerizer<'a, 'a>,
-) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid<'a>> {
-    let parser = pair(recognize(uppercase), opt(modifications(polymerizer)));
-    map_res(parser, |(abbr, modifications)| {
-        let mut amino_acid = polymerizer.residue(abbr)?;
-        for modification in modifications.into_iter().flatten() {
-            polymerizer.modify(modification, &mut amino_acid)?;
-        }
-        Ok(amino_acid)
-    })
+// FIXME: Add modifications
+/// Unbranched Amino Acid = [ lowercase ] , uppercase , [ Modifications ] ;
+fn unbranched_amino_acid<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid> + Captures<(&'c (), &'a (), &'p ())> {
+    let parser = recognize(preceded(opt(lowercase), uppercase));
+    map_res(parser, |abbr| polymer.borrow_mut().new_residue(abbr))
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
 #[allow(clippy::doc_link_with_quotes)]
 /// Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
 ///   { Unbranched Amino Acid }- , "]" ;
-fn lateral_chain<'a, 's>(
-    _polymerizer: &mut Polymerizer<'a, 'a>,
+fn lateral_chain<'a, 'p, 's>(
+    _polymer: &mut Polymer<'a, 'p>,
 ) -> impl FnMut(&'s str) -> ParseResult<LateralChain> {
     |_| todo!()
 }
@@ -111,6 +164,36 @@ fn identifier(i: &str) -> ParseResult<&str> {
     // PERF: Could maybe avoid allocations by using `many0_count` instead, but needs benchmarking
     let parser = recognize(pair(alpha1, many0(alt((alphanumeric1, tag("_"))))));
     wrap_err(parser, MuropeptideErrorKind::ExpectedIdentifier)(i)
+}
+
+// /// Any Modification = Named Modification | Offset Modification
+// pub fn any_modification<'a, 'p, 's, K>(
+//     polymer: &mut Polymer<'a, 'p>,
+// ) -> impl FnMut(&'s str) -> ParseResult<ModificationId> {
+//     alt((named_modification(polymer), offset_modification(polymer)))
+// }
+
+// // FIXME: I probably need to add a lot of `wrap_err`s around these parsers!
+// /// Named Modification = [ Multiplier ] , Identifier
+// pub fn named_modification<'a, 'p, 's, K>(
+//     _polymer: &mut Polymer<'a, 'p>,
+// ) -> impl FnMut(&'s str) -> ParseResult<ModificationId> {
+//     |_| todo!()
+// }
+
+// /// Offset Modification = Offset Kind , [ Multiplier ] ,
+// ///   Chemical Composition ;
+// pub fn offset_modification<'a, 's, K>(
+//     _polymer: &mut Polymer<'a, '_>,
+// ) -> impl FnMut(&'s str) -> ParseResult<ModificationId> {
+//     |_| todo!()
+// }
+
+/// Multiplier = Count , "x" ;
+fn multiplier(i: &str) -> ParseResult<Count> {
+    let mut parser = terminated(count, char('x'));
+    // FIXME: Add error handling / reporting!
+    parser(i)
 }
 
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideErrorKind>>;
@@ -175,101 +258,30 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 #[cfg(test)]
 mod tests {
     use once_cell::sync::Lazy;
-    use polychem::{AtomicDatabase, Charge, Charged, Massive, PolymerDatabase};
+    use polychem::{AtomicDatabase, Massive, PolymerDatabase, Polymerizer};
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
 
     use super::*;
 
     static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-
     static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "polymer_database.kdl",
-            include_str!("../data/polymer_database.kdl"),
+            include_str!("../tests/data/polymer_database.kdl"),
         )
         .unwrap()
     });
 
+    static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+
+    #[ignore]
     #[test]
     #[allow(clippy::cognitive_complexity)]
     fn test_modifications() {
-        let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut modifications = modifications(&polymerizer);
-        macro_rules! assert_offset_mz {
-            ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
-                let (rest, modification) = modifications($input).unwrap();
-                assert_eq!(rest, $output);
-                let net_mass: Decimal = modification.iter().map(|m| m.monoisotopic_mass()).sum();
-                assert_eq!(net_mass, $mass);
-                let net_charge: Charge = modification.iter().map(|m| m.charge()).sum();
-                assert_eq!(net_charge, $charge);
-            };
-        }
-        // Valid Modifications
-        assert_offset_mz!("(-H2O)", "", dec!(-18.01056468403), 0);
-        assert_offset_mz!("(+2xH2O)", "", dec!(36.02112936806), 0);
-        assert_offset_mz!("(-2p)", "", dec!(-2.014552933242), -2);
-        assert_offset_mz!("(-3xC2H2O-2e)", "", dec!(-126.02840257263561), -6);
-        assert_offset_mz!("(+[37Cl]5-2p)", "", dec!(182.814960076758), -2);
-        assert_offset_mz!("(Red)", "", dec!(2.01565006446), 0);
-        assert_offset_mz!("(Anh)", "", dec!(-18.01056468403), 0);
-        assert_offset_mz!("(1xAm)", "", dec!(-0.98401558291), 0);
-        assert_offset_mz!("(2xRed)", "", dec!(4.03130012892), 0);
-        assert_offset_mz!("(-OH, +NH2)", "", dec!(-0.98401558291), 0);
-        assert_offset_mz!("(-H2, +Ca)", "", dec!(37.94694079854), 0);
-        assert_offset_mz!("(Anh, +H2O)", "", dec!(0), 0);
-        assert_offset_mz!("(Anh,+H2O)", "", dec!(0), 0);
-        assert_offset_mz!("(Anh   ,+H2O)", "", dec!(0), 0);
-        assert_offset_mz!("(Anh  ,  +H2O)", "", dec!(0), 0);
-        assert_offset_mz!("(2xAnh, +3xH2O)", "", dec!(18.01056468403), 0);
-        assert_offset_mz!("(Anh, Anh, +3xH2O)", "", dec!(18.01056468403), 0);
-        // There is a super small mass defect (13.6 eV, or ~1e-8 u) stored in the binding energy between a proton and
-        // electon — that's why this result is slightly different from the one above!
-        assert_offset_mz!("(-2p, +Ca-2e)", "", dec!(37.946940769939870), 0);
-        assert_offset_mz!("(+2p, -2p, +Ca-2e)", "", dec!(39.961493703181870), 2);
-        // Invalid Modifications
-        assert!(modifications(" ").is_err());
-        assert!(modifications("H2O").is_err());
-        assert!(modifications("(-H2O").is_err());
-        assert!(modifications("(+0xH2O)").is_err());
-        assert!(modifications("(2xH2O)").is_err());
-        assert!(modifications("(-2x3xH2O)").is_err());
-        assert!(modifications("(-2x+H2O)").is_err());
-        assert!(modifications("(+2[2H])").is_err());
-        assert!(modifications("(-[H+p]O)").is_err());
-        assert!(modifications("(+NH2[100Tc])").is_err());
-        assert!(modifications("( H2O)").is_err());
-        assert!(modifications("(1)").is_err());
-        assert!(modifications("(9999)").is_err());
-        assert!(modifications("(0)").is_err());
-        assert!(modifications("(00145)").is_err());
-        assert!(modifications("([H])").is_err());
-        assert!(modifications("(Øof)").is_err());
-        assert!(modifications("(-Ac)").is_err());
-        assert!(modifications("(_Ac)").is_err());
-        assert!(modifications("(+Am)").is_err());
-        assert!(modifications("(-2xAm)").is_err());
-        assert!(modifications("((Am))").is_err());
-        assert!(modifications("(Anh +H2O)").is_err());
-        assert!(modifications("(Anh; +H2O)").is_err());
-        // Non-Existent Modifications
-        assert!(modifications("(Blue)").is_err());
-        assert!(modifications("(Hydro)").is_err());
-        assert!(modifications("(1xAm2)").is_err());
-        assert!(modifications("(2xR_ed)").is_err());
-        // Multiple Modifications
-        assert_offset_mz!("(+[37Cl]5-2p)10", "10", dec!(182.814960076758), -2);
-        assert_offset_mz!("(+[2H]2O)*H2O", "*H2O", dec!(20.02311817581), 0);
-        assert_offset_mz!("(+NH2){100Tc", "{100Tc", dec!(16.01872406889), 0);
-        assert_offset_mz!("(+C11H12N2O2) H2O", " H2O", dec!(204.08987763476), 0);
-        assert_offset_mz!(
-            "(2xAnh, +3xH2O)AA=gm-AEJA",
-            "AA=gm-AEJA",
-            dec!(18.01056468403),
-            0
-        );
+        // TODO: Restore from git!
+        todo!();
     }
 
     #[test]
@@ -305,17 +317,52 @@ mod tests {
     }
 
     #[test]
+    fn test_multiplier() {
+        macro_rules! assert_multiplier {
+            ($input:literal, $output:literal, $count:literal) => {
+                let (rest, count) = multiplier($input).unwrap();
+                assert_eq!((rest, count.into()), ($output, $count));
+            };
+        }
+
+        // Valid Multipliers
+        assert_multiplier!("1x", "", 1);
+        assert_multiplier!("10x", "", 10);
+        assert_multiplier!("422x", "", 422);
+        assert_multiplier!("9999x", "", 9999);
+        // Invalid Multipliers
+        assert!(multiplier("1").is_err());
+        assert!(multiplier("10").is_err());
+        assert!(multiplier("422").is_err());
+        assert!(multiplier("9999").is_err());
+        assert!(multiplier("0").is_err());
+        assert!(multiplier("01").is_err());
+        assert!(multiplier("00145").is_err());
+        assert!(multiplier("H").is_err());
+        assert!(multiplier("p").is_err());
+        assert!(multiplier("+H").is_err());
+        assert!(multiplier("[H]").is_err());
+        // Multiple Multipliers
+        assert_multiplier!("1xOH", "OH", 1);
+        assert_multiplier!("42xHeH", "HeH", 42);
+    }
+
+    // FIXME: Unfininshed! Needs modification support — same with unbranched_amino_acid!
+    #[test]
     fn test_monosaccharide() {
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut monosaccharide = monosaccharide(&mut polymerizer);
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut monosaccharide = monosaccharide(&polymer);
         macro_rules! assert_monosaccharide_name {
             ($input:literal, $output:literal, $name:literal) => {
+                let (rest, id) = monosaccharide($input).unwrap();
                 assert_eq!(
-                    monosaccharide($input).map(|(r, e)| (r, e.name())),
-                    Ok(($output, $name))
+                    (rest, polymer.borrow().residue(id).unwrap().name()),
+                    ($output, $name)
                 );
             };
         }
+
         // Valid Monosaccharides
         assert_monosaccharide_name!("g", "", "N-Acetylglucosamine");
         assert_monosaccharide_name!("m", "", "N-Acetylmuramic Acid");
@@ -335,35 +382,380 @@ mod tests {
     }
 
     // FIXME: Unfininshed! Needs modification support — same with monosaccharide!
-    #[ignore]
     #[test]
     fn test_unbranched_amino_acid() {
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut unbranched_amino_acid = unbranched_amino_acid(&mut polymerizer);
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut unbranched_amino_acid = unbranched_amino_acid(&polymer);
         macro_rules! assert_unbranched_aa_name {
             ($input:literal, $output:literal, $name:literal) => {
+                let (rest, id) = unbranched_amino_acid($input).unwrap();
                 assert_eq!(
-                    unbranched_amino_acid($input).map(|(r, e)| (r, e.name())),
-                    Ok(($output, $name))
+                    (rest, polymer.borrow().residue(id).unwrap().name()),
+                    ($output, $name)
                 );
             };
         }
+
         // Valid Unbranched Amino Acids
-        assert_unbranched_aa_name!("g", "", "N-Acetylglucosamine");
-        assert_unbranched_aa_name!("m", "", "N-Acetylmuramic Acid");
+        assert_unbranched_aa_name!("A", "", "Alanine");
+        assert_unbranched_aa_name!("E", "", "Glutamic Acid");
+        assert_unbranched_aa_name!("J", "", "Diaminopimelic Acid");
+        assert_unbranched_aa_name!("yE", "", "γ-Glutamate");
+        assert_unbranched_aa_name!("eK", "", "ε-Lysine");
         // Invalid Unbranched Amino Acids
-        assert!(unbranched_amino_acid("P").is_err());
-        assert!(unbranched_amino_acid("EP").is_err());
-        assert!(unbranched_amino_acid("1h").is_err());
-        assert!(unbranched_amino_acid("+m").is_err());
-        assert!(unbranched_amino_acid("-g").is_err());
-        assert!(unbranched_amino_acid("[h]").is_err());
+        assert!(unbranched_amino_acid("p").is_err());
+        assert!(unbranched_amino_acid("eP").is_err());
+        assert!(unbranched_amino_acid("1H").is_err());
+        assert!(unbranched_amino_acid("+M").is_err());
+        assert!(unbranched_amino_acid("-G").is_err());
+        assert!(unbranched_amino_acid("[H]").is_err());
         // Non-Existent Unbranched Amino Acids
-        assert!(unbranched_amino_acid("s").is_err());
-        assert!(unbranched_amino_acid("f").is_err());
+        assert!(unbranched_amino_acid("iA").is_err());
+        assert!(unbranched_amino_acid("yK").is_err());
         // Multiple Unbranched Amino Acids
-        assert_unbranched_aa_name!("gm", "m", "N-Acetylglucosamine");
-        assert_unbranched_aa_name!("m-A", "-A", "N-Acetylmuramic Acid");
+        assert_unbranched_aa_name!("AEJA", "EJA", "Alanine");
+        assert_unbranched_aa_name!("EJA", "JA", "Glutamic Acid");
+        assert_unbranched_aa_name!("JA", "A", "Diaminopimelic Acid");
+        assert_unbranched_aa_name!("yEJA", "JA", "γ-Glutamate");
+        assert_unbranched_aa_name!("eK[GGGGG]", "[GGGGG]", "ε-Lysine");
+    }
+
+    // FIXME: Add modification testing!
+    // FIXME: Add lateral chain testing!
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_peptide() {
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_peptide = peptide(&polymer);
+        macro_rules! assert_chain_residues_and_masses {
+            ($input:literal, $output:literal, $residues:expr, $mono_mass:literal, $avg_mass:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, parsed_ids) = peptide(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+
+                let polymer = polymer.borrow();
+                let parsed_ids: Vec<_> = parsed_ids
+                    .into_iter()
+                    .map(|id| polymer.residue(id).unwrap().name())
+                    .collect();
+                let residues = Vec::from($residues);
+                assert_eq!(parsed_ids, residues);
+
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mono_mass));
+                assert_eq!(Decimal::from(polymer.average_mass()), dec!($avg_mass));
+            };
+        }
+
+        // Valid Peptides
+        assert_chain_residues_and_masses!(
+            "AEJA",
+            "",
+            ["Alanine", "Glutamic Acid", "Diaminopimelic Acid", "Alanine"],
+            461.21217759741,
+            461.46756989305707095
+        );
+        assert_chain_residues_and_masses!(
+            "AyEJA",
+            "",
+            ["Alanine", "γ-Glutamate", "Diaminopimelic Acid", "Alanine"],
+            461.21217759741,
+            461.46756989305707095
+        );
+        assert_chain_residues_and_masses!(
+            "AE",
+            "",
+            ["Alanine", "Glutamic Acid"],
+            218.09027155793,
+            218.20748877514586040
+        );
+        assert_chain_residues_and_masses!(
+            "A",
+            "",
+            ["Alanine"],
+            89.04767846918,
+            89.09330602867854225
+        );
+        // Invalid Peptides
+        assert!(err_peptide("y").is_err());
+        assert!(err_peptide("yrE").is_err());
+        assert!(err_peptide("-AEJA").is_err());
+        assert!(err_peptide("[GGGGG]").is_err());
+        assert!(err_peptide("gm-AEJA").is_err());
+        assert!(err_peptide("(Am)").is_err());
+        // Non-Existent Peptide Residues
+        assert!(err_peptide("AEJiA").is_err());
+        assert!(err_peptide("AQyK").is_err());
+        // Multiple Peptides
+        assert_chain_residues_and_masses!(
+            "AE=gm-AEJ",
+            "=gm-AEJ",
+            ["Alanine", "Glutamic Acid"],
+            218.09027155793,
+            218.20748877514586040
+        );
+        assert_chain_residues_and_masses!(
+            "AeeK",
+            "eeK",
+            ["Alanine"],
+            89.04767846918,
+            89.09330602867854225
+        );
+    }
+
+    // FIXME: Add modification testing!
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_glycan() {
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_glycan = glycan(&polymer);
+        macro_rules! assert_chain_residues_and_masses {
+            ($input:literal, $output:literal, $residues:expr, $mono_mass:literal, $avg_mass:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, parsed_ids) = glycan(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+
+                let polymer = polymer.borrow();
+                let parsed_ids: Vec<_> = parsed_ids
+                    .into_iter()
+                    .map(|id| polymer.residue(id).unwrap().name())
+                    .collect();
+                let residues = Vec::from($residues);
+                assert_eq!(parsed_ids, residues);
+
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mono_mass));
+                assert_eq!(Decimal::from(polymer.average_mass()), dec!($avg_mass));
+            };
+        }
+
+        // Valid Glycans
+        assert_chain_residues_and_masses!(
+            "gmgm",
+            "",
+            [
+                "N-Acetylglucosamine",
+                "N-Acetylmuramic Acid",
+                "N-Acetylglucosamine",
+                "N-Acetylmuramic Acid"
+            ],
+            974.37031350523,
+            974.91222678113779720
+        );
+        assert_chain_residues_and_masses!(
+            "gm",
+            "",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            496.19043909463,
+            496.46375660678381490
+        );
+        assert_chain_residues_and_masses!(
+            "g",
+            "",
+            ["N-Acetylglucosamine"],
+            221.08993720530,
+            221.20813124207411765
+        );
+        assert_chain_residues_and_masses!(
+            "m",
+            "",
+            ["N-Acetylmuramic Acid"],
+            293.11106657336,
+            293.27091179713952985
+        );
+        // Invalid Glycans
+        assert!(err_glycan("Y").is_err());
+        assert!(err_glycan("Ygm").is_err());
+        assert!(err_glycan("-AEJA").is_err());
+        assert!(err_glycan("[GGGGG]").is_err());
+        assert!(err_glycan("EA=gm-AEJA").is_err());
+        assert!(err_glycan("(Am)").is_err());
+        // Non-Existent Glycan Residues
+        assert!(err_glycan("y").is_err());
+        assert!(err_glycan("fp").is_err());
+        // Multiple Glycans
+        assert_chain_residues_and_masses!(
+            "gm-AEJ",
+            "-AEJ",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            496.19043909463,
+            496.46375660678381490
+        );
+        assert_chain_residues_and_masses!("xAJgmK", "AJgmK", ["Unknown Monosaccharide"], 0.0, 0.0);
+    }
+
+    // FIXME: Add modification testing!
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    #[allow(clippy::too_many_lines)]
+    fn test_monomer() {
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_monomer = monomer(&polymer);
+        macro_rules! assert_monomer_residues_and_masses {
+            ($input:literal, $output:literal, $glycan:expr, $peptide:expr, $mono_mass:literal, $avg_mass:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, Monomer { glycan, peptide }) = monomer(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+
+                let polymer = polymer.borrow();
+                let glycan: Vec<_> = glycan
+                    .into_iter()
+                    .map(|id| polymer.residue(id).unwrap().name())
+                    .collect();
+                let peptide: Vec<_> = peptide
+                    .into_iter()
+                    .map(|id| polymer.residue(id).unwrap().name())
+                    .collect();
+                assert_eq!(glycan, Vec::<&str>::from($glycan));
+                assert_eq!(peptide, Vec::<&str>::from($peptide));
+
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mono_mass));
+                assert_eq!(Decimal::from(polymer.average_mass()), dec!($avg_mass));
+            };
+        }
+
+        // Valid Monomers
+        assert_monomer_residues_and_masses!(
+            "gmgm",
+            "",
+            [
+                "N-Acetylglucosamine",
+                "N-Acetylmuramic Acid",
+                "N-Acetylglucosamine",
+                "N-Acetylmuramic Acid"
+            ],
+            [],
+            974.37031350523,
+            974.91222678113779720
+        );
+        assert_monomer_residues_and_masses!(
+            "gm",
+            "",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            [],
+            496.19043909463,
+            496.46375660678381490
+        );
+        assert_monomer_residues_and_masses!(
+            "g",
+            "",
+            ["N-Acetylglucosamine"],
+            [],
+            221.08993720530,
+            221.20813124207411765
+        );
+        assert_monomer_residues_and_masses!(
+            "m",
+            "",
+            ["N-Acetylmuramic Acid"],
+            [],
+            293.11106657336,
+            293.27091179713952985
+        );
+        assert_monomer_residues_and_masses!(
+            "AEJA",
+            "",
+            [],
+            ["Alanine", "Glutamic Acid", "Diaminopimelic Acid", "Alanine"],
+            461.21217759741,
+            461.46756989305707095
+        );
+        assert_monomer_residues_and_masses!(
+            "AyEJA",
+            "",
+            [],
+            ["Alanine", "γ-Glutamate", "Diaminopimelic Acid", "Alanine"],
+            461.21217759741,
+            461.46756989305707095
+        );
+        assert_monomer_residues_and_masses!(
+            "AE",
+            "",
+            [],
+            ["Alanine", "Glutamic Acid"],
+            218.09027155793,
+            218.20748877514586040
+        );
+        assert_monomer_residues_and_masses!(
+            "A",
+            "",
+            [],
+            ["Alanine"],
+            89.04767846918,
+            89.09330602867854225
+        );
+        assert_monomer_residues_and_masses!(
+            "gm-AEJA",
+            "",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            ["Alanine", "Glutamic Acid", "Diaminopimelic Acid", "Alanine"],
+            939.39205200801,
+            939.91604006741105325
+        );
+        assert_monomer_residues_and_masses!(
+            "gm-AyEJA",
+            "",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            ["Alanine", "γ-Glutamate", "Diaminopimelic Acid", "Alanine"],
+            939.39205200801,
+            939.91604006741105325
+        );
+        // Invalid Monomers
+        assert!(err_monomer("-AEJA").is_err());
+        assert!(err_monomer("[GGGGG]").is_err());
+        assert!(err_monomer("(Am)").is_err());
+        // Non-Existent Monomer Residues & Bonds
+        assert!(err_monomer("y").is_err());
+        assert!(err_monomer("fp").is_err());
+        assert!(err_monomer("AEJiA").is_err());
+        assert!(err_monomer("AQyK").is_err());
+        assert!(err_monomer("g-A").is_err());
+        // Multiple Monomers
+        assert_monomer_residues_and_masses!(
+            "gm,AEJ",
+            ",AEJ",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            [],
+            496.19043909463,
+            496.46375660678381490
+        );
+        assert_monomer_residues_and_masses!(
+            "xAJgmK",
+            "AJgmK",
+            ["Unknown Monosaccharide"],
+            [],
+            0.0,
+            0.0
+        );
+        assert_monomer_residues_and_masses!(
+            "AE=gm-AEJ",
+            "=gm-AEJ",
+            [],
+            ["Alanine", "Glutamic Acid"],
+            218.09027155793,
+            218.20748877514586040
+        );
+        assert_monomer_residues_and_masses!(
+            "AeeK",
+            "eeK",
+            [],
+            ["Alanine"],
+            89.04767846918,
+            89.09330602867854225
+        );
+        assert_monomer_residues_and_masses!(
+            "gm-AE=gm-AEJA",
+            "=gm-AEJA",
+            ["N-Acetylglucosamine", "N-Acetylmuramic Acid"],
+            ["Alanine", "Glutamic Acid"],
+            696.27014596853,
+            696.65595894949984270
+        );
     }
 
     // FIXME: Add a test that checks all of the errors using `assert_miette_snapshot`! Maybe make that a crate?

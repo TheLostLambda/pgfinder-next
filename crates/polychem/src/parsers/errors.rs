@@ -3,10 +3,13 @@ use nom::{error::ErrorKind, IResult};
 use nom_miette::{FromExternalError, LabeledError, LabeledErrorKind, LabeledParseError};
 use thiserror::Error;
 
-use crate::{atoms::errors::AtomicLookupError, PolychemError};
+use crate::{atoms::errors::AtomicLookupError, errors::PolychemError};
 
 pub(crate) type CompositionError = LabeledError<PolychemErrorKind>;
 pub type ParseResult<'a, O, K = PolychemErrorKind> = IResult<&'a str, O, LabeledParseError<'a, K>>;
+
+pub trait UserErrorKind: From<PolychemErrorKind> + From<ErrorKind> {}
+impl<T: From<PolychemErrorKind> + From<ErrorKind>> UserErrorKind for T {}
 
 // NOTE: Public so that other parsers using `chemical_composition` as a building block can inspect errors — I should
 // consider finding a way to make this more private in the future, or at least mark it as #[non_exhaustive] so that it
@@ -94,10 +97,10 @@ impl LabeledErrorKind for PolychemErrorKind {
             //   1) https://github.com/rust-lang/rust/issues/29641
             //   2) https://github.com/rust-lang/rust/issues/87121
             Self::LookupError(e) => match **e {
-                AtomicLookupError::Element(_) => "element not found",
-                AtomicLookupError::Isotope(_, _, _, _) => "isotope not found",
-                AtomicLookupError::Particle(_) => "particle not found",
-                AtomicLookupError::Abundance(_, _, _) => "no natural abundance",
+                AtomicLookupError::Element(..) => "element not found",
+                AtomicLookupError::Isotope(..) => "isotope not found",
+                AtomicLookupError::Particle(..) => "particle not found",
+                AtomicLookupError::Abundance(..) => "no natural abundance",
             },
             Self::ExpectedUppercase => "expected uppercase",
             Self::ExpectedLowercase => "expected lowercase",

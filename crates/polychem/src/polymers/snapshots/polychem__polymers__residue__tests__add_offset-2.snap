@@ -1,7 +1,0 @@
----
-source: crates/polychem/src/polymers/residue.rs
-description: "alanine.add_offsets(water_loss, 0)"
-expression: out
----
-  × failed to apply the offset modification -0xH2O to residue 0 (Alanine)
-  ╰─▶   × counts must be non-zero

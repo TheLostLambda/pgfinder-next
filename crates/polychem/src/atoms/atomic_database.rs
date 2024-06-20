@@ -1,5 +1,5 @@
 // Standard Library Imports
-use std::{ops::Deref, str::FromStr};
+use std::{num::NonZero, ops::Deref, str::FromStr};
 
 // External Crate Imports
 use ahash::HashMap;
@@ -16,7 +16,7 @@ use rust_decimal::Decimal;
 use thiserror::Error;
 
 // Local Crate Imports
-use crate::{Charge, Isotope, MassNumber};
+use crate::{Abundance, Charge, Isotope, Mass, MassNumber};
 
 // Public API ==========================================================================================================
 
@@ -68,7 +68,7 @@ pub(crate) struct ElementDescription {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub(crate) struct ParticleDescription {
     pub(crate) name: String,
-    pub(crate) mass: Decimal,
+    pub(crate) mass: Mass,
     pub(crate) charge: Charge,
 }
 
@@ -101,13 +101,13 @@ struct ParticleKdl {
     #[knuffel(child, unwrap(argument))]
     mass: DecimalKdl,
     #[knuffel(child, unwrap(argument))]
-    charge: Charge,
+    charge: i64,
 }
 
 #[derive(Debug, Decode)]
 struct IsotopeKdl {
     #[knuffel(argument)]
-    mass_number: MassNumber,
+    mass_number: NonZeroU32Kdl,
     #[knuffel(argument)]
     relative_mass: DecimalKdl,
     #[knuffel(argument)]
@@ -155,6 +155,56 @@ impl<S: ErrorSpan> DecodeScalar<S> for DecimalKdl {
                     value,
                     format!(
                         "expected a decimal number, found {}",
+                        Kind::from(unsupported)
+                    ),
+                ));
+                Ok(Self::default())
+            }
+        }
+    }
+}
+
+// Parsing of KDL Numbers to NonZero<u32> ==============================================================================
+
+#[derive(Debug)]
+struct NonZeroU32Kdl(NonZero<u32>);
+
+impl Default for NonZeroU32Kdl {
+    fn default() -> Self {
+        // SAFETY: 1 isn't 0, so this should never panic
+        Self(NonZero::new(1).unwrap())
+    }
+}
+
+impl<S: ErrorSpan> DecodeScalar<S> for NonZeroU32Kdl {
+    fn type_check(type_name: &Option<Spanned<TypeName, S>>, ctx: &mut Context<S>) {
+        if let Some(t) = type_name {
+            ctx.emit_error(DecodeError::TypeName {
+                span: t.span().clone(),
+                found: Some(t.deref().clone()),
+                expected: ExpectedType::no_type(),
+                rust_type: "NonZero<u32>",
+            });
+        }
+    }
+
+    fn raw_decode(
+        value: &Spanned<Literal, S>,
+        ctx: &mut Context<S>,
+    ) -> Result<Self, DecodeError<S>> {
+        match &**value {
+            Literal::Int(Integer(Radix::Dec, s)) => match s.parse() {
+                Ok(d) => Ok(Self(d)),
+                Err(e) => {
+                    ctx.emit_error(DecodeError::conversion(value, Box::new(e)));
+                    Ok(Self::default())
+                }
+            },
+            unsupported => {
+                ctx.emit_error(DecodeError::unsupported(
+                    value,
+                    format!(
+                        "expected a non-zero, decimal integer, found {}",
                         Kind::from(unsupported)
                     ),
                 ));
@@ -238,10 +288,10 @@ impl From<IsotopeKdl> for IsotopeEntry {
         }: IsotopeKdl,
     ) -> Self {
         (
-            mass_number,
+            MassNumber(mass_number.0),
             Isotope {
-                relative_mass: relative_mass.0,
-                abundance: abundance.map(|a| a.0),
+                relative_mass: Mass(relative_mass.0),
+                abundance: abundance.map(|a| Abundance(a.0)),
             },
         )
     }
@@ -262,8 +312,8 @@ impl From<ParticleKdl> for ParticleEntry {
             symbol.0,
             ParticleDescription {
                 name,
-                mass: mass.0,
-                charge,
+                mass: Mass(mass.0),
+                charge: Charge(charge),
             },
         )
     }
@@ -303,6 +353,12 @@ mod tests {
             db.elements.iter().flat_map(|(_, e)| &e.isotopes).count(),
             356
         );
+    }
+
+    #[test]
+    fn fail_parsing_atomic_database() {
+        let res = AtomicDatabase::new("test", "dark-matter");
+        assert_miette_snapshot!(res);
     }
 
     #[test]
@@ -398,31 +454,27 @@ mod tests {
     fn decimal_underflow() {
         let kdl = "lossless 0.00000_00000_00000_00000_00000_0001";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(res.is_err());
         assert_miette_snapshot!(res);
     }
 
     #[test]
     fn decimal_scientific() {
         let kdl = "lossless 5.485_799_090_65e-4";
-        let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(&res.is_ok());
-        assert_eq!(res.unwrap()[0].0 .0, dec!(0.000548579909065));
+        let res = knuffel::parse::<Vec<Lossless>>("test", kdl).unwrap();
+        assert_eq!(res[0].0 .0, dec!(0.000548579909065));
     }
 
     #[test]
     fn decimal_from_integer() {
         let kdl = "lossless 1";
-        let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(&res.is_ok());
-        assert_eq!(res.unwrap()[0].0 .0, dec!(1));
+        let res = knuffel::parse::<Vec<Lossless>>("test", kdl).unwrap();
+        assert_eq!(res[0].0 .0, dec!(1));
     }
 
     #[test]
     fn decimal_lack_of_precision() {
         let kdl = "lossless 1e-42";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(res.is_err());
         assert_miette_snapshot!(res);
     }
 
@@ -430,7 +482,6 @@ mod tests {
     fn decimal_illegal_type() {
         let kdl = "lossless (pi)3.14";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(res.is_err());
         assert_miette_snapshot!(res);
     }
 
@@ -438,7 +489,65 @@ mod tests {
     fn decimal_from_bool() {
         let kdl = "lossless true";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl);
-        assert!(res.is_err());
+        assert_miette_snapshot!(res);
+    }
+
+    #[derive(Debug, Decode)]
+    struct NonZero(#[knuffel(argument)] NonZeroU32Kdl);
+
+    #[test]
+    fn nonzero_positive() {
+        let kdl = "nonzero 42";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl).unwrap();
+        assert_eq!(res[0].0 .0.get(), 42);
+    }
+
+    #[test]
+    fn nonzero_negative() {
+        let kdl = "nonzero -42";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_zero() {
+        let kdl = "nonzero 0";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_decimal() {
+        let kdl = "nonzero 3.14";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_scientific() {
+        let kdl = "nonzero 3.14e-2";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_hex() {
+        let kdl = "nonzero 0xAB";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_type() {
+        let kdl = "nonzero (count)42";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
+        assert_miette_snapshot!(res);
+    }
+
+    #[test]
+    fn nonzero_bool() {
+        let kdl = "nonzero false";
+        let res = knuffel::parse::<Vec<NonZero>>("test", kdl);
         assert_miette_snapshot!(res);
     }
 }

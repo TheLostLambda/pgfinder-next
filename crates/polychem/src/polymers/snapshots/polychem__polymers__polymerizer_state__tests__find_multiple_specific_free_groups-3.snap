@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: nonexistent_group
+expression: out
+---
+  × the functional group "Amino" at="N-Terminal" does not exist on residue 0

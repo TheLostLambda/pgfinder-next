@@ -1,0 +1,8 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: nonexistent_group
+expression: out
+---
+  × failed to apply Reduced modification to residue 2 (Alanine)
+  ╰─▶   × the functional group "Hydroxyl" at="Reducing End" does not exist on
+        │ residue 2

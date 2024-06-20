@@ -1,29 +1,37 @@
+// FIXME: Revisit the bond names here...
 bonds {
-    Glycosidic {
+    Gly "Glycosidic" {
         from "Hydroxyl" at="Reducing End"
         to "Hydroxyl" at="Nonreducing End"
         lost "H2O"
     }
-    Peptide {
+    Pep "Peptide" {
         from "Carboxyl" at="C-Terminal"
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
-    Stem {
+    Stem "MurNAc -> Stem Peptide" {
         from "Carboxyl" at="Lactyl Ether" of="N-Acetylmuramic Acid"
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
-    Crosslink {
+    Link "Stem Peptide Crosslink" {
         from "Carboxyl" at="C-Terminal"
         to "Amino"
         lost "H2O"
     }
     // NOTE: Modification added for testing only!
-    Charged {
+    Chr "Charged" {
         from "Hydroxyl" at="6-Position"
         to "Carboxyl"
         lost "2p"
+    }
+    // NOTE: Modification added for testing only!
+    Sulf "Persulfide Bridge" {
+        from "Hydroxyl" at="6-Position"
+        to "Carboxyl"
+        lost "H2"
+        gained "S"
     }
 }
 
@@ -94,6 +102,9 @@ residues {
         composition "C11H19NO8"
         functional-group "Carboxyl" at="Lactyl Ether"
     }
+    Monosaccharide "x" "Unknown Monosaccharide" {
+        composition null
+    }
 
     AminoAcid "A" "Alanine" {
         composition "C3H7NO2"
@@ -133,6 +144,10 @@ residues {
     AminoAcid "K" "Lysine" {
         composition "C6H14N2O2"
         functional-group "Amino" at="Sidechain"
+    }
+    // NOTE: Residue added for testing only!
+    AminoAcid "K2+" "Lysine 2+" {
+        composition "C6H12N2O2+2p"
     }
     AminoAcid "L" "Leucine" {
         composition "C6H13NO2"

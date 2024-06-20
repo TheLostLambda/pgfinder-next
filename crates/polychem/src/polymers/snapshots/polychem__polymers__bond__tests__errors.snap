@@ -1,7 +1,0 @@
----
-source: crates/polychem/src/polymers/bond.rs
-description: disulfide
-expression: out
----
-  × the bond kind "Disulfide" could not be found in the supplied polymer
-  │ database

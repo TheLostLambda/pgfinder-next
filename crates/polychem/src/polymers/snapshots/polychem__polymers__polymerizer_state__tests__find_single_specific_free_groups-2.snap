@@ -1,0 +1,7 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: duplicate_target_group
+expression: out
+---
+  × encountered a duplicate target group: "Hydroxyl" at="Nonreducing End"
+  help: check for typos, or try removing the duplicate target group

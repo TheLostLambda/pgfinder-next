@@ -1,6 +1,0 @@
----
-source: crates/polychem/src/polymers/offset_multiplier.rs
-description: "OffsetMultiplier::try_from(too_big)"
-expression: out
----
-  × the count 9223372036854775807 is too large to represent using 32 bits

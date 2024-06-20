@@ -1,0 +1,21 @@
+---
+source: crates/polychem/src/moieties/polymer_database.rs
+description: modifications
+expression: out
+---
+  × failed to validate polymer database file
+  ╰─▶   × the target "Hydroxyl" at="6-Position" overlaps with 1 other target
+        │ specifier
+        help: double-check for typos, or remove the overlapping target
+              specifier
+      
+   ╭─[test:2:5]
+ 1 │ Ac "O-Acetylation" {
+ 2 │     targeting "Hydroxyl" at="6-Position"
+   ·     ──────────────────┬──────────────────
+   ·                       ╰── this target
+ 3 │     targeting "Hydroxyl" at="6-Position"
+   ·     ──────────────────┬──────────────────
+   ·                       ╰── overlaps with
+ 4 │ }
+   ╰────

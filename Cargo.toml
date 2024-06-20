@@ -10,19 +10,21 @@ members = [
   "crates/polychem",
   "crates/smithereens",
 ]
+exclude = ["worktrees/"]
 
 # FIXME: Does this actually apply to this base-level crate?
 [workspace.lints.rust]
-# FIXME: Uncomment this!
-# missing_docs = "warn"
 # FIXME: Delete this!
 dead_code = "allow"
+# FIXME: Uncomment this!
+# missing_docs = "warn"
 
 [dependencies]
 # miette = { version = "7.2.0", features = ["fancy"] }
 miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
 once_cell = "1.19.0"
 polychem = { path = "crates/polychem/" }
+muropeptide = { path = "crates/muropeptide/" }
 rustyline = "14.0.0"
 
 # FIXME: This is just a list of nice libraries, but should eventually be deleted!

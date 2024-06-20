@@ -1,29 +1,73 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 
-// FIXME: Probably make private again...
-pub mod parser;
+mod parser;
 
+use std::cell::RefCell;
+
+use nom_miette::final_parser;
+use parser::monomer;
 // FIXME: Blocks need separating and reordering!
-use polychem::{AnyModification, Residue};
+use polychem::{
+    AverageMass, Charged, Massive, ModificationId, MonoisotopicMass, Polymer, Polymerizer,
+    ResidueId,
+};
 
-pub struct Muropeptide<'a> {
-    monomers: Vec<Monomer<'a>>,
+pub struct Muropeptide<'a, 'p> {
+    polymer: Polymer<'a, 'p>,
+    monomers: Vec<Monomer>,
     connections: Vec<Connection>,
-    modifications: Vec<AnyModification<'a, 'a>>,
+    modifications: Vec<ModificationId>,
 }
 
-struct Monomer<'a> {
-    glycan: Vec<Monosaccharide<'a>>,
-    peptide: Vec<AminoAcid<'a>>,
+impl<'a, 'p> Muropeptide<'a, 'p> {
+    // FIXME: Replace `()` with a real error type!
+    pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self, ()> {
+        let polymer = RefCell::new(polymerizer.new_polymer());
+        // FIXME: Correctly handle and forward errors here!
+        let monomer = final_parser(monomer(&polymer))(structure.as_ref()).unwrap();
+
+        Ok(Muropeptide {
+            polymer: polymer.into_inner(),
+            monomers: vec![monomer],
+            connections: Vec::new(),
+            modifications: Vec::new(),
+        })
+    }
+}
+
+impl Massive for Muropeptide<'_, '_> {
+    fn monoisotopic_mass(&self) -> MonoisotopicMass {
+        self.polymer.monoisotopic_mass()
+    }
+
+    fn average_mass(&self) -> AverageMass {
+        self.polymer.average_mass()
+    }
+}
+
+impl Charged for Muropeptide<'_, '_> {
+    fn charge(&self) -> polychem::Charge {
+        self.polymer.charge()
+    }
+}
+
+struct Monomer {
+    glycan: Vec<Monosaccharide>,
+    // FIXME: Delete me!
+    peptide: Vec<UnbranchedAminoAcid>,
+    // FIXME: Uncomment
+    // peptide: Vec<AminoAcid>,
 }
 
 type Connection = Vec<ConnectionKind>;
 
-type Monosaccharide<'a> = Residue<'a, 'a>;
+// FIXME: Should I actually be using newtypes here? Needs a bit of API thought...
+// FIXME: This will need to be a struct that stores a modification now!
+type Monosaccharide = ResidueId;
 
-struct AminoAcid<'a> {
-    residue: Residue<'a, 'a>,
-    lateral_chain: Option<LateralChain<'a>>,
+struct AminoAcid {
+    residue: UnbranchedAminoAcid,
+    lateral_chain: Option<LateralChain>,
 }
 
 enum ConnectionKind {
@@ -31,9 +75,9 @@ enum ConnectionKind {
     Crosslink(Vec<CrosslinkDescriptor>),
 }
 
-struct LateralChain<'a> {
+struct LateralChain {
     direction: PeptideDirection,
-    peptide: Vec<UnbranchedAminoAcid<'a>>,
+    peptide: Vec<UnbranchedAminoAcid>,
 }
 
 enum CrosslinkDescriptor {
@@ -47,7 +91,7 @@ enum PeptideDirection {
     NToC,
 }
 
-type UnbranchedAminoAcid<'a> = Residue<'a, 'a>;
+type UnbranchedAminoAcid = ResidueId;
 
 type Position = u8;
 

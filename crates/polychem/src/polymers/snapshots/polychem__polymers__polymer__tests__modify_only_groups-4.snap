@@ -1,0 +1,10 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: no_matching_groups
+expression: out
+---
+  × failed to apply 1,6-Anhydro modification to residue 17 (N-Acetylmuramic
+  │ Acid)
+  ╰─▶   × too few functional groups on residue 17 matched the target
+        │ "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid" (1/2):
+        │ "Hydroxyl" at="Reducing End"

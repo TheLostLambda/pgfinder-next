@@ -1,0 +1,9 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: groups_not_free
+expression: out
+---
+  × failed to form MurNAc -> Stem Peptide bond between residue 0 (N-
+  │ Acetylmuramic Acid) and residue 1 (Alanine) due to an issue with the donor
+  ╰─▶   × the functional group "Carboxyl" at="Lactyl Ether" of residue 0 was
+        │ already a donor, but must be free

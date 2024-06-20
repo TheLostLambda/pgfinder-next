@@ -12,19 +12,16 @@ review:
 bench:
   cargo bench --workspace
 
+# FIXME: Get rid of these -A flags
 lint:
   cargo fmt --check
-  cargo clippy --workspace --tests
-
-# FIXME: Get rid of these -A flags
-annoy:
   cargo clippy --workspace --tests -- -W clippy::nursery -W clippy::pedantic -W clippy::cargo -A clippy::missing_errors_doc -A clippy::cargo_common_metadata -A clippy::multiple_crate_versions
 
 cov:
-  cargo llvm-cov --workspace --branch --open
+  cargo +nightly llvm-cov --workspace --branch --open
 
 ci-cov:
-  cargo llvm-cov --workspace --branch --codecov --output-path codecov.json
+  cargo +nightly llvm-cov --workspace --branch --codecov --output-path codecov.json
 
 check-wasm:
   sh -c 'for crate in `ls crates`; do (cd "crates/$crate" && cargo check --target wasm32-unknown-unknown); done'
@@ -37,3 +34,6 @@ delete-unused-snapshots:
   fd -e snap -I -x rm {}
   cargo insta test --accept
   sh -c 'for crate in `ls crates`; do (cd "crates/$crate" && cargo insta test --accept); done'
+
+min-versions:
+  cargo +nightly test --workspace -Z direct-minimal-versions

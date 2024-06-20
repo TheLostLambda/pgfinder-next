@@ -1,0 +1,7 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: no_target_groups
+expression: out
+---
+  × no target groups were provided, but you must provide at least one group to
+  │ look for

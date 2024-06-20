@@ -52,7 +52,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - run: just lint
-      - run: just annoy
+
+  check_min_versions:
+    name: Check Minimal Versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v2
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - run: just min-versions
 
   coverage:
     name: Test Coverage

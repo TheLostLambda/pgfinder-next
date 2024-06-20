@@ -1,0 +1,9 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: modify_invalid_group
+expression: out
+---
+  × failed to apply 1,6-Anhydro modification to residue 0 (N-Acetylmuramic
+  │ Acid)
+  ╰─▶   × expected a target group matching "Hydroxyl" at="Reducing End" of="N-
+        │ Acetylmuramic Acid", but got "Hydroxyl" at="6-Position"

@@ -1,0 +1,19 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: invalid_composition
+expression: out
+---
+  × expected a chemical formula (optionally followed by a '+' or '-' and a
+  │ particle offset), or a standalone particle offset
+  ├─▶   × expected an element (like Au) or an isotope (like [15N]) optionally
+  │     │ followed by a number
+  │   
+  ├─▶   × expected an element symbol
+  │   
+  ╰─▶   × expected an uppercase ASCII letter
+      
+   ╭────
+ 1 │ H[2]O 
+   ·    ▲
+   ·    ╰── expected uppercase
+   ╰────

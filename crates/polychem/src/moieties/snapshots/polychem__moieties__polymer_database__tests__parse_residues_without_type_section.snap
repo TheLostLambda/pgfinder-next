@@ -1,0 +1,9 @@
+---
+source: crates/polychem/src/moieties/polymer_database.rs
+description: residues
+expression: out
+---
+  × error parsing KDL
+
+Error: 
+  × child node `types` is required

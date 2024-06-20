@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/atoms/chemical_composition.rs
+description: "write!(&mut buf[..], \"{both}\").into_diagnostic()"
+expression: out
+---
+  × failed to write whole buffer

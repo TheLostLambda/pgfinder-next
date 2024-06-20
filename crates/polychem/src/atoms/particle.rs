@@ -1,8 +1,6 @@
 use std::fmt::{self, Display, Formatter};
 
-use rust_decimal::Decimal;
-
-use crate::{Charge, Charged, Massive, Particle};
+use crate::{Charge, Charged, Mass, Particle};
 
 use super::{
     atomic_database::{AtomicDatabase, ParticleDescription},
@@ -18,7 +16,7 @@ impl<'a> Particle<'a> {
         let (symbol, ParticleDescription { name, mass, charge }) = db
             .particles
             .get_key_value(symbol)
-            .ok_or_else(|| AtomicLookupError::Particle(symbol.to_owned()))?;
+            .ok_or_else(|| AtomicLookupError::particle(symbol))?;
         Ok(Self {
             symbol,
             name,
@@ -26,22 +24,16 @@ impl<'a> Particle<'a> {
             charge,
         })
     }
+
+    pub(crate) const fn mass(&self) -> Mass {
+        *self.mass
+    }
 }
 
 impl Display for Particle<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let symbol = self.symbol;
         write!(f, "{symbol}")
-    }
-}
-
-impl Massive for Particle<'_> {
-    fn monoisotopic_mass(&self) -> Decimal {
-        *self.mass
-    }
-
-    fn average_mass(&self) -> Decimal {
-        *self.mass
     }
 }
 
@@ -83,22 +75,18 @@ mod tests {
     #[test]
     fn particle_masses() {
         let proton = Particle::new(&DB, "p").unwrap();
-        assert_eq!(*proton.mass, dec!(1.007276466621));
-        assert_eq!(proton.monoisotopic_mass(), *proton.mass);
-        assert_eq!(proton.average_mass(), *proton.mass);
+        assert_eq!(proton.mass(), Mass(dec!(1.007276466621)));
         let electron = Particle::new(&DB, "e").unwrap();
-        assert_eq!(*electron.mass, dec!(0.000548579909065));
-        assert_eq!(electron.monoisotopic_mass(), *electron.mass);
-        assert_eq!(electron.average_mass(), *electron.mass);
+        assert_eq!(electron.mass(), Mass(dec!(0.000548579909065)));
     }
 
     #[test]
     fn particle_charges() {
         let proton = Particle::new(&DB, "p").unwrap();
-        assert_eq!(proton.charge(), 1);
+        assert_eq!(proton.charge(), Charge(1));
         let electron = Particle::new(&DB, "e").unwrap();
-        assert_eq!(*electron.mass, dec!(0.000548579909065));
-        assert_eq!(electron.charge(), -1);
+        assert_eq!(electron.mass(), Mass(dec!(0.000548579909065)));
+        assert_eq!(electron.charge(), Charge(-1));
 
         assert_eq!(proton.charge(), -electron.charge());
     }

@@ -1,0 +1,29 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+expression: modification_refs
+---
+(Unlocalized(Modification(
+  multiplier: Count(1),
+  kind: Named(NamedMod(
+    abbr: "Am",
+    name: "Amidation",
+    lost: "<FORMULA>",
+    gained: "<FORMULA>",
+  )),
+)), Unlocalized(Modification(
+  multiplier: Count(2),
+  kind: Named(NamedMod(
+    abbr: "Am",
+    name: "Amidation",
+    lost: "<FORMULA>",
+    gained: "<FORMULA>",
+  )),
+)), Unlocalized(Modification(
+  multiplier: Count(2),
+  kind: Named(NamedMod(
+    abbr: "Ca",
+    name: "Calcium Adduct",
+    lost: "<FORMULA>",
+    gained: "<FORMULA>",
+  )),
+)))

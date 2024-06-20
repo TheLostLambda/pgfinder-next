@@ -1,0 +1,872 @@
+---
+source: crates/polychem/src/moieties/polymer_database.rs
+expression: db
+---
+PolymerDatabaseKdl {
+    bonds: BondsKdl {
+        bonds: [
+            BondKdl {
+                abbr: "Gly",
+                name: "Glycosidic",
+                from: TargetKdl {
+                    span: <SPAN>,
+                    group: "Hydroxyl",
+                    location: Some(
+                        "Reducing End",
+                    ),
+                    residue: None,
+                },
+                to: TargetKdl {
+                    span: <SPAN>,
+                    group: "Hydroxyl",
+                    location: Some(
+                        "Nonreducing End",
+                    ),
+                    residue: None,
+                },
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2O",
+                    },
+                ),
+                gained: None,
+            },
+            BondKdl {
+                abbr: "Pep",
+                name: "Peptide",
+                from: TargetKdl {
+                    span: <SPAN>,
+                    group: "Carboxyl",
+                    location: Some(
+                        "C-Terminal",
+                    ),
+                    residue: None,
+                },
+                to: TargetKdl {
+                    span: <SPAN>,
+                    group: "Amino",
+                    location: Some(
+                        "N-Terminal",
+                    ),
+                    residue: None,
+                },
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2O",
+                    },
+                ),
+                gained: None,
+            },
+            BondKdl {
+                abbr: "Stem",
+                name: "MurNAc -> Stem Peptide",
+                from: TargetKdl {
+                    span: <SPAN>,
+                    group: "Carboxyl",
+                    location: Some(
+                        "Lactyl Ether",
+                    ),
+                    residue: Some(
+                        "N-Acetylmuramic Acid",
+                    ),
+                },
+                to: TargetKdl {
+                    span: <SPAN>,
+                    group: "Amino",
+                    location: Some(
+                        "N-Terminal",
+                    ),
+                    residue: None,
+                },
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2O",
+                    },
+                ),
+                gained: None,
+            },
+            BondKdl {
+                abbr: "Link",
+                name: "Stem Peptide Crosslink",
+                from: TargetKdl {
+                    span: <SPAN>,
+                    group: "Carboxyl",
+                    location: Some(
+                        "C-Terminal",
+                    ),
+                    residue: None,
+                },
+                to: TargetKdl {
+                    span: <SPAN>,
+                    group: "Amino",
+                    location: None,
+                    residue: None,
+                },
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2O",
+                    },
+                ),
+                gained: None,
+            },
+            BondKdl {
+                abbr: "Chr",
+                name: "Charged",
+                from: TargetKdl {
+                    span: <SPAN>,
+                    group: "Hydroxyl",
+                    location: Some(
+                        "6-Position",
+                    ),
+                    residue: None,
+                },
+                to: TargetKdl {
+                    span: <SPAN>,
+                    group: "Carboxyl",
+                    location: None,
+                    residue: None,
+                },
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "2p",
+                    },
+                ),
+                gained: None,
+            },
+            BondKdl {
+                abbr: "Sulf",
+                name: "Persulfide Bridge",
+                from: TargetKdl {
+                    span: <SPAN>,
+                    group: "Hydroxyl",
+                    location: Some(
+                        "6-Position",
+                    ),
+                    residue: None,
+                },
+                to: TargetKdl {
+                    span: <SPAN>,
+                    group: "Carboxyl",
+                    location: None,
+                    residue: None,
+                },
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "S",
+                    },
+                ),
+            },
+        ],
+    },
+    modifications: ModificationsKdl {
+        modifications: [
+            ModificationKdl {
+                abbr: "Am",
+                name: "Amidation",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Carboxyl",
+                        location: Some(
+                            "Sidechain",
+                        ),
+                        residue: None,
+                    },
+                ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "OH",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "NH2",
+                    },
+                ),
+            },
+            ModificationKdl {
+                abbr: "Ac",
+                name: "O-Acetylation",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: Some(
+                            "6-Position",
+                        ),
+                        residue: None,
+                    },
+                ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C2H3O",
+                    },
+                ),
+            },
+            ModificationKdl {
+                abbr: "Poly",
+                name: "Wall Polymer Linkage",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: Some(
+                            "6-Position",
+                        ),
+                        residue: None,
+                    },
+                ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "PO3",
+                    },
+                ),
+            },
+            ModificationKdl {
+                abbr: "DeAc",
+                name: "De-N-Acetylation",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Acetyl",
+                        location: Some(
+                            "Secondary Amide",
+                        ),
+                        residue: None,
+                    },
+                ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C2H3O",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H",
+                    },
+                ),
+            },
+            ModificationKdl {
+                abbr: "Red",
+                name: "Reduced",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: Some(
+                            "Reducing End",
+                        ),
+                        residue: None,
+                    },
+                ],
+                lost: None,
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2",
+                    },
+                ),
+            },
+            ModificationKdl {
+                abbr: "Anh",
+                name: "1,6-Anhydro",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: Some(
+                            "Reducing End",
+                        ),
+                        residue: Some(
+                            "N-Acetylmuramic Acid",
+                        ),
+                    },
+                ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H2O",
+                    },
+                ),
+                gained: None,
+            },
+            ModificationKdl {
+                abbr: "Met",
+                name: "O-Methylation",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: None,
+                        residue: None,
+                    },
+                ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "H",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "CH3",
+                    },
+                ),
+            },
+            ModificationKdl {
+                abbr: "Ca",
+                name: "Calcium Adduct",
+                targets: [
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Amino",
+                        location: None,
+                        residue: None,
+                    },
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Carboxyl",
+                        location: None,
+                        residue: None,
+                    },
+                    TargetKdl {
+                        span: <SPAN>,
+                        group: "Hydroxyl",
+                        location: None,
+                        residue: None,
+                    },
+                ],
+                lost: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "p",
+                    },
+                ),
+                gained: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "Ca-2e",
+                    },
+                ),
+            },
+        ],
+    },
+    residues: ResiduesKdl {
+        types: [
+            ResidueTypeKdl {
+                span: <SPAN>,
+                name: "Monosaccharide",
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Hydroxyl",
+                        location: "Reducing End",
+                    },
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Hydroxyl",
+                        location: "Nonreducing End",
+                    },
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Hydroxyl",
+                        location: "6-Position",
+                    },
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Acetyl",
+                        location: "Secondary Amide",
+                    },
+                ],
+            },
+            ResidueTypeKdl {
+                span: <SPAN>,
+                name: "AminoAcid",
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Amino",
+                        location: "N-Terminal",
+                    },
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Carboxyl",
+                        location: "C-Terminal",
+                    },
+                ],
+            },
+        ],
+        residues: [
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "Monosaccharide",
+                abbr: "g",
+                name: "N-Acetylglucosamine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C8H15NO6",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "Monosaccharide",
+                abbr: "m",
+                name: "N-Acetylmuramic Acid",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C11H19NO8",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Carboxyl",
+                        location: "Lactyl Ether",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "Monosaccharide",
+                abbr: "x",
+                name: "Unknown Monosaccharide",
+                composition: None,
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "A",
+                name: "Alanine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C3H7NO2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "B",
+                name: "Diaminobutyric Acid",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C4H10N2O2",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Amino",
+                        location: "Sidechain",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "C",
+                name: "Cysteine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C3H7NO2S",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "D",
+                name: "Aspartic Acid",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C4H7NO4",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Carboxyl",
+                        location: "Sidechain",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "E",
+                name: "Glutamic Acid",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C5H9NO4",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Carboxyl",
+                        location: "Sidechain",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "F",
+                name: "Phenylalanine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C9H11NO2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "G",
+                name: "Glycine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C2H5NO2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "H",
+                name: "Histidine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C6H9N3O2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "I",
+                name: "Isoleucine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C6H13NO2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "J",
+                name: "Diaminopimelic Acid",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C7H14N2O4",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Amino",
+                        location: "Sidechain",
+                    },
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Carboxyl",
+                        location: "Sidechain",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "K",
+                name: "Lysine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C6H14N2O2",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Amino",
+                        location: "Sidechain",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "K2+",
+                name: "Lysine 2+",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C6H12N2O2+2p",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "L",
+                name: "Leucine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C6H13NO2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "M",
+                name: "Methionine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C5H11NO2S",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "N",
+                name: "Asparagine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C4H8N2O3",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Amino",
+                        location: "Sidechain",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "O",
+                name: "Ornithine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C5H12N2O2",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Amino",
+                        location: "Sidechain",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "P",
+                name: "Proline",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C5H9NO2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "Q",
+                name: "Glutamine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C5H10N2O3",
+                    },
+                ),
+                functional_groups: [
+                    FunctionalGroupKdl {
+                        span: <SPAN>,
+                        name: "Amino",
+                        location: "Sidechain",
+                    },
+                ],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "R",
+                name: "Arginine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C6H14N4O2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "S",
+                name: "Serine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C3H7NO3",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "T",
+                name: "Threonine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C4H9NO3",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "U",
+                name: "Homoserine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C4H9NO3",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "V",
+                name: "Valine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C5H11NO2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "W",
+                name: "Tryptophan",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C11H12N2O2",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "X",
+                name: "Unknown Amino Acid",
+                composition: None,
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "Y",
+                name: "Tyrosine",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C9H11NO3",
+                    },
+                ),
+                functional_groups: [],
+            },
+            ResidueKdl {
+                span: <SPAN>,
+                residue_type: "AminoAcid",
+                abbr: "Z",
+                name: "Threo-3-Hydroxyglutamic Acid",
+                composition: Some(
+                    Spanned {
+                        span: <SPAN>,
+                        value: "C5H9NO5",
+                    },
+                ),
+                functional_groups: [],
+            },
+        ],
+    },
+}

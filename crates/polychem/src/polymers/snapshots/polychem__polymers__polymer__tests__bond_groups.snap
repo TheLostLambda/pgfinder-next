@@ -1,0 +1,11 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+description: ambigious_bond
+expression: out
+---
+  × failed to form Stem Peptide Crosslink bond between residue 1 (Alanine) and
+  │ residue 3 (Lysine) due to an issue with the acceptor
+  ╰─▶   × residue 3 contains more than 1 free target group: "Amino" at="N-
+        │ Terminal" and "Amino" at="Sidechain"
+        help: to resolve this ambiguity, specify the exact functional group
+              to modify

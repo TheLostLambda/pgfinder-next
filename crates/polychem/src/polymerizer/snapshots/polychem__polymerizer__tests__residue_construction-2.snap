@@ -1,6 +1,0 @@
----
-source: crates/polychem/src/polymerizer/mod.rs
-description: nonexistent_residue
-expression: out
----
-  × the residue "?" could not be found in the supplied polymer database

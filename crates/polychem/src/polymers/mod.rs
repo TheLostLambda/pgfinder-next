@@ -1,13 +1,5 @@
-mod any_mod;
-mod bond;
-mod bond_target;
-pub mod errors;
-mod functional_group;
-mod group_state;
-mod modification;
-mod named_mod;
-mod offset;
-mod offset_multiplier;
-pub mod polymer_database;
-mod residue;
-pub(crate) mod target;
+pub(crate) mod errors;
+pub(crate) mod modification_info;
+mod polymer;
+pub mod polymerizer;
+pub(crate) mod polymerizer_state;

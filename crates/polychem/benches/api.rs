@@ -19,8 +19,9 @@ const FORMULAS: [&str; 5] = [
 
 static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 
-static POLYMER_DB: Lazy<PolymerDatabase> =
-    Lazy::new(|| PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap());
+static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    PolymerDatabase::new(&ATOMIC_DB, "test_polymer_database.kdl", POLYMER_KDL).unwrap()
+});
 
 static COMPOSITIONS: Lazy<Vec<ChemicalComposition>> = Lazy::new(|| {
     FORMULAS
@@ -74,24 +75,18 @@ mod atoms {
 }
 
 mod polymers {
-    use divan::Bencher;
-    use polychem::Residue;
-
     use super::*;
 
     #[divan::bench]
     fn build_polymer_database() -> PolymerDatabase<'static> {
-        PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
+        PolymerDatabase::new(&ATOMIC_DB, "test_polymer_database.kdl", POLYMER_KDL).unwrap()
     }
 
+    #[ignore]
     #[divan::bench]
-    fn parse_residues(bencher: Bencher) {
-        let abbrs: Vec<_> = ('A'..'Z').map(|c| c.to_string()).collect();
-        bencher.bench_local(|| {
-            for abbr in &abbrs {
-                black_box(Residue::new(&POLYMER_DB, abbr, 0).unwrap());
-            }
-        });
+    fn parse_residues() {
+        // TODO: Benchmark residue parsing / creation via `Polymer`
+        todo!()
     }
 }
 

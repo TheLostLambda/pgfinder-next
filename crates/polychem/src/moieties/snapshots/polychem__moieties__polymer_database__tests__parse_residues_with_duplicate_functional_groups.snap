@@ -1,0 +1,21 @@
+---
+source: crates/polychem/src/moieties/polymer_database.rs
+description: residues
+expression: out
+---
+  × failed to validate polymer database file
+  ╰─▶   × the functional group "Amino" has already been defined at "N-
+        │ terminal"
+        help: double-check for typos, or remove the duplicate functional group
+      
+   ╭─[test:6:5]
+ 5 │     composition "C6H14N2O2"
+ 6 │     functional-group "Amino" at="N-terminal"
+   ·     ────────────────────┬────────────────────
+   ·                         ╰── first defined here
+ 7 │     functional-group "Carboxyl" at="C-terminal"
+ 8 │     functional-group "Amino" at="N-terminal"
+   ·     ────────────────────┬────────────────────
+   ·                         ╰── then again here
+ 9 │ }
+   ╰────

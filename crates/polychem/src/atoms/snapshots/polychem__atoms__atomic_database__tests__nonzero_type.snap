@@ -1,0 +1,14 @@
+---
+source: crates/polychem/src/atoms/atomic_database.rs
+description: res
+expression: out
+---
+  × error parsing KDL
+
+Error: 
+  × no type for NonZero<u32>, found count
+   ╭─[test:1:9]
+ 1 │ nonzero (count)42
+   ·         ───┬───
+   ·            ╰── unexpected type name
+   ╰────

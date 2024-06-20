@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/moieties/bond.rs
+description: ionic
+expression: out
+---
+  × the bond "Ionic" could not be found in the supplied polymer database

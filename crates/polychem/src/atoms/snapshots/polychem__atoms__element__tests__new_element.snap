@@ -4,27 +4,43 @@ expression: isotopes
 ---
 [
     (
-        12,
+        MassNumber(
+            12,
+        ),
         Isotope {
-            relative_mass: 12.0000000,
+            relative_mass: Mass(
+                12.0000000,
+            ),
             abundance: Some(
-                0.9893,
+                Abundance(
+                    0.9893,
+                ),
             ),
         },
     ),
     (
-        13,
+        MassNumber(
+            13,
+        ),
         Isotope {
-            relative_mass: 13.00335483507,
+            relative_mass: Mass(
+                13.00335483507,
+            ),
             abundance: Some(
-                0.0107,
+                Abundance(
+                    0.0107,
+                ),
             ),
         },
     ),
     (
-        14,
+        MassNumber(
+            14,
+        ),
         Isotope {
-            relative_mass: 14.0032419884,
+            relative_mass: Mass(
+                14.0032419884,
+            ),
             abundance: None,
         },
     ),

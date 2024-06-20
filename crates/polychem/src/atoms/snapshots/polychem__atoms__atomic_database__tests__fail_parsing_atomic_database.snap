@@ -1,0 +1,17 @@
+---
+source: crates/polychem/src/atoms/atomic_database.rs
+description: res
+expression: out
+---
+  × error parsing KDL
+
+Error: 
+  × unexpected node `dark-matter`
+   ╭─[test:1:1]
+ 1 │ dark-matter
+   · ─────┬─────
+   ·      ╰── unexpected node
+   ╰────
+
+Error: 
+  × child node `elements` is required

@@ -1,6 +1,6 @@
-use divan::{black_box, AllocProfiler};
+use divan::AllocProfiler;
 use once_cell::sync::Lazy;
-use polychem::{atoms::atomic_database, AtomicDatabase, PolymerDatabase};
+use polychem::{atoms::atomic_database, AtomicDatabase, PolymerDatabase, Polymerizer};
 
 #[global_allocator]
 static ALLOC: AllocProfiler = AllocProfiler::system();
@@ -8,35 +8,40 @@ static ALLOC: AllocProfiler = AllocProfiler::system();
 const ATOMIC_KDL: &str = atomic_database::DEFAULT_KDL;
 const POLYMER_KDL: &str = include_str!("../data/polymer_database.kdl");
 const AMINO_ACIDS: [&str; 3] = ["D(Am)", "E(Am)", "J(Am)"];
+const MONOMERS: [&str; 6] = [
+    "m",
+    "gmgmgmgmgm",
+    "A",
+    "AEJAAEJAAEJAAEJAAEJA",
+    "m-A",
+    "gmgmgmgmgm-AEJAAEJAAEJAAEJAAEJA",
+];
 
 static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-
 static POLYMER_DB: Lazy<PolymerDatabase> =
     Lazy::new(|| PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap());
+
+static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
 fn main() {
     Lazy::force(&ATOMIC_DB);
     Lazy::force(&POLYMER_DB);
+    Lazy::force(&POLYMERIZER);
     divan::main();
 }
 
 mod polymers {
-    use divan::Bencher;
-    use muropeptide::parser::unbranched_amino_acid;
-    use polychem::polymerizer::Polymerizer;
+    use muropeptide::Muropeptide;
 
+    // TODO: Add some benchmarks here!
+    // FIXME: Very messy and temporary!
     use super::*;
 
-    // FIXME: Will probably blow this away...
-    #[divan::bench(sample_count = 100, sample_size = 10)]
-    fn residues_with_modifications(bencher: Bencher) {
-        let amino_acids = AMINO_ACIDS.repeat(1000);
-        let mut polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        let mut residue_builder = unbranched_amino_acid(&mut polymerizer);
-        bencher.bench_local(move || {
-            for abbr in &amino_acids {
-                black_box(residue_builder(abbr).unwrap());
-            }
-        });
+    #[divan::bench]
+    fn build_muropeptides<'a, 'p>() -> Vec<Muropeptide<'a, 'p>> {
+        MONOMERS
+            .iter()
+            .map(|structure| Muropeptide::new(&POLYMERIZER, structure).unwrap())
+            .collect()
     }
 }

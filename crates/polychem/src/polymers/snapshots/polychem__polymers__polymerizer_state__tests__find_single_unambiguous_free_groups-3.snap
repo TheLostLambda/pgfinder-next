@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: no_matching_groups
+expression: out
+---
+  × no functional groups on residue 0 matched the target "Amino" or "Crazy"

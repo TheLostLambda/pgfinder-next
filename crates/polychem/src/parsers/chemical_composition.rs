@@ -7,13 +7,12 @@ use nom::{
     sequence::{delimited, pair},
     Parser,
 };
-use nom_miette::{expect, map_res, wrap_err};
+use nom_miette::{expect, into, map_res, wrap_err};
 
 // Local Crate Imports
 use super::{
-    count,
-    errors::{ParseResult, PolychemErrorKind},
-    lowercase, offset_kind, uppercase,
+    errors::{ParseResult, PolychemErrorKind, UserErrorKind},
+    primitives::{count, lowercase, offset_kind, uppercase},
 };
 use crate::{
     AtomicDatabase, ChemicalComposition, Count, Element, MassNumber, OffsetKind, Particle,
@@ -25,9 +24,9 @@ use crate::{
 ///   = { Atomic Offset }- , [ Offset Kind , Particle Offset ]
 ///   | Particle Offset
 ///   ;
-pub fn chemical_composition<'a, 's>(
+pub fn chemical_composition<'a, 's, K: UserErrorKind>(
     db: &'a AtomicDatabase,
-) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>> {
+) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>, K> {
     let chemical_formula = many1(atomic_offset(db));
     let optional_particle_offset = opt(pair(offset_kind, cut(particle_offset(db))));
     let atoms_and_particles = map(
@@ -50,7 +49,10 @@ pub fn chemical_composition<'a, 's>(
     });
 
     let parser = alt((atoms_and_particles, just_particles));
-    wrap_err(parser, PolychemErrorKind::ExpectedChemicalComposition)
+    into(wrap_err(
+        parser,
+        PolychemErrorKind::ExpectedChemicalComposition,
+    ))
 }
 
 // Private Sub-Parsers =================================================================================================
@@ -60,7 +62,7 @@ fn atomic_offset<'a, 's>(
     db: &'a AtomicDatabase,
 ) -> impl FnMut(&'s str) -> ParseResult<(Element<'a>, Count)> {
     let element_or_isotope = alt((element(db), isotope(db)));
-    let optional_count = opt(count).map(|o| o.unwrap_or(1));
+    let optional_count = opt(count).map(Option::unwrap_or_default);
     let parser = pair(element_or_isotope, optional_count);
     wrap_err(parser, PolychemErrorKind::ExpectedAtomicOffset)
 }
@@ -69,7 +71,7 @@ fn atomic_offset<'a, 's>(
 fn particle_offset<'a, 's>(
     db: &'a AtomicDatabase,
 ) -> impl FnMut(&'s str) -> ParseResult<(Count, Particle<'a>)> {
-    let optional_count = opt(count).map(|o| o.unwrap_or(1));
+    let optional_count = opt(count).map(Option::unwrap_or_default);
     let parser = pair(optional_count, particle(db));
     wrap_err(parser, PolychemErrorKind::ExpectedParticleOffset)
 }
@@ -108,7 +110,10 @@ fn element_symbol(i: &str) -> ParseResult<&str> {
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
     let opening_bracket = expect(char('['), PolychemErrorKind::ExpectedIsotopeStart);
-    let mass_number = wrap_err(count, PolychemErrorKind::ExpectedMassNumber);
+    let mass_number = map(
+        wrap_err(count, PolychemErrorKind::ExpectedMassNumber),
+        |c| MassNumber(c.0),
+    );
     let closing_bracket = expect(cut(char(']')), PolychemErrorKind::ExpectedIsotopeEnd);
     delimited(
         opening_bracket,
@@ -180,10 +185,18 @@ mod tests {
 
     #[test]
     fn test_isotope_expr() {
+        macro_rules! assert_isotope_expr {
+            ($input:literal, $output:literal, $mass_number:literal, $symbol:literal) => {
+                assert_eq!(
+                    isotope_expr($input),
+                    Ok(($output, (MassNumber::new($mass_number).unwrap(), $symbol)))
+                );
+            };
+        }
         // Valid Isotope Expressions
-        assert_eq!(isotope_expr("[1H]"), Ok(("", (1, "H"))));
-        assert_eq!(isotope_expr("[18O]"), Ok(("", (18, "O"))));
-        assert_eq!(isotope_expr("[37Cl]"), Ok(("", (37, "Cl"))));
+        assert_isotope_expr!("[1H]", "", 1, "H");
+        assert_isotope_expr!("[18O]", "", 18, "O");
+        assert_isotope_expr!("[37Cl]", "", 37, "Cl");
         // Invalid Isotope Expressions
         assert!(isotope_expr("H").is_err());
         assert!(isotope_expr("[H]").is_err());
@@ -194,8 +207,8 @@ mod tests {
         assert!(isotope_expr("[-18O]").is_err());
         assert!(isotope_expr("[+18O]").is_err());
         // Multiple Isotope Expressions
-        assert_eq!(isotope_expr("[13C]O2"), Ok(("O2", (13, "C"))));
-        assert_eq!(isotope_expr("[3He]H"), Ok(("H", (3, "He"))));
+        assert_isotope_expr!("[13C]O2", "O2", 13, "C");
+        assert_isotope_expr!("[3He]H", "H", 3, "He");
     }
 
     #[test]
@@ -268,7 +281,7 @@ mod tests {
             ($input:literal, $output:literal, $count:literal, $name:literal ) => {
                 assert_eq!(
                     particle_offset($input).map(|(r, (c, p))| (r, (c, p.name))),
-                    Ok(($output, ($count, $name)))
+                    Ok(($output, (Count::new($count).unwrap(), $name)))
                 );
             };
         }
@@ -315,7 +328,7 @@ mod tests {
                         };
                         (r, (name, c))
                     }),
-                    Ok(($output, ($name.to_owned(), $count)))
+                    Ok(($output, ($name.to_owned(), Count::new($count).unwrap())))
                 );
             };
         }
@@ -363,7 +376,7 @@ mod tests {
     #[test]
     #[allow(clippy::cognitive_complexity)]
     fn test_chemical_composition() {
-        let mut chemical_composition = chemical_composition(&DB);
+        let mut chemical_composition = chemical_composition::<PolychemErrorKind>(&DB);
         macro_rules! check_composition_snapshot {
             ($input:literal, $output:literal) => {
                 let (
@@ -382,10 +395,11 @@ mod tests {
                         } else {
                             e.name.to_owned()
                         };
-                        (name, c)
+                        let count = c.0.get();
+                        (name, count)
                     })
                     .collect();
-                let particle_offset = particle_offset.map(|(k, c, p)| (k, c, p.name));
+                let particle_offset = particle_offset.map(|(k, c, p)| (k, c.0.get(), p.name));
                 assert_debug_snapshot!((chemical_formula, particle_offset));
             };
         }

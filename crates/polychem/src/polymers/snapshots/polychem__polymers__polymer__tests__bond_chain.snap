@@ -1,0 +1,123 @@
+---
+source: crates/polychem/src/polymers/polymer.rs
+expression: polymer
+---
+Polymer(
+  residues: {
+    ResidueId(0): Residue(
+      abbr: "A",
+      name: "Alanine",
+      composition: "<FORMULA>",
+      functional_groups: {
+        FunctionalGroup(
+          name: "Amino",
+          location: "N-Terminal",
+        ): Free,
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "C-Terminal",
+        ): Donor(BondId(4)),
+      },
+      offset_modifications: [],
+    ),
+    ResidueId(1): Residue(
+      abbr: "E",
+      name: "Glutamic Acid",
+      composition: "<FORMULA>",
+      functional_groups: {
+        FunctionalGroup(
+          name: "Amino",
+          location: "N-Terminal",
+        ): Acceptor(BondId(4)),
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "C-Terminal",
+        ): Donor(BondId(5)),
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "Sidechain",
+        ): Free,
+      },
+      offset_modifications: [],
+    ),
+    ResidueId(2): Residue(
+      abbr: "J",
+      name: "Diaminopimelic Acid",
+      composition: "<FORMULA>",
+      functional_groups: {
+        FunctionalGroup(
+          name: "Amino",
+          location: "N-Terminal",
+        ): Acceptor(BondId(5)),
+        FunctionalGroup(
+          name: "Amino",
+          location: "Sidechain",
+        ): Free,
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "C-Terminal",
+        ): Donor(BondId(6)),
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "Sidechain",
+        ): Free,
+      },
+      offset_modifications: [],
+    ),
+    ResidueId(3): Residue(
+      abbr: "A",
+      name: "Alanine",
+      composition: "<FORMULA>",
+      functional_groups: {
+        FunctionalGroup(
+          name: "Amino",
+          location: "N-Terminal",
+        ): Acceptor(BondId(6)),
+        FunctionalGroup(
+          name: "Carboxyl",
+          location: "C-Terminal",
+        ): Free,
+      },
+      offset_modifications: [],
+    ),
+  },
+  modifications: {},
+  bonds: {
+    BondId(4): BondInfo(ResidueGroup(ResidueId(0), FunctionalGroup(
+      name: "Carboxyl",
+      location: "C-Terminal",
+    )), Bond(
+      abbr: "Pep",
+      name: "Peptide",
+      lost: "<FORMULA>",
+      gained: "<FORMULA>",
+    ), ResidueGroup(ResidueId(1), FunctionalGroup(
+      name: "Amino",
+      location: "N-Terminal",
+    ))),
+    BondId(5): BondInfo(ResidueGroup(ResidueId(1), FunctionalGroup(
+      name: "Carboxyl",
+      location: "C-Terminal",
+    )), Bond(
+      abbr: "Pep",
+      name: "Peptide",
+      lost: "<FORMULA>",
+      gained: "<FORMULA>",
+    ), ResidueGroup(ResidueId(2), FunctionalGroup(
+      name: "Amino",
+      location: "N-Terminal",
+    ))),
+    BondId(6): BondInfo(ResidueGroup(ResidueId(2), FunctionalGroup(
+      name: "Carboxyl",
+      location: "C-Terminal",
+    )), Bond(
+      abbr: "Pep",
+      name: "Peptide",
+      lost: "<FORMULA>",
+      gained: "<FORMULA>",
+    ), ResidueGroup(ResidueId(3), FunctionalGroup(
+      name: "Amino",
+      location: "N-Terminal",
+    ))),
+  },
+)

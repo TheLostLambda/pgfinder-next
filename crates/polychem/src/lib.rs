@@ -1,107 +1,123 @@
 //! An abstraction for building chemically validated polymers
 
 pub mod atoms;
+pub mod errors;
+pub mod moieties;
 pub mod parsers;
-pub mod polymerizer;
 pub mod polymers;
 #[cfg(test)]
 mod testing_tools;
 
-use parsers::errors::CompositionError;
-use polymerizer::PolymerizerError;
-use polymers::errors::OffsetMultiplierError;
+use std::num::NonZero;
+
+use derive_more::{Add, AddAssign, Display, From, Into, IsVariant, Neg, Sub, SubAssign, Sum};
+use polymers::polymerizer_state::PolymerizerState;
 use serde::Serialize;
 
 // External Crate Imports
-use ahash::HashMap;
-use miette::Diagnostic;
+use ahash::{HashMap, HashSet};
 use rust_decimal::Decimal;
-use thiserror::Error;
 
-// FIXME: Work on what's publicly exported / part of the API!
+// FIXME: Work on what's publicly exported / part of the API! — maybe create a prelude?
 pub use atoms::atomic_database::AtomicDatabase;
-pub use polymers::polymer_database::PolymerDatabase;
+pub use errors::Result;
+pub use moieties::polymer_database::PolymerDatabase;
+pub use polymers::polymerizer::Polymerizer;
 
-// FIXME: Blocks here need reordering!
+// FIXME: I've exported a lot of things that previously weren't exported! Make sure that all of that new public API has
+// as many traits automatically derived as possible!
+
+// Core Data Types =====================================================================================================
 
 // NOTE: For the types in this module, 'a lifetimes indicate references to the AtomicDatabase, whilst 'p lifetimes
 // indicate references to the PolymerDatabase
-#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-pub struct Residue<'a, 'p> {
-    id: Id,
-    abbr: &'p str,
-    name: &'p str,
-    composition: &'p ChemicalComposition<'a>,
-    functional_groups: HashMap<FunctionalGroup<'p>, GroupState<'a, 'p>>,
-    offset_modifications: HashMap<ChemicalComposition<'a>, OffsetMultiplier>,
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+pub struct Polymer<'a, 'p> {
+    // DESIGN: The `PolymerizerState` struct keeps track of fields that are only useful when adding new components to
+    // the current polymer. Abstracting those fields out into a `PolymerizerState` helps to separate concerns, and makes
+    // it clearer that the `residues`, `modifications`, and `bonds` fields are, by themselves, a complete description of
+    // the `Polymer`s structure. A discarded alternative was two versions of the `Polymer` struct ("complete" and
+    // "non-complete" versions), which would have introduced additional complexity to the user API, and the free group
+    // index lost by discarding the `PolymerizerState` would have needed to be reconstructed during fragmentation
+    // anyways for quick group lookup. Having two structs just for the ID counter and database references didn't seem
+    // worth it. This decision accepts the downside of increasing the size of the `Polymer` struct.
+    #[serde(skip)]
+    polymerizer_state: PolymerizerState<'a, 'p>,
+    // NOTE: Whilst the `Polymerizer` struct is defined elsewhere, the following fields are part of the core polymer
+    // representation and are therefore defined in this file, with `impl`s added in separate modules as needed.
+    residues: HashMap<ResidueId, Residue<'a, 'p>>,
+    modifications: HashMap<ModificationId, ModificationInfo<'a, 'p>>,
+    bonds: HashMap<BondId, BondInfo<'a, 'p>>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-type Id = usize;
+// FIXME: Pass through Display implementations for all Id newtypes!
+// FIXME: Add tests that fail if `Default` is implemented for `Id`s!
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Serialize)]
+pub struct ResidueId(Id);
 
-#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize)]
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+pub struct Residue<'a, 'p> {
+    abbr: &'p str,
+    name: &'p str,
+    composition: &'p ChemicalComposition<'a>,
+    functional_groups: HashMap<FunctionalGroup<'p>, GroupState>,
+    offset_modifications: HashSet<ModificationId>,
+}
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Serialize)]
+pub struct ModificationId(Id);
+
+#[derive(Clone, Eq, PartialEq, Debug, IsVariant, Serialize)]
+pub enum ModificationInfo<'a, 'p> {
+    Named(NamedMod<'a, 'p>, ResidueGroup<'p>),
+    Offset(Modification<OffsetMod<'a>>, ResidueId),
+    Unlocalized(AnyModification<'a, 'p>),
+}
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Serialize)]
+pub struct BondId(Id);
+
+// FIXME: Perhaps I should consider changing these `*Info` structs to have named fields? Is the donor -> acceptor order
+// obvious enough for users?
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+pub struct BondInfo<'a, 'p>(ResidueGroup<'p>, Bond<'a, 'p>, ResidueGroup<'p>);
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// NOTE: This underlying `Id` type is just a synonym since it's private to this crate — there is no way for users to
+// directly provide or modify `Id`s, so I don't need to worry about a newtype wrapper here
+type Id = u64;
+
+#[derive(Clone, Eq, PartialEq, Debug, Default, Serialize)]
 pub struct ChemicalComposition<'a> {
     chemical_formula: Vec<(Element<'a>, Count)>,
     particle_offset: Option<(OffsetKind, Count, Particle<'a>)>,
 }
 
-// FIXME: Ensure all of the derives in this file derive as much as possible!
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
 pub struct FunctionalGroup<'p> {
     name: &'p str,
     location: &'p str,
 }
 
-// FIXME: Oh boy, please pick a better name...
-// FIXME: Should this really be a tuple struct?...
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub struct OffsetMultiplier(OffsetKind, Count);
-
-#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-pub struct Modification<K> {
-    multiplier: Count,
-    kind: K,
-}
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
-struct Element<'a> {
-    symbol: &'a str,
-    name: &'a str,
-    mass_number: Option<MassNumber>,
-    isotopes: &'a HashMap<MassNumber, Isotope>,
-}
-
-// NOTE: Keep an eye on https://github.com/rust-lang/rust/issues/120257 for non-zero types
-pub type Count = u32;
-pub type SignedCount = i64;
-
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub enum OffsetKind {
-    Add,
-    Remove,
-}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-struct Particle<'a> {
-    symbol: &'a str,
-    name: &'a str,
-    mass: &'a Decimal,
-    charge: &'a Charge,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default, Serialize)]
-pub enum GroupState<'a, 'p> {
+#[derive(
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, IsVariant, Serialize,
+)]
+pub enum GroupState {
     #[default]
     Free,
-    Modified(NamedMod<'a, 'p>),
-    Donor(Bond<'a, 'p>),
-    Acceptor,
+    Modified(ModificationId),
+    Donor(BondId),
+    Acceptor(BondId),
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize)]
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 pub struct NamedMod<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
@@ -109,76 +125,231 @@ pub struct NamedMod<'a, 'p> {
     gained: &'p ChemicalComposition<'a>,
 }
 
-pub type OffsetMod<'a> = Offset<ChemicalComposition<'a>>;
-pub type BorrowedOffsetMod<'a> = Offset<&'a ChemicalComposition<'a>>;
+// FIXME: Should I be using named fields here?
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+pub struct ResidueGroup<'p>(ResidueId, FunctionalGroup<'p>);
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize)]
-pub struct Offset<C> {
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+pub struct OffsetMod<'a> {
     kind: OffsetKind,
-    composition: C,
+    composition: ChemicalComposition<'a>,
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-type MassNumber = u32;
-
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-struct Isotope {
-    relative_mass: Decimal,
-    abundance: Option<Decimal>,
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+pub struct Modification<K> {
+    multiplier: Count,
+    kind: K,
 }
 
-pub type Charge = i64;
+type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize)]
-pub struct Bond<'a, 'p> {
-    kind: &'p str,
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Bond<'a, 'p> {
+    abbr: &'p str,
+    name: &'p str,
     lost: &'p ChemicalComposition<'a>,
-    acceptor: BondTarget<'p>,
+    gained: &'p ChemicalComposition<'a>,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub struct BondTarget<'p> {
-    residue: Id,
-    // NOTE: Owned because some of these are sometimes constructed from `Target`s returned by the `TargetIndex`
-    group: FunctionalGroup<'p>,
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Element<'a> {
+    symbol: &'a str,
+    name: &'a str,
+    mass_number: Option<MassNumber>,
+    isotopes: &'a HashMap<MassNumber, Isotope>,
 }
 
-// FIXME: Better section naming!
-// Convenience API? ====================================================================================================
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Into, Serialize)]
+pub struct Count(NonZero<u32>);
 
-pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
+// MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Serialize)]
+pub enum OffsetKind {
+    Add,
+    Remove,
+}
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize)]
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Particle<'a> {
+    symbol: &'a str,
+    name: &'a str,
+    mass: &'a Mass,
+    charge: &'a Charge,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 pub enum AnyMod<'a, 'p> {
     Named(NamedMod<'a, 'p>),
     Offset(OffsetMod<'a>),
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+
+// MISSING: No `Default` — this *should* be user constructable, but there is no sensible default here
+#[derive(
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, From, Into, Serialize,
+)]
+pub struct MassNumber(NonZero<u32>);
+
+#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+struct Isotope {
+    relative_mass: Mass,
+    abundance: Option<Abundance>,
+}
+
+// NOTE: `Mass` is *private* to this crate, and must be converted to either a `MonoisotopicMass` or `AverageMass`
+// before being passed to the user. `Mass` should *not* show up in public API!
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Neg, Add, Sum, Serialize)]
+struct Mass(Decimal);
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Neg,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
+pub struct Charge(i64);
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Into, Serialize)]
+struct Abundance(Decimal);
+
 // =====================================================================================================================
 
 pub trait Massive {
-    fn monoisotopic_mass(&self) -> Decimal;
-    fn average_mass(&self) -> Decimal;
+    fn monoisotopic_mass(&self) -> MonoisotopicMass;
+    fn average_mass(&self) -> AverageMass;
 }
 
 pub trait Charged {
     fn charge(&self) -> Charge;
 }
 
-pub trait Mz: Massive + Charged {
-    fn monoisotopic_mz(&self) -> Option<Decimal> {
-        let charge = Decimal::from(self.charge()).abs();
-        (!charge.is_zero()).then(|| self.monoisotopic_mass() / charge)
+// FIXME: Not super sold on that trait name...
+pub trait ChargedParticle: Massive + Charged {
+    fn monoisotopic_mz(&self) -> Option<MonoisotopicMz> {
+        let mass = self.monoisotopic_mass();
+        let charge = self.charge().abs();
+        (charge.0 != 0).then(|| mass / charge)
     }
 
-    fn average_mz(&self) -> Option<Decimal> {
-        let charge = Decimal::from(self.charge()).abs();
-        (!charge.is_zero()).then(|| self.average_mass() / charge)
+    fn average_mz(&self) -> Option<AverageMz> {
+        let mass = self.average_mass();
+        let charge = self.charge().abs();
+        (charge.0 != 0).then(|| mass / charge)
     }
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// DESIGN: These types are all "duplicated" instead of providing something like `Monoisotopic<T>` and `Average<T>`,
+// since writing something like `Monoisotopic<Mass>` would leak the private `Mass` struct into the API, and would
+// prevent me from hiding that implementation detail from the user. We're explicitly accepting the repetition here...
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Neg,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
+pub struct MonoisotopicMass(Decimal);
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Neg,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
+pub struct AverageMass(Decimal);
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
+pub struct MonoisotopicMz(Decimal);
+
+// MISSING: No `Default` — should not be constructable by the user
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Hash,
+    Debug,
+    Display,
+    Into,
+    Add,
+    Sub,
+    Sum,
+    AddAssign,
+    SubAssign,
+    Serialize,
+)]
+pub struct AverageMz(Decimal);
+
+// =====================================================================================================================
 
 // Blanket impls
 
@@ -186,11 +357,11 @@ macro_rules! massive_ref_impls {
     ($($ref_type:ty),+ $(,)?) => {
         $(
             impl<T: Massive> Massive for $ref_type {
-                fn monoisotopic_mass(&self) -> Decimal {
+                fn monoisotopic_mass(&self) -> MonoisotopicMass {
                     (**self).monoisotopic_mass()
                 }
 
-                fn average_mass(&self) -> Decimal {
+                fn average_mass(&self) -> AverageMass {
                     (**self).average_mass()
                 }
             }
@@ -214,136 +385,64 @@ macro_rules! charged_ref_impls {
 
 charged_ref_impls!(&T, &mut T, Box<T>);
 
-impl<T: Massive + Charged> Mz for T {}
+impl<T: Massive + Charged> ChargedParticle for T {}
 
-pub type Result<T, E = Box<PolychemError>> = std::result::Result<T, E>;
+#[cfg(test)]
+mod tests {
+    use rust_decimal_macros::dec;
 
-// FIXME: Maybe there are too many layers of things being wrapped here!
-// FIXME: Maybe just rename this to be `Error`?
-// FIXME: Check all of the errors returned from public API are wrapped in this!
-#[derive(Debug, Diagnostic, Clone, Eq, PartialEq, Error)]
-pub enum PolychemError {
-    #[error(transparent)]
-    #[diagnostic(transparent)]
-    Composition(#[from] CompositionError),
+    use super::*;
 
-    #[error("the residue {0:?} could not be found in the supplied polymer database")]
-    ResidueLookup(String),
+    #[derive(Clone)]
+    struct Chonky;
 
-    #[error("the modification {0:?} could not be found in the supplied polymer database")]
-    ModificationLookup(String),
+    impl Massive for Chonky {
+        fn monoisotopic_mass(&self) -> MonoisotopicMass {
+            MonoisotopicMass(dec!(42))
+        }
 
-    #[error("the bond kind {0:?} could not be found in the supplied polymer database")]
-    BondLookup(String),
-
-    #[error("the functional group {0} could not be found on the residue {1} ({2})")]
-    GroupLookup(String, String, String),
-
-    #[error("failed to apply the offset modification {0} to residue {1} ({2})")]
-    OffsetModification(
-        String,
-        Id,
-        String,
-        #[source]
-        #[diagnostic_source]
-        // FIXME: This should be hidden behind a private error struct, like `polymerizer::Error`
-        OffsetMultiplierError,
-    ),
-
-    #[error("failed to apply the named modification {0} ({1}) to residue {2} ({3})")]
-    NamedModification(
-        String,
-        String,
-        Id,
-        String,
-        #[source]
-        #[diagnostic_source]
-        polymerizer::Error,
-    ),
-
-    #[error("failed to form {0:?} bond between residue {1} ({2}) and residue {3} ({4}) due to an issue with the {5}")]
-    Bond(
-        String,
-        Id,
-        String,
-        Id,
-        String,
-        String,
-        #[source]
-        #[diagnostic_source]
-        polymerizer::Error,
-    ),
-}
-
-// FIXME: Move this to it's own errors.rs module? Bring the enum along too?
-impl PolychemError {
-    fn residue_lookup(abbr: &str) -> Self {
-        Self::ResidueLookup(abbr.to_owned())
+        fn average_mass(&self) -> AverageMass {
+            AverageMass(dec!(42.42))
+        }
     }
 
-    fn modification_lookup(abbr: &str) -> Self {
-        Self::ModificationLookup(abbr.to_owned())
+    #[test]
+    fn massive_blanket_impls() {
+        let big_boi = Chonky;
+        let chonky_ref = &big_boi;
+        let chonky_mut = &mut big_boi.clone();
+        let chonky_box = Box::new(big_boi.clone());
+        assert_eq!(big_boi.monoisotopic_mass(), chonky_ref.monoisotopic_mass());
+        assert_eq!(
+            chonky_ref.monoisotopic_mass(),
+            chonky_mut.monoisotopic_mass(),
+        );
+        assert_eq!(
+            chonky_mut.monoisotopic_mass(),
+            chonky_box.monoisotopic_mass(),
+        );
+        assert_eq!(big_boi.average_mass(), chonky_ref.average_mass());
+        assert_eq!(chonky_ref.average_mass(), chonky_mut.average_mass());
+        assert_eq!(chonky_mut.average_mass(), chonky_box.average_mass());
     }
 
-    fn bond_lookup(kind: &str) -> Self {
-        Self::BondLookup(kind.to_owned())
+    #[derive(Clone)]
+    struct Pikachu;
+
+    impl Charged for Pikachu {
+        fn charge(&self) -> Charge {
+            Charge(9001)
+        }
     }
 
-    fn group_lookup(functional_group: FunctionalGroup, name: &str, abbr: &str) -> Self {
-        Self::GroupLookup(
-            functional_group.to_string(),
-            name.to_owned(),
-            abbr.to_owned(),
-        )
-    }
-
-    fn offset_modification(
-        count: Count,
-        kind: OffsetKind,
-        composition: ChemicalComposition,
-        residue: &Residue,
-        source: OffsetMultiplierError,
-    ) -> Self {
-        let modification =
-            Modification::new(count, Offset::new_with_composition(kind, composition));
-        Self::OffsetModification(
-            modification.to_string(),
-            residue.id(),
-            residue.name().to_owned(),
-            source,
-        )
-    }
-
-    fn named_modification(
-        name: &str,
-        abbr: &str,
-        residue: &Residue,
-        source: PolymerizerError,
-    ) -> Self {
-        Self::NamedModification(
-            name.to_owned(),
-            abbr.to_owned(),
-            residue.id(),
-            residue.name.to_owned(),
-            source.into(),
-        )
-    }
-
-    fn bond(
-        kind: &str,
-        donor: &Residue,
-        acceptor: &Residue,
-        error_with: &str,
-        source: PolymerizerError,
-    ) -> Self {
-        Self::Bond(
-            kind.to_owned(),
-            donor.id(),
-            donor.name.to_owned(),
-            acceptor.id(),
-            acceptor.name.to_owned(),
-            error_with.to_owned(),
-            source.into(),
-        )
+    #[test]
+    fn charged_blanket_impls() {
+        let yellow_rat = Pikachu;
+        let pikachu_ref = &yellow_rat;
+        let pikachu_mut = &mut yellow_rat.clone();
+        let pikachu_box = Box::new(yellow_rat.clone());
+        assert_eq!(yellow_rat.charge(), pikachu_ref.charge());
+        assert_eq!(pikachu_ref.charge(), pikachu_mut.charge());
+        assert_eq!(pikachu_mut.charge(), pikachu_box.charge());
     }
 }

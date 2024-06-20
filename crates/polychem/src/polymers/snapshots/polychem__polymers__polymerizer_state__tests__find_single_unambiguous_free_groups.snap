@@ -1,0 +1,6 @@
+---
+source: crates/polychem/src/polymers/polymerizer_state.rs
+description: zero_groups
+expression: out
+---
+  × attempted to find zero free groups, but you must look for at least one
