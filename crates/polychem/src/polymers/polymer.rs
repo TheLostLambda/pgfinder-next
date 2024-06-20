@@ -264,6 +264,17 @@ impl<'a, 'p> Polymer<'a, 'p> {
         let modification = self.build_offset_mod(kind, multiplier, formula)?;
         self.offset_with_modification(modification, residue)
     }
+
+    pub fn offset_residue_with_composition(
+        &mut self,
+        kind: OffsetKind,
+        multiplier: impl TryInto<Count>,
+        composition: ChemicalComposition<'a>,
+        residue: ResidueId,
+    ) -> Result<ModificationId> {
+        let modification = self.build_offset_mod_with_composition(kind, multiplier, composition)?;
+        self.offset_with_modification(modification, residue)
+    }
 }
 
 // Private Methods =====================================================================================================
@@ -275,10 +286,20 @@ impl<'a, 'p> Polymer<'a, 'p> {
         multiplier: impl TryInto<Count>,
         formula: impl AsRef<str>,
     ) -> Result<Modification<OffsetMod<'a>>> {
+        let composition = ChemicalComposition::new(self.atomic_db(), formula)?;
+
+        self.build_offset_mod_with_composition(kind, multiplier, composition)
+    }
+
+    fn build_offset_mod_with_composition(
+        &self,
+        kind: OffsetKind,
+        multiplier: impl TryInto<Count>,
+        composition: ChemicalComposition<'a>,
+    ) -> Result<Modification<OffsetMod<'a>>> {
         let multiplier = multiplier
             .try_into()
             .map_err(|_| PolychemError::ZeroMultiplier)?;
-        let composition = ChemicalComposition::new(self.atomic_db(), formula)?;
         let modification = Modification::new(multiplier, OffsetMod::new(kind, composition));
 
         Ok(modification)
@@ -1425,5 +1446,31 @@ mod tests {
         let residue_from_wrong_polymer =
             polymer.offset_residue(OffsetKind::Add, 1, "H2O", ResidueId(4));
         assert_miette_snapshot!(residue_from_wrong_polymer);
+    }
+
+    #[test]
+    fn offset_residue_with_composition() {
+        let mut polymer_a = POLYMERIZER.new_polymer();
+        let mut polymer_b = POLYMERIZER.new_polymer();
+        let args = [
+            (OffsetKind::Add, 1, "p"),
+            (OffsetKind::Add, 2, "e"),
+            (OffsetKind::Add, 1, "H2O+p"),
+            (OffsetKind::Remove, 4, "CO"),
+        ];
+
+        let alanine_a = polymer_a.new_residue("A").unwrap();
+        let alanine_b = polymer_b.new_residue("A").unwrap();
+
+        for (kind, multiplier, formula) in args {
+            let composition = ChemicalComposition::new(&ATOMIC_DB, formula).unwrap();
+
+            let offset_a = polymer_a.offset_residue(kind, multiplier, formula, alanine_a);
+            let offset_b =
+                polymer_b.offset_residue_with_composition(kind, multiplier, composition, alanine_b);
+
+            assert_eq!(offset_a, offset_b);
+            assert_eq!(polymer_a, polymer_b);
+        }
     }
 }
