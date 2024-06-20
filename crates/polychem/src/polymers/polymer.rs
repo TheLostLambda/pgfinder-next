@@ -96,6 +96,16 @@ impl<'a, 'p> Polymer<'a, 'p> {
         Ok(self.unlocalized_modification(modification))
     }
 
+    pub fn new_offset_with_composition(
+        &mut self,
+        kind: OffsetKind,
+        multiplier: impl TryInto<Count>,
+        composition: ChemicalComposition<'a>,
+    ) -> Result<ModificationId> {
+        let modification = self.build_offset_mod_with_composition(kind, multiplier, composition)?;
+        Ok(self.unlocalized_modification(modification))
+    }
+
     // TODO: Add `remove_modification` and be sure to clear any groups the modification was attached to!
 
     #[must_use]
@@ -797,6 +807,27 @@ mod tests {
 
         let missing_modification = polymer.modification(ModificationId(8));
         assert_eq!(missing_modification, None);
+    }
+
+    #[test]
+    fn new_offset_with_composition() {
+        let mut polymer_a = POLYMERIZER.new_polymer();
+        let mut polymer_b = POLYMERIZER.new_polymer();
+        let args = [
+            (OffsetKind::Remove, 1, "H2O"),
+            (OffsetKind::Add, 2, "H2O"),
+            (OffsetKind::Remove, 3, "NH3+p"),
+        ];
+
+        for (kind, multiplier, formula) in args {
+            let composition = ChemicalComposition::new(&ATOMIC_DB, formula).unwrap();
+
+            let offset_a = polymer_a.new_offset(kind, multiplier, formula);
+            let offset_b = polymer_b.new_offset_with_composition(kind, multiplier, composition);
+
+            assert_eq!(offset_a, offset_b);
+            assert_eq!(polymer_a, polymer_b);
+        }
     }
 
     #[test]
