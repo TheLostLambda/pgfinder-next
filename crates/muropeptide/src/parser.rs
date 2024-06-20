@@ -488,86 +488,89 @@ mod tests {
         assert_offset_modification!("+C11H12N2O2 H2O", " H2O", Add, 1, 204.08987763476, 0);
     }
 
-    #[ignore]
     #[test]
     #[allow(clippy::cognitive_complexity)]
     fn test_modifications() {
-        // let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
-        // let mut modifications = modifications(&polymerizer);
-        // macro_rules! assert_offset_mz {
-        //     ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
-        //         let (rest, modification) = modifications($input).unwrap();
-        //         assert_eq!(rest, $output);
-        //         let net_mass: Decimal = modification.iter().map(|m| m.monoisotopic_mass()).sum();
-        //         assert_eq!(net_mass, $mass);
-        //         let net_charge: Charge = modification.iter().map(|m| m.charge()).sum();
-        //         assert_eq!(net_charge, $charge);
-        //     };
-        // }
-        // // Valid Modifications
-        // assert_offset_mz!("(-H2O)", "", dec!(-18.01056468403), 0);
-        // assert_offset_mz!("(+2xH2O)", "", dec!(36.02112936806), 0);
-        // assert_offset_mz!("(-2p)", "", dec!(-2.014552933242), -2);
-        // assert_offset_mz!("(-3xC2H2O-2e)", "", dec!(-126.02840257263561), -6);
-        // assert_offset_mz!("(+[37Cl]5-2p)", "", dec!(182.814960076758), -2);
-        // assert_offset_mz!("(Red)", "", dec!(2.01565006446), 0);
-        // assert_offset_mz!("(Anh)", "", dec!(-18.01056468403), 0);
-        // assert_offset_mz!("(1xAm)", "", dec!(-0.98401558291), 0);
-        // assert_offset_mz!("(2xRed)", "", dec!(4.03130012892), 0);
-        // assert_offset_mz!("(-OH, +NH2)", "", dec!(-0.98401558291), 0);
-        // assert_offset_mz!("(Anh, +H2O)", "", dec!(0), 0);
-        // assert_offset_mz!("(Anh,+H2O)", "", dec!(0), 0);
-        // assert_offset_mz!("(Anh   ,+H2O)", "", dec!(0), 0);
-        // assert_offset_mz!("(Anh  ,  +H2O)", "", dec!(0), 0);
-        // assert_offset_mz!("(2xAnh, +3xH2O)", "", dec!(18.01056468403), 0);
-        // assert_offset_mz!("(Anh, Anh, +3xH2O)", "", dec!(18.01056468403), 0);
-        // assert_offset_mz!("(-H2, +Ca)", "", dec!(37.94694079854), 0);
-        // // NOTE: There is a super small mass defect (13.6 eV, or ~1e-8 u) stored in the binding energy between a proton
-        // // and electon — that's why this result is slightly different from the one above!
-        // assert_offset_mz!("(-2p, +Ca-2e)", "", dec!(37.946940769939870), 0);
-        // assert_offset_mz!("(+2p, -2p, +Ca-2e)", "", dec!(39.961493703181870), 2);
-        // // Invalid Modifications
-        // assert!(modifications(" ").is_err());
-        // assert!(modifications("H2O").is_err());
-        // assert!(modifications("(-H2O").is_err());
-        // assert!(modifications("(+0xH2O)").is_err());
-        // assert!(modifications("(2xH2O)").is_err());
-        // assert!(modifications("(-2x3xH2O)").is_err());
-        // assert!(modifications("(-2x+H2O)").is_err());
-        // assert!(modifications("(+2[2H])").is_err());
-        // assert!(modifications("(-[H+p]O)").is_err());
-        // assert!(modifications("(+NH2[100Tc])").is_err());
-        // assert!(modifications("( H2O)").is_err());
-        // assert!(modifications("(1)").is_err());
-        // assert!(modifications("(9999)").is_err());
-        // assert!(modifications("(0)").is_err());
-        // assert!(modifications("(00145)").is_err());
-        // assert!(modifications("([H])").is_err());
-        // assert!(modifications("(Øof)").is_err());
-        // assert!(modifications("(-Ac)").is_err());
-        // assert!(modifications("(_Ac)").is_err());
-        // assert!(modifications("(+Am)").is_err());
-        // assert!(modifications("(-2xAm)").is_err());
-        // assert!(modifications("((Am))").is_err());
-        // assert!(modifications("(Anh +H2O)").is_err());
-        // assert!(modifications("(Anh; +H2O)").is_err());
-        // // Non-Existent Modifications
-        // assert!(modifications("(Blue)").is_err());
-        // assert!(modifications("(Hydro)").is_err());
-        // assert!(modifications("(1xAm2)").is_err());
-        // assert!(modifications("(2xR_ed)").is_err());
-        // // Multiple Modifications
-        // assert_offset_mz!("(+[37Cl]5-2p)10", "10", dec!(182.814960076758), -2);
-        // assert_offset_mz!("(+[2H]2O)*H2O", "*H2O", dec!(20.02311817581), 0);
-        // assert_offset_mz!("(+NH2){100Tc", "{100Tc", dec!(16.01872406889), 0);
-        // assert_offset_mz!("(+C11H12N2O2) H2O", " H2O", dec!(204.08987763476), 0);
-        // assert_offset_mz!(
-        //     "(2xAnh, +3xH2O)AA=gm-AEJA",
-        //     "AA=gm-AEJA",
-        //     dec!(18.01056468403),
-        //     0
-        // );
-        todo!()
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_modifications = modifications(&polymer);
+        macro_rules! assert_modifications {
+            ($input:literal, $output:literal, $count:literal, $mass:literal, $charge:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, parsed_ids) = modifications(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+                assert_eq!(parsed_ids.len(), $count);
+
+                let polymer = polymer.borrow();
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mass));
+                assert_eq!(i64::from(polymer.charge()), $charge);
+            };
+        }
+        // Valid Modifications
+        assert_modifications!("(-H2O)", "", 1, -18.01056468403, 0);
+        assert_modifications!("(+2xH2O)", "", 1, 36.02112936806, 0);
+        assert_modifications!("(-2p)", "", 1, -2.014552933242, -2);
+        assert_modifications!("(-3xC2H2O-2e)", "", 1, -126.02840257263561, -6);
+        assert_modifications!("(+[37Cl]5-2p)", "", 1, 182.814960076758, -2);
+        assert_modifications!("(Red)", "", 1, 2.01565006446, 0);
+        assert_modifications!("(Anh)", "", 1, -18.01056468403, 0);
+        assert_modifications!("(1xAm)", "", 1, -0.98401558291, 0);
+        assert_modifications!("(2xRed)", "", 1, 4.03130012892, 0);
+        assert_modifications!("(-OH, +NH2)", "", 2, -0.98401558291, 0);
+        assert_modifications!("(Anh, +H2O)", "", 2, 0, 0);
+        assert_modifications!("(Anh,+H2O)", "", 2, 0, 0);
+        assert_modifications!("(Anh   ,+H2O)", "", 2, 0, 0);
+        assert_modifications!("(Anh  ,  +H2O)", "", 2, 0, 0);
+        assert_modifications!("(2xAnh, +3xH2O)", "", 2, 18.01056468403, 0);
+        assert_modifications!("(Anh, Anh, +3xH2O)", "", 3, 18.01056468403, 0);
+        assert_modifications!("(-H2, +Ca)", "", 2, 37.94694079854, 0);
+        // NOTE: There is a super small mass defect (13.6 eV, or ~1e-8 u) stored in the binding energy between a proton
+        // and electon — that's why this result is slightly different from the one above!
+        assert_modifications!("(-2p, +Ca-2e)", "", 2, 37.946940769939870, 0);
+        assert_modifications!("(+2p, -2p, +Ca-2e)", "", 3, 39.961493703181870, 2);
+        // Invalid Modifications
+        assert!(err_modifications(" ").is_err());
+        assert!(err_modifications("H2O").is_err());
+        assert!(err_modifications("(-H2O").is_err());
+        assert!(err_modifications("(+0xH2O)").is_err());
+        assert!(err_modifications("(2xH2O)").is_err());
+        assert!(err_modifications("(-2x3xH2O)").is_err());
+        assert!(err_modifications("(-2x+H2O)").is_err());
+        assert!(err_modifications("(+2[2H])").is_err());
+        assert!(err_modifications("(-[H+p]O)").is_err());
+        assert!(err_modifications("(+NH2[100Tc])").is_err());
+        assert!(err_modifications("( H2O)").is_err());
+        assert!(err_modifications("(1)").is_err());
+        assert!(err_modifications("(9999)").is_err());
+        assert!(err_modifications("(0)").is_err());
+        assert!(err_modifications("(00145)").is_err());
+        assert!(err_modifications("([H])").is_err());
+        assert!(err_modifications("(Øof)").is_err());
+        assert!(err_modifications("(-Ac)").is_err());
+        assert!(err_modifications("(_Ac)").is_err());
+        assert!(err_modifications("(+Am)").is_err());
+        assert!(err_modifications("(-2xAm)").is_err());
+        assert!(err_modifications("((Am))").is_err());
+        assert!(err_modifications("(Anh +H2O)").is_err());
+        assert!(err_modifications("(Anh; +H2O)").is_err());
+        // Non-Existent Modifications
+        assert!(err_modifications("(Blue)").is_err());
+        assert!(err_modifications("(Hydro)").is_err());
+        assert!(err_modifications("(1xAm2)").is_err());
+        assert!(err_modifications("(2xR_ed)").is_err());
+        // Multiple Modifications
+        assert_modifications!("(+[37Cl]5-2p)10", "10", 1, 182.814960076758, -2);
+        assert_modifications!("(+[2H]2O)*H2O", "*H2O", 1, 20.02311817581, 0);
+        assert_modifications!("(+NH2){100Tc", "{100Tc", 1, 16.01872406889, 0);
+        assert_modifications!("(+C11H12N2O2) H2O", " H2O", 1, 204.08987763476, 0);
+        assert_modifications!(
+            "(2xAnh, +3xH2O)AA=gm-AEJA",
+            "AA=gm-AEJA",
+            2,
+            18.01056468403,
+            0
+        );
     }
 
     // FIXME: Unfininshed! Needs modification support — same with unbranched_amino_acid!
