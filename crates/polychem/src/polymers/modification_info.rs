@@ -17,6 +17,8 @@ impl Display for ModificationInfo<'_, '_> {
 
 #[cfg(test)]
 mod tests {
+    use std::panic;
+
     use super::*;
     use once_cell::sync::Lazy;
 
@@ -78,6 +80,29 @@ mod tests {
             assert!(!unlocalized.is_named());
             assert!(!unlocalized.is_offset());
             assert!(unlocalized.is_unlocalized());
+        }
+    }
+
+    #[test]
+    fn derive_more_unwrap() {
+        macro_rules! assert_panics {
+            ($expr:expr) => {
+                assert!(panic::catch_unwind(|| $expr).is_err());
+            };
+        }
+
+        NAMED.clone().unwrap_named();
+        assert_panics!(NAMED.clone().unwrap_offset());
+        assert_panics!(NAMED.clone().unwrap_unlocalized());
+
+        assert_panics!(OFFSET.clone().unwrap_named());
+        OFFSET.clone().unwrap_offset();
+        assert_panics!(OFFSET.clone().unwrap_unlocalized());
+
+        for unlocalized in &*UNLOCALIZED {
+            assert_panics!(unlocalized.clone().unwrap_named());
+            assert_panics!(unlocalized.clone().unwrap_offset());
+            unlocalized.clone().unwrap_unlocalized();
         }
     }
 

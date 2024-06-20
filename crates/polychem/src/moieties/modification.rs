@@ -12,6 +12,16 @@ impl<K> Modification<K> {
         Self { multiplier, kind }
     }
 
+    #[must_use]
+    pub const fn multiplier(&self) -> Count {
+        self.multiplier
+    }
+
+    #[must_use]
+    pub const fn kind(&self) -> &K {
+        &self.kind
+    }
+
     // NOTE: This can't exist as a From impl since it overlaps with `impl From<T> for T` in the standard library. This
     // is awfully annoying, so keep an eye out for specialization, which should make that sort of overlap possible:
     // https://github.com/rust-lang/rust/issues/31844
@@ -65,31 +75,20 @@ fn display_named_modification(
 
 impl Display for Modification<OffsetMod<'_>> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let &Self {
-            multiplier,
-            ref kind,
-        } = self;
-        display_offset_modification(f, multiplier, kind)
+        display_offset_modification(f, self.multiplier(), self.kind())
     }
 }
 
 impl Display for Modification<NamedMod<'_, '_>> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let &Self {
-            multiplier,
-            ref kind,
-        } = self;
-        display_named_modification(f, multiplier, kind)
+        display_named_modification(f, self.multiplier(), self.kind())
     }
 }
 
 impl Display for Modification<AnyMod<'_, '_>> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let &Self {
-            multiplier,
-            ref kind,
-        } = self;
-        match kind {
+        let multiplier = self.multiplier();
+        match self.kind() {
             AnyMod::Named(kind) => display_named_modification(f, multiplier, kind),
             AnyMod::Offset(kind) => display_offset_modification(f, multiplier, kind),
         }

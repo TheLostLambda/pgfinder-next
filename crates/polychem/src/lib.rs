@@ -10,7 +10,9 @@ mod testing_tools;
 
 use std::num::NonZero;
 
-use derive_more::{Add, AddAssign, Display, From, Into, IsVariant, Neg, Sub, SubAssign, Sum};
+use derive_more::{
+    Add, AddAssign, Display, From, Into, IsVariant, Neg, Sub, SubAssign, Sum, Unwrap,
+};
 use polymers::polymerizer_state::PolymerizerState;
 use serde::Serialize;
 
@@ -71,7 +73,7 @@ pub struct Residue<'a, 'p> {
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Display, Serialize)]
 pub struct ModificationId(Id);
 
-#[derive(Clone, Eq, PartialEq, Debug, IsVariant, Serialize)]
+#[derive(Clone, Eq, PartialEq, Debug, IsVariant, Unwrap, Serialize)]
 pub enum ModificationInfo<'a, 'p> {
     Named(NamedMod<'a, 'p>, ResidueGroup<'p>),
     Offset(Modification<OffsetMod<'a>>, ResidueId),
