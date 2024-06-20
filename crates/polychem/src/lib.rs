@@ -181,7 +181,7 @@ struct Particle<'a> {
     charge: &'a Charge,
 }
 
-#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+#[derive(Clone, Eq, PartialEq, Debug, IsVariant, Unwrap, Serialize)]
 pub enum AnyMod<'a, 'p> {
     Named(NamedMod<'a, 'p>),
     Offset(OffsetMod<'a>),

@@ -80,6 +80,8 @@ impl Charged for AnyMod<'_, '_> {
 
 #[cfg(test)]
 mod tests {
+    use std::panic;
+
     use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
 
@@ -169,6 +171,36 @@ mod tests {
             offset_modification.monoisotopic_mass(),
             offset_any_modification.monoisotopic_mass()
         );
+    }
+
+    #[test]
+    fn derive_more_is_variant() {
+        let amidation = AnyMod::named(&POLYMER_DB, "Am").unwrap();
+        let water_gained = AnyMod::offset(OffsetKind::Add, H2O.clone());
+
+        assert!(amidation.is_named());
+        assert!(!amidation.is_offset());
+
+        assert!(!water_gained.is_named());
+        assert!(water_gained.is_offset());
+    }
+
+    #[test]
+    fn derive_more_unwrap() {
+        macro_rules! assert_panics {
+            ($expr:expr) => {
+                assert!(panic::catch_unwind(|| $expr).is_err());
+            };
+        }
+
+        let amidation = AnyMod::named(&POLYMER_DB, "Am").unwrap();
+        let water_gained = AnyMod::offset(OffsetKind::Add, H2O.clone());
+
+        amidation.clone().unwrap_named();
+        assert_panics!(amidation.clone().unwrap_offset());
+
+        assert_panics!(water_gained.clone().unwrap_named());
+        water_gained.clone().unwrap_offset();
     }
 
     #[test]

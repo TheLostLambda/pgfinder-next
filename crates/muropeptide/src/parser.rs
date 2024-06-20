@@ -173,13 +173,18 @@ fn identifier(i: &str) -> ParseResult<&str> {
 //     alt((named_modification(polymer), offset_modification(polymer)))
 // }
 
-// // FIXME: I probably need to add a lot of `wrap_err`s around these parsers!
-// /// Named Modification = [ Multiplier ] , Identifier
-// pub fn named_modification<'a, 'p, 's, K>(
-//     _polymer: &mut Polymer<'a, 'p>,
-// ) -> impl FnMut(&'s str) -> ParseResult<ModificationId> {
-//     |_| todo!()
-// }
+// FIXME: I probably need to add a lot of `wrap_err`s around these parsers!
+/// Named Modification = [ Multiplier ] , Identifier
+pub fn named_modification<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
+    let parser = pair(opt(multiplier), identifier);
+    map_res(parser, |(multiplier, named_mod)| {
+        polymer
+            .borrow_mut()
+            .new_modification(multiplier.unwrap_or_default(), named_mod)
+    })
+}
 
 // /// Offset Modification = Offset Kind , [ Multiplier ] ,
 // ///   Chemical Composition ;
@@ -276,14 +281,6 @@ mod tests {
 
     static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
-    #[ignore]
-    #[test]
-    #[allow(clippy::cognitive_complexity)]
-    fn test_modifications() {
-        // TODO: Restore from git!
-        todo!();
-    }
-
     #[test]
     fn test_identifier() {
         // Valid Identifiers
@@ -321,7 +318,7 @@ mod tests {
         macro_rules! assert_multiplier {
             ($input:literal, $output:literal, $count:literal) => {
                 let (rest, count) = multiplier($input).unwrap();
-                assert_eq!((rest, count.into()), ($output, $count));
+                assert_eq!((rest, u32::from(count)), ($output, $count));
             };
         }
 
@@ -345,6 +342,159 @@ mod tests {
         // Multiple Multipliers
         assert_multiplier!("1xOH", "OH", 1);
         assert_multiplier!("42xHeH", "HeH", 42);
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_named_modification() {
+        let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+        let mut err_named_modification = named_modification(&polymer);
+        macro_rules! assert_named_modification {
+            ($input:literal, $output:literal, $multiplier:literal, $name:expr, $mass:literal) => {
+                let polymer = RefCell::new(POLYMERIZER.new_polymer());
+
+                let (rest, parsed_id) = named_modification(&polymer)($input).unwrap();
+                assert_eq!(rest, $output);
+
+                let polymer = polymer.borrow();
+                let modification = polymer
+                    .modification(parsed_id)
+                    .unwrap()
+                    .clone()
+                    .unwrap_unlocalized();
+
+                let multiplier = modification.multiplier();
+                assert_eq!(u32::from(multiplier), $multiplier);
+
+                let name = modification.kind().clone().unwrap_named().name();
+                assert_eq!(name, $name);
+
+                assert_eq!(Decimal::from(polymer.monoisotopic_mass()), dec!($mass));
+            };
+        }
+
+        // Valid Named Modifications
+        assert_named_modification!("Am", "", 1, "Amidation", -0.98401558291);
+        assert_named_modification!("Ac", "", 1, "O-Acetylation", 42.01056468403);
+        assert_named_modification!("Poly", "", 1, "Wall Polymer Linkage", 77.95068082490);
+        assert_named_modification!("DeAc", "", 1, "De-N-Acetylation", -42.01056468403);
+        assert_named_modification!("Red", "", 1, "Reduced", 2.01565006446);
+        assert_named_modification!("Anh", "", 1, "1,6-Anhydro", -18.01056468403);
+        assert_named_modification!("1xAm", "", 1, "Amidation", -0.98401558291);
+        assert_named_modification!("2xRed", "", 2, "Reduced", 4.03130012892);
+        assert_named_modification!("3xAnh", "", 3, "1,6-Anhydro", -54.03169405209);
+        // Invalid Named Modifications
+        assert!(err_named_modification(" H2O").is_err());
+        assert!(err_named_modification("1").is_err());
+        assert!(err_named_modification("9999").is_err());
+        assert!(err_named_modification("0").is_err());
+        assert!(err_named_modification("00145").is_err());
+        assert!(err_named_modification("+H").is_err());
+        assert!(err_named_modification("[H]").is_err());
+        assert!(err_named_modification("Øof").is_err());
+        assert!(err_named_modification("-Ac").is_err());
+        assert!(err_named_modification("_Ac").is_err());
+        assert!(err_named_modification("+Am").is_err());
+        assert!(err_named_modification("-2xAm").is_err());
+        assert!(err_named_modification("(Am)").is_err());
+        assert!(err_named_modification("-4xH2O").is_err());
+        assert!(err_named_modification("-2p").is_err());
+        assert!(err_named_modification("+C2H2O-2e").is_err());
+        assert!(err_named_modification("-3xC2H2O-2e").is_err());
+        assert!(err_named_modification("+NH3+p").is_err());
+        assert!(err_named_modification("+2xD2O").is_err());
+        assert!(err_named_modification("-2x[2H]2O").is_err());
+        // Non-Existent Named Modifications
+        assert!(err_named_modification("Blue").is_err());
+        assert!(err_named_modification("Hydro").is_err());
+        assert!(err_named_modification("1xAm2").is_err());
+        assert!(err_named_modification("2xR_ed").is_err());
+        // Multiple Named Modifications
+        assert_named_modification!("Anh, Am", ", Am", 1, "1,6-Anhydro", -18.01056468403);
+        assert_named_modification!("1xAm)JAA", ")JAA", 1, "Amidation", -0.98401558291);
+    }
+
+    #[ignore]
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_modifications() {
+        // let polymerizer = Polymerizer::new(&ATOMIC_DB, &POLYMER_DB);
+        // let mut modifications = modifications(&polymerizer);
+        // macro_rules! assert_offset_mz {
+        //     ($input:literal, $output:literal, $mass:expr, $charge:literal) => {
+        //         let (rest, modification) = modifications($input).unwrap();
+        //         assert_eq!(rest, $output);
+        //         let net_mass: Decimal = modification.iter().map(|m| m.monoisotopic_mass()).sum();
+        //         assert_eq!(net_mass, $mass);
+        //         let net_charge: Charge = modification.iter().map(|m| m.charge()).sum();
+        //         assert_eq!(net_charge, $charge);
+        //     };
+        // }
+        // // Valid Modifications
+        // assert_offset_mz!("(-H2O)", "", dec!(-18.01056468403), 0);
+        // assert_offset_mz!("(+2xH2O)", "", dec!(36.02112936806), 0);
+        // assert_offset_mz!("(-2p)", "", dec!(-2.014552933242), -2);
+        // assert_offset_mz!("(-3xC2H2O-2e)", "", dec!(-126.02840257263561), -6);
+        // assert_offset_mz!("(+[37Cl]5-2p)", "", dec!(182.814960076758), -2);
+        // assert_offset_mz!("(Red)", "", dec!(2.01565006446), 0);
+        // assert_offset_mz!("(Anh)", "", dec!(-18.01056468403), 0);
+        // assert_offset_mz!("(1xAm)", "", dec!(-0.98401558291), 0);
+        // assert_offset_mz!("(2xRed)", "", dec!(4.03130012892), 0);
+        // assert_offset_mz!("(-OH, +NH2)", "", dec!(-0.98401558291), 0);
+        // assert_offset_mz!("(Anh, +H2O)", "", dec!(0), 0);
+        // assert_offset_mz!("(Anh,+H2O)", "", dec!(0), 0);
+        // assert_offset_mz!("(Anh   ,+H2O)", "", dec!(0), 0);
+        // assert_offset_mz!("(Anh  ,  +H2O)", "", dec!(0), 0);
+        // assert_offset_mz!("(2xAnh, +3xH2O)", "", dec!(18.01056468403), 0);
+        // assert_offset_mz!("(Anh, Anh, +3xH2O)", "", dec!(18.01056468403), 0);
+        // assert_offset_mz!("(-H2, +Ca)", "", dec!(37.94694079854), 0);
+        // // NOTE: There is a super small mass defect (13.6 eV, or ~1e-8 u) stored in the binding energy between a proton
+        // // and electon — that's why this result is slightly different from the one above!
+        // assert_offset_mz!("(-2p, +Ca-2e)", "", dec!(37.946940769939870), 0);
+        // assert_offset_mz!("(+2p, -2p, +Ca-2e)", "", dec!(39.961493703181870), 2);
+        // // Invalid Modifications
+        // assert!(modifications(" ").is_err());
+        // assert!(modifications("H2O").is_err());
+        // assert!(modifications("(-H2O").is_err());
+        // assert!(modifications("(+0xH2O)").is_err());
+        // assert!(modifications("(2xH2O)").is_err());
+        // assert!(modifications("(-2x3xH2O)").is_err());
+        // assert!(modifications("(-2x+H2O)").is_err());
+        // assert!(modifications("(+2[2H])").is_err());
+        // assert!(modifications("(-[H+p]O)").is_err());
+        // assert!(modifications("(+NH2[100Tc])").is_err());
+        // assert!(modifications("( H2O)").is_err());
+        // assert!(modifications("(1)").is_err());
+        // assert!(modifications("(9999)").is_err());
+        // assert!(modifications("(0)").is_err());
+        // assert!(modifications("(00145)").is_err());
+        // assert!(modifications("([H])").is_err());
+        // assert!(modifications("(Øof)").is_err());
+        // assert!(modifications("(-Ac)").is_err());
+        // assert!(modifications("(_Ac)").is_err());
+        // assert!(modifications("(+Am)").is_err());
+        // assert!(modifications("(-2xAm)").is_err());
+        // assert!(modifications("((Am))").is_err());
+        // assert!(modifications("(Anh +H2O)").is_err());
+        // assert!(modifications("(Anh; +H2O)").is_err());
+        // // Non-Existent Modifications
+        // assert!(modifications("(Blue)").is_err());
+        // assert!(modifications("(Hydro)").is_err());
+        // assert!(modifications("(1xAm2)").is_err());
+        // assert!(modifications("(2xR_ed)").is_err());
+        // // Multiple Modifications
+        // assert_offset_mz!("(+[37Cl]5-2p)10", "10", dec!(182.814960076758), -2);
+        // assert_offset_mz!("(+[2H]2O)*H2O", "*H2O", dec!(20.02311817581), 0);
+        // assert_offset_mz!("(+NH2){100Tc", "{100Tc", dec!(16.01872406889), 0);
+        // assert_offset_mz!("(+C11H12N2O2) H2O", " H2O", dec!(204.08987763476), 0);
+        // assert_offset_mz!(
+        //     "(2xAnh, +3xH2O)AA=gm-AEJA",
+        //     "AA=gm-AEJA",
+        //     dec!(18.01056468403),
+        //     0
+        // );
+        todo!()
     }
 
     // FIXME: Unfininshed! Needs modification support — same with unbranched_amino_acid!
