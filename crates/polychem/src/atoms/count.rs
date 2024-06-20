@@ -5,6 +5,8 @@ use std::{
 };
 
 use rust_decimal::Decimal;
+use static_assertions::const_assert;
+use thiserror::Error;
 
 use crate::{AverageMass, Charge, Count, Mass, MonoisotopicMass};
 
@@ -19,6 +21,30 @@ impl Count {
 impl From<Count> for u32 {
     fn from(value: Count) -> Self {
         value.0.get()
+    }
+}
+
+#[derive(Clone, Debug, Error)]
+#[error("`Count` values must be non-zero")]
+pub struct Zero;
+
+impl TryFrom<u32> for Count {
+    type Error = Zero;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Self::new(value).ok_or(Zero)
+    }
+}
+
+// NOTE: Since this will only panic on 16-bit platforms, I couldn't test a `TryFrom` impl if I wanted to — I don't want
+// to add an entire error-handling code path that could never possibly be run.
+#[allow(clippy::fallible_impl_from)]
+impl From<Count> for usize {
+    fn from(value: Count) -> Self {
+        const_assert!(usize::BITS >= Count::BITS);
+        // SAFETY: The above assertion prevents compilation on platforms with fewer bits than the type used to
+        // represent `Count`. If this code compiles, then this `.unwrap()` will never panic.
+        Self::try_from(value.0.get()).unwrap()
     }
 }
 

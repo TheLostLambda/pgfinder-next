@@ -74,10 +74,12 @@ impl<'a, 'p> Polymer<'a, 'p> {
     // `named_mod`s and `offset_mod`s, I should just go with `modification`s and `offset`s?
     pub fn new_modification(
         &mut self,
-        multiplier: u32,
+        multiplier: impl TryInto<Count>,
         abbr: impl AsRef<str>,
     ) -> Result<ModificationId> {
-        let multiplier = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
+        let multiplier = multiplier
+            .try_into()
+            .map_err(|_| PolychemError::ZeroMultiplier)?;
         let modification = Modification::new(multiplier, NamedMod::new(self.polymer_db(), abbr)?);
 
         Ok(self.unlocalized_modification(modification))
@@ -87,7 +89,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
     pub fn new_offset(
         &mut self,
         kind: OffsetKind,
-        multiplier: u32,
+        multiplier: impl TryInto<Count>,
         formula: impl AsRef<str>,
     ) -> Result<ModificationId> {
         let modification = self.build_offset_mod(kind, multiplier, formula)?;
@@ -194,7 +196,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
             // NOTE: We're only extracting the `abbr` since we'll need to perform another lookup to check for legal
             // targets anyways, and we may also need to create more than one modification if the original, unlocalized
             // modification had a multiplier greater than one!
-            AnyMod::Named(kind) => self.modify_only_groups(kind.abbr(), residue, multiplier.into()),
+            AnyMod::Named(kind) => self.modify_only_groups(kind.abbr(), residue, multiplier),
             AnyMod::Offset(kind) => {
                 let modification = Modification::new(multiplier, kind);
                 self.offset_with_modification(modification, residue)
@@ -220,7 +222,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         &mut self,
         abbr: impl AsRef<str>,
         residue: ResidueId,
-        number: u32,
+        number: impl TryInto<Count> + Copy,
     ) -> Result<Vec<ModificationId>> {
         let accessor = |state: &PolymerizerState<'a, 'p>, targets| {
             state.find_any_free_groups(targets, residue, number)
@@ -255,7 +257,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
     pub fn offset_residue(
         &mut self,
         kind: OffsetKind,
-        multiplier: u32,
+        multiplier: impl TryInto<Count>,
         formula: impl AsRef<str>,
         residue: ResidueId,
     ) -> Result<ModificationId> {
@@ -270,10 +272,12 @@ impl<'a, 'p> Polymer<'a, 'p> {
     fn build_offset_mod(
         &self,
         kind: OffsetKind,
-        multiplier: u32,
+        multiplier: impl TryInto<Count>,
         formula: impl AsRef<str>,
     ) -> Result<Modification<OffsetMod<'a>>> {
-        let multiplier = Count::new(multiplier).ok_or(PolychemError::ZeroMultiplier)?;
+        let multiplier = multiplier
+            .try_into()
+            .map_err(|_| PolychemError::ZeroMultiplier)?;
         let composition = ChemicalComposition::new(self.atomic_db(), formula)?;
         let modification = Modification::new(multiplier, OffsetMod::new(kind, composition));
 

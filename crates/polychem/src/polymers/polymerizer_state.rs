@@ -1,11 +1,10 @@
 use std::{borrow::Cow, cmp::Ordering, collections::hash_map::Entry, mem};
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
-use static_assertions::const_assert;
 
 use crate::{
     moieties::target::{Index, Target},
-    FunctionalGroup, GroupState, Id, Residue, ResidueId,
+    Count, FunctionalGroup, GroupState, Id, Residue, ResidueId,
 };
 
 use super::{errors::FindFreeGroupsError, polymerizer::Polymerizer};
@@ -79,20 +78,15 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
         &self,
         targets: &'t [T],
         residue: ResidueId,
-        number: u32,
+        number: impl TryInto<Count>,
     ) -> Result<HashSet<FunctionalGroup<'p>>, FindFreeGroupsError>
     where
         &'t T: Into<Target<&'p str>>,
     {
-        if number < 1 {
-            return Err(FindFreeGroupsError::ZeroGroupNumber);
-        }
-
-        // NOTE: This ensures that a compilation error is thrown on 16-bit Rust platforms
-        const_assert!(usize::BITS >= u32::BITS);
-        // SAFETY: The above assertion prevents compilation on platforms with fewer than 32-bits.  If this code
-        // compiles, then this `.unwrap()` will never panic
-        let number = usize::try_from(number).unwrap();
+        let number = number
+            .try_into()
+            .map_err(|_| FindFreeGroupsError::ZeroGroupNumber)?
+            .into();
 
         // PERF: There are likely some small performance gains to be made by moving to `Vec`s instead of `HashSet`s, but
         // using a `HashSet` makes it clearer that the returned groups are unique!
