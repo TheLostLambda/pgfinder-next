@@ -84,7 +84,7 @@ fn glycan<'c, 'a, 'p, 's>(
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide>> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = many1(monosaccharide(polymer));
     map_res(parser, |residues| {
-        let _ = polymer
+        polymer
             .borrow_mut()
             .bond_chain(GLYCOSIDIC_BOND, &residues)?;
         Ok(residues)
@@ -100,20 +100,28 @@ fn peptide<'c, 'a, 'p, 's>(
     // FIXME: Change to branched amino acid!
     let parser = many1(unbranched_amino_acid(polymer));
     map_res(parser, |residues| {
-        let _ = polymer.borrow_mut().bond_chain(PEPTIDE_BOND, &residues)?;
+        polymer.borrow_mut().bond_chain(PEPTIDE_BOND, &residues)?;
         Ok(residues)
     })
 }
 
 // =
 
-// FIXME: Add modifications
 /// Monosaccharide = lowercase , [ Modifications ] ;
 fn monosaccharide<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
 ) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide> + Captures<(&'c (), &'a (), &'p ())> {
-    let parser = recognize(lowercase);
-    map_res(parser, |abbr| polymer.borrow_mut().new_residue(abbr))
+    let parser = pair(recognize(lowercase), opt(modifications(polymer)));
+    map_res(parser, |(abbr, modifications)| {
+        let residue = polymer.borrow_mut().new_residue(abbr)?;
+        for modification in modifications.into_iter().flatten() {
+            polymer
+                .borrow_mut()
+                .localize_modification(modification, residue)?;
+        }
+
+        Ok(residue)
+    })
 }
 
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
@@ -143,8 +151,18 @@ fn modifications<'c, 'a, 'p, 's>(
 fn unbranched_amino_acid<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
 ) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid> + Captures<(&'c (), &'a (), &'p ())> {
-    let parser = recognize(preceded(opt(lowercase), uppercase));
-    map_res(parser, |abbr| polymer.borrow_mut().new_residue(abbr))
+    let abbr = recognize(preceded(opt(lowercase), uppercase));
+    let parser = pair(abbr, opt(modifications(polymer)));
+    map_res(parser, |(abbr, modifications)| {
+        let residue = polymer.borrow_mut().new_residue(abbr)?;
+        for modification in modifications.into_iter().flatten() {
+            polymer
+                .borrow_mut()
+                .localize_modification(modification, residue)?;
+        }
+
+        Ok(residue)
+    })
 }
 
 // NOTE: These are not meant to be links, it's just EBNF

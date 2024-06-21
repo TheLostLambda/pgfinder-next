@@ -85,7 +85,9 @@ enum CrosslinkDescriptor {
     AcceptorDonor(Position, Position),
 }
 
+#[derive(Default)]
 enum PeptideDirection {
+    #[default]
     Unspecified,
     CToN,
     NToC,
