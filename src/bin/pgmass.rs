@@ -1,9 +1,7 @@
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
-use muropeptide::Muropeptide;
+use muropeptide::{Muropeptide, Result};
 use once_cell::sync::Lazy;
-use polychem::{
-    AtomicDatabase, Charged, ChargedParticle, Massive, PolymerDatabase, Polymerizer, Result,
-};
+use polychem::{AtomicDatabase, Charged, ChargedParticle, Massive, PolymerDatabase, Polymerizer};
 use rustyline::DefaultEditor;
 use std::fmt::Write;
 
@@ -26,15 +24,14 @@ fn main() {
         rl.add_history_entry(&formula).unwrap();
         match pg_info(&formula) {
             Ok(info) => print!("{info}"),
-            Err(diagnostic) => render_error(*diagnostic),
+            Err(diagnostic) => render_error(dbg!(diagnostic)),
         }
     }
 }
 
 fn pg_info(formula: &str) -> Result<String> {
     let mut buf = String::new();
-    // FIXME: Handle errors properly!
-    let muropeptide = Muropeptide::new(&POLYMERIZER, formula).unwrap();
+    let muropeptide = Muropeptide::new(&POLYMERIZER, formula)?;
 
     let mono_mass = muropeptide.monoisotopic_mass();
     let avg_mass = muropeptide.average_mass();

@@ -2,10 +2,8 @@
 
 mod parser;
 
-use std::cell::RefCell;
-
-use nom_miette::final_parser;
-use parser::monomer;
+use nom_miette::{final_parser, LabeledError};
+use parser::{muropeptide, MuropeptideErrorKind};
 // FIXME: Blocks need separating and reordering!
 use polychem::{
     AverageMass, Charged, Massive, ModificationId, MonoisotopicMass, Polymer, Polymerizer,
@@ -19,19 +17,13 @@ pub struct Muropeptide<'a, 'p> {
     modifications: Vec<ModificationId>,
 }
 
-impl<'a, 'p> Muropeptide<'a, 'p> {
-    // FIXME: Replace `()` with a real error type!
-    pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self, ()> {
-        let polymer = RefCell::new(polymerizer.new_polymer());
-        // FIXME: Correctly handle and forward errors here!
-        let monomer = final_parser(monomer(&polymer))(structure.as_ref()).unwrap();
+// FIXME Replace this error kind with a proper one!
+pub type Result<T> = std::result::Result<T, LabeledError<MuropeptideErrorKind>>;
 
-        Ok(Muropeptide {
-            polymer: polymer.into_inner(),
-            monomers: vec![monomer],
-            connections: Vec::new(),
-            modifications: Vec::new(),
-        })
+impl<'a, 'p> Muropeptide<'a, 'p> {
+    // FIXME: Messy stuff here! Needs a look! Especially the error type!
+    pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self> {
+        final_parser(muropeptide(polymerizer))(structure.as_ref())
     }
 }
 
@@ -53,10 +45,7 @@ impl Charged for Muropeptide<'_, '_> {
 
 struct Monomer {
     glycan: Vec<Monosaccharide>,
-    // FIXME: Delete me!
-    peptide: Vec<UnbranchedAminoAcid>,
-    // FIXME: Uncomment
-    // peptide: Vec<AminoAcid>,
+    peptide: Vec<AminoAcid>,
 }
 
 type Connection = Vec<ConnectionKind>;
@@ -65,6 +54,7 @@ type Connection = Vec<ConnectionKind>;
 // FIXME: This will need to be a struct that stores a modification now!
 type Monosaccharide = ResidueId;
 
+#[derive(Clone)]
 struct AminoAcid {
     residue: UnbranchedAminoAcid,
     lateral_chain: Option<LateralChain>,
@@ -75,6 +65,7 @@ enum ConnectionKind {
     Crosslink(Vec<CrosslinkDescriptor>),
 }
 
+#[derive(Clone)]
 struct LateralChain {
     direction: PeptideDirection,
     peptide: Vec<UnbranchedAminoAcid>,
@@ -85,9 +76,8 @@ enum CrosslinkDescriptor {
     AcceptorDonor(Position, Position),
 }
 
-#[derive(Default)]
+#[derive(Copy, Clone)]
 enum PeptideDirection {
-    #[default]
     Unspecified,
     CToN,
     NToC,

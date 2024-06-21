@@ -4,7 +4,7 @@ use miette::Diagnostic;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, alphanumeric1, char, space0},
+    character::complete::{alpha1, alphanumeric1, char, one_of, space0, space1},
     combinator::{cut, map, opt, recognize},
     error::ErrorKind,
     multi::{many0, many1, separated_list1},
@@ -19,16 +19,22 @@ use polychem::{
         errors::PolychemErrorKind,
         primitives::{count, lowercase, offset_kind, uppercase},
     },
-    Count, ModificationId, Polymer,
+    Count, ModificationId, Polymer, Polymerizer,
 };
 use thiserror::Error;
 
-use crate::{AminoAcid, LateralChain, Monomer, Monosaccharide, UnbranchedAminoAcid};
+use crate::{
+    AminoAcid, LateralChain, Monomer, Monosaccharide, Muropeptide, PeptideDirection,
+    UnbranchedAminoAcid,
+};
 
 // FIXME: Need to think about if these should really live in another KDL config?
 const PEPTIDE_BOND: &str = "Pep";
 const GLYCOSIDIC_BOND: &str = "Gly";
 const STEM_BOND: &str = "Stem";
+const NTOC_BOND: &str = "NToC";
+const CTON_BOND: &str = "CToN";
+const CROSSLINK_BOND: &str = "Link";
 
 // FIXME: A horrible hack that's needed to specify the lifetimes captured by `impl FnMut(...) -> ...` correctly. Once
 // Rust 2024 is stabilized, however, this hack can be removed. Keep an eye on:
@@ -38,6 +44,37 @@ pub trait Captures<U> {}
 impl<T: ?Sized, U> Captures<U> for T {}
 
 // FIXME: Paste all of these EBNF comments into another file and make sure they are valid!
+
+/// Muropeptide = Monomer , { Connection , Monomer } , [ Connection ] , [ { " " }- ,
+///   ( Modifications , [ { " " }- , Crosslinks ]
+///   | Crosslinks , [ { " " }- , Modifications ]
+///   ) ] ;
+// FIXME: Very very incomplete!
+pub fn muropeptide<'z, 'a, 'p, 's>(
+    polymerizer: &'z Polymerizer<'a, 'p>,
+) -> impl FnMut(&'s str) -> ParseResult<Muropeptide<'a, 'p>> + Captures<(&'z (), &'a (), &'p ())> {
+    move |i| {
+        let polymer = RefCell::new(polymerizer.new_polymer());
+        // FIXME: Perhaps there is a better way to shorten that `polymer` borrow...
+        let (rest, (monomer, modifications)) = {
+            let mut parser = pair(
+                monomer(&polymer),
+                opt(preceded(space1, modifications(&polymer))),
+            );
+            parser(i)?
+        };
+        Ok((
+            rest,
+            Muropeptide {
+                polymer: polymer.into_inner(),
+                monomers: vec![monomer],
+                connections: Vec::new(),
+                modifications: modifications.unwrap_or_default(),
+            },
+        ))
+    }
+}
+
 /// Monomer = Glycan , [ "-" , Peptide ] | Peptide ;
 // FIXME: Make private again
 pub fn monomer<'c, 'a, 'p, 's>(
@@ -51,7 +88,7 @@ pub fn monomer<'c, 'a, 'p, 's>(
                 // SAFETY: Both the `glycan` and `peptide` parsers ensure at least one residue is present, so `.last()` and
                 // `.first()` will never return `None`!
                 let donor = *glycan.last().unwrap();
-                let acceptor = *peptide.first().unwrap();
+                let acceptor = peptide.first().unwrap().residue;
 
                 polymer
                     .borrow_mut()
@@ -71,9 +108,8 @@ pub fn monomer<'c, 'a, 'p, 's>(
         peptide,
     });
 
-    let parser = alt((glycan_and_peptide, just_peptide));
     // FIXME: Add a `map_res` wrapping this final parser
-    parser
+    alt((glycan_and_peptide, just_peptide))
 }
 
 // =
@@ -91,16 +127,18 @@ fn glycan<'c, 'a, 'p, 's>(
     })
 }
 
-// FIXME: This is using the wrong amino acid parser — needs lateral chain support!
 /// Peptide = { Amino Acid }- ;
 fn peptide<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<UnbranchedAminoAcid>> + Captures<(&'c (), &'a (), &'p ())>
-{
-    // FIXME: Change to branched amino acid!
-    let parser = many1(unbranched_amino_acid(polymer));
+) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid>> + Captures<(&'c (), &'a (), &'p ())> {
+    let parser = many1(amino_acid(polymer));
     map_res(parser, |residues| {
-        polymer.borrow_mut().bond_chain(PEPTIDE_BOND, &residues)?;
+        // FIXME: I should change `bond_chain` to take an `impl IntoIterator<Item = AsRef<str>` — then I won't need to
+        // do this BS collection of things in between!
+        let residue_ids: Vec<_> = residues.iter().map(|aa| aa.residue).collect();
+        polymer
+            .borrow_mut()
+            .bond_chain(PEPTIDE_BOND, &residue_ids)?;
         Ok(residues)
     })
 }
@@ -124,11 +162,41 @@ fn monosaccharide<'c, 'a, 'p, 's>(
     })
 }
 
+// FIXME: Damn... This is messy... Need to sort that out!
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
-fn amino_acid<'a, 'p, 's>(
-    _polymer: &mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<AminoAcid> {
-    |_| todo!()
+fn amino_acid<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<AminoAcid> + Captures<(&'c (), &'a (), &'p ())> {
+    let parser = pair(unbranched_amino_acid(polymer), opt(lateral_chain(polymer)));
+    map_res(parser, |(residue, lateral_chain)| {
+        if let Some(LateralChain { direction, peptide }) = &lateral_chain {
+            let c_to_n = || -> polychem::Result<_> {
+                polymer
+                    .borrow_mut()
+                    .bond_residues(CTON_BOND, peptide[0], residue)?;
+                // FIXME: Replace with `.clone()` then `.reverse()`?
+                Ok(peptide.iter().copied().rev().collect())
+            };
+            let n_to_c = || -> polychem::Result<_> {
+                polymer
+                    .borrow_mut()
+                    .bond_residues(NTOC_BOND, residue, peptide[0])?;
+                // FIXME: This feels silly... Maybe better when `bond_chain` takes an `impl IntoIterator`?
+                Ok(peptide.clone())
+            };
+
+            let chain: Vec<_> = match direction {
+                PeptideDirection::Unspecified => c_to_n().or_else(|_| n_to_c())?,
+                PeptideDirection::CToN => c_to_n()?,
+                PeptideDirection::NToC => n_to_c()?,
+            };
+            polymer.borrow_mut().bond_chain(PEPTIDE_BOND, &chain)?;
+        }
+        Ok(AminoAcid {
+            residue,
+            lateral_chain,
+        })
+    })
 }
 
 // =
@@ -146,7 +214,6 @@ fn modifications<'c, 'a, 'p, 's>(
     )
 }
 
-// FIXME: Add modifications
 /// Unbranched Amino Acid = [ lowercase ] , uppercase , [ Modifications ] ;
 fn unbranched_amino_acid<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
@@ -167,14 +234,29 @@ fn unbranched_amino_acid<'c, 'a, 'p, 's>(
 
 // NOTE: These are not meant to be links, it's just EBNF
 #[allow(clippy::doc_link_with_quotes)]
-/// Lateral Chain = "[" , [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ,
-///   { Unbranched Amino Acid }- , "]" ;
-fn lateral_chain<'a, 'p, 's>(
-    _polymer: &mut Polymer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<LateralChain> {
-    |_| todo!()
+/// Lateral Chain = "[" , Peptide Direction , { Unbranched Amino Acid }- , "]" ;
+fn lateral_chain<'c, 'a, 'p, 's>(
+    polymer: &'c RefCell<Polymer<'a, 'p>>,
+) -> impl FnMut(&'s str) -> ParseResult<LateralChain> + Captures<(&'c (), &'a (), &'p ())> {
+    let peptide = many1(unbranched_amino_acid(polymer));
+    let parser = delimited(char('['), pair(peptide_direction, peptide), char(']'));
+    map(parser, |(direction, peptide)| LateralChain {
+        direction,
+        peptide,
+    })
 }
 
+// NOTE: These are not meant to be links, it's just EBNF
+#[allow(clippy::doc_link_with_quotes)]
+/// Peptide Direction = [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ;
+fn peptide_direction(i: &str) -> ParseResult<PeptideDirection> {
+    map(opt(one_of("<>")), |c| match c {
+        Some('<') => PeptideDirection::CToN,
+        Some('>') => PeptideDirection::NToC,
+        None => PeptideDirection::Unspecified,
+        _ => unreachable!(),
+    })(i)
+}
 // =
 
 /// Identifier = letter , { letter | digit | "_" } ;
@@ -683,7 +765,7 @@ mod tests {
                 let polymer = polymer.borrow();
                 let parsed_ids: Vec<_> = parsed_ids
                     .into_iter()
-                    .map(|id| polymer.residue(id).unwrap().name())
+                    .map(|id| polymer.residue(id.residue).unwrap().name())
                     .collect();
                 let residues = Vec::from($residues);
                 assert_eq!(parsed_ids, residues);
@@ -853,7 +935,7 @@ mod tests {
                     .collect();
                 let peptide: Vec<_> = peptide
                     .into_iter()
-                    .map(|id| polymer.residue(id).unwrap().name())
+                    .map(|id| polymer.residue(id.residue).unwrap().name())
                     .collect();
                 assert_eq!(glycan, Vec::<&str>::from($glycan));
                 assert_eq!(peptide, Vec::<&str>::from($peptide));

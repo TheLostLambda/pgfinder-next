@@ -116,6 +116,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
     pub fn new_chain(
         &mut self,
         abbr: impl AsRef<str>,
+        // FIXME: Change to `impl IntoIterator<Item = T>`
         residues: &[impl AsRef<str>],
     ) -> Result<(Vec<ResidueId>, Vec<BondId>)> {
         let residue_ids: Vec<_> = residues
@@ -169,6 +170,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
     pub fn bond_chain(
         &mut self,
         abbr: impl AsRef<str>,
+        // FIXME: Change to `impl IntoIterator<Item = T>`
         residues: &[ResidueId],
     ) -> Result<Vec<BondId>> {
         let abbr = abbr.as_ref();
@@ -256,6 +258,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         &mut self,
         abbr: impl AsRef<str>,
         residue: ResidueId,
+        // FIXME: Change to `impl IntoIterator<Item = T>`
         groups: &[FunctionalGroup<'p>],
     ) -> Result<Vec<ModificationId>> {
         let accessor = |state: &PolymerizerState<'a, 'p>, targets| {

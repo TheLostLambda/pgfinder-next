@@ -14,6 +14,16 @@ bonds {
         to "Amino" at="N-Terminal"
         lost "H2O"
     }
+    NToC "Carboxyl -> Lateral Chain" {
+        from "Carboxyl" at="Sidechain"
+        to "Amino" at="N-Terminal"
+        lost "H2O"
+    }
+    CToN "Amino -> Lateral Chain" {
+        from "Carboxyl" at="C-Terminal"
+        to "Amino" at="Sidechain"
+        lost "H2O"
+    }
     Link "Stem Peptide Crosslink" {
         from "Carboxyl" at="C-Terminal"
         to "Amino"
