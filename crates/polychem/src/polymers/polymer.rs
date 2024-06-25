@@ -214,6 +214,41 @@ impl<'a, 'p> Polymer<'a, 'p> {
         }
     }
 
+    // FIXME: Look into deduplicating with `modify_with_accessors()` — could use DRYing...
+    pub fn modify_polymer(&mut self, abbr: impl AsRef<str>) -> Result<Vec<ModificationId>> {
+        let (
+            abbr,
+            ModificationDescription {
+                name,
+                lost,
+                gained,
+                targets,
+            },
+        ) = NamedMod::lookup_description(self.polymer_db(), abbr)?;
+
+        // NOTE: Without `.collect()`ing here, I'm holding on to a reference to `self.polymerizer_state` which prevents
+        // me from calling `self.group_modification()` later, since that needs a unique mutable reference to the
+        // `polymerizer_state` (to mark functional groups as modified)
+        #[allow(clippy::needless_collect)]
+        let residue_groups: Vec<_> = self
+            .polymerizer_state
+            .free_polymer_groups(targets)
+            .collect();
+
+        Ok(residue_groups
+            .into_iter()
+            .map(|residue_group| {
+                let modification = NamedMod {
+                    abbr,
+                    name,
+                    lost,
+                    gained,
+                };
+                self.group_modification(modification, residue_group)
+            })
+            .collect())
+    }
+
     pub fn modify_only_group(
         &mut self,
         abbr: impl AsRef<str>,
@@ -324,6 +359,20 @@ impl<'a, 'p> Polymer<'a, 'p> {
         id
     }
 
+    fn group_modification(
+        &mut self,
+        modification: NamedMod<'a, 'p>,
+        residue_group: ResidueGroup<'p>,
+    ) -> ModificationId {
+        let id = ModificationId(self.polymerizer_state.next_id());
+        self.update_group(&residue_group, GroupState::Modified(id));
+
+        let modification_info = ModificationInfo::Named(modification, residue_group);
+        self.modifications.insert(id, modification_info);
+
+        id
+    }
+
     fn bond_with_accessors<A>(
         &mut self,
         abbr: impl AsRef<str>,
@@ -429,20 +478,15 @@ impl<'a, 'p> Polymer<'a, 'p> {
         let modification_ids = target_groups
             .into_iter()
             .map(|group| {
-                let residue_group = ResidueGroup(residue, group);
-                let id = ModificationId(self.polymerizer_state.next_id());
-                self.update_group(&residue_group, GroupState::Modified(id));
-
                 let modification = NamedMod {
                     abbr,
                     name,
                     lost,
                     gained,
                 };
-                let modification_info = ModificationInfo::Named(modification, residue_group);
-                self.modifications.insert(id, modification_info);
+                let residue_group = ResidueGroup(residue, group);
 
-                id
+                self.group_modification(modification, residue_group)
             })
             .collect();
 
@@ -1166,6 +1210,67 @@ mod tests {
         assert_miette_snapshot!(already_localized_modification);
         // Make sure the polymer remains untouched!
         assert_polymer!(polymer, 482.886919686519805, 483.40583643764269445);
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn modify_polymer() {
+        let mut no_targets = POLYMERIZER.new_polymer();
+        STEM_RESIDUES.map(|abbr| no_targets.new_residue(abbr).unwrap());
+        assert_polymer!(no_targets, 515.24387164950, 515.51342919034656875);
+
+        let modification_ids = no_targets.modify_polymer("Met").unwrap();
+        assert_eq!(modification_ids.len(), 0);
+        assert_polymer!(no_targets, 515.24387164950, 515.51342919034656875);
+
+        let mut one_residue = POLYMERIZER.new_polymer();
+        one_residue.new_residue("m").unwrap();
+        assert_polymer!(one_residue, 293.11106657336, 293.27091179713952985);
+
+        let modification_ids = one_residue.modify_polymer("Met").unwrap();
+        assert_eq!(modification_ids.len(), 3);
+        assert_polymer!(one_residue, 335.15801676674, 335.35076401167994095);
+
+        let mut two_residues = POLYMERIZER.new_polymer();
+        let glcnac = two_residues.new_residue("g").unwrap();
+        let murnac = two_residues.new_residue("m").unwrap();
+        assert_polymer!(two_residues, 514.20100377866, 514.47904303921364750);
+
+        let bond_id = two_residues.bond_residues("Gly", glcnac, murnac).unwrap();
+        assert_polymer!(two_residues, 496.19043909463, 496.46375660678381490);
+
+        let modification_ids = two_residues.modify_polymer("Met").unwrap();
+        assert_eq!(modification_ids.len(), 4);
+        assert_polymer!(two_residues, 552.25303935247, 552.57022622617102970);
+
+        let groups = |id| two_residues.residue(id).unwrap().functional_groups();
+
+        for (fg, &gs) in groups(glcnac) {
+            match gs {
+                GroupState::Free => assert_eq!(fg.name, "Acetyl"),
+                GroupState::Modified(_) => assert_eq!(fg.name, "Hydroxyl"),
+                GroupState::Donor(id) => {
+                    assert_eq!(id, bond_id);
+                    assert_eq!(fg.location, "Reducing End");
+                }
+                GroupState::Acceptor(_) => panic!(),
+            }
+        }
+
+        for (fg, &gs) in groups(murnac) {
+            match gs {
+                GroupState::Free => assert_ne!(fg.name, "Hydroxyl"),
+                GroupState::Modified(_) => assert_eq!(fg.name, "Hydroxyl"),
+                GroupState::Donor(_) => panic!(),
+                GroupState::Acceptor(id) => {
+                    assert_eq!(id, bond_id);
+                    assert_eq!(fg.location, "Nonreducing End");
+                }
+            }
+        }
+
+        let nonexistent_modification = two_residues.modify_polymer("Arg");
+        assert_miette_snapshot!(nonexistent_modification);
     }
 
     #[test]
