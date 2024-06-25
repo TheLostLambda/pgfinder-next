@@ -9,7 +9,7 @@ use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 
 use crate::{
     moieties::target::{Index, Target},
-    Count, FunctionalGroup, GroupState, Id, Residue, ResidueId,
+    Count, FunctionalGroup, GroupState, Id, Residue, ResidueGroup, ResidueId,
 };
 
 use super::{errors::FindFreeGroupsError, polymerizer::Polymerizer};
@@ -174,6 +174,23 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
             }
         }
         deduplicated_groups.into_iter()
+    }
+
+    // FIXME: After Rust 2024 is released, I should get rid of the `+ '_` here and elsewhere!
+    pub fn free_polymer_groups<'t, T: 'p>(
+        &self,
+        targets: &'t [T],
+    ) -> impl Iterator<Item = ResidueGroup<'p>> + '_
+    where
+        &'t T: Into<Target<&'p str>>,
+    {
+        self.polymer_groups(targets)
+            .flat_map(|(fg, ids)| -> Vec<_> {
+                // FIXME: I really wish I didn't need `.collect()` here...
+                ids.iter()
+                    .filter_map(move |(&id, gs)| gs.is_free().then_some(ResidueGroup(id, fg)))
+                    .collect()
+            })
     }
 
     // FIXME: After Rust 2024 is released, I should get rid of the `+ '_` here and elsewhere!
@@ -666,6 +683,71 @@ mod tests {
             ],
         )];
         assert_polymer_groups!(&[alanine_n_terminal], alanine_n_terminal_groups);
+    }
+
+    #[test]
+    fn free_polymer_groups() {
+        let mut state = PolymerizerState::new(&POLYMERIZER);
+        let mut alanine = Residue::new(&POLYMER_DB, "A").unwrap();
+        let mut lysine = Residue::new(&POLYMER_DB, "K").unwrap();
+        // Residue 0 is indexed before so that all of its groups remain free!
+        state.index_residue_groups(ResidueId(0), &alanine);
+
+        // Manually modify a couple of groups so that they are filtered out later
+        let c_terminal_carboxyl = FunctionalGroup::new("Carboxyl", "C-Terminal");
+        *alanine.group_state_mut(&c_terminal_carboxyl).unwrap() =
+            GroupState::Modified(ModificationId(42));
+        let sidechain_amino = FunctionalGroup::new("Amino", "Sidechain");
+        *lysine.group_state_mut(&sidechain_amino).unwrap() =
+            GroupState::Modified(ModificationId(9001));
+
+        state.index_residue_groups(ResidueId(1), &alanine);
+        state.index_residue_groups(ResidueId(2), &lysine);
+
+        macro_rules! assert_free_polymer_groups {
+            ($targets:expr, $output:expr) => {
+                let mut groups: Vec<_> = state.free_polymer_groups($targets).collect();
+                groups.sort_unstable();
+                assert_eq!(groups, $output)
+            };
+        }
+
+        let amino = Target::new("Amino", None, None);
+        let amino_groups = vec![
+            ResidueGroup(ResidueId(0), FunctionalGroup::new("Amino", "N-Terminal")),
+            ResidueGroup(ResidueId(1), FunctionalGroup::new("Amino", "N-Terminal")),
+            ResidueGroup(ResidueId(2), FunctionalGroup::new("Amino", "N-Terminal")),
+        ];
+        assert_free_polymer_groups!(&[amino], amino_groups);
+
+        let carboxyl = Target::new("Carboxyl", None, None);
+        let carboxyl_groups = vec![
+            ResidueGroup(ResidueId(0), FunctionalGroup::new("Carboxyl", "C-Terminal")),
+            ResidueGroup(ResidueId(2), FunctionalGroup::new("Carboxyl", "C-Terminal")),
+        ];
+        assert_free_polymer_groups!(&[carboxyl], carboxyl_groups);
+
+        // Looking for both targets merges the results
+        let both_groups = [
+            amino_groups[0],
+            carboxyl_groups[0],
+            amino_groups[1],
+            amino_groups[2],
+            carboxyl_groups[1],
+        ];
+        assert_free_polymer_groups!(&[amino, carboxyl], both_groups);
+
+        // Adding in an overlapping (subset) target doesn't change the result
+        let n_terminal = Target::new("Amino", Some("N-Terminal"), None);
+        assert_free_polymer_groups!(&[amino, carboxyl, n_terminal], both_groups);
+
+        // Looking for a particular type of residue restricts the results
+        let alanine_c_terminal = Target::new("Carboxyl", Some("C-Terminal"), Some("Alanine"));
+        let alanine_c_terminal_groups = vec![ResidueGroup(
+            ResidueId(0),
+            FunctionalGroup::new("Carboxyl", "C-Terminal"),
+        )];
+        assert_free_polymer_groups!(&[alanine_c_terminal], alanine_c_terminal_groups);
     }
 
     #[test]

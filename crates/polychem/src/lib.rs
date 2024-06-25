@@ -128,7 +128,7 @@ pub struct NamedMod<'a, 'p> {
 }
 
 // FIXME: Should I be using named fields here?
-#[derive(Clone, Eq, PartialEq, Debug, Serialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Serialize)]
 pub struct ResidueGroup<'p>(ResidueId, FunctionalGroup<'p>);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
