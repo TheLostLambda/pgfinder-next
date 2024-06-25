@@ -1,4 +1,9 @@
-use std::{borrow::Cow, cmp::Ordering, collections::hash_map::Entry, mem};
+use std::{
+    borrow::{Borrow, Cow},
+    cmp::Ordering,
+    collections::hash_map::Entry,
+    mem,
+};
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 
@@ -104,23 +109,27 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
         }
     }
 
-    pub fn find_these_free_groups<'t, T: 'p>(
+    pub fn find_these_free_groups<'t, T: 'p, G: Borrow<FunctionalGroup<'p>>>(
         &self,
         targets: &'t [T],
         residue: ResidueId,
-        groups: &[FunctionalGroup<'p>],
+        // FIXME: It's a bit odd that this is a generic, whilst `targets` isn't, but that's just to make calling this
+        // from `Polymer` easier... Worth another look...
+        groups: impl IntoIterator<Item = G>,
     ) -> Result<HashSet<FunctionalGroup<'p>>, FindFreeGroupsError>
     where
         &'t T: Into<Target<&'p str>>,
     {
-        if groups.is_empty() {
-            return Err(FindFreeGroupsError::NoTargetGroups);
-        }
-        let mut target_groups = HashSet::with_capacity(groups.len());
-        for &group in groups {
+        let mut target_groups = HashSet::new();
+        for group in groups {
+            let group = group.borrow().to_owned();
             if !target_groups.insert(group) {
                 return Err(FindFreeGroupsError::duplicate_target_group(&group));
             }
+        }
+
+        if target_groups.is_empty() {
+            return Err(FindFreeGroupsError::NoTargetGroups);
         }
 
         let free_groups: HashSet<_> = self.free_residue_groups(targets, residue).collect();
@@ -851,6 +860,9 @@ mod tests {
         assert!(terminals.contains(&FunctionalGroup::new("Carboxyl", "C-Terminal")));
     }
 
+    // NOTE: Needed to help type-inference figure out what `[]` is supposed to be
+    const NO_GROUPS: [FunctionalGroup; 0] = [];
+
     #[test]
     fn find_single_specific_free_groups() {
         let mut state = PolymerizerState::new(&POLYMERIZER);
@@ -860,37 +872,37 @@ mod tests {
         let hydroxyl = Target::new("Hydroxyl", None, None);
         let nonreducing_end = FunctionalGroup::new("Hydroxyl", "Nonreducing End");
         let hydroxyl_group = state
-            .find_these_free_groups(&[hydroxyl], ResidueId(0), &[nonreducing_end])
+            .find_these_free_groups(&[hydroxyl], ResidueId(0), [nonreducing_end])
             .unwrap();
         assert_eq!(hydroxyl_group.len(), 1);
         assert!(hydroxyl_group.contains(&FunctionalGroup::new("Hydroxyl", "Nonreducing End")));
 
-        let no_target_groups = state.find_these_free_groups(&[hydroxyl], ResidueId(0), &[]);
+        let no_target_groups = state.find_these_free_groups(&[hydroxyl], ResidueId(0), NO_GROUPS);
         assert_miette_snapshot!(no_target_groups);
 
         let duplicate_target_group = state.find_these_free_groups(
             &[hydroxyl],
             ResidueId(0),
-            &[nonreducing_end, nonreducing_end],
+            [nonreducing_end, nonreducing_end],
         );
         assert_miette_snapshot!(duplicate_target_group);
 
         let crazy = Target::new("Crazy", None, None);
         let invalid_target =
-            state.find_these_free_groups(&[crazy], ResidueId(0), &[nonreducing_end]);
+            state.find_these_free_groups(&[crazy], ResidueId(0), [nonreducing_end]);
         assert_miette_snapshot!(invalid_target);
 
         let alanine = Residue::new(&POLYMER_DB, "A").unwrap();
         state.index_residue_groups(ResidueId(1), &alanine);
         let nonexistent_group =
-            state.find_these_free_groups(&[hydroxyl], ResidueId(1), &[nonreducing_end]);
+            state.find_these_free_groups(&[hydroxyl], ResidueId(1), [nonreducing_end]);
         assert_miette_snapshot!(nonexistent_group);
 
         *murnac.group_state_mut(&nonreducing_end).unwrap() =
             GroupState::Modified(ModificationId(42));
         state.index_residue_groups(ResidueId(0), &murnac);
         let group_occupied =
-            state.find_these_free_groups(&[hydroxyl], ResidueId(0), &[nonreducing_end]);
+            state.find_these_free_groups(&[hydroxyl], ResidueId(0), [nonreducing_end]);
         assert_miette_snapshot!(group_occupied);
     }
 
@@ -906,13 +918,13 @@ mod tests {
         let six_position = FunctionalGroup::new("Hydroxyl", "6-Position");
 
         let one_hydroxyl_group = state
-            .find_these_free_groups(&[hydroxyl], ResidueId(0), &[reducing_end])
+            .find_these_free_groups(&[hydroxyl], ResidueId(0), [reducing_end])
             .unwrap();
         assert_eq!(one_hydroxyl_group.len(), 1);
         assert!(one_hydroxyl_group.contains(&reducing_end));
 
         let two_hydroxyl_groups = state
-            .find_these_free_groups(&[hydroxyl], ResidueId(0), &[reducing_end, nonreducing_end])
+            .find_these_free_groups(&[hydroxyl], ResidueId(0), [reducing_end, nonreducing_end])
             .unwrap();
         assert_eq!(two_hydroxyl_groups.len(), 2);
         assert!(two_hydroxyl_groups.contains(&reducing_end));
@@ -922,7 +934,7 @@ mod tests {
             .find_these_free_groups(
                 &[hydroxyl],
                 ResidueId(0),
-                &[reducing_end, nonreducing_end, six_position],
+                [reducing_end, nonreducing_end, six_position],
             )
             .unwrap();
         assert_eq!(all_hydroxyl_groups.len(), 3);
@@ -934,7 +946,7 @@ mod tests {
         let invalid_target = state.find_these_free_groups(
             &[hydroxyl],
             ResidueId(0),
-            &[reducing_end, nonreducing_end, six_position, n_terminal],
+            [reducing_end, nonreducing_end, six_position, n_terminal],
         );
         assert_miette_snapshot!(invalid_target);
 
@@ -942,7 +954,7 @@ mod tests {
         let still_invalid_target = state.find_these_free_groups(
             &[hydroxyl, crazy],
             ResidueId(0),
-            &[reducing_end, nonreducing_end, six_position, n_terminal],
+            [reducing_end, nonreducing_end, six_position, n_terminal],
         );
         assert_miette_snapshot!(still_invalid_target);
 
@@ -950,7 +962,7 @@ mod tests {
         let nonexistent_group = state.find_these_free_groups(
             &[hydroxyl, crazy, amino],
             ResidueId(0),
-            &[reducing_end, nonreducing_end, six_position, n_terminal],
+            [reducing_end, nonreducing_end, six_position, n_terminal],
         );
         assert_miette_snapshot!(nonexistent_group);
 
@@ -960,7 +972,7 @@ mod tests {
         let multiple_errors = state.find_these_free_groups(
             &[hydroxyl, crazy, amino],
             ResidueId(0),
-            &[reducing_end, nonreducing_end, six_position, n_terminal],
+            [reducing_end, nonreducing_end, six_position, n_terminal],
         );
         assert_miette_snapshot!(multiple_errors);
     }

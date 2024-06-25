@@ -1,4 +1,5 @@
 use core::slice;
+use std::borrow::Borrow;
 
 use ahash::HashSet;
 use itertools::Itertools;
@@ -113,14 +114,13 @@ impl<'a, 'p> Polymer<'a, 'p> {
         self.modifications.get(&id)
     }
 
-    pub fn new_chain(
+    pub fn new_chain<A: AsRef<str>>(
         &mut self,
         abbr: impl AsRef<str>,
-        // FIXME: Change to `impl IntoIterator<Item = T>`
-        residues: &[impl AsRef<str>],
+        residues: impl IntoIterator<Item = A>,
     ) -> Result<(Vec<ResidueId>, Vec<BondId>)> {
         let residue_ids: Vec<_> = residues
-            .iter()
+            .into_iter()
             .map(|abbr| self.new_residue(abbr))
             .try_collect()?;
         let bond_ids = self.bond_chain(abbr, &residue_ids)?;
@@ -167,20 +167,17 @@ impl<'a, 'p> Polymer<'a, 'p> {
         )
     }
 
-    pub fn bond_chain(
+    pub fn bond_chain<R: Borrow<ResidueId>>(
         &mut self,
         abbr: impl AsRef<str>,
-        // FIXME: Change to `impl IntoIterator<Item = T>`
-        residues: &[ResidueId],
+        residues: impl IntoIterator<Item = R>,
     ) -> Result<Vec<BondId>> {
         let abbr = abbr.as_ref();
-        // NOTE: Once `array_windows()` is stabilized, it should be possible to pattern-match the `residue_pair` and
-        // eliminate the need for any manual indexing. Keep an eye on the standard library!
         let bond_ids = residues
-            .windows(2)
-            // SAFETY: The indexing of `residue_pair` should never fail, since `windows(2)` will always return a slice
-            // containing at least two elements
-            .map(|residue_pair| self.bond_residues(abbr, residue_pair[0], residue_pair[1]))
+            .into_iter()
+            .map(|r| r.borrow().to_owned())
+            .tuple_windows()
+            .map(|(donor, acceptor)| self.bond_residues(abbr, donor, acceptor))
             .try_collect()?;
 
         Ok(bond_ids)
@@ -254,12 +251,11 @@ impl<'a, 'p> Polymer<'a, 'p> {
             .map(|ids| ids[0])
     }
 
-    pub fn modify_groups(
+    pub fn modify_groups<G: Borrow<FunctionalGroup<'p>>>(
         &mut self,
         abbr: impl AsRef<str>,
         residue: ResidueId,
-        // FIXME: Change to `impl IntoIterator<Item = T>`
-        groups: &[FunctionalGroup<'p>],
+        groups: impl IntoIterator<Item = G> + Copy,
     ) -> Result<Vec<ModificationId>> {
         let accessor = |state: &PolymerizerState<'a, 'p>, targets| {
             state.find_these_free_groups(targets, residue, groups)
@@ -1003,6 +999,9 @@ mod tests {
         assert_miette_snapshot!(nonexistent_bond);
     }
 
+    // NOTE: Needed to help type-inference figure out what `[]` is supposed to be
+    const NO_RESIDUES: [ResidueId; 0] = [];
+
     #[test]
     fn bond_chain() {
         let mut polymer = POLYMERIZER.new_polymer();
@@ -1011,7 +1010,7 @@ mod tests {
         assert_polymer!(polymer, 515.24387164950, 515.51342919034656875);
 
         // Bonding chains of 1 or 0 residues is a no-op
-        let new_bonds = polymer.bond_chain("Pep", &[]).unwrap();
+        let new_bonds = polymer.bond_chain("Pep", NO_RESIDUES).unwrap();
         assert!(new_bonds.is_empty());
         assert_eq!(polymer, polymer_without_bonds);
         let new_bonds = polymer.bond_chain("Pep", &residues[..1]).unwrap();
@@ -1019,7 +1018,7 @@ mod tests {
         assert_eq!(polymer, polymer_without_bonds);
 
         // Then actually bond the full chain (3 bonds for 4 residues)
-        let bond_ids: Vec<_> = polymer.bond_chain("Pep", &residues).unwrap();
+        let bond_ids: Vec<_> = polymer.bond_chain("Pep", residues).unwrap();
         assert_eq!(bond_ids, vec![BondId(4), BondId(5), BondId(6)]);
         assert_polymer!(polymer, 461.21217759741, 461.46756989305707095);
         assert_ron_snapshot!(polymer, {
@@ -1028,10 +1027,10 @@ mod tests {
             ".**.functional_groups" => insta::sorted_redaction()
         });
 
-        let nonexistent_bond = polymer.bond_chain("?", &residues);
+        let nonexistent_bond = polymer.bond_chain("?", residues);
         assert_miette_snapshot!(nonexistent_bond);
 
-        let nonexistent_residue = polymer.bond_chain("Pep", &[ResidueId(3), ResidueId(4)]);
+        let nonexistent_residue = polymer.bond_chain("Pep", [ResidueId(3), ResidueId(4)]);
         assert_miette_snapshot!(nonexistent_residue);
     }
 
@@ -1343,7 +1342,7 @@ mod tests {
         let six_position = FunctionalGroup::new("Hydroxyl", "6-Position");
 
         let modification_ids = polymer
-            .modify_groups("Met", murnac, &[nonreducing_end, six_position])
+            .modify_groups("Met", murnac, [nonreducing_end, six_position])
             .unwrap();
         assert_eq!(modification_ids, vec![ModificationId(1), ModificationId(2)]);
         assert_polymer!(polymer, 321.14236670228, 321.32414660683313725);
@@ -1367,15 +1366,15 @@ mod tests {
             .is_modified());
 
         let modify_non_free_group =
-            polymer.modify_groups("Ca", murnac, &[reducing_end, six_position]);
+            polymer.modify_groups("Ca", murnac, [reducing_end, six_position]);
         assert_miette_snapshot!(modify_non_free_group);
 
         let modify_invalid_group =
-            polymer.modify_groups("Anh", murnac, &[reducing_end, six_position]);
+            polymer.modify_groups("Anh", murnac, [reducing_end, six_position]);
         assert_miette_snapshot!(modify_invalid_group);
 
         let modification_ids = polymer
-            .modify_groups("Anh", murnac, &[reducing_end])
+            .modify_groups("Anh", murnac, [reducing_end])
             .unwrap();
         assert_eq!(modification_ids, vec![ModificationId(3)]);
         assert_polymer!(polymer, 303.13180201825, 303.30886017440330465);
@@ -1387,19 +1386,18 @@ mod tests {
             .is_modified());
 
         let modify_multiple_errors =
-            polymer.modify_groups("Anh", murnac, &[reducing_end, six_position]);
+            polymer.modify_groups("Anh", murnac, [reducing_end, six_position]);
         assert_miette_snapshot!(modify_multiple_errors);
 
         let residue_from_wrong_polymer =
-            polymer.modify_groups("Anh", ResidueId(1337), &[reducing_end, six_position]);
+            polymer.modify_groups("Anh", ResidueId(1337), [reducing_end, six_position]);
         assert_miette_snapshot!(residue_from_wrong_polymer);
 
         let alanine = polymer.new_residue("A").unwrap();
-        let nonexistent_group =
-            polymer.modify_groups("Red", alanine, &[reducing_end, six_position]);
+        let nonexistent_group = polymer.modify_groups("Red", alanine, [reducing_end, six_position]);
         assert_miette_snapshot!(nonexistent_group);
 
-        let nonexistent_modification = polymer.modify_groups("Arg", murnac, &[reducing_end]);
+        let nonexistent_modification = polymer.modify_groups("Arg", murnac, [reducing_end]);
         assert_miette_snapshot!(nonexistent_modification);
     }
 

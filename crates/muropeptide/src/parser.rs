@@ -133,12 +133,8 @@ fn peptide<'c, 'a, 'p, 's>(
 ) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid>> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = many1(amino_acid(polymer));
     map_res(parser, |residues| {
-        // FIXME: I should change `bond_chain` to take an `impl IntoIterator<Item = AsRef<str>` — then I won't need to
-        // do this BS collection of things in between!
-        let residue_ids: Vec<_> = residues.iter().map(|aa| aa.residue).collect();
-        polymer
-            .borrow_mut()
-            .bond_chain(PEPTIDE_BOND, &residue_ids)?;
+        let residue_ids = residues.iter().map(|aa| aa.residue);
+        polymer.borrow_mut().bond_chain(PEPTIDE_BOND, residue_ids)?;
         Ok(residues)
     })
 }
