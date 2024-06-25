@@ -2,13 +2,17 @@
 
 mod parser;
 
+use miette::Diagnostic;
 use nom_miette::{final_parser, LabeledError};
 use parser::{muropeptide, MuropeptideErrorKind};
 // FIXME: Blocks need separating and reordering!
 use polychem::{
-    AverageMass, Charged, Massive, ModificationId, MonoisotopicMass, Polymer, Polymerizer,
-    ResidueId,
+    errors::PolychemError, AverageMass, Charged, Massive, ModificationId, MonoisotopicMass,
+    Polymer, Polymerizer, ResidueId,
 };
+use thiserror::Error;
+
+const AUTO_MODS: [&str; 1] = ["Red"];
 
 pub struct Muropeptide<'a, 'p> {
     polymer: Polymer<'a, 'p>,
@@ -17,13 +21,31 @@ pub struct Muropeptide<'a, 'p> {
     modifications: Vec<ModificationId>,
 }
 
-// FIXME Replace this error kind with a proper one!
-pub type Result<T> = std::result::Result<T, LabeledError<MuropeptideErrorKind>>;
+#[derive(Clone, Debug, Error, Diagnostic)]
+pub enum Error {
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    ParseError(#[from] LabeledError<MuropeptideErrorKind>),
+
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    PolychemError(#[from] Box<PolychemError>),
+}
+// FIXME: Maybe `Box` this error?
+pub type Result<T> = std::result::Result<T, Error>;
 
 impl<'a, 'p> Muropeptide<'a, 'p> {
     // FIXME: Messy stuff here! Needs a look! Especially the error type!
     pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self> {
-        final_parser(muropeptide(polymerizer))(structure.as_ref())
+        let mut muropeptide = final_parser(muropeptide(polymerizer))(structure.as_ref())?;
+
+        // FIXME: This is a temporary, hard-coded version of this feature. It should eventually be moved to a
+        // configuration file where the list of automatic modifications can be set by the user!
+        for abbr in AUTO_MODS {
+            muropeptide.polymer.modify_polymer(abbr)?;
+        }
+
+        Ok(muropeptide)
     }
 }
 

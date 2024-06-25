@@ -63,6 +63,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
             );
             parser(i)?
         };
+
         Ok((
             rest,
             Muropeptide {
