@@ -18,7 +18,6 @@ pub struct Muropeptide<'a, 'p> {
     polymer: Polymer<'a, 'p>,
     monomers: Vec<Monomer>,
     connections: Vec<Connection>,
-    modifications: Vec<ModificationId>,
 }
 
 struct Monomer {
@@ -28,8 +27,6 @@ struct Monomer {
 
 type Connection = Vec<ConnectionKind>;
 
-// FIXME: Should I actually be using newtypes here? Needs a bit of API thought...
-// FIXME: This will need to be a struct that stores a modification now!
 type Monosaccharide = ResidueId;
 
 #[derive(Clone)]

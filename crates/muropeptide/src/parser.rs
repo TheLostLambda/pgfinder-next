@@ -56,7 +56,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
     move |i| {
         let polymer = RefCell::new(polymerizer.new_polymer());
         // FIXME: Perhaps there is a better way to shorten that `polymer` borrow...
-        let (rest, (monomer, modifications)) = {
+        let (rest, (monomer, _)) = {
             let mut parser = pair(
                 monomer(&polymer),
                 opt(preceded(space1, modifications(&polymer))),
@@ -70,7 +70,6 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                 polymer: polymer.into_inner(),
                 monomers: vec![monomer],
                 connections: Vec::new(),
-                modifications: modifications.unwrap_or_default(),
             },
         ))
     }
@@ -183,6 +182,9 @@ fn amino_acid<'c, 'a, 'p, 's>(
             };
 
             let chain: Vec<_> = match direction {
+                // FIXME: This default should be moved to a configuration file and not be hard-coded!
+                // FIXME: Furthermore, this should really return several possible polymers instead of picking one.
+                // That might end up being difficult to do inline with this parsing stuff...
                 PeptideDirection::Unspecified => c_to_n().or_else(|_| n_to_c())?,
                 PeptideDirection::CToN => c_to_n()?,
                 PeptideDirection::NToC => n_to_c()?,
