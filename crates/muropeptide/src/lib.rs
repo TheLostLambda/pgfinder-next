@@ -21,50 +21,6 @@ pub struct Muropeptide<'a, 'p> {
     modifications: Vec<ModificationId>,
 }
 
-#[derive(Clone, Debug, Error, Diagnostic)]
-pub enum Error {
-    #[diagnostic(transparent)]
-    #[error(transparent)]
-    ParseError(#[from] LabeledError<MuropeptideErrorKind>),
-
-    #[diagnostic(transparent)]
-    #[error(transparent)]
-    PolychemError(#[from] Box<PolychemError>),
-}
-// FIXME: Maybe `Box` this error?
-pub type Result<T> = std::result::Result<T, Error>;
-
-impl<'a, 'p> Muropeptide<'a, 'p> {
-    // FIXME: Messy stuff here! Needs a look! Especially the error type!
-    pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self> {
-        let mut muropeptide = final_parser(muropeptide(polymerizer))(structure.as_ref())?;
-
-        // FIXME: This is a temporary, hard-coded version of this feature. It should eventually be moved to a
-        // configuration file where the list of automatic modifications can be set by the user!
-        for abbr in AUTO_MODS {
-            muropeptide.polymer.modify_polymer(abbr)?;
-        }
-
-        Ok(muropeptide)
-    }
-}
-
-impl Massive for Muropeptide<'_, '_> {
-    fn monoisotopic_mass(&self) -> MonoisotopicMass {
-        self.polymer.monoisotopic_mass()
-    }
-
-    fn average_mass(&self) -> AverageMass {
-        self.polymer.average_mass()
-    }
-}
-
-impl Charged for Muropeptide<'_, '_> {
-    fn charge(&self) -> polychem::Charge {
-        self.polymer.charge()
-    }
-}
-
 struct Monomer {
     glycan: Vec<Monosaccharide>,
     peptide: Vec<AminoAcid>,
@@ -108,6 +64,52 @@ enum PeptideDirection {
 type UnbranchedAminoAcid = ResidueId;
 
 type Position = u8;
+
+// ===
+
+#[derive(Clone, Debug, Error, Diagnostic)]
+pub enum Error {
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    ParseError(#[from] LabeledError<MuropeptideErrorKind>),
+
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    PolychemError(#[from] Box<PolychemError>),
+}
+// FIXME: Maybe `Box` this error?
+pub type Result<T> = std::result::Result<T, Error>;
+
+impl<'a, 'p> Muropeptide<'a, 'p> {
+    // FIXME: Messy stuff here! Needs a look! Especially the error type!
+    pub fn new(polymerizer: &Polymerizer<'a, 'p>, structure: impl AsRef<str>) -> Result<Self> {
+        let mut muropeptide = final_parser(muropeptide(polymerizer))(structure.as_ref())?;
+
+        // FIXME: This is a temporary, hard-coded version of this feature. It should eventually be moved to a
+        // configuration file where the list of automatic modifications can be set by the user!
+        for abbr in AUTO_MODS {
+            muropeptide.polymer.modify_polymer(abbr)?;
+        }
+
+        Ok(muropeptide)
+    }
+}
+
+impl Massive for Muropeptide<'_, '_> {
+    fn monoisotopic_mass(&self) -> MonoisotopicMass {
+        self.polymer.monoisotopic_mass()
+    }
+
+    fn average_mass(&self) -> AverageMass {
+        self.polymer.average_mass()
+    }
+}
+
+impl Charged for Muropeptide<'_, '_> {
+    fn charge(&self) -> polychem::Charge {
+        self.polymer.charge()
+    }
+}
 
 // OPEN QUESTIONS =============================================================
 // 1) Which direction do lateral chains run off from mDAP? (from the amine!)
