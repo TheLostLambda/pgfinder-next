@@ -24,8 +24,8 @@ use polychem::{
 use thiserror::Error;
 
 use crate::{
-    AminoAcid, LateralChain, Monomer, Monosaccharide, Muropeptide, PeptideDirection, Position,
-    UnbranchedAminoAcid,
+    AminoAcid, CrosslinkDescriptor, LateralChain, Monomer, Monosaccharide, Muropeptide,
+    PeptideDirection, Position, UnbranchedAminoAcid,
 };
 
 // FIXME: Need to think about if these should really live in another KDL config?
@@ -309,6 +309,20 @@ fn multiplier(i: &str) -> ParseResult<Count> {
     parser(i)
 }
 
+/// Crosslink Descriptor = position ,
+///   ( "-" (* Donor-Acceptor *)
+///   | "=" (* Acceptor=Donor *)
+///   ) , position ;
+fn crosslink_descriptor(i: &str) -> ParseResult<CrosslinkDescriptor> {
+    let mut parser = map(tuple((position, one_of("-="), position)), |(left, kind, right)| match kind {
+        '-' => CrosslinkDescriptor::DonorAcceptor,
+        '=' => CrosslinkDescriptor::AcceptorDonor,
+        _ => unreachable!()
+    }(left, right));
+    // FIXME: Add error handling / reporting!
+    parser(i)
+}
+
 /// position = "1" | "2" | "3" | "4" | "5" ;
 fn position(i: &str) -> ParseResult<Position> {
     // SAFETY: If a 1, 2, 3, 4, or 5 is parsed, then calling `.to_digit()` will always return `Some(...)`, and casting
@@ -485,6 +499,58 @@ mod tests {
         assert_eq!(position("10"), Ok(("0", 1)));
         assert_eq!(position("1OH"), Ok(("OH", 1)));
         assert_eq!(position("42HeH"), Ok(("2HeH", 4)));
+    }
+
+    #[test]
+    fn test_crosslink_descriptor() {
+        // Valid Crosslink Descriptors
+        assert_eq!(
+            crosslink_descriptor("4-3"),
+            Ok(("", CrosslinkDescriptor::DonorAcceptor(4, 3)))
+        );
+        assert_eq!(
+            crosslink_descriptor("3=4"),
+            Ok(("", CrosslinkDescriptor::AcceptorDonor(3, 4)))
+        );
+        assert_eq!(
+            crosslink_descriptor("4-2"),
+            Ok(("", CrosslinkDescriptor::DonorAcceptor(4, 2)))
+        );
+        assert_eq!(
+            crosslink_descriptor("2=4"),
+            Ok(("", CrosslinkDescriptor::AcceptorDonor(2, 4)))
+        );
+        assert_eq!(
+            crosslink_descriptor("1-3"),
+            Ok(("", CrosslinkDescriptor::DonorAcceptor(1, 3)))
+        );
+        assert_eq!(
+            crosslink_descriptor("3=1"),
+            Ok(("", CrosslinkDescriptor::AcceptorDonor(3, 1)))
+        );
+        // Invalid Crosslink Descriptors
+        assert!(crosslink_descriptor("0").is_err());
+        assert!(crosslink_descriptor("4-").is_err());
+        assert!(crosslink_descriptor("3=").is_err());
+        assert!(crosslink_descriptor("4->3").is_err());
+        assert!(crosslink_descriptor("6").is_err());
+        assert!(crosslink_descriptor("60").is_err());
+        assert!(crosslink_descriptor("8422").is_err());
+        assert!(crosslink_descriptor("01").is_err());
+        assert!(crosslink_descriptor("00145").is_err());
+        assert!(crosslink_descriptor("H").is_err());
+        assert!(crosslink_descriptor("p").is_err());
+        assert!(crosslink_descriptor("+H").is_err());
+        assert!(crosslink_descriptor("[H]").is_err());
+        // Multiple Crosslink Descriptors
+        assert_eq!(
+            crosslink_descriptor("4-3 & 3=3"),
+            Ok((" & 3=3", CrosslinkDescriptor::DonorAcceptor(4, 3)))
+        );
+        assert_eq!(
+            crosslink_descriptor("3=3) (Am)"),
+            Ok((") (Am)", CrosslinkDescriptor::AcceptorDonor(3, 3)))
+        );
     }
 
     #[test]
