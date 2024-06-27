@@ -24,7 +24,7 @@ use polychem::{
 use thiserror::Error;
 
 use crate::{
-    AminoAcid, LateralChain, Monomer, Monosaccharide, Muropeptide, PeptideDirection,
+    AminoAcid, LateralChain, Monomer, Monosaccharide, Muropeptide, PeptideDirection, Position,
     UnbranchedAminoAcid,
 };
 
@@ -309,6 +309,16 @@ fn multiplier(i: &str) -> ParseResult<Count> {
     parser(i)
 }
 
+/// position = "1" | "2" | "3" | "4" | "5" ;
+fn position(i: &str) -> ParseResult<Position> {
+    // SAFETY: If a 1, 2, 3, 4, or 5 is parsed, then calling `.to_digit()` will always return `Some(...)`, and casting
+    // via `as u8` is also guaranteed not to overflow or truncate, since `5` is the largest parsable digit
+    #[allow(clippy::cast_possible_truncation)]
+    let mut parser = map(one_of("12345"), |p| p.to_digit(10).unwrap() as u8);
+    // FIXME: Add error handling / reporting!
+    parser(i)
+}
+
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideErrorKind>>;
 
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
@@ -450,6 +460,31 @@ mod tests {
         // Multiple Multipliers
         assert_multiplier!("1xOH", "OH", 1);
         assert_multiplier!("42xHeH", "HeH", 42);
+    }
+
+    #[test]
+    fn test_position() {
+        // Valid Positions
+        assert_eq!(position("1"), Ok(("", 1)));
+        assert_eq!(position("2"), Ok(("", 2)));
+        assert_eq!(position("3"), Ok(("", 3)));
+        assert_eq!(position("4"), Ok(("", 4)));
+        assert_eq!(position("5"), Ok(("", 5)));
+        // Invalid Positions
+        assert!(position("0").is_err());
+        assert!(position("6").is_err());
+        assert!(position("60").is_err());
+        assert!(position("8422").is_err());
+        assert!(position("01").is_err());
+        assert!(position("00145").is_err());
+        assert!(position("H").is_err());
+        assert!(position("p").is_err());
+        assert!(position("+H").is_err());
+        assert!(position("[H]").is_err());
+        // Multiple Positions
+        assert_eq!(position("10"), Ok(("0", 1)));
+        assert_eq!(position("1OH"), Ok(("OH", 1)));
+        assert_eq!(position("42HeH"), Ok(("2HeH", 4)));
     }
 
     #[test]

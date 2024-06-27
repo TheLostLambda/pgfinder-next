@@ -7,8 +7,8 @@ use nom_miette::{final_parser, LabeledError};
 use parser::{muropeptide, MuropeptideErrorKind};
 // FIXME: Blocks need separating and reordering!
 use polychem::{
-    errors::PolychemError, AverageMass, Charged, Massive, ModificationId, MonoisotopicMass,
-    Polymer, Polymerizer, ResidueId,
+    errors::PolychemError, AverageMass, Charged, Massive, MonoisotopicMass, Polymer, Polymerizer,
+    ResidueId,
 };
 use thiserror::Error;
 
