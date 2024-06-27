@@ -24,8 +24,8 @@ use polychem::{
 use thiserror::Error;
 
 use crate::{
-    AminoAcid, CrosslinkDescriptor, CrosslinkDescriptors, LateralChain, Monomer, Monosaccharide,
-    Muropeptide, PeptideDirection, Position, UnbranchedAminoAcid,
+    AminoAcid, Connection, CrosslinkDescriptor, CrosslinkDescriptors, LateralChain, Monomer,
+    Monosaccharide, Muropeptide, PeptideDirection, Position, UnbranchedAminoAcid,
 };
 
 // FIXME: Need to think about if these should really live in another KDL config?
@@ -50,6 +50,7 @@ impl<T: ?Sized, U> Captures<U> for T {}
 ///   | Crosslinks , [ { " " }- , Modifications ]
 ///   ) ] ;
 // FIXME: Very very incomplete!
+// FIXME: Needs proper testing!
 pub fn muropeptide<'z, 'a, 'p, 's>(
     polymerizer: &'z Polymerizer<'a, 'p>,
 ) -> impl FnMut(&'s str) -> ParseResult<Muropeptide<'a, 'p>> + Captures<(&'z (), &'a (), &'p ())> {
@@ -300,6 +301,29 @@ pub fn offset_modification<'c, 'a, 'p, 's>(
             composition,
         )
     })
+}
+
+/// Connection
+///   = "=" (* Crosslink *)
+///   | "~" (* Glycosidic Bond *)
+///   | ( "~=" | "=~" ) (* Both *)
+///   ;
+// FIXME: Not in love with carrying these empty Vecs around just to be populated later... Perhaps this should be a
+// different type?
+fn connection(i: &str) -> ParseResult<Connection> {
+    // NOTE: The order here must start with the tags for `Both` — backtracking and trying the single-char parsers if
+    // the two-char ones don't apply
+    // PERF: There is probably a way to remove this backtracking and do things in a single-pass, but I don't know if
+    // that would have a noticeable performance impact...
+    let connection = alt((tag("~="), tag("=~"), tag("="), tag("~")));
+    let mut parser = map(connection, |c| match c {
+        "~" => Connection::GlycosidicBond,
+        "=" => Connection::Crosslink(Vec::new()),
+        "~=" | "=~" => Connection::Both(Vec::new()),
+        _ => unreachable!(),
+    });
+    // FIXME: Add error handling / reporting!
+    parser(i)
 }
 
 /// Multiplier = Count , "x" ;
@@ -688,6 +712,49 @@ mod tests {
             Ok((" (Am)", vec![vec![da43], vec![ad33]]))
         );
         assert_eq!(crosslinks("(3=3) (4-3)"), Ok((" (4-3)", vec![vec![ad33]])));
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_connection() {
+        let gly = || Connection::GlycosidicBond;
+        let link = || Connection::Crosslink(Vec::new());
+        let both = || Connection::Both(Vec::new());
+
+        // Valid Connections
+        assert_eq!(connection("="), Ok(("", link())));
+        assert_eq!(connection("~"), Ok(("", gly())));
+        assert_eq!(connection("~="), Ok(("", both())));
+        assert_eq!(connection("=~"), Ok(("", both())));
+        // Invalid Connections
+        assert!(connection("").is_err());
+        assert!(connection("gm").is_err());
+        assert!(connection("gm-AEJA").is_err());
+        assert!(connection("-AEJA").is_err());
+        assert!(connection("()").is_err());
+        assert!(connection("(3-)").is_err());
+        assert!(connection("(2-4").is_err());
+        assert!(connection("2-4 & 3=3").is_err());
+        assert!(connection("4-3 & 3=3 & 7-8").is_err());
+        assert!(connection("0").is_err());
+        assert!(connection("4-").is_err());
+        assert!(connection("3=").is_err());
+        assert!(connection("4->3").is_err());
+        assert!(connection("& 3=3").is_err());
+        assert!(connection("6").is_err());
+        assert!(connection("60").is_err());
+        assert!(connection("8422").is_err());
+        assert!(connection("01").is_err());
+        assert!(connection("00145").is_err());
+        assert!(connection("H").is_err());
+        assert!(connection("p").is_err());
+        assert!(connection("+H").is_err());
+        assert!(connection("[H]").is_err());
+        // Multiple Connections
+        assert_eq!(connection("=="), Ok(("=", link())));
+        assert_eq!(connection("~~"), Ok(("~", gly())));
+        assert_eq!(connection("~=~"), Ok(("~", both())));
+        assert_eq!(connection("=~="), Ok(("=", both())));
     }
 
     #[test]

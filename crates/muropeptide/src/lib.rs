@@ -25,8 +25,6 @@ struct Monomer {
     peptide: Vec<AminoAcid>,
 }
 
-type Connection = Vec<ConnectionKind>;
-
 type Monosaccharide = ResidueId;
 
 #[derive(Clone)]
@@ -35,9 +33,11 @@ struct AminoAcid {
     lateral_chain: Option<LateralChain>,
 }
 
-enum ConnectionKind {
+#[derive(Debug, Eq, PartialEq)]
+enum Connection {
     GlycosidicBond,
     Crosslink(CrosslinkDescriptors),
+    Both(CrosslinkDescriptors),
 }
 
 #[derive(Clone)]
