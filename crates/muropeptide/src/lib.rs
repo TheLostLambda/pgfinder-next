@@ -37,7 +37,7 @@ struct AminoAcid {
 
 enum ConnectionKind {
     GlycosidicBond,
-    Crosslink(Vec<CrosslinkDescriptor>),
+    Crosslink(CrosslinkDescriptors),
 }
 
 #[derive(Clone)]
@@ -45,6 +45,8 @@ struct LateralChain {
     direction: PeptideDirection,
     peptide: Vec<UnbranchedAminoAcid>,
 }
+
+type CrosslinkDescriptors = Vec<CrosslinkDescriptor>;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum CrosslinkDescriptor {

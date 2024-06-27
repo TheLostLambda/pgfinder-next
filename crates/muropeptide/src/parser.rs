@@ -24,8 +24,8 @@ use polychem::{
 use thiserror::Error;
 
 use crate::{
-    AminoAcid, CrosslinkDescriptor, LateralChain, Monomer, Monosaccharide, Muropeptide,
-    PeptideDirection, Position, UnbranchedAminoAcid,
+    AminoAcid, CrosslinkDescriptor, CrosslinkDescriptors, LateralChain, Monomer, Monosaccharide,
+    Muropeptide, PeptideDirection, Position, UnbranchedAminoAcid,
 };
 
 // FIXME: Need to think about if these should really live in another KDL config?
@@ -309,11 +309,24 @@ fn multiplier(i: &str) -> ParseResult<Count> {
     parser(i)
 }
 
+/// Crosslinks = "(" , Crosslink Descriptors ,
+///   { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
+fn crosslinks(i: &str) -> ParseResult<Vec<CrosslinkDescriptors>> {
+    let separator = delimited(space0, char(','), space0);
+    let mut parser = delimited(
+        char('('),
+        separated_list1(separator, crosslink_descriptors),
+        char(')'),
+    );
+    // FIXME: Add error handling / reporting!
+    parser(i)
+}
+
 /// Crosslink Descriptors = Crosslink Descriptor ,
 ///   { { " " } , "&" , { " " } , Crosslink Descriptor } ;
-fn crosslink_descriptors(i: &str) -> ParseResult<Vec<CrosslinkDescriptor>> {
-    let sep = delimited(space0, char('&'), space0);
-    let mut parser = separated_list1(sep, crosslink_descriptor);
+fn crosslink_descriptors(i: &str) -> ParseResult<CrosslinkDescriptors> {
+    let separator = delimited(space0, char('&'), space0);
+    let mut parser = separated_list1(separator, crosslink_descriptor);
     // FIXME: Add error handling / reporting!
     parser(i)
 }
@@ -623,6 +636,58 @@ mod tests {
             crosslink_descriptors("3=3) (Am)"),
             Ok((") (Am)", vec![ad33]))
         );
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_crosslinks() {
+        let da43 = CrosslinkDescriptor::DonorAcceptor(4, 3);
+        let da33 = CrosslinkDescriptor::DonorAcceptor(3, 3);
+        let ad33 = CrosslinkDescriptor::AcceptorDonor(3, 3);
+        let ad24 = CrosslinkDescriptor::AcceptorDonor(2, 4);
+
+        // Valid Crosslinks
+        assert_eq!(crosslinks("(4-3)"), Ok(("", vec![vec![da43]])));
+        assert_eq!(crosslinks("(4-3 & 3=3)"), Ok(("", vec![vec![da43, ad33]])));
+        assert_eq!(
+            crosslinks("(4-3 & 3=3 & 3-3 & 2=4)"),
+            Ok(("", vec![vec![da43, ad33, da33, ad24]]))
+        );
+        assert_eq!(
+            crosslinks("(4-3, 3-3 & 3=3)"),
+            Ok(("", vec![vec![da43], vec![da33, ad33]]))
+        );
+        assert_eq!(
+            crosslinks("(4-3, 3=3  ,3-3    ,   2=4)"),
+            Ok(("", vec![vec![da43], vec![ad33], vec![da33], vec![ad24]]))
+        );
+        // Invalid Crosslinks
+        assert!(crosslinks("").is_err());
+        assert!(crosslinks("()").is_err());
+        assert!(crosslinks("(3-)").is_err());
+        assert!(crosslinks("(2-4").is_err());
+        assert!(crosslinks("2-4 & 3=3").is_err());
+        assert!(crosslinks("4-3 & 3=3 & 7-8").is_err());
+        assert!(crosslinks("0").is_err());
+        assert!(crosslinks("4-").is_err());
+        assert!(crosslinks("3=").is_err());
+        assert!(crosslinks("4->3").is_err());
+        assert!(crosslinks("& 3=3").is_err());
+        assert!(crosslinks("6").is_err());
+        assert!(crosslinks("60").is_err());
+        assert!(crosslinks("8422").is_err());
+        assert!(crosslinks("01").is_err());
+        assert!(crosslinks("00145").is_err());
+        assert!(crosslinks("H").is_err());
+        assert!(crosslinks("p").is_err());
+        assert!(crosslinks("+H").is_err());
+        assert!(crosslinks("[H]").is_err());
+        // Multiple Crosslinks
+        assert_eq!(
+            crosslinks("(4-3, 3=3) (Am)"),
+            Ok((" (Am)", vec![vec![da43], vec![ad33]]))
+        );
+        assert_eq!(crosslinks("(3=3) (4-3)"), Ok((" (4-3)", vec![vec![ad33]])));
     }
 
     #[test]
