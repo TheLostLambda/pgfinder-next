@@ -309,6 +309,15 @@ fn multiplier(i: &str) -> ParseResult<Count> {
     parser(i)
 }
 
+/// Crosslink Descriptors = Crosslink Descriptor ,
+///   { { " " } , "&" , { " " } , Crosslink Descriptor } ;
+fn crosslink_descriptors(i: &str) -> ParseResult<Vec<CrosslinkDescriptor>> {
+    let sep = delimited(space0, char('&'), space0);
+    let mut parser = separated_list1(sep, crosslink_descriptor);
+    // FIXME: Add error handling / reporting!
+    parser(i)
+}
+
 /// Crosslink Descriptor = position ,
 ///   ( "-" (* Donor-Acceptor *)
 ///   | "=" (* Acceptor=Donor *)
@@ -550,6 +559,69 @@ mod tests {
         assert_eq!(
             crosslink_descriptor("3=3) (Am)"),
             Ok((") (Am)", CrosslinkDescriptor::AcceptorDonor(3, 3)))
+        );
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity)]
+    fn test_crosslink_descriptors() {
+        let da43 = CrosslinkDescriptor::DonorAcceptor(4, 3);
+        let ad34 = CrosslinkDescriptor::AcceptorDonor(3, 4);
+        let da33 = CrosslinkDescriptor::DonorAcceptor(3, 3);
+        let ad33 = CrosslinkDescriptor::AcceptorDonor(3, 3);
+        let da42 = CrosslinkDescriptor::DonorAcceptor(4, 2);
+        let ad24 = CrosslinkDescriptor::AcceptorDonor(2, 4);
+        let da13 = CrosslinkDescriptor::DonorAcceptor(1, 3);
+        let ad31 = CrosslinkDescriptor::AcceptorDonor(3, 1);
+
+        // Valid Crosslink Descriptors
+        assert_eq!(crosslink_descriptors("4-3"), Ok(("", vec![da43])));
+        assert_eq!(crosslink_descriptors("3=4"), Ok(("", vec![ad34])));
+        assert_eq!(crosslink_descriptors("4-2"), Ok(("", vec![da42])));
+        assert_eq!(crosslink_descriptors("2=4"), Ok(("", vec![ad24])));
+        assert_eq!(crosslink_descriptors("1-3"), Ok(("", vec![da13])));
+        assert_eq!(crosslink_descriptors("3=1"), Ok(("", vec![ad31])));
+        assert_eq!(crosslink_descriptors("4-3&3=3"), Ok(("", vec![da43, ad33])));
+        assert_eq!(
+            crosslink_descriptors("4-3    &3=3"),
+            Ok(("", vec![da43, ad33]))
+        );
+        assert_eq!(
+            crosslink_descriptors("4-3&     3=3"),
+            Ok(("", vec![da43, ad33]))
+        );
+        assert_eq!(
+            crosslink_descriptors("4-3 & 3=3"),
+            Ok(("", vec![da43, ad33]))
+        );
+        assert_eq!(
+            crosslink_descriptors("4-3 & 3=3 & 3-3 & 2=4"),
+            Ok(("", vec![da43, ad33, da33, ad24]))
+        );
+        // Invalid Crosslink Descriptors
+        assert!(crosslink_descriptors("").is_err());
+        assert!(crosslink_descriptors("0").is_err());
+        assert!(crosslink_descriptors("4-").is_err());
+        assert!(crosslink_descriptors("3=").is_err());
+        assert!(crosslink_descriptors("4->3").is_err());
+        assert!(crosslink_descriptors("& 3=3").is_err());
+        assert!(crosslink_descriptors("6").is_err());
+        assert!(crosslink_descriptors("60").is_err());
+        assert!(crosslink_descriptors("8422").is_err());
+        assert!(crosslink_descriptors("01").is_err());
+        assert!(crosslink_descriptors("00145").is_err());
+        assert!(crosslink_descriptors("H").is_err());
+        assert!(crosslink_descriptors("p").is_err());
+        assert!(crosslink_descriptors("+H").is_err());
+        assert!(crosslink_descriptors("[H]").is_err());
+        // Multiple Crosslink Descriptors
+        assert_eq!(
+            crosslink_descriptors("4-3 & 3=3 & 7-8"),
+            Ok((" & 7-8", vec![da43, ad33]))
+        );
+        assert_eq!(
+            crosslink_descriptors("3=3) (Am)"),
+            Ok((") (Am)", vec![ad33]))
         );
     }
 

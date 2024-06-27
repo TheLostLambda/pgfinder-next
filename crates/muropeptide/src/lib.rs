@@ -46,7 +46,7 @@ struct LateralChain {
     peptide: Vec<UnbranchedAminoAcid>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum CrosslinkDescriptor {
     DonorAcceptor(Position, Position),
     AcceptorDonor(Position, Position),
