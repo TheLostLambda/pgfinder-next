@@ -14,12 +14,14 @@ use thiserror::Error;
 
 const AUTO_MODS: [&str; 1] = ["Red"];
 
+#[derive(Debug)]
 pub struct Muropeptide<'a, 'p> {
     polymer: Polymer<'a, 'p>,
     monomers: Vec<Monomer>,
     connections: Vec<Connection>,
 }
 
+#[derive(Debug, Clone)]
 struct Monomer {
     glycan: Vec<Monosaccharide>,
     peptide: Vec<AminoAcid>,
@@ -27,20 +29,20 @@ struct Monomer {
 
 type Monosaccharide = ResidueId;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct AminoAcid {
     residue: UnbranchedAminoAcid,
     lateral_chain: Option<LateralChain>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 enum Connection {
     GlycosidicBond,
     Crosslink(CrosslinkDescriptors),
     Both(CrosslinkDescriptors),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct LateralChain {
     direction: PeptideDirection,
     peptide: Vec<UnbranchedAminoAcid>,
@@ -54,7 +56,7 @@ enum CrosslinkDescriptor {
     AcceptorDonor(Position, Position),
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum PeptideDirection {
     Unspecified,
     CToN,

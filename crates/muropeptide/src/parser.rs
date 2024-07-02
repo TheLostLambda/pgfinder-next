@@ -1,5 +1,6 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, iter::zip};
 
+use itertools::{EitherOrBoth, Itertools};
 use miette::Diagnostic;
 use nom::{
     branch::alt,
@@ -51,13 +52,15 @@ impl<T: ?Sized, U> Captures<U> for T {}
 ///   ) ] ;
 // FIXME: Very very incomplete!
 // FIXME: Needs proper testing!
+// FIXME: And disgustingly messy... Needs a major refactor... When you do, remove this allow!
+#[allow(clippy::too_many_lines)]
 pub fn muropeptide<'z, 'a, 'p, 's>(
     polymerizer: &'z Polymerizer<'a, 'p>,
 ) -> impl FnMut(&'s str) -> ParseResult<Muropeptide<'a, 'p>> + Captures<(&'z (), &'a (), &'p ())> {
     move |i| {
         let polymer = RefCell::new(polymerizer.new_polymer());
         // FIXME: Perhaps there is a better way to shorten that `polymer` borrow...
-        let (rest, ((monomers, connections), _)) = {
+        let (rest, (monomers, connections)) = {
             let multimer = map(
                 tuple((
                     monomer(&polymer),
@@ -80,8 +83,138 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                     (monomers, connections)
                 },
             );
+            let opt_crosslinks = opt(preceded(space1, crosslinks));
             let opt_modifications = opt(preceded(space1, modifications(&polymer)));
-            let mut parser = pair(multimer, opt_modifications);
+            let modifications_then_crosslinks = map(
+                pair(modifications(&polymer), opt_crosslinks),
+                |(modifications, opt_crosslinks)| (Some(modifications), opt_crosslinks),
+            );
+            let crosslinks_then_modifications = map(
+                pair(crosslinks, opt_modifications),
+                |(crosslinks, opt_modifications)| (opt_modifications, Some(crosslinks)),
+            );
+
+            let opt_crosslink_and_modifications = map(
+                opt(preceded(
+                    space1,
+                    alt((modifications_then_crosslinks, crosslinks_then_modifications)),
+                )),
+                |opt| opt.unwrap_or((None, None)),
+            );
+            let mut parser = map_res(
+                pair(multimer, opt_crosslink_and_modifications),
+                |((monomers, mut connections), (_, crosslinks))| {
+                    let crosslink_connections =
+                        connections.iter_mut().filter_map(|conn| match conn {
+                            Connection::GlycosidicBond => None,
+                            Connection::Crosslink(descriptors) | Connection::Both(descriptors) => {
+                                Some(descriptors)
+                            }
+                        });
+                    let crosslinks = crosslinks.into_iter().flatten();
+
+                    for either_or_both in crosslink_connections.zip_longest(crosslinks) {
+                        match either_or_both {
+                            EitherOrBoth::Both(connection, crosslinks) => *connection = crosslinks,
+                            _ => return Err(ConstructionError::CrosslinkCountMismatch),
+                        }
+                    }
+
+                    let mut last_glycan = None;
+                    let mut last_peptide = None;
+                    let monomer_pairs = monomers.iter().circular_tuple_windows();
+                    let connection_refs = connections.iter();
+                    for ((left, right), connection) in zip(monomer_pairs, connection_refs) {
+                        if !left.glycan.is_empty() {
+                            last_glycan = Some(&left.glycan);
+                        }
+                        if !left.peptide.is_empty() {
+                            last_peptide = Some(&left.peptide);
+                        }
+
+                        let gly_bond = || -> Result<(), ConstructionError> {
+                            let donor = *last_glycan
+                                .and_then(|lg| lg.last())
+                                .ok_or(ConstructionError::NoGlycan)?;
+                            let acceptor =
+                                *right.glycan.first().ok_or(ConstructionError::NoGlycan)?;
+                            polymer
+                                .borrow_mut()
+                                .bond_residues(GLYCOSIDIC_BOND, donor, acceptor)?;
+                            Ok(())
+                        };
+                        let crosslink = |descriptors| -> Result<(), ConstructionError> {
+                            for &descriptor in descriptors {
+                                // FIXME: Are lateral chains ever donors?
+                                fn lookup_amino_acid(
+                                    peptide: &[AminoAcid],
+                                    idx: u8,
+                                ) -> Result<&AminoAcid, ConstructionError>
+                                {
+                                    peptide
+                                        .get(idx.saturating_sub(1) as usize)
+                                        .ok_or(ConstructionError::NoStemResidue)
+                                }
+                                let lookup_donor = |peptide, idx| {
+                                    lookup_amino_acid(peptide, idx).map(|aa| aa.residue)
+                                };
+                                // FIXME: Good lord... What a mess...
+                                let lookup_acceptor =
+                                    |peptide, idx| -> Result<_, ConstructionError> {
+                                        let AminoAcid {
+                                            residue,
+                                            lateral_chain,
+                                        } = lookup_amino_acid(peptide, idx)?;
+                                        Ok(*if let Some(LateralChain { peptide, .. }) =
+                                            lateral_chain
+                                        {
+                                            // SAFETY: All `LateralChain`s carry non-empty vectors, so this call to
+                                            // `.last()` should never fail!
+                                            peptide.last().unwrap()
+                                        } else {
+                                            residue
+                                        })
+                                    };
+                                // FIXME: NAMING!!!
+                                let left_peptide =
+                                    last_peptide.ok_or(ConstructionError::NoPeptide)?;
+                                let right_peptide = &right.peptide;
+                                // FIXME: Awful...
+                                if right_peptide.is_empty() {
+                                    return Err(ConstructionError::NoPeptide);
+                                }
+                                let (donor, acceptor) = match descriptor {
+                                    CrosslinkDescriptor::DonorAcceptor(l_idx, r_idx) => (
+                                        lookup_donor(left_peptide, l_idx)?,
+                                        lookup_acceptor(right_peptide, r_idx)?,
+                                    ),
+                                    CrosslinkDescriptor::AcceptorDonor(l_idx, r_idx) => (
+                                        lookup_donor(right_peptide, r_idx)?,
+                                        lookup_acceptor(left_peptide, l_idx)?,
+                                    ),
+                                };
+
+                                polymer.borrow_mut().bond_residues(
+                                    CROSSLINK_BOND,
+                                    donor,
+                                    acceptor,
+                                )?;
+                            }
+                            Ok(())
+                        };
+                        match connection {
+                            Connection::GlycosidicBond => gly_bond()?,
+                            Connection::Crosslink(descriptors) => crosslink(descriptors)?,
+                            Connection::Both(descriptors) => {
+                                gly_bond()?;
+                                crosslink(descriptors)?;
+                            }
+                        }
+                    }
+
+                    Ok((monomers, connections))
+                },
+            );
             parser(i)?
         };
 
@@ -306,6 +439,7 @@ pub fn named_modification<'c, 'a, 'p, 's>(
         polymer
             .borrow_mut()
             .new_modification(multiplier.unwrap_or_default(), named_mod)
+            .map_err(Into::into)
     })
 }
 
@@ -318,11 +452,10 @@ pub fn offset_modification<'c, 'a, 'p, 's>(
     let parser = tuple((offset_kind, opt(multiplier), chemical_composition));
 
     map_res(parser, |(kind, multiplier, composition)| {
-        polymer.borrow_mut().new_offset_with_composition(
-            kind,
-            multiplier.unwrap_or_default(),
-            composition,
-        )
+        polymer
+            .borrow_mut()
+            .new_offset_with_composition(kind, multiplier.unwrap_or_default(), composition)
+            .map_err(Into::into)
     })
 }
 
@@ -405,6 +538,29 @@ fn position(i: &str) -> ParseResult<Position> {
 type ParseResult<'a, O> = IResult<&'a str, O, LabeledParseError<'a, MuropeptideErrorKind>>;
 
 #[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
+pub enum ConstructionError {
+    #[diagnostic(transparent)]
+    #[error(transparent)]
+    PolychemError(#[from] Box<PolychemError>),
+
+    // FIXME: Eventually make this error either more informative (printing the number of each), or replace it!
+    #[error("the number of described crosslinks (e.g. 3-3) doesn't match the number of crosslink connectors (=)")]
+    CrosslinkCountMismatch,
+
+    // FIXME: Eventually make this error either more informative, or replace it!
+    #[error("failed to find two glycan chains to bond")]
+    NoGlycan,
+
+    // FIXME: Eventually make this error either more informative, or replace it!
+    #[error("failed to find two peptide stems to bond")]
+    NoPeptide,
+
+    // FIXME: Eventually make this error either more informative, or replace it!
+    #[error("failed to look up the stem residues as described by the crosslink descriptor")]
+    NoStemResidue,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Diagnostic, Error)]
 pub enum MuropeptideErrorKind {
     #[error("expected an ASCII letter, optionally followed by any number of ASCII letters, digits, and underscores")]
     ExpectedIdentifier,
@@ -412,7 +568,7 @@ pub enum MuropeptideErrorKind {
     // FIXME: Kill this and merge into the error below!
     #[diagnostic(transparent)]
     #[error(transparent)]
-    PolychemError(Box<PolychemError>),
+    ConstructionError(ConstructionError),
 
     #[diagnostic(transparent)]
     #[error(transparent)]
@@ -444,11 +600,11 @@ impl LabeledErrorKind for MuropeptideErrorKind {
 }
 
 // FIXME: Can I get rid of this?
-impl<'a> FromExternalError<'a, Box<PolychemError>> for MuropeptideErrorKind {
+impl<'a> FromExternalError<'a, ConstructionError> for MuropeptideErrorKind {
     const FATAL: bool = true;
 
-    fn from_external_error(input: &'a str, e: Box<PolychemError>) -> LabeledParseError<'_, Self> {
-        LabeledParseError::new(input, Self::PolychemError(e))
+    fn from_external_error(input: &'a str, e: ConstructionError) -> LabeledParseError<'a, Self> {
+        LabeledParseError::new(input, Self::ConstructionError(e))
     }
 }
 
