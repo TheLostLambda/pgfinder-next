@@ -57,20 +57,41 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
     move |i| {
         let polymer = RefCell::new(polymerizer.new_polymer());
         // FIXME: Perhaps there is a better way to shorten that `polymer` borrow...
-        let (rest, (monomer, _)) = {
-            let mut parser = pair(
-                monomer(&polymer),
-                opt(preceded(space1, modifications(&polymer))),
+        let (rest, ((monomers, connections), _)) = {
+            let multimer = map(
+                tuple((
+                    monomer(&polymer),
+                    many0(pair(connection, monomer(&polymer))),
+                    opt(connection),
+                )),
+                |(monomer, multimers, circular_connection)| {
+                    let mut monomers = Vec::with_capacity(1 + multimers.len());
+                    // PERF: This often over-allocates by one element — is checking `circular_connection.is_some()`
+                    // something that's worth the branch here? Need to benchmark that!
+                    let mut connections = Vec::with_capacity(multimers.len() + 1);
+
+                    monomers.push(monomer);
+                    for (connection, monomer) in multimers {
+                        connections.push(connection);
+                        monomers.push(monomer);
+                    }
+                    connections.extend(circular_connection);
+
+                    (monomers, connections)
+                },
             );
+            let opt_modifications = opt(preceded(space1, modifications(&polymer)));
+            let mut parser = pair(multimer, opt_modifications);
             parser(i)?
         };
 
+        let polymer = polymer.into_inner();
         Ok((
             rest,
             Muropeptide {
-                polymer: polymer.into_inner(),
-                monomers: vec![monomer],
-                connections: Vec::new(),
+                polymer,
+                monomers,
+                connections,
             },
         ))
     }
@@ -186,6 +207,8 @@ fn amino_acid<'c, 'a, 'p, 's>(
                 // FIXME: This default should be moved to a configuration file and not be hard-coded!
                 // FIXME: Furthermore, this should really return several possible polymers instead of picking one.
                 // That might end up being difficult to do inline with this parsing stuff...
+                // FIXME: If the peptide direction is initially unspecified, then I need to make sure that I update it
+                // after working out which of the bonding patterns work (for pretty-printing later)!
                 PeptideDirection::Unspecified => c_to_n().or_else(|_| n_to_c())?,
                 PeptideDirection::CToN => c_to_n()?,
                 PeptideDirection::NToC => n_to_c()?,
