@@ -114,10 +114,10 @@ impl<'a, 'p> Polymer<'a, 'p> {
         self.modifications.get(&id)
     }
 
-    pub fn new_chain<A: AsRef<str>>(
+    pub fn new_chain(
         &mut self,
         abbr: impl AsRef<str>,
-        residues: impl IntoIterator<Item = A>,
+        residues: impl IntoIterator<Item: AsRef<str>>,
     ) -> Result<(Vec<ResidueId>, Vec<BondId>)> {
         let residue_ids: Vec<_> = residues
             .into_iter()
@@ -167,10 +167,10 @@ impl<'a, 'p> Polymer<'a, 'p> {
         )
     }
 
-    pub fn bond_chain<R: Borrow<ResidueId>>(
+    pub fn bond_chain(
         &mut self,
         abbr: impl AsRef<str>,
-        residues: impl IntoIterator<Item = R>,
+        residues: impl IntoIterator<Item: Borrow<ResidueId>>,
     ) -> Result<Vec<BondId>> {
         let abbr = abbr.as_ref();
         let bond_ids = residues
@@ -286,11 +286,11 @@ impl<'a, 'p> Polymer<'a, 'p> {
             .map(|ids| ids[0])
     }
 
-    pub fn modify_groups<G: Borrow<FunctionalGroup<'p>>>(
+    pub fn modify_groups(
         &mut self,
         abbr: impl AsRef<str>,
         residue: ResidueId,
-        groups: impl IntoIterator<Item = G> + Copy,
+        groups: impl IntoIterator<Item: Borrow<FunctionalGroup<'p>>> + Copy,
     ) -> Result<Vec<ModificationId>> {
         let accessor = |state: &PolymerizerState<'a, 'p>, targets| {
             state.find_these_free_groups(targets, residue, groups)

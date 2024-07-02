@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use ahash::HashMap;
 use miette::Diagnostic;
 use thiserror::Error;
@@ -69,7 +71,7 @@ impl AtomicLookupError {
     }
 
     // FIXME: Where does this belong?
-    pub(crate) fn display_vec<I: ToString>(items: impl IntoIterator<Item = I>) -> String {
+    pub(crate) fn display_vec(items: impl IntoIterator<Item: Display>) -> String {
         let mut items: Vec<_> = items.into_iter().map(|i| i.to_string()).collect();
         items.sort_unstable();
         format!("[{}]", items.join(", "))

@@ -217,7 +217,7 @@ impl FindFreeGroupsError {
 }
 
 // FIXME: I'm not certain where this code belongs...
-pub fn comma_list<I: Display>(items: impl IntoIterator<Item = I>, final_sep: &str) -> String {
+pub fn comma_list(items: impl IntoIterator<Item: Display>, final_sep: &str) -> String {
     let mut items: Vec<_> = items.into_iter().map(|i| i.to_string()).collect();
     let len = items.len();
     if len > 1 {
@@ -235,7 +235,8 @@ mod tests {
 
     #[test]
     fn test_comma_list() {
-        assert_eq!(comma_list::<&str>([], "whatever"), "");
+        let empty: [&str; 0] = [];
+        assert_eq!(comma_list(empty, "whatever"), "");
         assert_eq!(comma_list(["A"], "whatever"), "A");
         assert_eq!(comma_list(["A", "B"], "or"), "A or B");
         assert_eq!(comma_list(["B", "C", "A"], "and"), "B, C, and A");

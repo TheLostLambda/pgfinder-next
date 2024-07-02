@@ -109,13 +109,13 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
         }
     }
 
-    pub fn find_these_free_groups<'t, T: 'p, G: Borrow<FunctionalGroup<'p>>>(
+    pub fn find_these_free_groups<'t, T: 'p>(
         &self,
         targets: &'t [T],
         residue: ResidueId,
         // FIXME: It's a bit odd that this is a generic, whilst `targets` isn't, but that's just to make calling this
         // from `Polymer` easier... Worth another look...
-        groups: impl IntoIterator<Item = G>,
+        groups: impl IntoIterator<Item: Borrow<FunctionalGroup<'p>>>,
     ) -> Result<HashSet<FunctionalGroup<'p>>, FindFreeGroupsError>
     where
         &'t T: Into<Target<&'p str>>,
