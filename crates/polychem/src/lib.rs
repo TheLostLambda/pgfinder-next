@@ -87,7 +87,7 @@ pub struct BondId(Id);
 // FIXME: Perhaps I should consider changing these `*Info` structs to have named fields? Is the donor -> acceptor order
 // obvious enough for users?
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-pub struct BondInfo<'a, 'p>(ResidueGroup<'p>, Bond<'a, 'p>, ResidueGroup<'p>);
+pub struct BondInfo<'a, 'p>(pub ResidueGroup<'p>, pub Bond<'a, 'p>, pub ResidueGroup<'p>);
 
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -129,7 +129,7 @@ pub struct NamedMod<'a, 'p> {
 
 // FIXME: Should I be using named fields here?
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Serialize)]
-pub struct ResidueGroup<'p>(ResidueId, FunctionalGroup<'p>);
+pub struct ResidueGroup<'p>(pub ResidueId, pub FunctionalGroup<'p>);
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
 pub struct OffsetMod<'a> {
@@ -143,10 +143,10 @@ pub struct Modification<K> {
     kind: K,
 }
 
-type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
+pub type AnyModification<'a, 'p> = Modification<AnyMod<'a, 'p>>;
 
 #[derive(Clone, Eq, PartialEq, Debug, Serialize)]
-struct Bond<'a, 'p> {
+pub struct Bond<'a, 'p> {
     abbr: &'p str,
     name: &'p str,
     lost: &'p ChemicalComposition<'a>,

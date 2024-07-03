@@ -49,8 +49,9 @@ impl<'a, 'p> Residue<'a, 'p> {
         self.functional_groups.iter()
     }
 
-    pub fn offset_modifications(&self) -> impl Iterator<Item = &ModificationId> {
-        self.offset_modifications.iter()
+    // FIXME: Remove the '_ after Rust 2024 is released
+    pub fn offset_modifications(&self) -> impl Iterator<Item = ModificationId> + '_ {
+        self.offset_modifications.iter().copied()
     }
 
     pub fn group_state(&self, functional_group: &FunctionalGroup<'p>) -> Result<&GroupState> {
@@ -200,7 +201,7 @@ mod tests {
 
         let mut mods: Vec<_> = alanine.offset_modifications().collect();
         mods.sort_unstable();
-        assert_eq!(mods, vec![&ModificationId(0), &ModificationId(1)]);
+        assert_eq!(mods, vec![ModificationId(0), ModificationId(1)]);
     }
 
     #[test]

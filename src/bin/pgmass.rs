@@ -3,6 +3,7 @@ use muropeptide::{Muropeptide, Result};
 use once_cell::sync::Lazy;
 use polychem::{AtomicDatabase, Charged, ChargedParticle, Massive, PolymerDatabase, Polymerizer};
 use rustyline::DefaultEditor;
+use smithereens::Dissociable;
 use std::fmt::Write;
 
 static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
@@ -49,6 +50,9 @@ fn pg_info(formula: &str) -> Result<String> {
     }
 
     writeln!(buf).unwrap();
+
+    // FIXME: Remove after debugging is finished!
+    muropeptide.dbg_fragment();
 
     Ok(buf)
 }

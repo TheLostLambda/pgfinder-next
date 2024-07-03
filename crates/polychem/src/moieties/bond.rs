@@ -21,6 +21,18 @@ impl<'a, 'p> Bond<'a, 'p> {
         })
     }
 
+    // FIXME: Missing testing!
+    #[must_use]
+    pub const fn abbr(&self) -> &'p str {
+        self.abbr
+    }
+
+    // FIXME: Missing testing!
+    #[must_use]
+    pub const fn name(&self) -> &'p str {
+        self.name
+    }
+
     pub(crate) fn lookup_description(
         db: &'p PolymerDatabase<'a>,
         abbr: impl AsRef<str>,

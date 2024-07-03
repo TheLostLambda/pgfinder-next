@@ -71,6 +71,14 @@ impl<'a, 'p> Polymer<'a, 'p> {
         self.residues.get(&id)
     }
 
+    // FIXME: This is part of an incomplete set of methods — be sure to add in methods for iterating over pairs and
+    // also values? Needs more design thought in general! Maybe I should *only* have the pair version?
+    // FIXME: Also needs testing!
+    // FIXME: Remove the '_ after Rust 2024 is released
+    pub fn residue_ids(&self) -> impl Iterator<Item = ResidueId> + '_ {
+        self.residues.keys().copied()
+    }
+
     // FIXME: This feels a bit inconsistent with the `named_mod` that I've been using elsewhere? Maybe instead of
     // `named_mod`s and `offset_mod`s, I should just go with `modification`s and `offset`s?
     pub fn new_modification(
@@ -181,6 +189,15 @@ impl<'a, 'p> Polymer<'a, 'p> {
             .try_collect()?;
 
         Ok(bond_ids)
+    }
+
+    // TODO: Need to add `bond()` accessor / lookup function like I have for `residue()` and `modification()`
+
+    // FIXME: This is part of an incomplete set of methods — be sure to add in methods for iterating over IDs and
+    // also pairs? Needs more design thought in general!
+    // FIXME: Also needs testing!
+    pub fn bond_refs(&self) -> impl Iterator<Item = &BondInfo<'a, 'p>> {
+        self.bonds.values()
     }
 
     pub fn localize_modification(
@@ -1556,7 +1573,6 @@ mod tests {
             .residue(alanine)
             .unwrap()
             .offset_modifications()
-            .copied()
             .collect();
         alanine_offsets.sort_unstable();
         assert_eq!(
@@ -1568,7 +1584,6 @@ mod tests {
             .residue(murnac)
             .unwrap()
             .offset_modifications()
-            .copied()
             .collect();
         murnac_offsets.sort_unstable();
         assert_eq!(murnac_offsets, vec![ModificationId(4)]);

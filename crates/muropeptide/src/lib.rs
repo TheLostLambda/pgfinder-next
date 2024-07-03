@@ -10,6 +10,7 @@ use polychem::{
     errors::PolychemError, AverageMass, Charged, Massive, MonoisotopicMass, Polymer, Polymerizer,
     ResidueId,
 };
+use smithereens::Dissociable;
 use thiserror::Error;
 
 const AUTO_MODS: [&str; 1] = ["Red"];
@@ -110,6 +111,16 @@ impl Massive for Muropeptide<'_, '_> {
 impl Charged for Muropeptide<'_, '_> {
     fn charge(&self) -> polychem::Charge {
         self.polymer.charge()
+    }
+}
+
+impl Dissociable for Muropeptide<'_, '_> {
+    fn polymer(&self) -> &Polymer {
+        &self.polymer
+    }
+
+    fn new_fragment(&self, _fragmented_polymer: Polymer) -> Self {
+        todo!()
     }
 }
 
