@@ -113,8 +113,8 @@ impl<'p> Fragment<'p> {
         }
     }
 }
+
 // SEE NOTES FROM APRIL 8TH!
-// use scc::HashCache, or HashIndex, or TreeIndex
-// or use DashMap?
+// use DashMap or quick-cache for a global fragment cache
 
 // FIXME: Tests need adding!
