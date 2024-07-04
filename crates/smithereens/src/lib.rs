@@ -21,64 +21,87 @@ impl Display for Terminal<'_> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 struct Residue<'p> {
-    id: ResidueId,
     terminals: Vec<Terminal<'p>>,
-}
-
-impl<'p> Residue<'p> {
-    const fn new(id: ResidueId) -> Self {
-        let terminals = Vec::new();
-        Self { id, terminals }
-    }
+    bonds: Vec<Bond<'p>>,
 }
 
 #[derive(Copy, Clone, Debug)]
 struct Bond<'p> {
-    donor: ResidueId,
-    abbr: BondAbbr<'p>,
-    acceptor: ResidueId,
+    // FIXME: The naming `end` doesn't fit well with the `Terminal` here...
+    end: Terminal<'p>,
+    target: usize,
 }
 
 impl<'p> Bond<'p> {
-    // FIXME: Should this be a From impl instead / as well?
-    const fn new(bond_info: &BondInfo<'_, 'p>) -> Self {
-        let &BondInfo(ResidueGroup(donor, _), ref bond, ResidueGroup(acceptor, _)) = bond_info;
-        let abbr = bond.abbr();
+    const fn donating_to(abbr: BondAbbr<'p>, acceptor: usize) -> Self {
+        let end = Terminal::Donor(abbr);
         Self {
-            donor,
-            abbr,
-            acceptor,
+            end,
+            target: acceptor,
         }
+    }
+
+    const fn accepting_from(abbr: BondAbbr<'p>, donor: usize) -> Self {
+        let end = Terminal::Acceptor(abbr);
+        Self { end, target: donor }
+    }
+}
+
+// PERF: Not sold on this "tombstone" approach with `Option` — might be better to re-index the sub-graphs so their
+// vectors can be shrunk?
+#[derive(Clone, Debug)]
+struct Fragment<'p>(Vec<Option<Residue<'p>>>);
+
+// FIXME: This was written way too quickly... Take a look back at this...
+// FIXME: Also maybe should die, as it's only useful for debugging?
+impl Display for Fragment<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        writeln!(f, "digraph {{")?;
+        for (id, residue) in self.0.iter().enumerate() {
+            let Some(Residue { terminals, bonds }) = residue else {
+                continue;
+            };
+
+            let terminals = terminals.iter().map(ToString::to_string).join(", ");
+            writeln!(f, r#"  {id} [label="{id}\n[{terminals}]"]"#)?;
+
+            // NOTE: The `.filter()` here prevents the double-printing of edges
+            for Bond { end, target } in bonds.iter().filter(|b| id < b.target) {
+                match end {
+                    Terminal::Donor(abbr) => {
+                        writeln!(f, r#"  {id} -> {target} [label="{abbr}"]"#)?;
+                    }
+                    Terminal::Acceptor(abbr) => {
+                        writeln!(f, r#"  {target} -> {id} [label="{abbr}"]"#)?;
+                    }
+                }
+            }
+        }
+        writeln!(f, "}}")?;
+        Ok(())
     }
 }
 
 #[derive(Clone, Debug)]
-struct Fragment<'p> {
-    depth: u32,
-    residues: Vec<Residue<'p>>,
-    bonds: Vec<Bond<'p>>,
-}
+struct NodeMapping(Vec<ResidueId>);
 
-// FIXME: This was written way too quickly... Take a look back at this...
-impl Display for Fragment<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        writeln!(f, "digraph {{")?;
-        for Residue { id, terminals } in &self.residues {
-            let terminals = terminals.iter().map(ToString::to_string).join(", ");
-            writeln!(f, r#"  {id} [label="{id}\n[{terminals}]"]"#)?;
-        }
-        for Bond {
-            donor,
-            abbr,
-            acceptor,
-        } in &self.bonds
-        {
-            writeln!(f, r#"  {donor} -> {acceptor} [label="{abbr}"]"#)?;
-        }
-        writeln!(f, "}}")?;
-        Ok(())
+impl NodeMapping {
+    fn new(polymer: &Polymer) -> Self {
+        // FIXME: Needs a second look?
+        // PERF: Is there some way to collect and sort at the same time? Would that even be faster?
+        let mut node_mapping: Vec<_> = polymer.residue_ids().collect();
+        node_mapping.sort_unstable();
+        Self(node_mapping)
+    }
+
+    // NOTE: Keeping `id` as a ref, since it needs to be one for `binary_search()` and because it comes from
+    // `bond_refs()` to begin with!
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    fn index(&self, id: &ResidueId) -> usize {
+        // SAFETY: Panics if the `id` isn't found
+        self.0.binary_search(id).unwrap()
     }
 }
 
@@ -97,22 +120,44 @@ pub trait Dissociable: Sized {
     }
     // FIXME: Only for testing! Remove!
     fn dbg_fragment(&self) {
-        eprintln!("{}", Fragment::new(self.polymer()));
+        let polymer = self.polymer();
+        let node_mapping = NodeMapping::new(polymer);
+        let fragment = Fragment::new(&node_mapping, polymer);
+        eprintln!("{fragment}");
     }
 }
 
 impl<'p> Fragment<'p> {
-    fn new<'r>(polymer: &'r Polymer<'_, 'p>) -> Self {
-        let depth = 0;
-        let residues: Vec<Residue<'p>> = polymer.residue_ids().map(Residue::new).collect();
-        let bonds: Vec<Bond<'p>> = polymer.bond_refs().map(Bond::new).collect();
-        Self {
-            depth,
-            residues,
-            bonds,
+    // FIXME: This currently assumes that the `polymer` provided consists of a single connected component. If this is
+    // not the case, I should report an error to the user!
+    fn new(node_mapping: &NodeMapping, polymer: &Polymer<'_, 'p>) -> Self {
+        let mut residues = vec![Some(Residue::default()); node_mapping.0.len()];
+
+        for BondInfo(ResidueGroup(donor, _), bond, ResidueGroup(acceptor, _)) in polymer.bond_refs()
+        {
+            let abbr = bond.abbr();
+            let donor = node_mapping.index(donor);
+            let acceptor = node_mapping.index(acceptor);
+
+            let mut push_bond =
+                // FIXME: Shocking failure of type inference here with that `usize`...
+                |residue: usize, bond| residues[residue].as_mut().unwrap().bonds.push(bond);
+
+            push_bond(donor, Bond::donating_to(abbr, acceptor));
+            push_bond(acceptor, Bond::accepting_from(abbr, donor));
         }
+
+        Self(residues)
     }
 }
+
+// impl<'p> Index<usize> for Fragment<'p> {
+//     type Output = Residue<'p>;
+
+//     fn index(&self, index: usize) -> &Self::Output {
+//         self.0[index].as_ref().unwrap()
+//     }
+// }
 
 // SEE NOTES FROM APRIL 8TH!
 // use DashMap or quick-cache for a global fragment cache
