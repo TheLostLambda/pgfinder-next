@@ -1,4 +1,5 @@
 //! An abstraction for building chemically validated polymers
+#![type_length_limit = "18554191"]
 
 pub mod atoms;
 pub mod errors;

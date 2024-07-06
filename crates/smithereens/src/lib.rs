@@ -1,12 +1,16 @@
-use std::fmt::{self, Display, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    ops::{Index, IndexMut},
+};
 
+use ahash::{HashSet, HashSetExt};
 use itertools::Itertools;
 use polychem::{BondInfo, Polymer, ResidueGroup, ResidueId};
 
 // FIXME: Consider using newtype? Especially if this is made public!
 type BondAbbr<'p> = &'p str;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 enum Terminal<'p> {
     Donor(BondAbbr<'p>),
     Acceptor(BondAbbr<'p>),
@@ -21,21 +25,21 @@ impl Display for Terminal<'_> {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug, Default)]
 struct Residue<'p> {
     terminals: Vec<Terminal<'p>>,
     bonds: Vec<Bond<'p>>,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct Bond<'p> {
     // FIXME: The naming `end` doesn't fit well with the `Terminal` here...
     end: Terminal<'p>,
-    target: usize,
+    target: NodeId,
 }
 
 impl<'p> Bond<'p> {
-    const fn donating_to(abbr: BondAbbr<'p>, acceptor: usize) -> Self {
+    const fn donating_to(abbr: BondAbbr<'p>, acceptor: NodeId) -> Self {
         let end = Terminal::Donor(abbr);
         Self {
             end,
@@ -43,7 +47,7 @@ impl<'p> Bond<'p> {
         }
     }
 
-    const fn accepting_from(abbr: BondAbbr<'p>, donor: usize) -> Self {
+    const fn accepting_from(abbr: BondAbbr<'p>, donor: NodeId) -> Self {
         let end = Terminal::Acceptor(abbr);
         Self { end, target: donor }
     }
@@ -51,7 +55,7 @@ impl<'p> Bond<'p> {
 
 // PERF: Not sold on this "tombstone" approach with `Option` — might be better to re-index the sub-graphs so their
 // vectors can be shrunk?
-#[derive(Clone, Debug)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 struct Fragment<'p>(Vec<Option<Residue<'p>>>);
 
 // FIXME: This was written way too quickly... Take a look back at this...
@@ -84,6 +88,8 @@ impl Display for Fragment<'_> {
     }
 }
 
+type NodeId = usize;
+
 #[derive(Clone, Debug)]
 struct NodeMapping(Vec<ResidueId>);
 
@@ -99,7 +105,7 @@ impl NodeMapping {
     // NOTE: Keeping `id` as a ref, since it needs to be one for `binary_search()` and because it comes from
     // `bond_refs()` to begin with!
     #[allow(clippy::trivially_copy_pass_by_ref)]
-    fn index(&self, id: &ResidueId) -> usize {
+    fn index(&self, id: &ResidueId) -> NodeId {
         // SAFETY: Panics if the `id` isn't found
         self.0.binary_search(id).unwrap()
     }
@@ -124,6 +130,9 @@ pub trait Dissociable: Sized {
         let node_mapping = NodeMapping::new(polymer);
         let fragment = Fragment::new(&node_mapping, polymer);
         eprintln!("{fragment}");
+        for piece in fragment.fragment(Some(1)) {
+            eprintln!("{piece}");
+        }
     }
 }
 
@@ -140,8 +149,8 @@ impl<'p> Fragment<'p> {
             let acceptor = node_mapping.index(acceptor);
 
             let mut push_bond =
-                // FIXME: Shocking failure of type inference here with that `usize`...
-                |residue: usize, bond| residues[residue].as_mut().unwrap().bonds.push(bond);
+                // FIXME: Shocking failure of type inference here with that `NodeId`...
+                |node: NodeId, bond| residues[node].as_mut().unwrap().bonds.push(bond);
 
             push_bond(donor, Bond::donating_to(abbr, acceptor));
             push_bond(acceptor, Bond::accepting_from(abbr, donor));
@@ -149,15 +158,72 @@ impl<'p> Fragment<'p> {
 
         Self(residues)
     }
+
+    fn fragment(&self, max_depth: Option<usize>) -> HashSet<Self> {
+        let mut processing_queue = vec![self.clone()];
+        // PERF: Any clever `with_capacity` pre-allocation I could do?
+        let mut fragments = HashSet::new();
+
+        let mut depth = 0;
+        while let Some(next) = processing_queue.pop() {
+            // FIXME: Can I avoid that clone?
+            if fragments.insert(next.clone()) {
+                continue;
+            }
+
+            if depth < max_depth.unwrap_or(usize::MAX) {
+                depth += 1;
+                fragments.extend(next.cut_each_bond().map(|(_, piece)| piece));
+            }
+        }
+
+        fragments
+    }
+
+    // FIXME: Clarify type with some aliases?
+    // FIXME: Remove the `+ '_` once Rust 2024 is released!
+    fn cut_each_bond(&self) -> impl Iterator<Item = (NodeId, Self)> + '_ {
+        self.0
+            .iter()
+            .enumerate()
+            .filter_map(|(node, opt_residue)| opt_residue.as_ref().map(|residue| (node, residue)))
+            .flat_map(|(node, residue)| residue.bonds.iter().map(move |bond| (node, bond.target)))
+            // NOTE: Ensures that the same bonds aren't cut twice
+            .filter(|(a, b)| a < b)
+            .map(|(a, b)| {
+                let mut fragment = self.clone();
+                let mut remove_edge = |from, to| {
+                    swap_remove_first(&mut fragment[from].bonds, |bond| bond.target == to).unwrap()
+                };
+
+                let terminal_a = remove_edge(a, b).end;
+                let terminal_b = remove_edge(b, a).end;
+                fragment[a].terminals.push(terminal_a);
+                fragment[b].terminals.push(terminal_b);
+
+                (a, fragment)
+            })
+    }
 }
 
-// impl<'p> Index<usize> for Fragment<'p> {
-//     type Output = Residue<'p>;
+impl<'p> Index<NodeId> for Fragment<'p> {
+    type Output = Residue<'p>;
 
-//     fn index(&self, index: usize) -> &Self::Output {
-//         self.0[index].as_ref().unwrap()
-//     }
-// }
+    fn index(&self, index: NodeId) -> &Self::Output {
+        self.0[index].as_ref().unwrap()
+    }
+}
+
+impl<'p> IndexMut<NodeId> for Fragment<'p> {
+    fn index_mut(&mut self, index: NodeId) -> &mut Self::Output {
+        self.0[index].as_mut().unwrap()
+    }
+}
+
+// FIXME: Should this just unwrap things here? Assuming there will always be one match?
+fn swap_remove_first<T>(vec: &mut Vec<T>, f: impl FnMut(&T) -> bool) -> Option<T> {
+    vec.iter().position(f).map(|i| vec.swap_remove(i))
+}
 
 // SEE NOTES FROM APRIL 8TH!
 // use DashMap or quick-cache for a global fragment cache

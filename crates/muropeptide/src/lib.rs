@@ -1,4 +1,5 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
+#![type_length_limit = "254089318894795"]
 
 mod parser;
 
