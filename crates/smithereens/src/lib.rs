@@ -1,5 +1,8 @@
 use std::{
+    cmp::Ordering,
+    convert::identity,
     fmt::{self, Display, Formatter},
+    mem,
     ops::{Index, IndexMut},
 };
 
@@ -10,7 +13,7 @@ use polychem::{BondInfo, Polymer, ResidueGroup, ResidueId};
 // FIXME: Consider using newtype? Especially if this is made public!
 type BondAbbr<'p> = &'p str;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 enum Terminal<'p> {
     Donor(BondAbbr<'p>),
     Acceptor(BondAbbr<'p>),
@@ -27,7 +30,9 @@ impl Display for Terminal<'_> {
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug, Default)]
 struct Residue<'p> {
-    terminals: Vec<Terminal<'p>>,
+    // FIXME: Since these terminal lists are typically super small, I'm using a `Vec` of sorted tuples instead of a
+    // proper map type, but this needs real benchmarking to see if that makes sense!
+    terminals: Vec<(Terminal<'p>, u32)>,
     bonds: Vec<Bond<'p>>,
 }
 
@@ -68,7 +73,10 @@ impl Display for Fragment<'_> {
                 continue;
             };
 
-            let terminals = terminals.iter().map(ToString::to_string).join(", ");
+            let terminals = terminals
+                .iter()
+                .map(|(terminal, count)| format!("{count}x{terminal}"))
+                .join(", ");
             writeln!(f, r#"  {id} [label="{id}\n[{terminals}]"]"#)?;
 
             // NOTE: The `.filter()` here prevents the double-printing of edges
@@ -130,9 +138,11 @@ pub trait Dissociable: Sized {
         let node_mapping = NodeMapping::new(polymer);
         let fragment = Fragment::new(&node_mapping, polymer);
         eprintln!("{fragment}");
-        for piece in fragment.fragment(Some(1)) {
-            eprintln!("{piece}");
-        }
+        eprintln!("\nPieces: {}", fragment.fragment(None).len());
+        // eprintln!("\nPieces:");
+        // for piece in fragment.fragment(None) {
+        //     eprintln!("{piece}");
+        // }
     }
 }
 
@@ -160,21 +170,24 @@ impl<'p> Fragment<'p> {
     }
 
     fn fragment(&self, max_depth: Option<usize>) -> HashSet<Self> {
-        let mut processing_queue = vec![self.clone()];
+        let mut processing = vec![self.clone()];
+        let mut processing_queue = Vec::new();
         // PERF: Any clever `with_capacity` pre-allocation I could do?
         let mut fragments = HashSet::new();
 
-        let mut depth = 0;
-        while let Some(next) = processing_queue.pop() {
-            // FIXME: Can I avoid that clone?
-            if fragments.insert(next.clone()) {
-                continue;
+        let max_depth = max_depth.unwrap_or(usize::MAX);
+        for depth in 0..=max_depth {
+            while let Some(next) = processing.pop() {
+                // FIXME: Can I avoid this clone?
+                if fragments.insert(next.clone()) && depth < max_depth {
+                    processing_queue.extend(next.cut_each_bond().flat_map(divide_fragment));
+                }
             }
-
-            if depth < max_depth.unwrap_or(usize::MAX) {
-                depth += 1;
-                fragments.extend(next.cut_each_bond().map(|(_, piece)| piece));
+            if processing_queue.is_empty() {
+                break;
             }
+            // FIXME: These names could be improved a lot — also, is this a double buffering?
+            mem::swap(&mut processing, &mut processing_queue);
         }
 
         fragments
@@ -182,12 +195,14 @@ impl<'p> Fragment<'p> {
 
     // FIXME: Clarify type with some aliases?
     // FIXME: Remove the `+ '_` once Rust 2024 is released!
+    // FIXME: Should this really be a method?
     fn cut_each_bond(&self) -> impl Iterator<Item = (NodeId, Self)> + '_ {
         self.0
             .iter()
             .enumerate()
             .filter_map(|(node, opt_residue)| opt_residue.as_ref().map(|residue| (node, residue)))
             .flat_map(|(node, residue)| residue.bonds.iter().map(move |bond| (node, bond.target)))
+            // FIXME: Perhaps here is where I can eventually filter out any unfragmentable bond types!
             // NOTE: Ensures that the same bonds aren't cut twice
             .filter(|(a, b)| a < b)
             .map(|(a, b)| {
@@ -198,11 +213,64 @@ impl<'p> Fragment<'p> {
 
                 let terminal_a = remove_edge(a, b).end;
                 let terminal_b = remove_edge(b, a).end;
-                fragment[a].terminals.push(terminal_a);
-                fragment[b].terminals.push(terminal_b);
+                // FIXME: This has some pretty bad complexity because the vector may need to be shifted, but I need to
+                // make sure that, regardless of the order bonds are broken, two terminals lists are considered the
+                // same if they contain the same items!
+                sorted_insert(&mut fragment[a].terminals, terminal_a);
+                sorted_insert(&mut fragment[b].terminals, terminal_b);
 
                 (a, fragment)
             })
+    }
+}
+
+// FIXME: This is performing a linear search (instead of a binary one) since these vectors should be super small most
+// of the time. That said, I've *not* benchmarked things properly!!!
+fn sorted_insert<'p>(terminals: &mut Vec<(Terminal<'p>, u32)>, terminal: Terminal<'p>) {
+    // FIXME: Probably a more clever way to do this...
+    let len = terminals.len();
+    for i in (0..len).rev() {
+        match terminals[i].0.cmp(&terminal) {
+            Ordering::Equal => terminals[i].1 += 1,
+            Ordering::Less => terminals.insert(i + 1, (terminal, 1)),
+            Ordering::Greater => continue,
+        }
+        return;
+    }
+    terminals.insert(0, (terminal, 1));
+}
+
+// FIXME: Should this really be a bare function?
+// FIXME: Do I need the lifetimes in `Fragment`?
+fn divide_fragment((cut_node, mut fragment): (NodeId, Fragment)) -> Vec<Fragment> {
+    // FIXME: Is this at all a good idea? It's more space for faster lookups?
+    let mut visited = vec![false; fragment.0.len()];
+    let mut stack = vec![cut_node];
+
+    while let Some(next) = stack.pop() {
+        visited[next] = true;
+        stack.extend(
+            fragment[next]
+                .bonds
+                .iter()
+                .map(|bond| bond.target)
+                .filter(|&node| !visited[node]),
+        );
+    }
+
+    // FIXME: Does this special case actually save me any time or effort?
+    if visited.iter().copied().all(identity) {
+        vec![fragment]
+    } else {
+        let mut rest = fragment.clone();
+        for (node, visited) in visited.into_iter().enumerate() {
+            if visited {
+                rest.0[node] = None;
+            } else {
+                fragment.0[node] = None;
+            }
+        }
+        vec![fragment, rest]
     }
 }
 
