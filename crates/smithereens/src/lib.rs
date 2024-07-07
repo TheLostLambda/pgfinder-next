@@ -7,13 +7,14 @@ use std::{
 };
 
 use ahash::{HashSet, HashSetExt};
+use derive_more::IsVariant;
 use itertools::Itertools;
-use polychem::{BondInfo, Polymer, ResidueGroup, ResidueId};
+use polychem::{BondInfo, ChargedParticle, OffsetKind, Polymer, ResidueGroup, ResidueId};
 
 // FIXME: Consider using newtype? Especially if this is made public!
 type BondAbbr<'p> = &'p str;
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, IsVariant, Debug)]
 enum Terminal<'p> {
     Donor(BondAbbr<'p>),
     Acceptor(BondAbbr<'p>),
@@ -138,11 +139,13 @@ pub trait Dissociable: Sized {
         let node_mapping = NodeMapping::new(polymer);
         let fragment = Fragment::new(&node_mapping, polymer);
         eprintln!("{fragment}");
-        eprintln!("\nPieces: {}", fragment.fragment(None).len());
-        // eprintln!("\nPieces:");
-        // for piece in fragment.fragment(None) {
-        //     eprintln!("{piece}");
-        // }
+        // eprintln!("\nPieces: {}", fragment.fragment(None).len());
+        eprintln!("\nPieces:");
+        for piece in fragment.fragment(None) {
+            eprint!("{piece}");
+            let ion = piece.build_fragment_ion(&node_mapping, polymer);
+            eprintln!("Ion m/z (1+): {}\n", ion.monoisotopic_mz().unwrap());
+        }
     }
 }
 
@@ -167,6 +170,43 @@ impl<'p> Fragment<'p> {
         }
 
         Self(residues)
+    }
+
+    // FIXME: Naming?
+    fn build_fragment_ion<'a>(
+        self,
+        node_mapping: &NodeMapping,
+        polymer: &Polymer<'a, 'p>,
+    ) -> Polymer<'a, 'p> {
+        let mut fragmented_polymer = polymer.clone();
+
+        for (id, opt_residue) in self.0.into_iter().enumerate() {
+            let residue_id = node_mapping.0[id];
+            if let Some(residue) = opt_residue {
+                // FIXME: This is hacky, hard-coded logic for PG — this will need to be generalized for other molecules!
+                let donor_count: u32 = residue
+                    .terminals
+                    .into_iter()
+                    .filter_map(|(t, c)| t.is_donor().then_some(c))
+                    .sum();
+                if donor_count != 0 {
+                    // SAFETY: This should only panic if `residue_id` doesn't exist (which it should), or if `H2O` isn't a
+                    // valid chemical formula (but it is)
+                    fragmented_polymer
+                        .offset_residue(OffsetKind::Remove, donor_count, "H2O", residue_id)
+                        .unwrap();
+                }
+            } else {
+                fragmented_polymer.remove_residue(residue_id);
+            }
+        }
+
+        // FIXME: Hard-coded to generate the 1+ ions!
+        // SAFETY: `p` is a valid formula, so this shouldn't panic
+        fragmented_polymer
+            .new_offset(OffsetKind::Add, 1, "p")
+            .unwrap();
+        fragmented_polymer
     }
 
     fn fragment(&self, max_depth: Option<usize>) -> HashSet<Self> {
