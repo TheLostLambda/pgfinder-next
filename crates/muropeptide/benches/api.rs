@@ -1,3 +1,5 @@
+#![type_length_limit = "30491060267835378"]
+
 use divan::AllocProfiler;
 use once_cell::sync::Lazy;
 use polychem::{atoms::atomic_database, AtomicDatabase, PolymerDatabase, Polymerizer};
