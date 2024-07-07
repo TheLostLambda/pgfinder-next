@@ -11,7 +11,7 @@ use std::{
 use ahash::{HashSet, HashSetExt};
 use derive_more::IsVariant;
 use itertools::Itertools;
-use polychem::{BondInfo, ChargedParticle, OffsetKind, Polymer, ResidueGroup, ResidueId};
+use polychem::{BondId, BondInfo, ChargedParticle, OffsetKind, Polymer, ResidueGroup, ResidueId};
 
 // FIXME: Consider using newtype? Especially if this is made public!
 type BondAbbr<'p> = &'p str;
@@ -130,8 +130,14 @@ impl NodeMapping {
 pub trait Dissociable: Sized {
     #[must_use]
     fn polymer(&self) -> &Polymer;
+    // FIXME: Naming?
     #[must_use]
-    fn new_fragment(&self, fragmented_polymer: Polymer) -> Self;
+    fn new_fragment(
+        &self,
+        fragmented_polymer: Polymer,
+        lost_residues: Vec<ResidueId>,
+        broken_bonds: Vec<BondId>,
+    ) -> Self;
     #[must_use]
     fn fragment(&self) -> Vec<Self> {
         todo!()
@@ -212,6 +218,8 @@ impl<'p> Fragment<'p> {
         fragmented_polymer
     }
 
+    // PERF: This could be memoized, but I don't know how much that would gain me if I'm not adding sub-fragmentations
+    // to the cache... It would only help if the user has duplicate structures they are asking to fragment!
     fn fragment(&self, max_depth: Option<usize>) -> HashSet<Self> {
         let mut processing = vec![self.clone()];
         let mut processing_queue = Vec::new();

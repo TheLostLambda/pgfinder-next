@@ -8,8 +8,8 @@ use nom_miette::{final_parser, LabeledError};
 use parser::{muropeptide, MuropeptideErrorKind};
 // FIXME: Blocks need separating and reordering!
 use polychem::{
-    errors::PolychemError, AverageMass, Charged, Massive, MonoisotopicMass, Polymer, Polymerizer,
-    ResidueId,
+    errors::PolychemError, AverageMass, BondId, Charged, Massive, MonoisotopicMass, Polymer,
+    Polymerizer, ResidueId,
 };
 use smithereens::Dissociable;
 use thiserror::Error;
@@ -120,7 +120,12 @@ impl Dissociable for Muropeptide<'_, '_> {
         &self.polymer
     }
 
-    fn new_fragment(&self, _fragmented_polymer: Polymer) -> Self {
+    fn new_fragment(
+        &self,
+        _fragmented_polymer: Polymer,
+        _lost_residues: Vec<ResidueId>,
+        _broken_bonds: Vec<BondId>,
+    ) -> Self {
         todo!()
     }
 }
