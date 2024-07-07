@@ -1,3 +1,5 @@
+#![type_length_limit = "18554191"]
+
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
 use once_cell::sync::Lazy;
 use polychem::{AtomicDatabase, Charged, ChargedParticle, ChemicalComposition, Massive, Result};

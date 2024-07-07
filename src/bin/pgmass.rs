@@ -1,3 +1,5 @@
+#![type_length_limit = "30491060267835378"]
+
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
 use muropeptide::{Muropeptide, Result};
 use once_cell::sync::Lazy;
