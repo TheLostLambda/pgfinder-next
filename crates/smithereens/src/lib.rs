@@ -1,3 +1,5 @@
+#![type_length_limit = "18554191"]
+
 use std::{
     cmp::Ordering,
     convert::identity,
@@ -115,6 +117,7 @@ impl NodeMapping {
     // `bond_refs()` to begin with!
     #[allow(clippy::trivially_copy_pass_by_ref)]
     fn index(&self, id: &ResidueId) -> NodeId {
+        // PERF: Linear search might be faster here for small lists!
         // SAFETY: Panics if the `id` isn't found
         self.0.binary_search(id).unwrap()
     }
