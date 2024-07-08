@@ -1,7 +1,7 @@
 #![type_length_limit = "18554191"]
 
 use std::{
-    cmp::Ordering,
+    cmp::{self, Ordering},
     convert::identity,
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
@@ -12,7 +12,7 @@ use std::{
 use ahash::{HashSet, HashSetExt};
 use derive_more::IsVariant;
 use itertools::Itertools;
-use polychem::{BondId, BondInfo, ChargedParticle, OffsetKind, Polymer, ResidueGroup, ResidueId};
+use polychem::{BondId, BondInfo, OffsetKind, Polymer, ResidueGroup, ResidueId};
 
 // FIXME: Consider using newtype? Especially if this is made public!
 type BondAbbr<'p> = &'p str;
@@ -175,14 +175,7 @@ pub trait Dissociable: Sized {
         let polymer = self.polymer();
         let node_mapping = NodeMapping::new(polymer);
         let fragment = Fragment::new(&node_mapping, polymer);
-        eprintln!("{fragment}");
-        // eprintln!("\nPieces: {}", fragment.fragment(None).len());
-        eprintln!("\nPieces:");
-        for piece in fragment.fragment(None) {
-            eprint!("Depth: {}\n{piece}", piece.broken_bonds.len());
-            let ion = piece.build_fragment_ion(&node_mapping, polymer);
-            eprintln!("Ion m/z (1+): {}\n", ion.monoisotopic_mz().unwrap());
-        }
+        eprintln!("\nPieces: {}", fragment.fragment(None).len());
     }
 }
 
@@ -256,6 +249,18 @@ impl<'p> Fragment<'p> {
         fragmented_polymer
     }
 
+    // FIXME: I'm pretty sure this assumption holds, but does a fragmentation depth equalling the degree / valency of
+    // the graph mean 100% of fragments will be generated at that depth? If so, this saves a lot of time wasted on
+    // "deeper" fragmentations that have no chance of generating a unique fragment!
+    fn degree(&self) -> usize {
+        self.residues
+            .iter()
+            .flatten()
+            .map(|residue| residue.bonds.len())
+            .max()
+            .unwrap_or_default()
+    }
+
     // PERF: This could be memoized, but I don't know how much that would gain me if I'm not adding sub-fragmentations
     // to the cache... It would only help if the user has duplicate structures they are asking to fragment!
     fn fragment(&self, max_depth: Option<usize>) -> HashSet<Self> {
@@ -265,10 +270,12 @@ impl<'p> Fragment<'p> {
         let mut fragments = HashSet::new();
 
         let max_depth = max_depth.unwrap_or(usize::MAX);
-        for depth in 0..=max_depth {
+        let useful_depth = cmp::min(self.degree(), max_depth);
+
+        for depth in 0..=useful_depth {
             while let Some(next) = processing.pop() {
                 // FIXME: Can I avoid this clone?
-                if fragments.insert(next.clone()) && depth < max_depth {
+                if fragments.insert(next.clone()) && depth < useful_depth {
                     processing_queue.extend(next.cut_each_bond().flat_map(divide_fragment));
                 }
             }
