@@ -3,13 +3,16 @@
 
 mod parser;
 
+use std::fmt::{self, Display, Formatter};
+
+use itertools::Itertools;
 use miette::Diagnostic;
 use nom_miette::{final_parser, LabeledError};
 use parser::{muropeptide, MuropeptideErrorKind};
 // FIXME: Blocks need separating and reordering!
 use polychem::{
-    errors::PolychemError, AverageMass, BondId, Charged, Massive, MonoisotopicMass, Polymer,
-    Polymerizer, ResidueId,
+    errors::PolychemError, AverageMass, BondId, Charged, GroupState, Massive, ModificationInfo,
+    MonoisotopicMass, Polymer, Polymerizer, ResidueId,
 };
 use smithereens::Dissociable;
 use thiserror::Error;
@@ -115,18 +118,114 @@ impl Charged for Muropeptide<'_, '_> {
     }
 }
 
-impl Dissociable for Muropeptide<'_, '_> {
-    fn polymer(&self) -> &Polymer {
+impl<'s, 'a: 's, 'p: 's> Dissociable<'s, 'a, 'p> for Muropeptide<'a, 'p> {
+    fn polymer(&self) -> &Polymer<'a, 'p> {
         &self.polymer
     }
 
+    // FIXME: Fucking hideous.
     fn new_fragment(
         &self,
-        _fragmented_polymer: Polymer,
-        _lost_residues: Vec<ResidueId>,
+        fragmented_polymer: Polymer<'a, 'p>,
+        lost_residues: Vec<ResidueId>,
         _broken_bonds: Vec<BondId>,
     ) -> Self {
-        todo!()
+        // FIXME: Obviously incomplete!
+        let monomers = self
+            .monomers
+            .iter()
+            .map(|Monomer { glycan, peptide }| {
+                // FIXME: Likely inefficient, with linear search and not HashSets? Also this should be a function...
+                let glycan = glycan
+                    .iter()
+                    .copied()
+                    .filter(|id| !lost_residues.contains(id))
+                    .collect();
+                let peptide = peptide
+                    .iter()
+                    .filter(|aa| !lost_residues.contains(&aa.residue))
+                    .map(|aa| {
+                        let residue = aa.residue;
+                        let lateral_chain = aa.lateral_chain.as_ref().map(|chain| {
+                            let peptide = chain
+                                .peptide
+                                .iter()
+                                .copied()
+                                .filter(|id| !lost_residues.contains(id))
+                                .collect();
+                            LateralChain {
+                                direction: chain.direction,
+                                peptide,
+                            }
+                        });
+                        AminoAcid {
+                            residue,
+                            lateral_chain,
+                        }
+                    })
+                    .collect();
+                Monomer { glycan, peptide }
+            })
+            .collect();
+        let connections = self.connections.clone();
+        Self {
+            polymer: fragmented_polymer,
+            monomers,
+            connections,
+        }
+    }
+}
+
+// FIXME: Oh god.
+impl Display for Muropeptide<'_, '_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        for monomer in &self.monomers {
+            display_monomer(f, &self.polymer, monomer)?;
+        }
+        Ok(())
+    }
+}
+
+// FIXME: Change all of these individual functions into a trait, then implement it for all of the sub-components. The
+// trait could be called something like `DisplayMoiety` and could be a bit like the `ValidateInto` trait?
+fn display_monomer(f: &mut Formatter, polymer: &Polymer, monomer: &Monomer) -> fmt::Result {
+    let Monomer { glycan, peptide } = monomer;
+    for &monosaccharide in glycan {
+        display_residue(f, polymer, monosaccharide)?;
+    }
+    for _amino_acid in peptide {
+        todo!();
+    }
+    Ok(())
+}
+
+// FIXME: Sickening.
+fn display_residue(f: &mut Formatter, polymer: &Polymer, residue: ResidueId) -> fmt::Result {
+    // FIXME: What to do about the unwrap()? Is that fine here?
+    let residue = polymer.residue(residue).unwrap();
+    let abbr = residue.abbr();
+    let named_mods = residue.functional_groups().filter_map(|(_, gs)| {
+        if let &GroupState::Modified(id) = gs {
+            let ModificationInfo::Named(named_mod, _) = polymer.modification(id).unwrap() else {
+                unreachable!();
+            };
+            Some(named_mod.abbr().to_owned())
+        } else {
+            None
+        }
+    });
+    let offset_mods = residue.offset_modifications().map(|id| {
+        let ModificationInfo::Offset(modification, _) = polymer.modification(id).unwrap() else {
+            unreachable!();
+        };
+        modification.to_string()
+    });
+    let modifications = named_mods.chain(offset_mods).join(", ");
+
+    if modifications.is_empty() {
+        write!(f, "{abbr}")
+    } else {
+        write!(f, "{abbr}({modifications})")
     }
 }
 

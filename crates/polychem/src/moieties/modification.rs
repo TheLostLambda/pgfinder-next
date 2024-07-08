@@ -47,6 +47,9 @@ impl<K: Charged> Charged for Modification<K> {
     }
 }
 
+// FIXME: These `Display` impls happen to be useful to me now, in the midst of this sickeningly messy code, but they
+// probably shouldn't belong here... I don't think I should be providing `Display` impls for anything that I'm not also
+// providing parsers for... At some point, this should probably be removed and moved to the `muropeptide` crate...
 fn display_offset_modification(
     f: &mut Formatter<'_>,
     multiplier: Count,

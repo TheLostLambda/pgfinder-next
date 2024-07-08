@@ -154,28 +154,36 @@ impl NodeMapping {
 // to be implemented for unsized types, just without those methods, but I don't think this trait makes much sense
 // without a `.fragment()` method (which currently requires a `Self: Sized`), so I've elected to make the whole trait
 // `Sized` for now
-pub trait Dissociable: Sized {
+// FIXME: Figure out why borrowck is demanding `'a: 'p` here... That is a correct bound, it's just not something that
+// any other part of the code has required? Is it because this is a trait?
+// FIXME: Furthermore, I have genuinely no clue what's up with the 's being needed here... Try to remove it and see how
+// that goes...
+pub trait Dissociable<'s, 'a: 'p + 's, 'p: 's>: Sized {
     // TODO: Add a method for checking if Self's polymer is currently in one piece or if it's already disconnected
     #[must_use]
-    fn polymer(&self) -> &Polymer;
+    fn polymer(&self) -> &Polymer<'a, 'p>;
     // FIXME: Naming?
     #[must_use]
     fn new_fragment(
         &self,
-        fragmented_polymer: Polymer,
+        fragmented_polymer: Polymer<'a, 'p>,
         lost_residues: Vec<ResidueId>,
         broken_bonds: Vec<BondId>,
     ) -> Self;
+    // FIXME: Christ... That's messy...
     #[must_use]
-    fn fragment(&self) -> Vec<Self> {
-        todo!()
-    }
-    // FIXME: Only for testing! Remove!
-    fn dbg_fragment(&self) {
+    fn fragment(&'s self, max_depth: Option<usize>) -> impl Iterator<Item = Self> {
+        // FIXME: It's the closure capturing this `&'s Polymer` that leads to issues...
         let polymer = self.polymer();
         let node_mapping = NodeMapping::new(polymer);
-        let fragment = Fragment::new(&node_mapping, polymer);
-        eprintln!("\nPieces: {}", fragment.fragment(None).len());
+        Fragment::new(&node_mapping, polymer)
+            .fragment(max_depth)
+            .into_iter()
+            .map(move |piece| {
+                let (fragmented_polymer, lost_residues, broken_bonds) =
+                    piece.build_fragment_ion(&node_mapping, polymer);
+                self.new_fragment(fragmented_polymer, lost_residues, broken_bonds)
+            })
     }
 }
 
@@ -211,8 +219,9 @@ impl<'p> Fragment<'p> {
         self,
         node_mapping: &NodeMapping,
         polymer: &Polymer<'a, 'p>,
-    ) -> Polymer<'a, 'p> {
+    ) -> (Polymer<'a, 'p>, Vec<ResidueId>, Vec<BondId>) {
         let mut fragmented_polymer = polymer.clone();
+        let mut lost_residues = Vec::new();
 
         for (id, opt_residue) in self.residues.into_iter().enumerate() {
             let residue_id = node_mapping.0[id];
@@ -231,22 +240,26 @@ impl<'p> Fragment<'p> {
                         .unwrap();
                 }
             } else {
-                // FIXME: Need to build up a list of the lost residues and broken bonds to return!
+                // FIXME: Not a fan of this mutable state approach... Could I do this with a `.map()`?
+                lost_residues.push(residue_id);
                 fragmented_polymer.remove_residue(residue_id);
             }
         }
 
-        for id in self.broken_bonds {
-            // FIXME: Need to build up a list of the lost residues and broken bonds to return!
-            fragmented_polymer.remove_bond(id);
-        }
+        // FIXME: Should this be returning an Iterator instead of a `Vec`?
+        let broken_bonds = self
+            .broken_bonds
+            .into_iter()
+            .filter_map(|id| fragmented_polymer.remove_bond(id).map(|_| id))
+            .collect();
 
         // FIXME: Hard-coded to generate the 1+ ions!
         // SAFETY: `p` is a valid formula, so this shouldn't panic
         fragmented_polymer
             .new_offset(OffsetKind::Add, 1, "p")
             .unwrap();
-        fragmented_polymer
+
+        (fragmented_polymer, lost_residues, broken_bonds)
     }
 
     // FIXME: I'm pretty sure this assumption holds, but does a fragmentation depth equalling the degree / valency of

@@ -45,6 +45,7 @@ impl<'a, 'p> Residue<'a, 'p> {
         self.name
     }
 
+    // FIXME: Should I have a version of this method that filters for named modifications?
     pub fn functional_groups(&self) -> impl Iterator<Item = (&FunctionalGroup<'p>, &GroupState)> {
         self.functional_groups.iter()
     }
