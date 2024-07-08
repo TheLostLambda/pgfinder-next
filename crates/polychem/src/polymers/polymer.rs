@@ -191,6 +191,17 @@ impl<'a, 'p> Polymer<'a, 'p> {
         Ok(bond_ids)
     }
 
+    // FIXME: Also needs testing!
+    pub fn remove_bond(&mut self, id: BondId) -> Option<BondInfo<'a, 'p>> {
+        let bond = self.bonds.remove(&id);
+
+        if let Some(BondInfo(donor, _, acceptor)) = &bond {
+            self.update_group(donor, GroupState::Free);
+            self.update_group(acceptor, GroupState::Free);
+        }
+
+        bond
+    }
     // TODO: Need to add `bond()` accessor / lookup function like I have for `residue()` and `modification()`
 
     // FIXME: This is part of an incomplete set of methods — be sure to add in methods for iterating over IDs and
@@ -198,6 +209,13 @@ impl<'a, 'p> Polymer<'a, 'p> {
     // FIXME: Also needs testing!
     pub fn bond_refs(&self) -> impl Iterator<Item = &BondInfo<'a, 'p>> {
         self.bonds.values()
+    }
+
+    // FIXME: This is part of an incomplete set of methods — be sure to add in methods for iterating over IDs and
+    // also pairs? Needs more design thought in general!
+    // FIXME: Also needs testing!
+    pub fn bonds(&self) -> impl Iterator<Item = (BondId, &BondInfo<'a, 'p>)> {
+        self.bonds.iter().map(|(&id, info)| (id, info))
     }
 
     pub fn localize_modification(
