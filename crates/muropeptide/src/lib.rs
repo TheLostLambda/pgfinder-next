@@ -320,7 +320,11 @@ fn display_residue(f: &mut Formatter, polymer: &Polymer, residue: ResidueId) -> 
     let modifications = named_mods
         .chain(offset_mods)
         // FIXME: Awful hacks to format things in a way Steph likes...
-        .map(|m| m.replace("Red", "r").replace("-H2O", ""))
+        .map(|m| {
+            m.replace("Red", "r")
+                .replace("-H2O", "")
+                .replace("-2xH2O", "")
+        })
         .filter(|m| !m.is_empty())
         .join(", ");
 

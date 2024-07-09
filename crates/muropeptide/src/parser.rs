@@ -65,9 +65,8 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                 tuple((
                     monomer(&polymer),
                     many0(pair(connection, monomer(&polymer))),
-                    opt(connection),
                 )),
-                |(monomer, multimers, circular_connection)| {
+                |(monomer, multimers)| {
                     let mut monomers = Vec::with_capacity(1 + multimers.len());
                     // PERF: This often over-allocates by one element — is checking `circular_connection.is_some()`
                     // something that's worth the branch here? Need to benchmark that!
@@ -78,32 +77,15 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                         connections.push(connection);
                         monomers.push(monomer);
                     }
-                    connections.extend(circular_connection);
 
                     (monomers, connections)
                 },
             );
             let opt_crosslinks = opt(preceded(space1, crosslinks));
-            let opt_modifications = opt(preceded(space1, modifications(&polymer)));
-            let modifications_then_crosslinks = map(
-                pair(modifications(&polymer), opt_crosslinks),
-                |(modifications, opt_crosslinks)| (Some(modifications), opt_crosslinks),
-            );
-            let crosslinks_then_modifications = map(
-                pair(crosslinks, opt_modifications),
-                |(crosslinks, opt_modifications)| (opt_modifications, Some(crosslinks)),
-            );
 
-            let opt_crosslink_and_modifications = map(
-                opt(preceded(
-                    space1,
-                    alt((modifications_then_crosslinks, crosslinks_then_modifications)),
-                )),
-                |opt| opt.unwrap_or((None, None)),
-            );
             let mut parser = map_res(
-                pair(multimer, opt_crosslink_and_modifications),
-                |((monomers, mut connections), (_, crosslinks))| {
+                pair(multimer, opt_crosslinks),
+                |((monomers, mut connections), crosslinks)| {
                     let crosslink_connections =
                         connections.iter_mut().filter_map(|conn| match conn {
                             Connection::GlycosidicBond => None,
@@ -115,7 +97,9 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
 
                     for either_or_both in crosslink_connections.zip_longest(crosslinks) {
                         match either_or_both {
-                            EitherOrBoth::Both(connection, crosslinks) => *connection = crosslinks,
+                            EitherOrBoth::Both(connection, crosslinks) => {
+                                *connection = vec![crosslinks]
+                            }
                             _ => return Err(ConstructionError::CrosslinkCountMismatch),
                         }
                     }
@@ -395,9 +379,9 @@ fn lateral_chain<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
 ) -> impl FnMut(&'s str) -> ParseResult<LateralChain> + Captures<(&'c (), &'a (), &'p ())> {
     let peptide = many1(unbranched_amino_acid(polymer));
-    let parser = delimited(char('['), pair(peptide_direction, peptide), char(']'));
-    map(parser, |(direction, peptide)| LateralChain {
-        direction,
+    let parser = delimited(char('['), peptide, char(']'));
+    map(parser, |peptide| LateralChain {
+        direction: PeptideDirection::Unspecified,
         peptide,
     })
 }
@@ -471,11 +455,10 @@ fn connection(i: &str) -> ParseResult<Connection> {
     // the two-char ones don't apply
     // PERF: There is probably a way to remove this backtracking and do things in a single-pass, but I don't know if
     // that would have a noticeable performance impact...
-    let connection = alt((tag("~="), tag("=~"), tag("="), tag("~")));
+    let connection = alt((tag("="), tag("~")));
     let mut parser = map(connection, |c| match c {
         "~" => Connection::GlycosidicBond,
         "=" => Connection::Crosslink(Vec::new()),
-        "~=" | "=~" => Connection::Both(Vec::new()),
         _ => unreachable!(),
     });
     // FIXME: Add error handling / reporting!
@@ -491,11 +474,11 @@ fn multiplier(i: &str) -> ParseResult<Count> {
 
 /// Crosslinks = "(" , Crosslink Descriptors ,
 ///   { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
-fn crosslinks(i: &str) -> ParseResult<Vec<CrosslinkDescriptors>> {
+fn crosslinks(i: &str) -> ParseResult<CrosslinkDescriptors> {
     let separator = delimited(space0, char(','), space0);
     let mut parser = delimited(
         char('('),
-        separated_list1(separator, crosslink_descriptors),
+        separated_list1(separator, crosslink_descriptor),
         char(')'),
     );
     // FIXME: Add error handling / reporting!
@@ -843,68 +826,13 @@ mod tests {
 
     #[test]
     #[allow(clippy::cognitive_complexity)]
-    fn test_crosslinks() {
-        let da43 = CrosslinkDescriptor::DonorAcceptor(4, 3);
-        let da33 = CrosslinkDescriptor::DonorAcceptor(3, 3);
-        let ad33 = CrosslinkDescriptor::AcceptorDonor(3, 3);
-        let ad24 = CrosslinkDescriptor::AcceptorDonor(2, 4);
-
-        // Valid Crosslinks
-        assert_eq!(crosslinks("(4-3)"), Ok(("", vec![vec![da43]])));
-        assert_eq!(crosslinks("(4-3 & 3=3)"), Ok(("", vec![vec![da43, ad33]])));
-        assert_eq!(
-            crosslinks("(4-3 & 3=3 & 3-3 & 2=4)"),
-            Ok(("", vec![vec![da43, ad33, da33, ad24]]))
-        );
-        assert_eq!(
-            crosslinks("(4-3, 3-3 & 3=3)"),
-            Ok(("", vec![vec![da43], vec![da33, ad33]]))
-        );
-        assert_eq!(
-            crosslinks("(4-3, 3=3  ,3-3    ,   2=4)"),
-            Ok(("", vec![vec![da43], vec![ad33], vec![da33], vec![ad24]]))
-        );
-        // Invalid Crosslinks
-        assert!(crosslinks("").is_err());
-        assert!(crosslinks("()").is_err());
-        assert!(crosslinks("(3-)").is_err());
-        assert!(crosslinks("(2-4").is_err());
-        assert!(crosslinks("2-4 & 3=3").is_err());
-        assert!(crosslinks("4-3 & 3=3 & 7-8").is_err());
-        assert!(crosslinks("0").is_err());
-        assert!(crosslinks("4-").is_err());
-        assert!(crosslinks("3=").is_err());
-        assert!(crosslinks("4->3").is_err());
-        assert!(crosslinks("& 3=3").is_err());
-        assert!(crosslinks("6").is_err());
-        assert!(crosslinks("60").is_err());
-        assert!(crosslinks("8422").is_err());
-        assert!(crosslinks("01").is_err());
-        assert!(crosslinks("00145").is_err());
-        assert!(crosslinks("H").is_err());
-        assert!(crosslinks("p").is_err());
-        assert!(crosslinks("+H").is_err());
-        assert!(crosslinks("[H]").is_err());
-        // Multiple Crosslinks
-        assert_eq!(
-            crosslinks("(4-3, 3=3) (Am)"),
-            Ok((" (Am)", vec![vec![da43], vec![ad33]]))
-        );
-        assert_eq!(crosslinks("(3=3) (4-3)"), Ok((" (4-3)", vec![vec![ad33]])));
-    }
-
-    #[test]
-    #[allow(clippy::cognitive_complexity)]
     fn test_connection() {
         let gly = || Connection::GlycosidicBond;
         let link = || Connection::Crosslink(Vec::new());
-        let both = || Connection::Both(Vec::new());
 
         // Valid Connections
         assert_eq!(connection("="), Ok(("", link())));
         assert_eq!(connection("~"), Ok(("", gly())));
-        assert_eq!(connection("~="), Ok(("", both())));
-        assert_eq!(connection("=~"), Ok(("", both())));
         // Invalid Connections
         assert!(connection("").is_err());
         assert!(connection("gm").is_err());
@@ -932,8 +860,6 @@ mod tests {
         // Multiple Connections
         assert_eq!(connection("=="), Ok(("=", link())));
         assert_eq!(connection("~~"), Ok(("~", gly())));
-        assert_eq!(connection("~=~"), Ok(("~", both())));
-        assert_eq!(connection("=~="), Ok(("=", both())));
     }
 
     #[test]
