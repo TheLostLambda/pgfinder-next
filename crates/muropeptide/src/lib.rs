@@ -40,6 +40,7 @@ struct AminoAcid {
     lateral_chain: Option<LateralChain>,
 }
 
+// FIXME: This should store the `BondId` of each connection, so we know when it's removed!
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Connection {
     GlycosidicBond,
@@ -136,35 +137,66 @@ impl<'s, 'a: 's, 'p: 's> Dissociable<'s, 'a, 'p> for Muropeptide<'a, 'p> {
             .iter()
             .map(|Monomer { glycan, peptide }| {
                 // FIXME: Likely inefficient, with linear search and not HashSets? Also this should be a function...
-                let glycan = glycan
+                let glycan: Vec<_> = glycan
                     .iter()
                     .copied()
                     .filter(|id| !lost_residues.contains(id))
                     .collect();
-                let peptide = peptide
+                let mut lateral_peptides = Vec::new();
+                let peptide: Vec<_> = peptide
                     .iter()
-                    .filter(|aa| !lost_residues.contains(&aa.residue))
-                    .map(|aa| {
+                    .filter_map(|aa| {
                         let residue = aa.residue;
-                        let lateral_chain = aa.lateral_chain.as_ref().map(|chain| {
-                            let peptide = chain
-                                .peptide
+                        if !lost_residues.contains(&residue) {
+                            let lateral_chain = aa.lateral_chain.as_ref().and_then(|chain| {
+                                let peptide: Vec<_> = chain
+                                    .peptide
+                                    .iter()
+                                    .copied()
+                                    .filter(|id| !lost_residues.contains(id))
+                                    .collect();
+                                if peptide.is_empty() {
+                                    None
+                                } else {
+                                    Some(LateralChain {
+                                        direction: chain.direction,
+                                        peptide,
+                                    })
+                                }
+                            });
+                            Some(AminoAcid {
+                                residue,
+                                lateral_chain,
+                            })
+                        } else if let Some(LateralChain { peptide, .. }) = &aa.lateral_chain {
+                            let peptide: Vec<_> = peptide
                                 .iter()
                                 .copied()
                                 .filter(|id| !lost_residues.contains(id))
                                 .collect();
-                            LateralChain {
-                                direction: chain.direction,
-                                peptide,
+                            if !peptide.is_empty() {
+                                lateral_peptides.push(peptide);
                             }
-                        });
-                        AminoAcid {
-                            residue,
-                            lateral_chain,
+                            None
+                        } else {
+                            None
                         }
                     })
                     .collect();
-                Monomer { glycan, peptide }
+                if peptide.is_empty() && glycan.is_empty() && !lateral_peptides.is_empty() {
+                    // FIXME: Probably not true eventually...
+                    assert_eq!(lateral_peptides.len(), 1);
+                    let peptide = lateral_peptides[0]
+                        .iter()
+                        .map(|&residue| AminoAcid {
+                            residue,
+                            lateral_chain: None,
+                        })
+                        .collect();
+                    Monomer { glycan, peptide }
+                } else {
+                    Monomer { glycan, peptide }
+                }
             })
             .collect();
         let connections = self.connections.clone();
@@ -179,10 +211,51 @@ impl<'s, 'a: 's, 'p: 's> Dissociable<'s, 'a, 'p> for Muropeptide<'a, 'p> {
 // FIXME: Oh god.
 impl Display for Muropeptide<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for monomer in &self.monomers {
-            display_monomer(f, &self.polymer, monomer)?;
+        let connections = self.connections.clone();
+        let mut cross_links = Vec::new();
+
+        for (i, left_monomer) in self.monomers.iter().enumerate() {
+            if left_monomer.glycan.is_empty() && left_monomer.peptide.is_empty() {
+                continue;
+            }
+            display_monomer(f, &self.polymer, left_monomer)?;
+            if let Some(right_monomer) = self.monomers.get(i + 1) {
+                if right_monomer.glycan.is_empty() && right_monomer.peptide.is_empty() {
+                    continue;
+                }
+                if let Some(connection) = connections.get(i) {
+                    match connection {
+                        Connection::GlycosidicBond => write!(f, "~")?,
+                        Connection::Crosslink(descriptors) => {
+                            write!(f, "=")?;
+                            assert_eq!(descriptors.len(), 1);
+                            cross_links.push(descriptors[0].to_string());
+                        }
+                        Connection::Both(descriptors) => {
+                            write!(f, "~=")?;
+                            assert_eq!(descriptors.len(), 1);
+                            cross_links.push(descriptors[0].to_string());
+                        }
+                    }
+                }
+            }
         }
+
+        let cross_links = cross_links.join(", ");
+        if !cross_links.is_empty() {
+            write!(f, " ({cross_links})")?;
+        }
+
         Ok(())
+    }
+}
+
+impl Display for CrosslinkDescriptor {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::DonorAcceptor(l, r) => write!(f, "{l}-{r}"),
+            Self::AcceptorDonor(l, r) => write!(f, "{l}={r}"),
+        }
     }
 }
 
@@ -193,9 +266,33 @@ fn display_monomer(f: &mut Formatter, polymer: &Polymer, monomer: &Monomer) -> f
     for &monosaccharide in glycan {
         display_residue(f, polymer, monosaccharide)?;
     }
-    for _amino_acid in peptide {
-        todo!();
+    if !glycan.is_empty() && !peptide.is_empty() {
+        write!(f, "-")?;
     }
+    for amino_acid in peptide {
+        display_residue(f, polymer, amino_acid.residue)?;
+        if let Some(chain) = &amino_acid.lateral_chain {
+            write!(f, "[")?;
+            for &residue in &chain.peptide {
+                display_residue(f, polymer, residue)?;
+            }
+            write!(f, "]")?;
+        }
+    }
+    // TODO: Bring this back once I have more ion types, but this just noise for now (when it's all protons)
+    // let unlocalised_modifications = polymer
+    //     .modification_refs()
+    //     .filter_map(|info| {
+    //         if let ModificationInfo::Unlocalized(modification) = info {
+    //             Some(modification.to_string())
+    //         } else {
+    //             None
+    //         }
+    //     })
+    //     .join(", ");
+    // if !unlocalised_modifications.is_empty() {
+    //     write!(f, " ({unlocalised_modifications})")?;
+    // }
     Ok(())
 }
 
@@ -220,7 +317,12 @@ fn display_residue(f: &mut Formatter, polymer: &Polymer, residue: ResidueId) -> 
         };
         modification.to_string()
     });
-    let modifications = named_mods.chain(offset_mods).join(", ");
+    let modifications = named_mods
+        .chain(offset_mods)
+        // FIXME: Awful hacks to format things in a way Steph likes...
+        .map(|m| m.replace("Red", "r").replace("-H2O", ""))
+        .filter(|m| !m.is_empty())
+        .join(", ");
 
     if modifications.is_empty() {
         write!(f, "{abbr}")

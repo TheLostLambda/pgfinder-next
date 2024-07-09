@@ -122,6 +122,24 @@ impl<'a, 'p> Polymer<'a, 'p> {
         self.modifications.get(&id)
     }
 
+    // FIXME: This is part of an incomplete set of methods — be sure to add in methods for iterating over IDs and
+    // also just values? Needs more design thought in general! For example, should I have a method that just returns
+    // unlocalized modifications?
+    // FIXME: Also needs testing!
+    pub fn modifications(
+        &self,
+    ) -> impl Iterator<Item = (ModificationId, &ModificationInfo<'a, 'p>)> {
+        self.modifications.iter().map(|(&id, info)| (id, info))
+    }
+
+    // FIXME: This is part of an incomplete set of methods — be sure to add in methods for iterating over IDs and
+    // also just values? Needs more design thought in general! For example, should I have a method that just returns
+    // unlocalized modifications?
+    // FIXME: Also needs testing!
+    pub fn modification_refs(&self) -> impl Iterator<Item = &ModificationInfo<'a, 'p>> {
+        self.modifications.values()
+    }
+
     pub fn new_chain(
         &mut self,
         abbr: impl AsRef<str>,

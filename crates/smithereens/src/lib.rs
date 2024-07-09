@@ -1,7 +1,7 @@
 #![type_length_limit = "18554191"]
 
 use std::{
-    cmp::{self, Ordering},
+    cmp::Ordering,
     convert::identity,
     fmt::{self, Display, Formatter},
     hash::{Hash, Hasher},
@@ -265,14 +265,17 @@ impl<'p> Fragment<'p> {
     // FIXME: I'm pretty sure this assumption holds, but does a fragmentation depth equalling the degree / valency of
     // the graph mean 100% of fragments will be generated at that depth? If so, this saves a lot of time wasted on
     // "deeper" fragmentations that have no chance of generating a unique fragment!
-    fn degree(&self) -> usize {
-        self.residues
-            .iter()
-            .flatten()
-            .map(|residue| residue.bonds.len())
-            .max()
-            .unwrap_or_default()
-    }
+    // FIXME: Update... This does *not* hold... It will ensure that you have the set you need to create all fragments
+    // after finding their intersections, but some larger pieces (several nodes) might collectively have more
+    // connections to the rest of the graph than the graph's degree...
+    // fn degree(&self) -> usize {
+    //     self.residues
+    //         .iter()
+    //         .flatten()
+    //         .map(|residue| residue.bonds.len())
+    //         .max()
+    //         .unwrap_or_default()
+    // }
 
     // PERF: This could be memoized, but I don't know how much that would gain me if I'm not adding sub-fragmentations
     // to the cache... It would only help if the user has duplicate structures they are asking to fragment!
@@ -283,12 +286,10 @@ impl<'p> Fragment<'p> {
         let mut fragments = HashSet::new();
 
         let max_depth = max_depth.unwrap_or(usize::MAX);
-        let useful_depth = cmp::min(self.degree(), max_depth);
-
-        for depth in 0..=useful_depth {
+        for depth in 0..=max_depth {
             while let Some(next) = processing.pop() {
                 // FIXME: Can I avoid this clone?
-                if fragments.insert(next.clone()) && depth < useful_depth {
+                if fragments.insert(next.clone()) && depth < max_depth {
                     processing_queue.extend(next.cut_each_bond().flat_map(divide_fragment));
                 }
             }

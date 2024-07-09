@@ -55,11 +55,15 @@ fn pg_info(formula: &str) -> Result<String> {
 
     // FIXME: Remove after debugging is finished!
     writeln!(buf, "Fragments:").unwrap();
-    for fragment in muropeptide.fragment(None) {
-        // SAFETY: Fragments are currently always charged, so this `unwrap()` is safe!
-        let mz = fragment.monoisotopic_mz().unwrap();
-        writeln!(buf, "\n{fragment}").unwrap();
-        writeln!(buf, "Ion (1+): {mz}").unwrap();
+    let mut fragments: Vec<_> = muropeptide
+        .fragment(None)
+        .map(|fragment| (fragment.to_string(), fragment.monoisotopic_mz().unwrap()))
+        .collect();
+    fragments
+        .sort_unstable_by(|(s1, mz1), (s2, mz2)| mz1.cmp(mz2).then_with(|| s1.cmp(s2)).reverse());
+    fragments.dedup();
+    for (structure, mz) in fragments {
+        writeln!(buf, r#""{structure}",{mz:.6}"#).unwrap();
     }
 
     Ok(buf)
