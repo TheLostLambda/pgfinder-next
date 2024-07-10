@@ -8,7 +8,7 @@ members = [
   "crates/muropeptide",
   "crates/nom-miette",
   "crates/polychem",
-  "crates/smithereens",
+  "crates/smithereens", "crates/wasm-shim",
 ]
 exclude = ["worktrees/"]
 

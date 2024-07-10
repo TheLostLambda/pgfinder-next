@@ -8,14 +8,28 @@ use std::fmt::{self, Display, Formatter};
 use itertools::Itertools;
 use miette::Diagnostic;
 use nom_miette::{final_parser, LabeledError};
+use once_cell::sync::Lazy;
 use parser::{muropeptide, MuropeptideErrorKind};
 // FIXME: Blocks need separating and reordering!
 use polychem::{
-    errors::PolychemError, AverageMass, BondId, Charged, GroupState, Massive, ModificationInfo,
-    MonoisotopicMass, Polymer, Polymerizer, ResidueId,
+    errors::PolychemError, AtomicDatabase, AverageMass, BondId, Charged, GroupState, Massive,
+    ModificationInfo, MonoisotopicMass, Polymer, PolymerDatabase, Polymerizer, ResidueId,
 };
 use smithereens::Dissociable;
 use thiserror::Error;
+
+// FIXME: These need more thought / are a temporary hack!
+static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+pub static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    PolymerDatabase::new(
+        &ATOMIC_DB,
+        "polymer_database.kdl",
+        include_str!("../data/polymer_database.kdl"),
+    )
+    .unwrap()
+});
+
+pub static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
 const AUTO_MODS: [&str; 1] = ["Red"];
 
