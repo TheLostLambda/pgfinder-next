@@ -98,7 +98,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                     for either_or_both in crosslink_connections.zip_longest(crosslinks) {
                         match either_or_both {
                             EitherOrBoth::Both(connection, crosslinks) => {
-                                *connection = vec![crosslinks]
+                                *connection = vec![crosslinks];
                             }
                             _ => return Err(ConstructionError::CrosslinkCountMismatch),
                         }

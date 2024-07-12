@@ -9,6 +9,8 @@ crate-type = ["cdylib"]
 [dependencies]
 wasm-bindgen = "0.2.92"
 muropeptide = { path = "../muropeptide" }
+polychem = { path = "../polychem" }
+smithereens = { path = "../smithereens" }
 
 [lints]
 workspace = true
