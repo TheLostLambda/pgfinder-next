@@ -10,9 +10,12 @@ struct Peptidoglycan(Muropeptide<'static, 'static>);
 #[wasm_bindgen]
 impl Peptidoglycan {
     #[wasm_bindgen(constructor)]
-    pub fn new(structure: &str) -> Self {
-        let muropeptide = Muropeptide::new(&POLYMERIZER, structure).unwrap();
-        Self(muropeptide)
+    pub fn new(structure: &str) -> Result<Peptidoglycan, String> {
+        // NOTE: This ensures the panic hook is set before any other shim code can be run!
+        console_error_panic_hook::set_once();
+        Muropeptide::new(&POLYMERIZER, structure)
+            .map(Self)
+            .map_err(|e| e.to_string())
     }
 
     pub fn monoisotopic_mass(&self) -> String {
