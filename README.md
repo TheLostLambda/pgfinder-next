@@ -1,4 +1,4 @@
-# PG-Pipeline
+# PGFinder-Next
 
 ## IN ACTIVE DEVELOPMENT
 
