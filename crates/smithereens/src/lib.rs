@@ -1,5 +1,3 @@
-#![type_length_limit = "18554191"]
-
 use std::{
     cmp::Ordering,
     convert::identity,

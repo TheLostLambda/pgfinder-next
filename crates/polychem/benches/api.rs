@@ -1,5 +1,3 @@
-#![type_length_limit = "18554191"]
-
 use divan::{black_box, AllocProfiler};
 use once_cell::sync::Lazy;
 use polychem::{
