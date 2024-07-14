@@ -10,6 +10,7 @@ struct Peptidoglycan(Muropeptide<'static, 'static>);
 #[wasm_bindgen]
 impl Peptidoglycan {
     #[wasm_bindgen(constructor)]
+    #[allow(clippy::use_self)]
     pub fn new(structure: &str) -> Result<Peptidoglycan, String> {
         // NOTE: This ensures the panic hook is set before any other shim code can be run!
         console_error_panic_hook::set_once();
