@@ -4,6 +4,13 @@ use smithereens::Dissociable;
 use std::fmt::Write;
 use wasm_bindgen::prelude::*;
 
+const VERSION: &str = concat!("v", env!("CARGO_PKG_VERSION"));
+
+#[wasm_bindgen]
+pub fn version() -> String {
+    VERSION.to_owned()
+}
+
 #[wasm_bindgen]
 struct Peptidoglycan(Muropeptide<'static, 'static>);
 
@@ -17,6 +24,10 @@ impl Peptidoglycan {
         Muropeptide::new(&POLYMERIZER, structure)
             .map(Self)
             .map_err(|e| e.to_string())
+    }
+
+    pub fn oligomerization_state(&self) -> usize {
+        self.0.oligomerization_state()
     }
 
     pub fn monoisotopic_mass(&self) -> String {

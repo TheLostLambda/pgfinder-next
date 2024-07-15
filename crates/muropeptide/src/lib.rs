@@ -113,6 +113,11 @@ impl<'a, 'p> Muropeptide<'a, 'p> {
 
         Ok(muropeptide)
     }
+
+    // FIXME: I hate this... Get rid of it.
+    pub fn oligomerization_state(&self) -> usize {
+        self.monomers.len()
+    }
 }
 
 impl Massive for Muropeptide<'_, '_> {
