@@ -4,7 +4,7 @@ use smithereens::Dissociable;
 use std::fmt::Write;
 use wasm_bindgen::prelude::*;
 
-const VERSION: &str = concat!("v", env!("CARGO_PKG_VERSION"));
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[wasm_bindgen]
 pub fn version() -> String {
@@ -47,6 +47,7 @@ impl Peptidoglycan {
         fragments.dedup();
 
         let mut csv = String::new();
+        writeln!(&mut csv, "Structure,Ion M/Z").unwrap();
         for (structure, mz) in fragments {
             writeln!(&mut csv, r#""{structure}",{mz:.6}"#).unwrap();
         }
