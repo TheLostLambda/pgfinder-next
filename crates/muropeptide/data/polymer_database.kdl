@@ -60,6 +60,11 @@ modifications {
         targeting "Hydroxyl" at="Reducing End" of="N-Acetylmuramic Acid" 
         lost "H2O"
     }
+    Glyl "Glycolylation" {
+        targeting "Acetyl" at="Secondary Amide" of="N-Acetylmuramic Acid"
+        lost "CH3"
+        gained "CH2OH"
+    }
 }
 
 residues {
