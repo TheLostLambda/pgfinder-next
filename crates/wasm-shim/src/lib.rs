@@ -7,6 +7,7 @@ use wasm_bindgen::prelude::*;
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[wasm_bindgen]
+#[must_use]
 pub fn version() -> String {
     VERSION.to_owned()
 }
@@ -26,15 +27,18 @@ impl Peptidoglycan {
             .map_err(|e| e.to_string())
     }
 
+    #[must_use]
     pub fn oligomerization_state(&self) -> usize {
         self.0.oligomerization_state()
     }
 
+    #[must_use]
     pub fn monoisotopic_mass(&self) -> String {
         let mass = self.0.monoisotopic_mass();
         format!("{mass:.6}")
     }
 
+    #[must_use]
     pub fn fragment(&self) -> String {
         let mut fragments: Vec<_> = self
             .0
