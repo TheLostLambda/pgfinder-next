@@ -36,6 +36,7 @@ const STEM_BOND: &str = "Stem";
 const NTOC_BOND: &str = "NToC";
 const CTON_BOND: &str = "CToN";
 const CROSSLINK_BOND: &str = "Link";
+const LAT_CROSSLINK_BOND: &str = "Lat-Link";
 
 // FIXME: A horrible hack that's needed to specify the lifetimes captured by `impl FnMut(...) -> ...` correctly. Once
 // Rust 2024 is stabilized, however, this hack can be removed. Keep an eye on:
@@ -129,6 +130,8 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                         };
                         let crosslink = |descriptors| -> Result<(), ConstructionError> {
                             for &descriptor in descriptors {
+                                // FIXME: A nasty, very lazy hack:
+                                let mut lateral_acceptor = false;
                                 // FIXME: Are lateral chains ever donors?
                                 fn lookup_amino_acid(
                                     peptide: &[AminoAcid],
@@ -143,7 +146,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                                     lookup_amino_acid(peptide, idx).map(|aa| aa.residue)
                                 };
                                 // FIXME: Good lord... What a mess...
-                                let lookup_acceptor =
+                                let mut lookup_acceptor =
                                     |peptide, idx| -> Result<_, ConstructionError> {
                                         let AminoAcid {
                                             residue,
@@ -152,6 +155,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                                         Ok(*if let Some(LateralChain { peptide, .. }) =
                                             lateral_chain
                                         {
+                                            lateral_acceptor = true;
                                             // SAFETY: All `LateralChain`s carry non-empty vectors, so this call to
                                             // `.last()` should never fail!
                                             peptide.last().unwrap()
@@ -178,11 +182,12 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                                     ),
                                 };
 
-                                polymer.borrow_mut().bond_residues(
-                                    CROSSLINK_BOND,
-                                    donor,
-                                    acceptor,
-                                )?;
+                                let bond = if lateral_acceptor {
+                                    LAT_CROSSLINK_BOND
+                                } else {
+                                    CROSSLINK_BOND
+                                };
+                                polymer.borrow_mut().bond_residues(bond, donor, acceptor)?;
                             }
                             Ok(())
                         };

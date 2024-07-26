@@ -29,6 +29,11 @@ bonds {
         to "Amino"
         lost "H2O"
     }
+    Lat-Link "Lateral Chain Crosslink" {
+        from "Carboxyl" at="C-Terminal"
+        to "Amino" at="N-Terminal"
+        lost "H2O"
+    }
 }
 
 modifications {
