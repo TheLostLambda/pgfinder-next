@@ -38,6 +38,7 @@ fn pg_info(formula: &str) -> Result<String> {
     let avg_mass = muropeptide.average_mass();
     let charge = muropeptide.charge();
 
+    // FIXME: Note — the rounding of values is *WRONG* here! See `molmass.rs` for a workaround!
     writeln!(buf, "Monoisotopic Mass: {mono_mass:.6}").unwrap();
     writeln!(buf, "Average Mass: {avg_mass:.4}").unwrap();
     writeln!(buf, "Charge: {charge}").unwrap();
