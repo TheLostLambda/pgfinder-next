@@ -27,6 +27,7 @@ polychem = { path = "crates/polychem/" }
 muropeptide = { path = "crates/muropeptide/" }
 smithereens = { path = "crates/smithereens/" }
 rustyline = "14.0.0"
+rust_decimal = "1.36.0"
 
 # FIXME: This is just a list of nice libraries, but should eventually be deleted!
 # [dependencies]
