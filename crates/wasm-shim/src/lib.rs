@@ -1,5 +1,6 @@
 use muropeptide::{Muropeptide, POLYMERIZER};
 use polychem::{ChargedParticle, Massive};
+use rust_decimal::Decimal;
 use smithereens::Dissociable;
 use std::fmt::Write;
 use wasm_bindgen::prelude::*;
@@ -35,7 +36,7 @@ impl Peptidoglycan {
     #[must_use]
     pub fn monoisotopic_mass(&self) -> String {
         let mass = self.0.monoisotopic_mass();
-        format!("{mass:.6}")
+        decimal_round_workaround(mass, 6)
     }
 
     #[must_use]
@@ -53,8 +54,15 @@ impl Peptidoglycan {
         let mut csv = String::new();
         writeln!(&mut csv, "Structure,Ion M/Z").unwrap();
         for (structure, mz) in fragments {
-            writeln!(&mut csv, r#""{structure}",{mz:.6}"#).unwrap();
+            let mz = decimal_round_workaround(mz, 6);
+            writeln!(&mut csv, r#""{structure}",{mz}"#).unwrap();
         }
         csv
     }
+}
+
+// FIXME: Really this should be fixed in `rust_decimal`...
+fn decimal_round_workaround(value: impl Into<Decimal>, decimal_points: u32) -> String {
+    let value = value.into().round_dp(decimal_points);
+    format!("{value}")
 }

@@ -1,6 +1,6 @@
 [package]
 name = "wasm-shim"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 
 [lib]
@@ -12,6 +12,7 @@ muropeptide = { path = "../muropeptide" }
 polychem = { path = "../polychem" }
 smithereens = { path = "../smithereens" }
 console_error_panic_hook = "0.1.7"
+rust_decimal = "1.36.0"
 
 [lints]
 workspace = true
