@@ -1,0 +1,12 @@
+[package]
+name = "dimer-builder"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+muropeptide = { path = "../muropeptide" }
+polars = "0.43.1"
+polychem = { path = "../polychem" }
+
+[lints]
+workspace = true
