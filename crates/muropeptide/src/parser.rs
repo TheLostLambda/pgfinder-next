@@ -129,19 +129,18 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                             Ok(())
                         };
                         let crosslink = |descriptors| -> Result<(), ConstructionError> {
+                            fn lookup_amino_acid(
+                                peptide: &[AminoAcid],
+                                idx: u8,
+                            ) -> Result<&AminoAcid, ConstructionError> {
+                                peptide
+                                    .get(idx.saturating_sub(1) as usize)
+                                    .ok_or(ConstructionError::NoStemResidue)
+                            }
                             for &descriptor in descriptors {
                                 // FIXME: A nasty, very lazy hack:
                                 let mut lateral_acceptor = false;
                                 // FIXME: Are lateral chains ever donors?
-                                fn lookup_amino_acid(
-                                    peptide: &[AminoAcid],
-                                    idx: u8,
-                                ) -> Result<&AminoAcid, ConstructionError>
-                                {
-                                    peptide
-                                        .get(idx.saturating_sub(1) as usize)
-                                        .ok_or(ConstructionError::NoStemResidue)
-                                }
                                 let lookup_donor = |peptide, idx| {
                                     lookup_amino_acid(peptide, idx).map(|aa| aa.residue)
                                 };
