@@ -199,7 +199,7 @@ impl<'p> From<Target<&'p str>> for Target {
 
 // NOTE: Sometimes you might end up with `&Target<&str>`, but `Target<&str>` is `Copy`, so you can just dereference to
 // get the desired `Target<&str>` type. This is helpful when dealing with the items of `&[Target<&str>]` containers!
-impl<'p> From<&Self> for Target<&'p str> {
+impl From<&Self> for Target<&str> {
     fn from(value: &Self) -> Self {
         *value
     }
@@ -378,7 +378,7 @@ mod tests {
     impl<'p, V> Index<'p, V> {
         // NOTE: Probably not super useful public API, but if it does end up being useful outside of these tests, it
         // can be made public again
-        fn get_values(&'p self, target: impl Into<Target<&'p str>>) -> Vec<&V> {
+        fn get_values(&'p self, target: impl Into<Target<&'p str>>) -> Vec<&'p V> {
             self.matches(target, |_, _, _, v| v).collect()
         }
     }

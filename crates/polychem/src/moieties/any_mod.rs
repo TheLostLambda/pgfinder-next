@@ -20,7 +20,7 @@ impl<'a, 'p> From<NamedMod<'a, 'p>> for AnyMod<'a, 'p> {
     }
 }
 
-impl<'a, 'p> From<OffsetMod<'a>> for AnyMod<'a, 'p> {
+impl<'a> From<OffsetMod<'a>> for AnyMod<'a, '_> {
     fn from(value: OffsetMod<'a>) -> Self {
         Self::Offset(value)
     }

@@ -26,7 +26,7 @@ use crate::{
 ///   ;
 pub fn chemical_composition<'a, 's, K: UserErrorKind>(
     db: &'a AtomicDatabase,
-) -> impl FnMut(&'s str) -> ParseResult<ChemicalComposition<'a>, K> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, ChemicalComposition<'a>, K> {
     let chemical_formula = many1(atomic_offset(db));
     let optional_particle_offset = opt(pair(offset_kind, cut(particle_offset(db))));
     let atoms_and_particles = map(
@@ -60,7 +60,7 @@ pub fn chemical_composition<'a, 's, K: UserErrorKind>(
 /// Atomic Offset = ( Element | Isotope ) , [ Count ] ;
 fn atomic_offset<'a, 's>(
     db: &'a AtomicDatabase,
-) -> impl FnMut(&'s str) -> ParseResult<(Element<'a>, Count)> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, (Element<'a>, Count)> {
     let element_or_isotope = alt((element(db), isotope(db)));
     let optional_count = opt(count).map(Option::unwrap_or_default);
     let parser = pair(element_or_isotope, optional_count);
@@ -70,7 +70,7 @@ fn atomic_offset<'a, 's>(
 /// Particle Offset = [ Count ] , Particle ;
 fn particle_offset<'a, 's>(
     db: &'a AtomicDatabase,
-) -> impl FnMut(&'s str) -> ParseResult<(Count, Particle<'a>)> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, (Count, Particle<'a>)> {
     let optional_count = opt(count).map(Option::unwrap_or_default);
     let parser = pair(optional_count, particle(db));
     wrap_err(parser, PolychemErrorKind::ExpectedParticleOffset)
@@ -79,21 +79,23 @@ fn particle_offset<'a, 's>(
 // ---------------------------------------------------------------------------------------------------------------------
 
 /// Element = uppercase , [ lowercase ] ;
-fn element<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<Element<'a>> {
+fn element<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<'s, Element<'a>> {
     map_res(element_symbol, |symbol| Element::new(db, symbol))
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
 #[allow(clippy::doc_link_with_quotes)]
 /// Isotope = "[" , Count , Element , "]" ;
-fn isotope<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<Element<'a>> {
+fn isotope<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<'s, Element<'a>> {
     map_res(isotope_expr, |(mass_number, symbol)| {
         Element::new_isotope(db, symbol, mass_number)
     })
 }
 
 /// Particle = lowercase ;
-fn particle<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<Particle<'a>> {
+fn particle<'a, 's>(
+    db: &'a AtomicDatabase,
+) -> impl FnMut(&'s str) -> ParseResult<'s, Particle<'a>> {
     map_res(particle_symbol, |symbol| Particle::new(db, symbol))
 }
 

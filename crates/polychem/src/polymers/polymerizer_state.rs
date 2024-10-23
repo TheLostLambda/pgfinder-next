@@ -222,7 +222,7 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
 
 // Private Methods =====================================================================================================
 
-impl<'a, 'p> PolymerizerState<'a, 'p> {
+impl<'p> PolymerizerState<'_, 'p> {
     fn diagnose_any_missing_groups<'t, T: 'p>(
         &self,
         targets: &'t [T],

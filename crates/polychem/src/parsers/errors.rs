@@ -119,7 +119,7 @@ impl LabeledErrorKind for PolychemErrorKind {
 impl<'a> FromExternalError<'a, AtomicLookupError> for PolychemErrorKind {
     const FATAL: bool = true;
 
-    fn from_external_error(input: &'a str, e: AtomicLookupError) -> LabeledParseError<'_, Self> {
+    fn from_external_error(input: &'a str, e: AtomicLookupError) -> LabeledParseError<'a, Self> {
         LabeledParseError::new(input, Self::LookupError(Box::new(e)))
     }
 }
@@ -127,7 +127,7 @@ impl<'a> FromExternalError<'a, AtomicLookupError> for PolychemErrorKind {
 impl<'a> FromExternalError<'a, Box<PolychemError>> for PolychemErrorKind {
     const FATAL: bool = true;
 
-    fn from_external_error(input: &'a str, e: Box<PolychemError>) -> LabeledParseError<'_, Self> {
+    fn from_external_error(input: &'a str, e: Box<PolychemError>) -> LabeledParseError<'a, Self> {
         LabeledParseError::new(input, Self::PolychemError(e))
     }
 }

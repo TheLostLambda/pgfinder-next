@@ -410,7 +410,7 @@ impl<'p> Index<NodeId> for Fragment<'p> {
 }
 
 // FIXME: Honestly, these might be making the code more confusing... Consider removing or replacing with a method?
-impl<'p> IndexMut<NodeId> for Fragment<'p> {
+impl IndexMut<NodeId> for Fragment<'_> {
     fn index_mut(&mut self, index: NodeId) -> &mut Self::Output {
         self.residues[index].as_mut().unwrap()
     }

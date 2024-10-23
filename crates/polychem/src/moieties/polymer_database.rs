@@ -295,7 +295,10 @@ impl<'a: 'r, 'r> ValidateInto<'r, ResidueEntry<'a>> for ResidueKdl {
         let groups_from_type = ctx
             .1
             .get(&self.residue_type)
-            .ok_or_else(|| ChemistryErrorKind::UndefinedResidueType(self.span, self.residue_type))?
+            .ok_or(ChemistryErrorKind::UndefinedResidueType(
+                self.span,
+                self.residue_type,
+            ))?
             .clone();
 
         let mut seen_groups = HashMap::new();

@@ -57,7 +57,8 @@ impl<T: ?Sized, U> Captures<U> for T {}
 #[allow(clippy::too_many_lines)]
 pub fn muropeptide<'z, 'a, 'p, 's>(
     polymerizer: &'z Polymerizer<'a, 'p>,
-) -> impl FnMut(&'s str) -> ParseResult<Muropeptide<'a, 'p>> + Captures<(&'z (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, Muropeptide<'a, 'p>> + Captures<(&'z (), &'a (), &'p ())>
+{
     move |i| {
         let polymer = RefCell::new(polymerizer.new_polymer());
         // FIXME: Perhaps there is a better way to shorten that `polymer` borrow...
@@ -222,7 +223,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
 // FIXME: Make private again
 pub fn monomer<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<Monomer> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, Monomer> + Captures<(&'c (), &'a (), &'p ())> {
     let optional_peptide = opt(preceded(char('-'), cut(peptide(polymer))));
     let glycan_and_peptide = map_res(
         pair(glycan(polymer), optional_peptide),
@@ -260,7 +261,8 @@ pub fn monomer<'c, 'a, 'p, 's>(
 /// Glycan = { Monosaccharide }- ;
 fn glycan<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<Monosaccharide>> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, Vec<Monosaccharide>> + Captures<(&'c (), &'a (), &'p ())>
+{
     let parser = many1(monosaccharide(polymer));
     map_res(parser, |residues| {
         polymer
@@ -273,7 +275,7 @@ fn glycan<'c, 'a, 'p, 's>(
 /// Peptide = { Amino Acid }- ;
 fn peptide<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<AminoAcid>> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, Vec<AminoAcid>> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = many1(amino_acid(polymer));
     map_res(parser, |residues| {
         let residue_ids = residues.iter().map(|aa| aa.residue);
@@ -287,7 +289,7 @@ fn peptide<'c, 'a, 'p, 's>(
 /// Monosaccharide = lowercase , [ Modifications ] ;
 fn monosaccharide<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<Monosaccharide> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, Monosaccharide> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = pair(recognize(lowercase), opt(modifications(polymer)));
     map_res(parser, |(abbr, modifications)| {
         let residue = polymer.borrow_mut().new_residue(abbr)?;
@@ -305,7 +307,7 @@ fn monosaccharide<'c, 'a, 'p, 's>(
 /// Amino Acid = Unbranched Amino Acid , [ Lateral Chain ] ;
 fn amino_acid<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<AminoAcid> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, AminoAcid> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = pair(unbranched_amino_acid(polymer), opt(lateral_chain(polymer)));
     map_res(parser, |(residue, lateral_chain)| {
         if let Some(LateralChain { direction, peptide }) = &lateral_chain {
@@ -349,7 +351,8 @@ fn amino_acid<'c, 'a, 'p, 's>(
 ///   { { " " } , "," , { " " } , Any Modification } , ")" ;
 fn modifications<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<Vec<ModificationId>> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, Vec<ModificationId>> + Captures<(&'c (), &'a (), &'p ())>
+{
     let separator = delimited(space0, char(','), space0);
     delimited(
         char('('),
@@ -361,7 +364,8 @@ fn modifications<'c, 'a, 'p, 's>(
 /// Unbranched Amino Acid = [ lowercase ] , uppercase , [ Modifications ] ;
 fn unbranched_amino_acid<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<UnbranchedAminoAcid> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, UnbranchedAminoAcid> + Captures<(&'c (), &'a (), &'p ())>
+{
     let abbr = recognize(preceded(opt(lowercase), uppercase));
     let parser = pair(abbr, opt(modifications(polymer)));
     map_res(parser, |(abbr, modifications)| {
@@ -381,7 +385,7 @@ fn unbranched_amino_acid<'c, 'a, 'p, 's>(
 /// Lateral Chain = "[" , Peptide Direction , { Unbranched Amino Acid }- , "]" ;
 fn lateral_chain<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<LateralChain> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, LateralChain> + Captures<(&'c (), &'a (), &'p ())> {
     let peptide = many1(unbranched_amino_acid(polymer));
     let parser = delimited(char('['), peptide, char(']'));
     map(parser, |peptide| LateralChain {
@@ -413,7 +417,7 @@ fn identifier(i: &str) -> ParseResult<&str> {
 /// Any Modification = Named Modification | Offset Modification
 pub fn any_modification<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
     alt((named_modification(polymer), offset_modification(polymer)))
 }
 
@@ -421,7 +425,7 @@ pub fn any_modification<'c, 'a, 'p, 's>(
 /// Named Modification = [ Multiplier ] , Identifier
 pub fn named_modification<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
     let parser = pair(opt(multiplier), identifier);
     map_res(parser, |(multiplier, named_mod)| {
         polymer
@@ -435,7 +439,7 @@ pub fn named_modification<'c, 'a, 'p, 's>(
 ///   Chemical Composition ;
 pub fn offset_modification<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
-) -> impl FnMut(&'s str) -> ParseResult<ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
+) -> impl FnMut(&'s str) -> ParseResult<'s, ModificationId> + Captures<(&'c (), &'a (), &'p ())> {
     let chemical_composition = chemical_composition(polymer.borrow().atomic_db());
     let parser = tuple((offset_kind, opt(multiplier), chemical_composition));
 
