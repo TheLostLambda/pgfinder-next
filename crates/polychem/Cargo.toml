@@ -14,7 +14,7 @@ knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
 miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"
 nom-miette = { path = "../nom-miette" }
-rust_decimal = "1.35.0"
+rust_decimal = "1.36.0"
 serde = { version = "1.0.198", features = ["derive"] }
 static_assertions = "1.1.0"
 thiserror = "1.0.59"

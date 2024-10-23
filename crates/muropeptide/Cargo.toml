@@ -20,7 +20,7 @@ divan = "0.1.14"
 insta = { version = "1.38.0", features = ["redactions", "ron"] }
 # miette = { version = "7.2.0", features = ["fancy"] }
 miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
-rust_decimal = "1.35.0"
+rust_decimal = "1.36.0"
 rust_decimal_macros = "1.34.2"
 
 [[bench]]
