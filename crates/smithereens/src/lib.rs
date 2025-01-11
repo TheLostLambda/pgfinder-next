@@ -302,9 +302,8 @@ impl<'p> Fragment<'p> {
     }
 
     // FIXME: Clarify type with some aliases?
-    // FIXME: Remove the `+ '_` once Rust 2024 is released!
     // FIXME: Should this really be a method?
-    fn cut_each_bond(&self) -> impl Iterator<Item = (NodeId, Self)> + '_ {
+    fn cut_each_bond(&self) -> impl Iterator<Item = (NodeId, Self)> {
         self.residues
             .iter()
             .enumerate()

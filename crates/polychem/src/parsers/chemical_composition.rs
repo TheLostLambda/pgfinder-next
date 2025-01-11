@@ -1,11 +1,11 @@
 // External Crate Imports
 use nom::{
+    Parser,
     branch::alt,
     character::complete::char,
     combinator::{cut, map, opt, recognize},
     multi::many1,
     sequence::{delimited, pair},
-    Parser,
 };
 use nom_miette::{expect, into, map_res, wrap_err};
 

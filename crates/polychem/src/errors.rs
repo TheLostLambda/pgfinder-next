@@ -2,8 +2,8 @@ use miette::Diagnostic;
 use thiserror::Error;
 
 use crate::{
-    parsers::errors::CompositionError, polymers::errors::FindFreeGroupsError, FunctionalGroup,
-    ModificationId, ModificationInfo, ResidueId,
+    FunctionalGroup, ModificationId, ModificationInfo, ResidueId,
+    parsers::errors::CompositionError, polymers::errors::FindFreeGroupsError,
 };
 
 pub type Result<T, E = Box<PolychemError>> = std::result::Result<T, E>;
@@ -37,7 +37,9 @@ pub enum PolychemError {
     },
 
     #[error("residue {id} could not be found in the current polymer")]
-    #[diagnostic(help("this residue may belong to another polymer, or may have been previously deleted from this one"))]
+    #[diagnostic(help(
+        "this residue may belong to another polymer, or may have been previously deleted from this one"
+    ))]
     ResidueNotInPolymer { id: ResidueId },
 
     #[error("modification {id} could not be found in the current polymer")]

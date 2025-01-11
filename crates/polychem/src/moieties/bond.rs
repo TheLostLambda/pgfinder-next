@@ -1,5 +1,5 @@
 use crate::{
-    errors::PolychemError, AverageMass, Bond, Charge, Charged, Massive, MonoisotopicMass, Result,
+    AverageMass, Bond, Charge, Charged, Massive, MonoisotopicMass, Result, errors::PolychemError,
 };
 
 use super::polymer_database::{BondDescription, PolymerDatabase};
@@ -66,8 +66,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        testing_tools::assert_miette_snapshot, AtomicDatabase, AverageMz, ChargedParticle,
-        MonoisotopicMz,
+        AtomicDatabase, AverageMz, ChargedParticle, MonoisotopicMz,
+        testing_tools::assert_miette_snapshot,
     };
 
     use super::*;

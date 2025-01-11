@@ -389,10 +389,11 @@ mod tests {
         let amino = Target::new("Amino", None, None);
         let mut values = index.get_values(amino);
         values.sort_unstable();
-        assert_eq!(
-            values,
-            vec![&"group", &"group-location", &"group-location-residue"]
-        );
+        assert_eq!(values, vec![
+            &"group",
+            &"group-location",
+            &"group-location-residue"
+        ]);
     }
 
     #[test]

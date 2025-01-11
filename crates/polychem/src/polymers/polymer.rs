@@ -5,15 +5,15 @@ use ahash::HashSet;
 use itertools::Itertools;
 
 use crate::{
+    AnyMod, AnyModification, AtomicDatabase, AverageMass, Bond, BondId, BondInfo, Charge, Charged,
+    ChemicalComposition, Count, FunctionalGroup, GroupState, Massive, Modification, ModificationId,
+    ModificationInfo, MonoisotopicMass, NamedMod, OffsetKind, OffsetMod, Polymer, PolymerDatabase,
+    Residue, ResidueGroup, ResidueId, Result,
     errors::PolychemError,
     moieties::{
         polymer_database::{BondDescription, ModificationDescription},
         target::Target,
     },
-    AnyMod, AnyModification, AtomicDatabase, AverageMass, Bond, BondId, BondInfo, Charge, Charged,
-    ChemicalComposition, Count, FunctionalGroup, GroupState, Massive, Modification, ModificationId,
-    ModificationInfo, MonoisotopicMass, NamedMod, OffsetKind, OffsetMod, Polymer, PolymerDatabase,
-    Residue, ResidueGroup, ResidueId, Result,
 };
 
 use super::{errors::FindFreeGroupsError, polymerizer_state::PolymerizerState};
@@ -74,8 +74,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
     // FIXME: This is part of an incomplete set of methods — be sure to add in methods for iterating over pairs and
     // also values? Needs more design thought in general! Maybe I should *only* have the pair version?
     // FIXME: Also needs testing!
-    // FIXME: Remove the '_ after Rust 2024 is released
-    pub fn residue_ids(&self) -> impl Iterator<Item = ResidueId> + '_ {
+    pub fn residue_ids(&self) -> impl Iterator<Item = ResidueId> {
         self.residues.keys().copied()
     }
 
@@ -624,8 +623,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        polymers::polymerizer::Polymerizer, testing_tools::assert_miette_snapshot, AverageMz,
-        ChargedParticle, FunctionalGroup, ModificationId, MonoisotopicMz, OffsetKind, ResidueId,
+        AverageMz, ChargedParticle, FunctionalGroup, ModificationId, MonoisotopicMz, OffsetKind,
+        ResidueId, polymers::polymerizer::Polymerizer, testing_tools::assert_miette_snapshot,
     };
 
     use super::*;
@@ -762,17 +761,21 @@ mod tests {
     fn new_residue() {
         let mut polymer = POLYMERIZER.new_polymer();
         let residues = STEM_RESIDUES.map(|abbr| polymer.new_residue(abbr).unwrap());
-        assert_eq!(
-            residues,
-            [ResidueId(0), ResidueId(1), ResidueId(2), ResidueId(3)]
-        );
+        assert_eq!(residues, [
+            ResidueId(0),
+            ResidueId(1),
+            ResidueId(2),
+            ResidueId(3)
+        ]);
         assert_polymer!(polymer, 515.24387164950, 515.51342919034656875);
 
         let more_residues = STEM_RESIDUES.map(|abbr| polymer.new_residue(abbr).unwrap());
-        assert_eq!(
-            more_residues,
-            [ResidueId(4), ResidueId(5), ResidueId(6), ResidueId(7)]
-        );
+        assert_eq!(more_residues, [
+            ResidueId(4),
+            ResidueId(5),
+            ResidueId(6),
+            ResidueId(7)
+        ]);
         assert_polymer!(polymer, 1030.48774329900, 1031.02685838069313750);
 
         let residue_refs = residues.map(|id| polymer.residue(id).unwrap());
@@ -951,10 +954,12 @@ mod tests {
 
         // Then actually build a full chain (3 bonds for 4 residues)
         let (polymer, residues, bonds) = bond_chain!("Pep", &STEM_RESIDUES).unwrap();
-        assert_eq!(
-            residues,
-            vec![ResidueId(0), ResidueId(1), ResidueId(2), ResidueId(3)]
-        );
+        assert_eq!(residues, vec![
+            ResidueId(0),
+            ResidueId(1),
+            ResidueId(2),
+            ResidueId(3)
+        ]);
         assert_eq!(bonds, vec![BondId(4), BondId(5), BondId(6)]);
         assert_polymer!(polymer, 461.21217759741, 461.46756989305707095);
         assert_ron_snapshot!(polymer, {
@@ -982,18 +987,22 @@ mod tests {
 
         let lactyl = FunctionalGroup::new("Carboxyl", "Lactyl Ether");
         let n_terminal = FunctionalGroup::new("Amino", "N-Terminal");
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&lactyl)
-            .unwrap()
-            .is_donor());
-        assert!(polymer
-            .residue(alanine)
-            .unwrap()
-            .group_state(&n_terminal)
-            .unwrap()
-            .is_acceptor());
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&lactyl)
+                .unwrap()
+                .is_donor()
+        );
+        assert!(
+            polymer
+                .residue(alanine)
+                .unwrap()
+                .group_state(&n_terminal)
+                .unwrap()
+                .is_acceptor()
+        );
 
         let all_groups_occupied = polymer.bond_residues("Stem", murnac, alanine);
         assert_miette_snapshot!(all_groups_occupied);
@@ -1009,12 +1018,14 @@ mod tests {
         assert_miette_snapshot!(no_matching_groups);
         // When bonding fails due to the acceptor, make sure that the donor remains untouched
         let c_terminal = FunctionalGroup::new("Carboxyl", "C-Terminal");
-        assert!(polymer
-            .residue(alanine)
-            .unwrap()
-            .group_state(&c_terminal)
-            .unwrap()
-            .is_free());
+        assert!(
+            polymer
+                .residue(alanine)
+                .unwrap()
+                .group_state(&c_terminal)
+                .unwrap()
+                .is_free()
+        );
 
         let nonexistent_bond = polymer.bond_residues("Super", murnac, alanine);
         assert_miette_snapshot!(nonexistent_bond);
@@ -1033,18 +1044,22 @@ mod tests {
             .bond_groups("Stem", murnac, &lactyl, alanine, &n_terminal)
             .unwrap();
         assert_polymer!(polymer, 364.14818035851, 364.34893139338823950);
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&lactyl)
-            .unwrap()
-            .is_donor());
-        assert!(polymer
-            .residue(alanine)
-            .unwrap()
-            .group_state(&n_terminal)
-            .unwrap()
-            .is_acceptor());
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&lactyl)
+                .unwrap()
+                .is_donor()
+        );
+        assert!(
+            polymer
+                .residue(alanine)
+                .unwrap()
+                .group_state(&n_terminal)
+                .unwrap()
+                .is_acceptor()
+        );
 
         // Use *`bond_residues()`* to check that an A-K link is indeed ambiguous
         let lysine = polymer.new_residue("K").unwrap();
@@ -1058,25 +1073,31 @@ mod tests {
             .bond_groups("Link", alanine, &c_terminal, lysine, &sidechain)
             .unwrap();
         assert_polymer!(polymer, 492.24314337370, 492.52144716967893560);
-        assert!(polymer
-            .residue(alanine)
-            .unwrap()
-            .group_state(&c_terminal)
-            .unwrap()
-            .is_donor());
-        assert!(polymer
-            .residue(lysine)
-            .unwrap()
-            .group_state(&sidechain)
-            .unwrap()
-            .is_acceptor());
+        assert!(
+            polymer
+                .residue(alanine)
+                .unwrap()
+                .group_state(&c_terminal)
+                .unwrap()
+                .is_donor()
+        );
+        assert!(
+            polymer
+                .residue(lysine)
+                .unwrap()
+                .group_state(&sidechain)
+                .unwrap()
+                .is_acceptor()
+        );
         // But the n_terminal of lysine remains untouched:
-        assert!(polymer
-            .residue(lysine)
-            .unwrap()
-            .group_state(&n_terminal)
-            .unwrap()
-            .is_free());
+        assert!(
+            polymer
+                .residue(lysine)
+                .unwrap()
+                .group_state(&n_terminal)
+                .unwrap()
+                .is_free()
+        );
 
         let groups_not_free = polymer.bond_groups("Stem", murnac, &lactyl, alanine, &n_terminal);
         assert_miette_snapshot!(groups_not_free);
@@ -1085,12 +1106,14 @@ mod tests {
         let invalid_bond = polymer.bond_groups("Pep", lysine, &c_terminal, glcnac, &n_terminal);
         assert_miette_snapshot!(invalid_bond);
         // When bonding fails due to the acceptor, make sure that the donor remains untouched
-        assert!(polymer
-            .residue(lysine)
-            .unwrap()
-            .group_state(&c_terminal)
-            .unwrap()
-            .is_free());
+        assert!(
+            polymer
+                .residue(lysine)
+                .unwrap()
+                .group_state(&c_terminal)
+                .unwrap()
+                .is_free()
+        );
 
         let nonexistent_bond = polymer.bond_groups("Super", murnac, &lactyl, alanine, &n_terminal);
         assert_miette_snapshot!(nonexistent_bond);
@@ -1150,12 +1173,14 @@ mod tests {
         assert_eq!(polymer.modification(anhydro), None);
         assert_polymer!(polymer, 275.10050188933, 275.25562536470969725);
         let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&reducing_end)
-            .unwrap()
-            .is_modified());
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&reducing_end)
+                .unwrap()
+                .is_modified()
+        );
 
         let triple_calcium = polymer.new_modification(3, "Ca").unwrap();
         assert_eq!(triple_calcium, ModificationId(3));
@@ -1176,10 +1201,11 @@ mod tests {
         let moved_triple_calcium = polymer
             .localize_modification(triple_calcium, murnac)
             .unwrap();
-        assert_eq!(
-            moved_triple_calcium,
-            vec![ModificationId(4), ModificationId(5), ModificationId(6)]
-        );
+        assert_eq!(moved_triple_calcium, vec![
+            ModificationId(4),
+            ModificationId(5),
+            ModificationId(6)
+        ]);
         assert_eq!(polymer.modification(triple_calcium), None);
         assert_polymer!(
             polymer,
@@ -1336,12 +1362,14 @@ mod tests {
         assert_eq!(modification_id, ModificationId(1));
         assert_polymer!(polymer, 275.10050188933, 275.25562536470969725);
         let reducing_end = FunctionalGroup::new("Hydroxyl", "Reducing End");
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&reducing_end)
-            .unwrap()
-            .is_modified());
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&reducing_end)
+                .unwrap()
+                .is_modified()
+        );
 
         let all_groups_occupied = polymer.modify_only_group("Anh", murnac);
         assert_miette_snapshot!(all_groups_occupied);
@@ -1364,10 +1392,11 @@ mod tests {
         assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
 
         let modification_ids = polymer.modify_only_groups("Met", murnac, 3).unwrap();
-        assert_eq!(
-            modification_ids,
-            vec![ModificationId(1), ModificationId(2), ModificationId(3)]
-        );
+        assert_eq!(modification_ids, vec![
+            ModificationId(1),
+            ModificationId(2),
+            ModificationId(3)
+        ]);
         assert_polymer!(polymer, 335.15801676674, 335.35076401167994095);
         let hydroxyl_groups = [
             FunctionalGroup::new("Hydroxyl", "Reducing End"),
@@ -1375,12 +1404,14 @@ mod tests {
             FunctionalGroup::new("Hydroxyl", "6-Position"),
         ];
         for hydroxyl_group in hydroxyl_groups {
-            assert!(polymer
-                .residue(murnac)
-                .unwrap()
-                .group_state(&hydroxyl_group)
-                .unwrap()
-                .is_modified());
+            assert!(
+                polymer
+                    .residue(murnac)
+                    .unwrap()
+                    .group_state(&hydroxyl_group)
+                    .unwrap()
+                    .is_modified()
+            );
         }
 
         polymer.remove_residue(murnac);
@@ -1388,15 +1419,12 @@ mod tests {
         assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
 
         let modification_ids = polymer.modify_only_groups("Ca", murnac, 4).unwrap();
-        assert_eq!(
-            modification_ids,
-            vec![
-                ModificationId(5),
-                ModificationId(6),
-                ModificationId(7),
-                ModificationId(8)
-            ]
-        );
+        assert_eq!(modification_ids, vec![
+            ModificationId(5),
+            ModificationId(6),
+            ModificationId(7),
+            ModificationId(8)
+        ]);
         assert_polymer!(
             polymer,
             448.927935519603480,
@@ -1410,10 +1438,10 @@ mod tests {
         let alanine = polymer.new_residue("A").unwrap();
         assert_polymer!(polymer, 89.04767846918, 89.09330602867854225);
         let modification_ids = polymer.modify_only_groups("Ca", alanine, 2).unwrap();
-        assert_eq!(
-            modification_ids,
-            vec![ModificationId(10), ModificationId(11)]
-        );
+        assert_eq!(modification_ids, vec![
+            ModificationId(10),
+            ModificationId(11)
+        ]);
         assert_polymer!(
             polymer,
             166.956112942301740,
@@ -1426,10 +1454,11 @@ mod tests {
         polymer.remove_residue(alanine);
         let murnac = polymer.new_residue("m").unwrap();
         let modification_ids = polymer.modify_only_groups("Met", murnac, 3).unwrap();
-        assert_eq!(
-            modification_ids,
-            vec![ModificationId(13), ModificationId(14), ModificationId(15)]
-        );
+        assert_eq!(modification_ids, vec![
+            ModificationId(13),
+            ModificationId(14),
+            ModificationId(15)
+        ]);
         let all_groups_occupied = polymer.modify_only_groups("Ca", murnac, 4);
         assert_miette_snapshot!(all_groups_occupied);
         let still_all_groups_occupied = polymer.modify_only_groups("Ca", murnac, 2);
@@ -1465,12 +1494,14 @@ mod tests {
         let modification_id = polymer.modify_group("Met", murnac, &reducing_end).unwrap();
         assert_eq!(modification_id, ModificationId(1));
         assert_polymer!(polymer, 307.12671663782, 307.29752920198633355);
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&reducing_end)
-            .unwrap()
-            .is_modified());
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&reducing_end)
+                .unwrap()
+                .is_modified()
+        );
 
         let modify_non_free_group = polymer.modify_group("Anh", murnac, &reducing_end);
         assert_miette_snapshot!(modify_non_free_group);
@@ -1504,24 +1535,30 @@ mod tests {
             .unwrap();
         assert_eq!(modification_ids, vec![ModificationId(1), ModificationId(2)]);
         assert_polymer!(polymer, 321.14236670228, 321.32414660683313725);
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&reducing_end)
-            .unwrap()
-            .is_free());
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&nonreducing_end)
-            .unwrap()
-            .is_modified());
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&six_position)
-            .unwrap()
-            .is_modified());
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&reducing_end)
+                .unwrap()
+                .is_free()
+        );
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&nonreducing_end)
+                .unwrap()
+                .is_modified()
+        );
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&six_position)
+                .unwrap()
+                .is_modified()
+        );
 
         let modify_non_free_group =
             polymer.modify_groups("Ca", murnac, [reducing_end, six_position]);
@@ -1536,12 +1573,14 @@ mod tests {
             .unwrap();
         assert_eq!(modification_ids, vec![ModificationId(3)]);
         assert_polymer!(polymer, 303.13180201825, 303.30886017440330465);
-        assert!(polymer
-            .residue(murnac)
-            .unwrap()
-            .group_state(&reducing_end)
-            .unwrap()
-            .is_modified());
+        assert!(
+            polymer
+                .residue(murnac)
+                .unwrap()
+                .group_state(&reducing_end)
+                .unwrap()
+                .is_modified()
+        );
 
         let modify_multiple_errors =
             polymer.modify_groups("Anh", murnac, [reducing_end, six_position]);
@@ -1611,10 +1650,11 @@ mod tests {
             .offset_modifications()
             .collect();
         alanine_offsets.sort_unstable();
-        assert_eq!(
-            alanine_offsets,
-            vec![ModificationId(1), ModificationId(2), ModificationId(5)]
-        );
+        assert_eq!(alanine_offsets, vec![
+            ModificationId(1),
+            ModificationId(2),
+            ModificationId(5)
+        ]);
 
         let mut murnac_offsets: Vec<_> = polymer
             .residue(murnac)

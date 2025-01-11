@@ -29,7 +29,9 @@ pub enum AtomicLookupError {
     #[diagnostic(help(
         "consider explicitly selecting the isotope to be used in mass calculations — e.g. [{2}{1}]"
     ))]
-    #[error("no natural abundance data could be found for {0} ({1}), though the following isotopes were found: {3}")]
+    #[error(
+        "no natural abundance data could be found for {0} ({1}), though the following isotopes were found: {3}"
+    )]
     Abundance(String, String, MassNumber, String),
 }
 

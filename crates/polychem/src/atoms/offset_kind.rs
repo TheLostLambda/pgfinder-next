@@ -25,14 +25,10 @@ impl Not for OffsetKind {
 
 impl Display for OffsetKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::Add => "+",
-                Self::Remove => "-",
-            }
-        )
+        write!(f, "{}", match self {
+            Self::Add => "+",
+            Self::Remove => "-",
+        })
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::{
-    errors::PolychemError, AverageMass, Charge, Charged, Count, Massive, Modification,
-    MonoisotopicMass, NamedMod, Result,
+    AverageMass, Charge, Charged, Count, Massive, Modification, MonoisotopicMass, NamedMod, Result,
+    errors::PolychemError,
 };
 
 use super::polymer_database::{ModificationDescription, PolymerDatabase};
@@ -70,8 +70,8 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
-        testing_tools::assert_miette_snapshot, AtomicDatabase, AverageMz, ChargedParticle,
-        MonoisotopicMz,
+        AtomicDatabase, AverageMz, ChargedParticle, MonoisotopicMz,
+        testing_tools::assert_miette_snapshot,
     };
 
     use super::*;
@@ -113,15 +113,12 @@ mod tests {
             NamedMod::new(&POLYMER_DB, "DeAc").unwrap(),
             NamedMod::new(&POLYMER_DB, "Ca").unwrap(),
         ];
-        assert_eq!(
-            mods.map(|m| (m.abbr(), m.name())),
-            [
-                ("Am", "Amidation"),
-                ("Ac", "O-Acetylation"),
-                ("DeAc", "De-N-Acetylation"),
-                ("Ca", "Calcium Adduct")
-            ]
-        );
+        assert_eq!(mods.map(|m| (m.abbr(), m.name())), [
+            ("Am", "Amidation"),
+            ("Ac", "O-Acetylation"),
+            ("DeAc", "De-N-Acetylation"),
+            ("Ca", "Calcium Adduct")
+        ]);
     }
 
     #[test]

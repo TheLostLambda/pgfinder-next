@@ -5,13 +5,13 @@ use std::fmt::{self, Display, Formatter};
 
 use itertools::Itertools;
 use miette::Diagnostic;
-use nom_miette::{final_parser, LabeledError};
+use nom_miette::{LabeledError, final_parser};
 use once_cell::sync::Lazy;
-use parser::{muropeptide, MuropeptideErrorKind};
+use parser::{MuropeptideErrorKind, muropeptide};
 // FIXME: Blocks need separating and reordering!
 use polychem::{
-    errors::PolychemError, AtomicDatabase, AverageMass, BondId, Charged, GroupState, Massive,
-    ModificationInfo, MonoisotopicMass, Polymer, PolymerDatabase, Polymerizer, ResidueId,
+    AtomicDatabase, AverageMass, BondId, Charged, GroupState, Massive, ModificationInfo,
+    MonoisotopicMass, Polymer, PolymerDatabase, Polymerizer, ResidueId, errors::PolychemError,
 };
 use smithereens::Dissociable;
 use thiserror::Error;

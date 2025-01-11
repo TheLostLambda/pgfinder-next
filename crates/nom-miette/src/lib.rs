@@ -4,9 +4,9 @@ use std::fmt::Display;
 use ahash::{HashMap, HashMapExt};
 use miette::{Diagnostic, LabeledSpan, SourceSpan};
 use nom::{
+    Err, ErrorConvert, Finish, IResult, Parser,
     combinator::{all_consuming, complete, consumed},
     error::ParseError,
-    Err, ErrorConvert, Finish, IResult, Parser,
 };
 use thiserror::Error;
 

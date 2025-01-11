@@ -1,6 +1,6 @@
 use divan::AllocProfiler;
 use once_cell::sync::Lazy;
-use polychem::{atoms::atomic_database, AtomicDatabase, PolymerDatabase, Polymerizer};
+use polychem::{AtomicDatabase, PolymerDatabase, Polymerizer, atoms::atomic_database};
 
 #[global_allocator]
 static ALLOC: AllocProfiler = AllocProfiler::system();

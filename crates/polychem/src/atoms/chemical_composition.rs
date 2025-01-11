@@ -8,8 +8,8 @@ use nom_miette::final_parser;
 
 // Local Crate Imports
 use crate::{
-    parsers::chemical_composition::chemical_composition, AtomicDatabase, AverageMass, Charge,
-    Charged, ChemicalComposition, Element, Mass, Massive, MonoisotopicMass, Result,
+    AtomicDatabase, AverageMass, Charge, Charged, ChemicalComposition, Element, Mass, Massive,
+    MonoisotopicMass, Result, parsers::chemical_composition::chemical_composition,
 };
 
 // Public API ==========================================================================================================
@@ -207,17 +207,14 @@ mod tests {
             .map(|(c, n)| (n, c.to_string()))
             .collect();
         counts.sort_unstable();
-        assert_eq!(
-            counts,
-            vec![
-                (1, "Cr2O7+2e".to_owned()),
-                (1, "NH2+2p".to_owned()),
-                (2, "2p".to_owned()),
-                (2, "[37Cl]5-2p".to_owned()),
-                (3, "K-e".to_owned()),
-                (4, "C11H10ON2".to_owned()),
-            ]
-        );
+        assert_eq!(counts, vec![
+            (1, "Cr2O7+2e".to_owned()),
+            (1, "NH2+2p".to_owned()),
+            (2, "2p".to_owned()),
+            (2, "[37Cl]5-2p".to_owned()),
+            (3, "K-e".to_owned()),
+            (4, "C11H10ON2".to_owned()),
+        ]);
     }
 
     #[test]

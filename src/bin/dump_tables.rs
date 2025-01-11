@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use polychem::{
-    moieties::polymer_database::{ModificationDescription, ResidueDescription},
     AtomicDatabase, Massive, PolymerDatabase,
+    moieties::polymer_database::{ModificationDescription, ResidueDescription},
 };
 use rust_decimal::Decimal;
 

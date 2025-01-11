@@ -1,5 +1,5 @@
 use miette::Diagnostic;
-use nom::{error::ErrorKind, IResult};
+use nom::{IResult, error::ErrorKind};
 use nom_miette::{FromExternalError, LabeledError, LabeledErrorKind, LabeledParseError};
 use thiserror::Error;
 

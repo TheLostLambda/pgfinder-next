@@ -3,7 +3,7 @@ use miette::Diagnostic;
 use std::fmt::Display;
 use thiserror::Error;
 
-use crate::{moieties::target::Target, FunctionalGroup, GroupState, ResidueId};
+use crate::{FunctionalGroup, GroupState, ResidueId, moieties::target::Target};
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Diagnostic, Error)]
 pub enum FindFreeGroupsError {
@@ -25,7 +25,9 @@ pub enum FindFreeGroupsError {
     #[diagnostic(help("check for typos, or try removing the duplicate target group"))]
     DuplicateTargetGroup { group_name: String },
 
-    #[error("the functional group {group_name} of residue {residue_id} was already {group_state}, but must be free")]
+    #[error(
+        "the functional group {group_name} of residue {residue_id} was already {group_state}, but must be free"
+    )]
     GroupOccupied {
         group_name: String,
         residue_id: ResidueId,

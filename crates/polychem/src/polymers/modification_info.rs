@@ -3,15 +3,11 @@ use std::fmt::{self, Display, Formatter};
 
 impl Display for ModificationInfo<'_, '_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                ModificationInfo::Named(..) => "a named",
-                ModificationInfo::Offset(..) => "an offset",
-                ModificationInfo::Unlocalized(..) => "an unlocalized",
-            }
-        )
+        write!(f, "{}", match self {
+            ModificationInfo::Named(..) => "a named",
+            ModificationInfo::Offset(..) => "an offset",
+            ModificationInfo::Unlocalized(..) => "an unlocalized",
+        })
     }
 }
 

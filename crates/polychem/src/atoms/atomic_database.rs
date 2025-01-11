@@ -4,12 +4,12 @@ use std::{num::NonZero, ops::Deref, str::FromStr};
 // External Crate Imports
 use ahash::HashMap;
 use knuffel::{
+    Decode, DecodeScalar,
     ast::{self, Integer, Literal, Radix, TypeName},
     decode::{Context, Kind},
     errors::{DecodeError, ExpectedType},
     span::Spanned,
     traits::ErrorSpan,
-    Decode, DecodeScalar,
 };
 use miette::{Diagnostic, Result};
 use rust_decimal::Decimal;
@@ -287,13 +287,10 @@ impl From<IsotopeKdl> for IsotopeEntry {
             abundance,
         }: IsotopeKdl,
     ) -> Self {
-        (
-            MassNumber(mass_number.0),
-            Isotope {
-                relative_mass: Mass(relative_mass.0),
-                abundance: abundance.map(|a| Abundance(a.0)),
-            },
-        )
+        (MassNumber(mass_number.0), Isotope {
+            relative_mass: Mass(relative_mass.0),
+            abundance: abundance.map(|a| Abundance(a.0)),
+        })
     }
 }
 
@@ -308,14 +305,11 @@ impl From<ParticleKdl> for ParticleEntry {
             charge,
         }: ParticleKdl,
     ) -> Self {
-        (
-            symbol.0,
-            ParticleDescription {
-                name,
-                mass: Mass(mass.0),
-                charge: Charge(charge),
-            },
-        )
+        (symbol.0, ParticleDescription {
+            name,
+            mass: Mass(mass.0),
+            charge: Charge(charge),
+        })
     }
 }
 
@@ -461,14 +455,14 @@ mod tests {
     fn decimal_scientific() {
         let kdl = "lossless 5.485_799_090_65e-4";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl).unwrap();
-        assert_eq!(res[0].0 .0, dec!(0.000548579909065));
+        assert_eq!(res[0].0.0, dec!(0.000548579909065));
     }
 
     #[test]
     fn decimal_from_integer() {
         let kdl = "lossless 1";
         let res = knuffel::parse::<Vec<Lossless>>("test", kdl).unwrap();
-        assert_eq!(res[0].0 .0, dec!(1));
+        assert_eq!(res[0].0.0, dec!(1));
     }
 
     #[test]
@@ -499,7 +493,7 @@ mod tests {
     fn nonzero_positive() {
         let kdl = "nonzero 42";
         let res = knuffel::parse::<Vec<NonZero>>("test", kdl).unwrap();
-        assert_eq!(res[0].0 .0.get(), 42);
+        assert_eq!(res[0].0.0.get(), 42);
     }
 
     #[test]
