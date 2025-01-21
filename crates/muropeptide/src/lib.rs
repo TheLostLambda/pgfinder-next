@@ -1,5 +1,6 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 mod parser;
+mod smiles_database;
 
 use std::fmt::{self, Display, Formatter};
 

@@ -1,0 +1,545 @@
+---
+source: crates/muropeptide/src/smiles_database.rs
+expression: db
+---
+SmilesDatabaseKdl {
+    residues: ResiduesKdl {
+        types: [
+            ResidueTypeKdl {
+                name: "Monosaccharide",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [
+                    BondSiteKdl {
+                        regex: "O$",
+                        bond: "Gly",
+                    },
+                ],
+            },
+            ResidueTypeKdl {
+                name: "AminoAcid",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "L",
+                        ),
+                        smiles: "N[C@@H](<sidechain>)C(=O)O",
+                    },
+                    IsomerKdl {
+                        name: Some(
+                            "D",
+                        ),
+                        smiles: "N[C@H](<sidechain>)C(=O)O",
+                    },
+                ],
+                stem: [
+                    StemKdl {
+                        positions: [
+                            4,
+                            5,
+                        ],
+                        use_isomer: Some(
+                            "D",
+                        ),
+                    },
+                ],
+                lateral: None,
+                bond_site: [
+                    BondSiteKdl {
+                        regex: "O$",
+                        bond: "Pep",
+                    },
+                ],
+            },
+        ],
+        residues: [
+            ResidueKdl {
+                kind: "Monosaccharide",
+                abbr: "g",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "β-D",
+                        ),
+                        smiles: "O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]1O",
+                    },
+                ],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [],
+            },
+            ResidueKdl {
+                kind: "Monosaccharide",
+                abbr: "m",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "β-D",
+                        ),
+                        smiles: "O[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(=O)O)[C@@H](NC(=O)C)[C@@H]1O",
+                    },
+                ],
+                stem: [],
+                lateral: None,
+                bond_site: [
+                    BondSiteKdl {
+                        regex: "(?<=C\\(=O\\))O",
+                        bond: "Stem",
+                    },
+                ],
+                template_values: [],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "A",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "C",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "B",
+                isomers: [],
+                stem: [],
+                lateral: Some(
+                    LateralKdl {
+                        use_isomer: Some(
+                            "D",
+                        ),
+                    },
+                ),
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CCN",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "C",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CS",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "D",
+                isomers: [],
+                stem: [],
+                lateral: Some(
+                    LateralKdl {
+                        use_isomer: Some(
+                            "D",
+                        ),
+                    },
+                ),
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CC(=O)O",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "E",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "D-iso",
+                        ),
+                        smiles: "N[C@@H](C(=O)O)CCC(=O)O",
+                    },
+                ],
+                stem: [
+                    StemKdl {
+                        positions: [
+                            2,
+                        ],
+                        use_isomer: Some(
+                            "D-iso",
+                        ),
+                    },
+                ],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CCC(=O)O",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "F",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "Cc1ccccc1",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "G",
+                isomers: [
+                    IsomerKdl {
+                        name: None,
+                        smiles: "NCC(=O)O",
+                    },
+                ],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "H",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "Cc1nc[nH]c1",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "I",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "L",
+                        ),
+                        smiles: "N[C@@H]([C@H](CC)C)C(=O)O",
+                    },
+                    IsomerKdl {
+                        name: Some(
+                            "D",
+                        ),
+                        smiles: "N[C@H]([C@@H](CC)C)C(=O)O",
+                    },
+                ],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "J",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "meso",
+                        ),
+                        smiles: "N[C@@H](CCC[C@@H](N)C(=O)O)C(=O)O",
+                    },
+                ],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "K",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CCCCN",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "L",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CC(C)(C)",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "M",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CCSC",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "N",
+                isomers: [],
+                stem: [],
+                lateral: Some(
+                    LateralKdl {
+                        use_isomer: Some(
+                            "D",
+                        ),
+                    },
+                ),
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CC(=O)N",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "O",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CCCN",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "P",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "L",
+                        ),
+                        smiles: "N1[C@@H](CCC1)C(=O)O",
+                    },
+                    IsomerKdl {
+                        name: Some(
+                            "D",
+                        ),
+                        smiles: "N1[C@H](CCC1)C(=O)O",
+                    },
+                ],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "Q",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "D-iso",
+                        ),
+                        smiles: "N[C@@H](C(=O)N)CCC(=O)O",
+                    },
+                ],
+                stem: [
+                    StemKdl {
+                        positions: [
+                            2,
+                        ],
+                        use_isomer: Some(
+                            "D-iso",
+                        ),
+                    },
+                ],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CCC(=O)N",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "R",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CCCNC(=N)N",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "S",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CO",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "T",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "L",
+                        ),
+                        smiles: "N[C@@H]([C@@H](C)O)C(=O)O",
+                    },
+                    IsomerKdl {
+                        name: Some(
+                            "D",
+                        ),
+                        smiles: "N[C@H]([C@H](C)O)C(=O)O",
+                    },
+                ],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "U",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "CCO",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "V",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "C(C)C",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "W",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "Cc1c2c(cccc2)nc1",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "Y",
+                isomers: [],
+                stem: [],
+                lateral: None,
+                bond_site: [],
+                template_values: [
+                    TemplateValueKdl {
+                        name: "sidechain",
+                        smiles: "Cc1ccc(O)cc1",
+                    },
+                ],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
+                abbr: "Z",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "L",
+                        ),
+                        smiles: "N[C@@H]([C@H](O)CC(=O)O)C(=O)O",
+                    },
+                    IsomerKdl {
+                        name: Some(
+                            "D",
+                        ),
+                        smiles: "N[C@H]([C@@H](O)CC(=O)O)C(=O)O",
+                    },
+                    IsomerKdl {
+                        name: Some(
+                            "D-iso",
+                        ),
+                        smiles: "N[C@@H](C(=O)O)[C@@H](O)CC(=O)O",
+                    },
+                ],
+                stem: [
+                    StemKdl {
+                        positions: [
+                            2,
+                        ],
+                        use_isomer: Some(
+                            "D-iso",
+                        ),
+                    },
+                ],
+                lateral: None,
+                bond_site: [],
+                template_values: [],
+            },
+        ],
+    },
+}

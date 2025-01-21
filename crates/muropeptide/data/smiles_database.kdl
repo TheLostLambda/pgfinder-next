@@ -1,0 +1,173 @@
+residues {
+	types {
+		Monosaccharide {
+			bond-site "O$" bond="Gly"
+		}
+
+	    AminoAcid {
+	    	// Template SMILES — the `sidechain` is inserted into this template (removing the `<>`)
+	    	isomer "L" "N[C@@H](<sidechain>)C(=O)O"
+	    	isomer "D" "N[C@H](<sidechain>)C(=O)O"
+
+	    	// Bonding site regex — the match is replaced by the acceptor-residue's SMILES
+	        bond-site "O$" bond="Pep"
+
+	        // Implicit stereoisomer selection rules — isomers are picked in order of definition unless a rule like
+	        // `stem` or `lateral` matches, then that `use=` isomer is picked
+	    	stem 4 5 use="D"
+	    }
+	}
+
+	Monosaccharide "g" {
+		// SMILES written starting at C4's OH, ending with C1's OH — this way, concatenating structures (removing one O)
+		// creates a 1-4 glycosidic linkage
+		isomer "β-D" "O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]1O"
+	}
+
+	Monosaccharide "m" {
+		isomer "β-D" "O[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(=O)O)[C@@H](NC(=O)C)[C@@H]1O"
+
+		// The `O` is lost from the MurNAc's lactyl group to form the peptide bond — use regex lookbehind to make sure that
+		// we're selecting the right `O`!
+		bond-site r"(?<=C\(=O\))O" bond="Stem"
+	}
+
+	AminoAcid "A" {
+		sidechain "C"
+	}
+
+	AminoAcid "B" {
+		sidechain "CCN"
+
+		// Type B2γ peptidoglycan from Fig 3 of https://doi.org/10.1099/00207713-48-2-403
+		lateral use="D"
+	}
+
+	AminoAcid "C" {
+		sidechain "CS"
+	}
+
+	AminoAcid "D" {
+		sidechain "CC(=O)O"
+
+		// By Steph's request
+		lateral use="D"
+	}
+
+	AminoAcid "E" {
+		sidechain "CCC(=O)O"
+
+		// Same a normal D isomer, but I've swapped the sidechain and `COOH` so bonds are made to the side-chain (which now
+		// comes last in the SMILES) — because of this swap, `@` must become `@@` to keep the overall same shape
+		isomer "D-iso" "N[C@@H](C(=O)O)CCC(=O)O"
+		stem 2 use="D-iso"
+	}
+
+	AminoAcid "F" {
+		sidechain "Cc1ccccc1"
+	}
+
+	AminoAcid "G" {
+		// Here, `null` is just a nameless "isomer" — it's always picked since the lack of `sidechain` means that the L and D
+		// isomers aren't defined
+		isomer null "NCC(=O)O"
+	}
+
+	AminoAcid "H" {
+		sidechain "Cc1nc[nH]c1"
+	}
+
+	AminoAcid "I" {
+		// Chirality requires the central carbon to have 4 different substituents, this is our first amino acid with another
+		// chiral center in the sidechain (so far all other sidechain carbons have had 2+ hydrogens). Importantly, the
+		// chirality of the L/D-isoleucine sidechains is *different*, so we need to manually give both isomers.
+		isomer "L" "N[C@@H]([C@H](CC)C)C(=O)O"
+		isomer "D" "N[C@H]([C@@H](CC)C)C(=O)O"
+	}
+
+	AminoAcid "J" {
+		// No `sidechain`, so no L and D forms...
+		isomer "meso" "N[C@@H](CCC[C@@H](N)C(=O)O)C(=O)O"
+	}
+
+	AminoAcid "K" {
+		sidechain "CCCCN"
+	}
+
+	AminoAcid "L" {
+		sidechain "CC(C)(C)"
+	}
+
+	AminoAcid "M" {
+		sidechain "CCSC"
+	}
+
+	AminoAcid "N" {
+		sidechain "CC(=O)N"
+
+		// By Steph's request
+		lateral use="D"
+	}
+
+	AminoAcid "O" {
+		sidechain "CCCN"
+	}
+
+	AminoAcid "P" {
+		// No `sidechain` since proline's sidechain loops back to the N-terminal — we'll need a different backbone
+		isomer "L" "N1[C@@H](CCC1)C(=O)O"
+		isomer "D" "N1[C@H](CCC1)C(=O)O"
+	}
+
+	AminoAcid "Q" {
+		sidechain "CCC(=O)N"
+
+		// Same a normal D isomer, but I've swapped the sidechain and `COOH` so bonds are made to the side-chain (which now
+		// comes last in the SMILES) — because of this swap, `@` must become `@@` to keep the overall same shape
+		isomer "D-iso" "N[C@@H](C(=O)N)CCC(=O)O"
+		stem 2 use="D-iso"
+	}
+
+	AminoAcid "R" {
+		sidechain "CCCNC(=N)N"
+	}
+
+	AminoAcid "S" {
+		sidechain "CO"
+	}
+
+	AminoAcid "T" {
+		// The stereochemistry here is evil — D-Threonine, has a change in the chirality of its sidechain (when compared to
+		// L-Threonine). Because the sidechain changes, we just need to give both isomers from scratch and forget about the
+		// templates (so no `sidechain` here)!
+		isomer "L" "N[C@@H]([C@@H](C)O)C(=O)O"
+		isomer "D" "N[C@H]([C@H](C)O)C(=O)O"
+	}
+
+	AminoAcid "U" {
+		sidechain "CCO"
+	}
+
+	AminoAcid "V" {
+		sidechain "C(C)C"
+	}
+
+	AminoAcid "W" {
+		sidechain "Cc1c2c(cccc2)nc1"
+	}
+
+	AminoAcid "Y" {
+		sidechain "Cc1ccc(O)cc1"
+	}
+
+	AminoAcid "Z" {
+		// Worst one yet... Connected through the γ-carbon like D-isoglutamic acid
+		// (https://doi.org/10.1128/br.36.4.407-477.1972; Fig 5), but also like threonine where the L and D forms have
+		// different sidechains (chirality-wise): https://doi.org/10.1002/jlac.199419940618
+		isomer "L" "N[C@@H]([C@H](O)CC(=O)O)C(=O)O"
+		isomer "D" "N[C@H]([C@@H](O)CC(=O)O)C(=O)O"
+		isomer "D-iso" "N[C@@H](C(=O)O)[C@@H](O)CC(=O)O"
+		stem 2 use="D-iso"
+	}
+}
+
