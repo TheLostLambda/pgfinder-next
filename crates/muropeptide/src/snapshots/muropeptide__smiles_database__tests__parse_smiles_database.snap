@@ -61,6 +61,15 @@ SmilesDatabaseKdl {
                         ),
                     },
                     BondSitesKdl {
+                        bond: "Lat-Link",
+                        donor: Some(
+                            "(\\(O\\))=O$",
+                        ),
+                        acceptor: Some(
+                            "^N()",
+                        ),
+                    },
+                    BondSitesKdl {
                         bond: "Stem",
                         donor: None,
                         acceptor: Some(
@@ -104,7 +113,7 @@ SmilesDatabaseKdl {
                     BondSitesKdl {
                         bond: "Stem",
                         donor: Some(
-                            "C(\\(O\\))=O",
+                            "(\\(O\\))=O",
                         ),
                         acceptor: None,
                     },
@@ -137,7 +146,22 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ),
-                bond_sites: [],
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "CToN",
+                        donor: None,
+                        acceptor: Some(
+                            "CN()",
+                        ),
+                    },
+                    BondSitesKdl {
+                        bond: "Link",
+                        donor: None,
+                        acceptor: Some(
+                            "CN()",
+                        ),
+                    },
+                ],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -171,11 +195,19 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ),
-                bond_sites: [],
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "NToC",
+                        donor: Some(
+                            "(\\(O\\))=O\\)",
+                        ),
+                        acceptor: None,
+                    },
+                ],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
-                        smiles: "CC(=O)O",
+                        smiles: "CC(O)=O",
                     },
                 ],
             },
@@ -187,7 +219,7 @@ SmilesDatabaseKdl {
                         name: Some(
                             "D-iso",
                         ),
-                        smiles: "N[C@@H](C(=O)O)CCC(O)=O",
+                        smiles: "N[C@@H](C(O)=O)CCC(O)=O",
                     },
                 ],
                 stem: [
@@ -201,11 +233,19 @@ SmilesDatabaseKdl {
                     },
                 ],
                 lateral: None,
-                bond_sites: [],
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "NToC",
+                        donor: Some(
+                            "(\\(O\\))=O\\)",
+                        ),
+                        acceptor: None,
+                    },
+                ],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
-                        smiles: "CCC(=O)O",
+                        smiles: "CCC(O)=O",
                     },
                 ],
             },
@@ -281,12 +321,34 @@ SmilesDatabaseKdl {
                         name: Some(
                             "meso",
                         ),
-                        smiles: "N[C@@H](CCC[C@@H](N)C(=O)O)C(O)=O",
+                        smiles: "N[C@@H](CCC[C@@H](N)C(O)=O)C(O)=O",
                     },
                 ],
                 stem: [],
                 lateral: None,
-                bond_sites: [],
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "NToC",
+                        donor: Some(
+                            "(\\(O\\))=O\\)",
+                        ),
+                        acceptor: None,
+                    },
+                    BondSitesKdl {
+                        bond: "CToN",
+                        donor: None,
+                        acceptor: Some(
+                            "\\(N\\)()",
+                        ),
+                    },
+                    BondSitesKdl {
+                        bond: "Link",
+                        donor: None,
+                        acceptor: Some(
+                            "\\(N\\)()",
+                        ),
+                    },
+                ],
                 template_values: [],
             },
             ResidueKdl {
@@ -295,7 +357,22 @@ SmilesDatabaseKdl {
                 isomers: [],
                 stem: [],
                 lateral: None,
-                bond_sites: [],
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "CToN",
+                        donor: None,
+                        acceptor: Some(
+                            "CN()",
+                        ),
+                    },
+                    BondSitesKdl {
+                        bond: "Link",
+                        donor: None,
+                        acceptor: Some(
+                            "CN()",
+                        ),
+                    },
+                ],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -343,7 +420,22 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ),
-                bond_sites: [],
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "CToN",
+                        donor: None,
+                        acceptor: Some(
+                            "\\(=O\\)N()",
+                        ),
+                    },
+                    BondSitesKdl {
+                        bond: "Link",
+                        donor: None,
+                        acceptor: Some(
+                            "\\(=O\\)N()",
+                        ),
+                    },
+                ],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -357,7 +449,22 @@ SmilesDatabaseKdl {
                 isomers: [],
                 stem: [],
                 lateral: None,
-                bond_sites: [],
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "CToN",
+                        donor: None,
+                        acceptor: Some(
+                            "CN()",
+                        ),
+                    },
+                    BondSitesKdl {
+                        bond: "Link",
+                        donor: None,
+                        acceptor: Some(
+                            "CN()",
+                        ),
+                    },
+                ],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -409,7 +516,22 @@ SmilesDatabaseKdl {
                     },
                 ],
                 lateral: None,
-                bond_sites: [],
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "CToN",
+                        donor: None,
+                        acceptor: Some(
+                            "\\(=O\\)N()",
+                        ),
+                    },
+                    BondSitesKdl {
+                        bond: "Link",
+                        donor: None,
+                        acceptor: Some(
+                            "\\(=O\\)N()",
+                        ),
+                    },
+                ],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",

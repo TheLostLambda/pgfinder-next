@@ -20,6 +20,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -47,6 +51,18 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "CToN": BondingRegexes(
+          donor: None,
+          acceptor: Some("CN()"),
+        ),
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
+        "Link": BondingRegexes(
+          donor: None,
+          acceptor: Some("CN()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -73,6 +89,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -87,11 +107,11 @@ SmilesDatabase(
       isomers: [
         Isomer(
           name: Some("L"),
-          smiles: "N[C@@H](CC(=O)O)C(O)=O",
+          smiles: "N[C@@H](CC(O)=O)C(O)=O",
         ),
         Isomer(
           name: Some("D"),
-          smiles: "N[C@H](CC(=O)O)C(O)=O",
+          smiles: "N[C@H](CC(O)=O)C(O)=O",
         ),
       ],
       isomer_rules: {
@@ -100,6 +120,14 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
+        "NToC": BondingRegexes(
+          donor: Some("(\\(O\\))=O\\)"),
+          acceptor: None,
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -114,15 +142,15 @@ SmilesDatabase(
       isomers: [
         Isomer(
           name: Some("L"),
-          smiles: "N[C@@H](CCC(=O)O)C(O)=O",
+          smiles: "N[C@@H](CCC(O)=O)C(O)=O",
         ),
         Isomer(
           name: Some("D"),
-          smiles: "N[C@H](CCC(=O)O)C(O)=O",
+          smiles: "N[C@H](CCC(O)=O)C(O)=O",
         ),
         Isomer(
           name: Some("D-iso"),
-          smiles: "N[C@@H](C(=O)O)CCC(O)=O",
+          smiles: "N[C@@H](C(O)=O)CCC(O)=O",
         ),
       ],
       isomer_rules: {
@@ -131,6 +159,14 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
+        "NToC": BondingRegexes(
+          donor: Some("(\\(O\\))=O\\)"),
+          acceptor: None,
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -157,6 +193,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -176,6 +216,10 @@ SmilesDatabase(
       ],
       isomer_rules: {},
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -202,6 +246,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -228,6 +276,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -242,11 +294,27 @@ SmilesDatabase(
       isomers: [
         Isomer(
           name: Some("meso"),
-          smiles: "N[C@@H](CCC[C@@H](N)C(=O)O)C(O)=O",
+          smiles: "N[C@@H](CCC[C@@H](N)C(O)=O)C(O)=O",
         ),
       ],
       isomer_rules: {},
       bond_sites: {
+        "CToN": BondingRegexes(
+          donor: None,
+          acceptor: Some("\\(N\\)()"),
+        ),
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
+        "Link": BondingRegexes(
+          donor: None,
+          acceptor: Some("\\(N\\)()"),
+        ),
+        "NToC": BondingRegexes(
+          donor: Some("(\\(O\\))=O\\)"),
+          acceptor: None,
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -273,6 +341,18 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "CToN": BondingRegexes(
+          donor: None,
+          acceptor: Some("CN()"),
+        ),
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
+        "Link": BondingRegexes(
+          donor: None,
+          acceptor: Some("CN()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -299,6 +379,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -325,6 +409,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -352,6 +440,18 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "CToN": BondingRegexes(
+          donor: None,
+          acceptor: Some("\\(=O\\)N()"),
+        ),
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
+        "Link": BondingRegexes(
+          donor: None,
+          acceptor: Some("\\(=O\\)N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -378,6 +478,18 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "CToN": BondingRegexes(
+          donor: None,
+          acceptor: Some("CN()"),
+        ),
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
+        "Link": BondingRegexes(
+          donor: None,
+          acceptor: Some("CN()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -404,6 +516,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -435,6 +551,18 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "CToN": BondingRegexes(
+          donor: None,
+          acceptor: Some("\\(=O\\)N()"),
+        ),
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
+        "Link": BondingRegexes(
+          donor: None,
+          acceptor: Some("\\(=O\\)N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -461,6 +589,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -487,6 +619,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -513,6 +649,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -539,6 +679,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -565,6 +709,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -591,6 +739,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -617,6 +769,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -648,6 +804,10 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
+        "Lat-Link": BondingRegexes(
+          donor: Some("(\\(O\\))=O$"),
+          acceptor: Some("^N()"),
+        ),
         "Pep": BondingRegexes(
           donor: Some("(\\(O\\))=O$"),
           acceptor: Some("^N()"),
@@ -687,7 +847,7 @@ SmilesDatabase(
           acceptor: Some("^O()"),
         ),
         "Stem": BondingRegexes(
-          donor: Some("C(\\(O\\))=O"),
+          donor: Some("(\\(O\\))=O"),
           acceptor: None,
         ),
       },

@@ -8,11 +8,11 @@ B(L): N[C@@H](CCN)C(O)=O
 B(D): N[C@H](CCN)C(O)=O
 C(L): N[C@@H](CS)C(O)=O
 C(D): N[C@H](CS)C(O)=O
-D(L): N[C@@H](CC(=O)O)C(O)=O
-D(D): N[C@H](CC(=O)O)C(O)=O
-E(L): N[C@@H](CCC(=O)O)C(O)=O
-E(D): N[C@H](CCC(=O)O)C(O)=O
-E(D-iso): N[C@@H](C(=O)O)CCC(O)=O
+D(L): N[C@@H](CC(O)=O)C(O)=O
+D(D): N[C@H](CC(O)=O)C(O)=O
+E(L): N[C@@H](CCC(O)=O)C(O)=O
+E(D): N[C@H](CCC(O)=O)C(O)=O
+E(D-iso): N[C@@H](C(O)=O)CCC(O)=O
 F(L): N[C@@H](Cc1ccccc1)C(O)=O
 F(D): N[C@H](Cc1ccccc1)C(O)=O
 G: NCC(O)=O
@@ -20,7 +20,7 @@ H(L): N[C@@H](Cc1nc[nH]c1)C(O)=O
 H(D): N[C@H](Cc1nc[nH]c1)C(O)=O
 I(L): N[C@@H]([C@H](CC)C)C(O)=O
 I(D): N[C@H]([C@@H](CC)C)C(O)=O
-J(meso): N[C@@H](CCC[C@@H](N)C(=O)O)C(O)=O
+J(meso): N[C@@H](CCC[C@@H](N)C(O)=O)C(O)=O
 K(L): N[C@@H](CCCCN)C(O)=O
 K(D): N[C@H](CCCCN)C(O)=O
 L(L): N[C@@H](CC(C)(C))C(O)=O

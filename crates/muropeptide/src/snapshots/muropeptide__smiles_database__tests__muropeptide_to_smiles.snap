@@ -4,7 +4,7 @@ expression: smiles
 ---
 O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O
 O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O
-N[C@@H](C)C3=O.N3[C@@H](C(=O)O)CCC3=O.N3[C@@H](CCC[C@@H](N)C(=O)O)C3=O.N3[C@H](C)C(O)=O
-O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C3=O.N3[C@@H](C(=O)O)CCC3=O.N3[C@@H](CCC[C@@H](N)C(=O)O)C3=O.N3[C@H](C)C(O)=O
+N[C@@H](C)C3=O.N3[C@@H](C(O)=O)CCC3=O.N3[C@@H](CCC[C@@H](N)C(O)=O)C3=O.N3[C@H](C)C(O)=O
+O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C3=O.N3[C@@H](C(O)=O)CCC3=O.N3[C@@H](CCC[C@@H](N)C(O)=O)C3=O.N3[C@H](C)C(O)=O
 O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C(O)=O
 O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C3=O.N3[C@@H](C(=O)N)CCC3=O.N3[C@@H](CCCCN)C3=O.N3[C@H](C)C3=O.N3[C@H](C)C(O)=O
