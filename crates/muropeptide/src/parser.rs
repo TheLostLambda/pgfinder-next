@@ -25,18 +25,10 @@ use polychem::{
 use thiserror::Error;
 
 use crate::{
-    AminoAcid, Connection, CrosslinkDescriptor, CrosslinkDescriptors, LateralChain, Monomer,
-    Monosaccharide, Muropeptide, PeptideDirection, Position, UnbranchedAminoAcid,
+    AminoAcid, CROSSLINK_BOND, CTON_BOND, Connection, CrosslinkDescriptor, CrosslinkDescriptors,
+    GLYCOSIDIC_BOND, LAT_CROSSLINK_BOND, LateralChain, Monomer, Monosaccharide, Muropeptide,
+    NTOC_BOND, PEPTIDE_BOND, PeptideDirection, Position, STEM_BOND, UnbranchedAminoAcid,
 };
-
-// FIXME: Need to think about if these should really live in another KDL config?
-const PEPTIDE_BOND: &str = "Pep";
-const GLYCOSIDIC_BOND: &str = "Gly";
-const STEM_BOND: &str = "Stem";
-const NTOC_BOND: &str = "NToC";
-const CTON_BOND: &str = "CToN";
-const CROSSLINK_BOND: &str = "Link";
-const LAT_CROSSLINK_BOND: &str = "Lat-Link";
 
 // FIXME: Paste all of these EBNF comments into another file and make sure they are valid!
 
@@ -297,8 +289,12 @@ fn amino_acid<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
 ) -> impl FnMut(&'s str) -> ParseResult<'s, AminoAcid> {
     let parser = pair(unbranched_amino_acid(polymer), opt(lateral_chain(polymer)));
-    map_res(parser, |(residue, lateral_chain)| {
-        if let Some(LateralChain { direction, peptide }) = &lateral_chain {
+    map_res(parser, |(residue, mut lateral_chain)| {
+        if let Some(LateralChain {
+            ref mut direction,
+            ref peptide,
+        }) = lateral_chain
+        {
             let c_to_n = || -> polychem::Result<_> {
                 polymer
                     .borrow_mut()
@@ -318,9 +314,14 @@ fn amino_acid<'c, 'a, 'p, 's>(
                 // FIXME: This default should be moved to a configuration file and not be hard-coded!
                 // FIXME: Furthermore, this should really return several possible polymers instead of picking one.
                 // That might end up being difficult to do inline with this parsing stuff...
-                // FIXME: If the peptide direction is initially unspecified, then I need to make sure that I update it
-                // after working out which of the bonding patterns work (for pretty-printing later)!
-                PeptideDirection::Unspecified => c_to_n().or_else(|_| n_to_c())?,
+                // FIXME: This feels like a really awful way to update `direction` — try to come up with something a bit nicer!
+                PeptideDirection::Unspecified => {
+                    *direction = PeptideDirection::CToN;
+                    c_to_n().or_else(|_| {
+                        *direction = PeptideDirection::NToC;
+                        n_to_c()
+                    })?
+                }
                 PeptideDirection::CToN => c_to_n()?,
                 PeptideDirection::NToC => n_to_c()?,
             };

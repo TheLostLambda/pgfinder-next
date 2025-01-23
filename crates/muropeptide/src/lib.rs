@@ -17,6 +17,15 @@ use polychem::{
 use smithereens::Dissociable;
 use thiserror::Error;
 
+// FIXME: Need to think about if these should really live in another KDL config?
+const PEPTIDE_BOND: &str = "Pep";
+const GLYCOSIDIC_BOND: &str = "Gly";
+const STEM_BOND: &str = "Stem";
+const NTOC_BOND: &str = "NToC";
+const CTON_BOND: &str = "CToN";
+const CROSSLINK_BOND: &str = "Link";
+const LAT_CROSSLINK_BOND: &str = "Lat-Link";
+
 // FIXME: These need more thought / are a temporary hack!
 static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
 pub static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
