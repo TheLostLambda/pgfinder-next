@@ -76,6 +76,20 @@ SmilesDatabaseKdl {
                             "^N()",
                         ),
                     },
+                    BondSitesKdl {
+                        bond: "CToN",
+                        donor: Some(
+                            "(\\(O\\))=O$",
+                        ),
+                        acceptor: None,
+                    },
+                    BondSitesKdl {
+                        bond: "NToC",
+                        donor: None,
+                        acceptor: Some(
+                            "^N()",
+                        ),
+                    },
                 ],
             },
         ],
@@ -338,14 +352,14 @@ SmilesDatabaseKdl {
                         bond: "CToN",
                         donor: None,
                         acceptor: Some(
-                            "\\(N\\)()",
+                            "\\(N()\\)",
                         ),
                     },
                     BondSitesKdl {
                         bond: "Link",
                         donor: None,
                         acceptor: Some(
-                            "\\(N\\)()",
+                            "\\(N()\\)",
                         ),
                     },
                 ],

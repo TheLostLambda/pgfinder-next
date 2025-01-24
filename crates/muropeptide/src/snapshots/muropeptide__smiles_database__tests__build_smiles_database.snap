@@ -20,18 +20,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "B": ResidueDescription(
@@ -51,26 +46,15 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "CToN": BondingRegexes(
-          donor: None,
-          acceptor: Some("CN()"),
-        ),
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Link": BondingRegexes(
-          donor: None,
-          acceptor: Some("CN()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("CToN"): "CN()",
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("Link"): "CN()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "C": ResidueDescription(
@@ -89,18 +73,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "D": ResidueDescription(
@@ -120,22 +99,14 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "NToC": BondingRegexes(
-          donor: Some("(\\(O\\))=O\\)"),
-          acceptor: None,
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("NToC"): "(\\(O\\))=O\\)",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "E": ResidueDescription(
@@ -159,22 +130,14 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "NToC": BondingRegexes(
-          donor: Some("(\\(O\\))=O\\)"),
-          acceptor: None,
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("NToC"): "(\\(O\\))=O\\)",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "F": ResidueDescription(
@@ -193,18 +156,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "G": ResidueDescription(
@@ -216,18 +174,13 @@ SmilesDatabase(
       ],
       isomer_rules: {},
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "H": ResidueDescription(
@@ -246,18 +199,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "I": ResidueDescription(
@@ -276,18 +224,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "J": ResidueDescription(
@@ -299,30 +242,16 @@ SmilesDatabase(
       ],
       isomer_rules: {},
       bond_sites: {
-        "CToN": BondingRegexes(
-          donor: None,
-          acceptor: Some("\\(N\\)()"),
-        ),
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Link": BondingRegexes(
-          donor: None,
-          acceptor: Some("\\(N\\)()"),
-        ),
-        "NToC": BondingRegexes(
-          donor: Some("(\\(O\\))=O\\)"),
-          acceptor: None,
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("CToN"): "\\(N()\\)",
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("Link"): "\\(N()\\)",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("NToC"): "(\\(O\\))=O\\)",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "K": ResidueDescription(
@@ -341,26 +270,15 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "CToN": BondingRegexes(
-          donor: None,
-          acceptor: Some("CN()"),
-        ),
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Link": BondingRegexes(
-          donor: None,
-          acceptor: Some("CN()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("CToN"): "CN()",
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("Link"): "CN()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "L": ResidueDescription(
@@ -379,18 +297,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "M": ResidueDescription(
@@ -409,18 +322,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "N": ResidueDescription(
@@ -440,26 +348,15 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "CToN": BondingRegexes(
-          donor: None,
-          acceptor: Some("\\(=O\\)N()"),
-        ),
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Link": BondingRegexes(
-          donor: None,
-          acceptor: Some("\\(=O\\)N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("CToN"): "\\(=O\\)N()",
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("Link"): "\\(=O\\)N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "O": ResidueDescription(
@@ -478,26 +375,15 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "CToN": BondingRegexes(
-          donor: None,
-          acceptor: Some("CN()"),
-        ),
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Link": BondingRegexes(
-          donor: None,
-          acceptor: Some("CN()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("CToN"): "CN()",
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("Link"): "CN()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "P": ResidueDescription(
@@ -516,18 +402,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "Q": ResidueDescription(
@@ -551,26 +432,15 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "CToN": BondingRegexes(
-          donor: None,
-          acceptor: Some("\\(=O\\)N()"),
-        ),
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Link": BondingRegexes(
-          donor: None,
-          acceptor: Some("\\(=O\\)N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("CToN"): "\\(=O\\)N()",
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("Link"): "\\(=O\\)N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "R": ResidueDescription(
@@ -589,18 +459,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "S": ResidueDescription(
@@ -619,18 +484,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "T": ResidueDescription(
@@ -649,18 +509,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "U": ResidueDescription(
@@ -679,18 +534,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "V": ResidueDescription(
@@ -709,18 +559,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "W": ResidueDescription(
@@ -739,18 +584,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "Y": ResidueDescription(
@@ -769,18 +609,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "Z": ResidueDescription(
@@ -804,18 +639,13 @@ SmilesDatabase(
         Stem(5): Some("D"),
       },
       bond_sites: {
-        "Lat-Link": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Pep": BondingRegexes(
-          donor: Some("(\\(O\\))=O$"),
-          acceptor: Some("^N()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: None,
-          acceptor: Some("^N()"),
-        ),
+        Acceptor("Lat-Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Lat-Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
       },
     ),
     "g": ResidueDescription(
@@ -827,10 +657,8 @@ SmilesDatabase(
       ],
       isomer_rules: {},
       bond_sites: {
-        "Gly": BondingRegexes(
-          donor: Some("(O)$"),
-          acceptor: Some("^O()"),
-        ),
+        Acceptor("Gly"): "^O()",
+        Donor("Gly"): "(O)$",
       },
     ),
     "m": ResidueDescription(
@@ -842,14 +670,9 @@ SmilesDatabase(
       ],
       isomer_rules: {},
       bond_sites: {
-        "Gly": BondingRegexes(
-          donor: Some("(O)$"),
-          acceptor: Some("^O()"),
-        ),
-        "Stem": BondingRegexes(
-          donor: Some("(\\(O\\))=O"),
-          acceptor: None,
-        ),
+        Acceptor("Gly"): "^O()",
+        Donor("Gly"): "(O)$",
+        Donor("Stem"): "(\\(O\\))=O",
       },
     ),
   },

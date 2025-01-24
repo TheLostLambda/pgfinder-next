@@ -7,7 +7,9 @@ use knuffel::Decode;
 use miette::{Result, miette};
 use regex::Regex;
 
-use crate::{GLYCOSIDIC_BOND, Muropeptide, PEPTIDE_BOND, STEM_BOND};
+use crate::{
+    CTON_BOND, GLYCOSIDIC_BOND, Muropeptide, NTOC_BOND, PEPTIDE_BOND, PeptideDirection, STEM_BOND,
+};
 
 // FIXME: Sort into section
 
@@ -45,13 +47,22 @@ pub struct ResidueDescription {
     // FIXME: By copying all of the shared rules into every single residue, we're wasting a massive amount of memory and
     // time compiling the same `Regex`es over and over again and storing them all independently. Think about just
     // storing references to a master list of rules somewhere?
+    #[cfg_attr(test, serde(serialize_with = "ser_bond_sites"))]
     bond_sites: BondSites,
+}
+
+// FIXME: Nasty and shouldn't live in this part of the file...
+// FIXME: Would this be cleaner using the `serde_with` crate?
+#[cfg(test)]
+fn ser_bond_sites<S: serde::Serializer>(value: &BondSites, ser: S) -> Result<S::Ok, S::Error> {
+    // Serializes `Regex` objects using their `Display` implementation
+    ser.collect_map(value.iter().map(|(k, v)| (k, v.to_string())))
 }
 
 // FIXME: This is another nasty short-cut... Won't be needed after we add these different isomers to the polymer
 // database — this is just a temporary data structure to store residue SMILES after isomer resolution, but before
 // bonding
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct SmilesResidue {
     // FIXME: Should probably also keep track of the isomer name, but I'm not investing that sort of energy into this
     // hack...
@@ -59,18 +70,50 @@ struct SmilesResidue {
     bond_sites: BondSites,
 }
 
+// FIXME: Vile copy-paste just to switch out the residue numbers (`UnbranchedAminoAcid`) for `SmilesResidue`...
+#[derive(Debug)]
+struct AminoAcid {
+    residue: SmilesResidue,
+    lateral_chain: Option<LateralChain>,
+}
+
+#[derive(Debug)]
+struct LateralChain {
+    direction: PeptideDirection,
+    peptide: Vec<SmilesResidue>,
+}
+
 impl SmilesResidue {
     // FIXME: `&str` should probably be something like `impl AsRef<str>`...
-    fn bond(&mut self, kind: &str, acceptor: &mut Self) {
-        // FIXME: This shouldn't be harccoded... I should have some dynamic way to pick an index value
-        let index = match kind {
+    // FIXME: Really really should not have that `index` argument... At least certainly not in the way it's currently
+    // implemented...
+    // FIXME: Going forward, I'll need delay bonding regex searches until all of the bonds to a residue are settled /
+    // determined (which is already the case if I were looking at the functional groups, by the way...), then I can
+    // loop through the residues in the order they will be printed to the SMILES string, and, importantly, then also get
+    // the order of each functional group in that residue, then I can keep a running tally as I move through each place
+    // in the whole string where an index needs to be inserted, so I always know (in string order) what the lowest free
+    // index is... Or another way to do this, don't insert these bonds in pairs at all — just go through one residue at
+    // a time, check it's functional groups for any bonds, then get the ID of the residue it's bonding to, and assign it
+    // the lowest free index value. Later on, when you come across the residue that has that ID, look up the index you
+    // assigned it earlier, then free that index back up for use!
+    fn bond(&mut self, kind: &str, acceptor: &mut Self, mut index: u8) {
+        // FIXME: This shouldn't be hardccoded... I should have some dynamic way to pick an index value
+        index += match kind {
             crate::GLYCOSIDIC_BOND => 2,
-            crate::PEPTIDE_BOND | crate::STEM_BOND => 3,
+            crate::STEM_BOND | crate::PEPTIDE_BOND => 3,
             crate::NTOC_BOND | crate::CTON_BOND => 4,
             crate::CROSSLINK_BOND | crate::LAT_CROSSLINK_BOND => 5,
             _ => panic!(),
-        }
-        .to_string();
+        };
+
+        let index = if index < 10 {
+            index.to_string()
+        } else if index < 100 {
+            format!("%{index}")
+        } else {
+            // FIXME: Don't panic...
+            panic!("index too large");
+        };
 
         let replace_capture = |re: &Regex, old, new| {
             // FIXME: The first `.unwrap()` is wrong here, but again should probably be checked for during validation — in
@@ -83,24 +126,10 @@ impl SmilesResidue {
             [prefix, new, suffix].concat()
         };
 
-        // FIXME: That indexing can probably fail / needs upstream validation...
-        let BondingRegexes {
-            donor: Some(donor_re),
-            ..
-        } = &self.bond_sites[kind]
-        else {
-            // FIXME: Obviously bad
-            panic!()
-        };
-
-        let BondingRegexes {
-            acceptor: Some(acceptor_re),
-            ..
-        } = &acceptor.bond_sites[kind]
-        else {
-            // FIXME: Obviously bad
-            panic!()
-        };
+        // FIXME: Really dumb and awful clone (in the form of `to_string()`)...
+        dbg!(&self, &acceptor, kind);
+        let donor_re = &self.bond_sites[&BondSite::Donor(kind.to_string())];
+        let acceptor_re = &acceptor.bond_sites[&BondSite::Acceptor(kind.to_string())];
 
         let donor_smiles = replace_capture(donor_re, &self.smiles, &index);
         let acceptor_smiles = replace_capture(acceptor_re, &acceptor.smiles, &index);
@@ -153,27 +182,11 @@ struct Isomer {
     smiles: String,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-struct BondingRegexes {
-    #[cfg_attr(test, serde(serialize_with = "ser_regex"))]
-    donor: Option<Regex>,
-    #[cfg_attr(test, serde(serialize_with = "ser_regex"))]
-    acceptor: Option<Regex>,
-}
-
-// FIXME: Nasty and shouldn't live in this part of the file...
-// FIXME: Would this be cleaner using the `serde_with` crate?
-#[cfg(test)]
-// NOTE: Serde expects this type to be `&T`, so `Option<&Regex>` isn't really an option here...
-#[allow(clippy::ref_option)]
-fn ser_regex<S: serde::Serializer>(value: &Option<Regex>, ser: S) -> Result<S::Ok, S::Error> {
-    // Serializes `Regex` objects using their `Display` implementation
-    if let Some(re) = value {
-        ser.serialize_some(re.as_str())
-    } else {
-        ser.serialize_none()
-    }
+enum BondSite {
+    Acceptor(BondKind),
+    Donor(BondKind),
 }
 
 // Private Types =======================================================================================================
@@ -183,7 +196,7 @@ type Residues = HashMap<String, ResidueDescription>;
 type Templates = Vec<(Placeholders, Isomer)>;
 type ResidueTypes = HashMap<String, ResidueTypeDescription>;
 type Placeholders = Vec<String>;
-type BondSites = HashMap<BondKind, BondingRegexes>;
+type BondSites = HashMap<BondSite, Regex>;
 type BondKind = String;
 type Isomers = Vec<Isomer>;
 type Smiles = String;
@@ -339,10 +352,13 @@ impl From<ResidueTypeKdl> for ResidueTypeEntry {
         let bond_sites: BondSites = value
             .bond_sites
             .into_iter()
-            .map(BondSitesEntry::try_from)
+            .map(BondSitesEntries::try_from)
             // FIXME: `.unwrap()` is obviously wrong here, but I cba to make it work right now
-            .collect::<Result<_, _>>()
-            .unwrap();
+            .collect::<Result<Vec<_>, _>>()
+            .unwrap()
+            .into_iter()
+            .flatten()
+            .collect();
         (value.name, ResidueTypeDescription {
             templates,
             isomer_rules,
@@ -351,8 +367,8 @@ impl From<ResidueTypeKdl> for ResidueTypeEntry {
     }
 }
 
-type BondSitesEntry = (BondKind, BondingRegexes);
-impl TryFrom<BondSitesKdl> for BondSitesEntry {
+type BondSitesEntries = Vec<(BondSite, Regex)>;
+impl TryFrom<BondSitesKdl> for BondSitesEntries {
     // FIXME: This should probably be wrapped in a more general error type?
     type Error = regex::Error;
 
@@ -368,12 +384,21 @@ impl TryFrom<BondSitesKdl> for BondSitesEntry {
             re.unwrap()
         };
 
-        let bonding_regexes = BondingRegexes {
-            donor: value.donor.map(build_and_validate_re),
-            acceptor: value.acceptor.map(build_and_validate_re),
-        };
-
-        Ok((value.bond, bonding_regexes))
+        // FIXME: Replace with iterators
+        let mut result = Self::new();
+        if let Some(re_str) = value.donor {
+            result.push((
+                BondSite::Donor(value.bond.clone()),
+                build_and_validate_re(re_str),
+            ));
+        }
+        if let Some(re_str) = value.acceptor {
+            result.push((
+                BondSite::Acceptor(value.bond),
+                build_and_validate_re(re_str),
+            ));
+        }
+        Ok(result)
     }
 }
 
@@ -473,7 +498,7 @@ impl<'t> ValidateInto<'t, ResidueEntry> for ResidueKdl {
         // FIXME: `.unwrap()` is obviously wrong
         let residue_bond_sites = bond_sites
             .into_iter()
-            .map(|b| BondSitesEntry::try_from(b).unwrap());
+            .flat_map(|b| BondSitesEntries::try_from(b).unwrap());
         let mut bond_sites = residue_type.bond_sites.clone();
         bond_sites.extend(residue_bond_sites);
 
@@ -544,34 +569,89 @@ impl SmilesDatabase {
             .map(|r| lookup_residue(r).smiles(Position::Other))
             .collect();
 
-        for i in 0..glycan.len().saturating_sub(1) {
-            // NOTE: I love Rust, but I fucking hate it sometimes... Yet another failing of the borrow-checker means
-            // that I need `split_at_mut()` just to mutate two *different* elements of a vector...
-            let (head, tail) = glycan.split_at_mut(i + 1);
-            let donor = &mut head[i];
-            let acceptor = &mut tail[0];
-            donor.bond(GLYCOSIDIC_BOND, acceptor);
-        }
+        bond_chain(GLYCOSIDIC_BOND, &mut glycan, 0);
 
         // Pick isomers for all of the residues
         let mut peptide: Vec<_> = iter::zip(1.., &monomer.peptide)
-            .map(|(i, aa)| lookup_residue(aa.residue).smiles(Position::Stem(i)))
+            .map(|(i, aa)| {
+                let residue = lookup_residue(aa.residue).smiles(Position::Stem(i));
+                let lateral_chain = aa.lateral_chain.as_ref().map(
+                    |&crate::LateralChain {
+                         direction,
+                         ref peptide,
+                     }| {
+                        let peptide = peptide
+                            .iter()
+                            .copied()
+                            .map(|r| lookup_residue(r).smiles(Position::Lateral))
+                            .collect();
+                        LateralChain { direction, peptide }
+                    },
+                );
+                AminoAcid {
+                    residue,
+                    lateral_chain,
+                }
+            })
             .collect();
 
         // Bond together stem residues
-        // FIXME: Would be nice to have `windows_mut` for this sort of thing...
-        // FIXME: This needs to be de-duplicated with glycan chain bonding...
         for i in 0..peptide.len().saturating_sub(1) {
+            // FIXME: Duplicated again with `bond_chain()`!
+            // FIXME: Would be nice to have `windows_mut` for this sort of thing...
             // TODO: Keep and eye on https://github.com/rust-lang/rust/pull/134633 for a better solution!
-            let [donor, acceptor] = &mut peptide[i..=i + 1] else {
+            let [
+                AminoAcid {
+                    residue: donor,
+                    lateral_chain,
+                },
+                AminoAcid {
+                    residue: acceptor, ..
+                },
+            ] = &mut peptide[i..=i + 1]
+            else {
                 unreachable!()
             };
-            donor.bond(PEPTIDE_BOND, acceptor);
+            donor.bond(PEPTIDE_BOND, acceptor, 0);
+            if let Some(lateral_chain) = lateral_chain {
+                match lateral_chain.direction {
+                    // FIXME: Really I should have a different enum for post-parsing that doesn't even have this
+                    // `Unspecified` value... Obviously I need to parse it, but after that it shouldn't exist!
+                    // FIXME: Hey, the smart thing to do there is to make it an `Option<PeptideDirection>` when parsing,
+                    // then I can unwrap that after it's been determined?
+                    PeptideDirection::Unspecified => panic!("This should be set during parsing!"),
+                    PeptideDirection::CToN => {
+                        // FIXME: Suspicious .unwrap()
+                        lateral_chain
+                            .peptide
+                            .first_mut()
+                            .unwrap()
+                            .bond(CTON_BOND, donor, 1);
+                        // FIXME: Don't like the mutation here
+                        let lateral_chain = lateral_chain.peptide.iter_mut().rev();
+                        bond_chain(PEPTIDE_BOND, lateral_chain, 1);
+                    }
+                    PeptideDirection::NToC => {
+                        // FIXME: Awful copy-paste from above!
+                        // FIXME: Suspicious .unwrap()
+                        donor.bond(NTOC_BOND, lateral_chain.peptide.first_mut().unwrap(), 1);
+                        // FIXME: Don't like the mutation here
+                        let lateral_chain = lateral_chain.peptide.iter_mut();
+                        bond_chain(PEPTIDE_BOND, lateral_chain, 1);
+                    }
+                }
+            }
         }
 
         // Bond glycan to stem
-        if let (Some(donor), Some(acceptor)) = (glycan.last_mut(), peptide.first_mut()) {
-            donor.bond(STEM_BOND, acceptor);
+        if let (
+            Some(donor),
+            Some(AminoAcid {
+                residue: acceptor, ..
+            }),
+        ) = (glycan.last_mut(), peptide.first_mut())
+        {
+            donor.bond(STEM_BOND, acceptor, 0);
         }
 
         // FIXME: Also nasty and repetitive...
@@ -579,9 +659,32 @@ impl SmilesDatabase {
             glycan
                 .into_iter()
                 .map(|sr| sr.smiles)
-                .chain(peptide.into_iter().map(|sr| sr.smiles))
+                .chain(peptide.into_iter().flat_map(|aa| {
+                    iter::once(aa.residue.smiles).chain(
+                        aa.lateral_chain
+                            .into_iter()
+                            .flat_map(|lc| lc.peptide.into_iter().map(|sr| sr.smiles)),
+                    )
+                }))
                 .join("."),
         )
+    }
+}
+
+// FIXME: Really shouldn't have that `lateral` argument!
+fn bond_chain<'a>(
+    kind: &str,
+    residues: impl IntoIterator<Item = &'a mut SmilesResidue>,
+    index: u8,
+) {
+    let mut residues: Vec<_> = residues.into_iter().collect();
+    for i in 0..residues.len().saturating_sub(1) {
+        // FIXME: Would be nice to have `windows_mut` for this sort of thing...
+        // TODO: Keep and eye on https://github.com/rust-lang/rust/pull/134633 for a better solution!
+        let [donor, acceptor] = &mut residues[i..=i + 1] else {
+            unreachable!()
+        };
+        donor.bond(kind, acceptor, index + u8::try_from(i % 2).unwrap());
     }
 }
 
@@ -678,7 +781,7 @@ mod tests {
         let db = SmilesDatabase::new("test_smiles_database.kdl", KDL).unwrap();
         let mut m = db.residues["m"].smiles(Position::Other);
         let mut l_ala = db.residues["A"].smiles(Position::Stem(1));
-        m.bond("Stem", &mut l_ala);
+        m.bond("Stem", &mut l_ala, 0);
         dbg!(format!("{}.{}", m.smiles, l_ala.smiles));
         panic!();
     }
@@ -688,11 +791,21 @@ mod tests {
     #[test]
     fn muropeptide_to_smiles() {
         let db = SmilesDatabase::new("test_smiles_database.kdl", KDL).unwrap();
-        let muropeptides = ["gm", "gmgm", "AEJA", "gm-AEJA", "gmgm-A", "gm-AQKAA"];
+        let muropeptides = [
+            "gm",
+            "gmgm",
+            "AEJA",
+            "gm-AEJA",
+            "gmgm-A",
+            "gm-AQKAA",
+            "gm-AQK[AA]AA",
+            "gm-AQ[GG]K[AA]AA",
+            "gm-AE[A]J[GG]A",
+        ];
         let smiles = muropeptides
             .map(|structure| {
                 let muropeptide = Muropeptide::new(&POLYMERIZER, structure).unwrap();
-                db.muropeptide_to_smiles(&muropeptide).unwrap()
+                db.muropeptide_to_smiles(dbg!(&muropeptide)).unwrap()
             })
             .join("\n");
         assert_snapshot!(smiles);

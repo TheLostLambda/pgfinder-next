@@ -21,6 +21,8 @@ residues {
 	        // FIXME: This is a sign that things are starting to go wrong... I should be using the functional group
 	        // abstraction!
 	        bond-sites "Stem" acceptor="^N()"
+	        bond-sites "CToN" donor=r"(\(O\))=O$"
+	        bond-sites "NToC" acceptor="^N()"
 
 	        // Implicit stereoisomer selection rules — isomers are picked in order of definition unless a rule like
 	        // `stem` or `lateral` matches, then that `use=` isomer is picked
@@ -117,8 +119,8 @@ residues {
 		isomer "meso" "N[C@@H](CCC[C@@H](N)C(O)=O)C(O)=O"
 
 		bond-sites "NToC" donor=r"(\(O\))=O\)"
-		bond-sites "CToN" acceptor=r"\(N\)()"
-		bond-sites "Link" acceptor=r"\(N\)()"
+		bond-sites "CToN" acceptor=r"\(N()\)"
+		bond-sites "Link" acceptor=r"\(N()\)"
 	}
 
 	AminoAcid "K" {

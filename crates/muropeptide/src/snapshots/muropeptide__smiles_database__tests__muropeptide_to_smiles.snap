@@ -3,8 +3,11 @@ source: crates/muropeptide/src/smiles_database.rs
 expression: smiles
 ---
 O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O
-O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O
+O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]13.O3[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O
 N[C@@H](C)C3=O.N3[C@@H](C(O)=O)CCC3=O.N3[C@@H](CCC[C@@H](N)C(O)=O)C3=O.N3[C@H](C)C(O)=O
 O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C3=O.N3[C@@H](C(O)=O)CCC3=O.N3[C@@H](CCC[C@@H](N)C(O)=O)C3=O.N3[C@H](C)C(O)=O
-O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C(O)=O
+O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]13.O3[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C(O)=O
 O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C3=O.N3[C@@H](C(=O)N)CCC3=O.N3[C@@H](CCCCN)C3=O.N3[C@H](C)C3=O.N3[C@H](C)C(O)=O
+O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C3=O.N3[C@@H](C(=O)N)CCC3=O.N3[C@@H](CCCCN5)C3=O.N4[C@@H](C)C5=O.N[C@@H](C)C4=O.N3[C@H](C)C3=O.N3[C@H](C)C(O)=O
+O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C3=O.N3[C@@H](C(=O)N5)CCC3=O.N4CC5=O.NCC4=O.N3[C@@H](CCCCN5)C3=O.N4[C@@H](C)C5=O.N[C@@H](C)C4=O.N3[C@H](C)C3=O.N3[C@H](C)C(O)=O
+O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]12.O2[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C3=O)[C@@H](NC(=O)C)[C@@H]1O.N3[C@@H](C)C3=O.N3[C@@H](C5=O)CCC3=O.N5[C@@H](C)C(O)=O.N3[C@@H](CCC[C@@H](N5)C(O)=O)C3=O.N4CC5=O.NCC4=O.N3[C@H](C)C(O)=O
