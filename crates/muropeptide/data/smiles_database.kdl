@@ -17,7 +17,7 @@ residues {
 	    	// `C1=O` instead. Aggravating, dumb, stupid even, but I'll obey for the sake of the widest possible compatibility
 	        bond-sites "Pep" donor=r"(\(O\))=O$" acceptor="^N()"
 	        // FIXME: This remains super dumb and is the fault of known shortcomings in the polymer database KDL format...
-	        bond-sites "Lat-Link" donor=r"(\(O\))=O$" acceptor="^N()"
+	        bond-sites "Link" donor=r"(\(O\))=O$" acceptor="^N()"
 	        // FIXME: This is a sign that things are starting to go wrong... I should be using the functional group
 	        // abstraction!
 	        bond-sites "Stem" acceptor="^N()"

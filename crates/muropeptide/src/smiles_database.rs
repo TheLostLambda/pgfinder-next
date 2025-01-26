@@ -5,10 +5,12 @@ use ahash::HashMap;
 use itertools::Itertools;
 use knuffel::Decode;
 use miette::{Result, miette};
+use polychem::Polymer;
 use regex::Regex;
 
 use crate::{
-    CTON_BOND, GLYCOSIDIC_BOND, Muropeptide, NTOC_BOND, PEPTIDE_BOND, PeptideDirection, STEM_BOND,
+    CROSSLINK_BOND, CTON_BOND, Connection, CrosslinkDescriptor, GLYCOSIDIC_BOND, Monomer,
+    Muropeptide, NTOC_BOND, PEPTIDE_BOND, PeptideDirection, STEM_BOND,
 };
 
 // FIXME: Sort into section
@@ -95,14 +97,23 @@ impl SmilesResidue {
     // index is... Or another way to do this, don't insert these bonds in pairs at all — just go through one residue at
     // a time, check it's functional groups for any bonds, then get the ID of the residue it's bonding to, and assign it
     // the lowest free index value. Later on, when you come across the residue that has that ID, look up the index you
-    // assigned it earlier, then free that index back up for use!
+    // assigned it earlier, then free that index back up for use! In even more detail, when you come across something
+    // like `Donor(id)`, then immediately check for `Acceptor(id)` in the `HashMap` (and visa versa — looking for
+    // `Donor(id)` when you come across `Acceptor(id)`; obviously those ids have to match — just index the map). If that
+    // key is present in the `HashMap`, then remove it, insert the stored SMILES ID into the string. If that key isn't
+    // already present, then scan the `HashMap::values()` for the lowest free index, and insert that key with the new
+    // lowest found index. This works because if we find something like `Donor(id)` on a group, then we *know* that the
+    // matching functional group will be `Acceptor(id)`, so we know exactly where to put away that SMILES index for
+    // later
     fn bond(&mut self, kind: &str, acceptor: &mut Self, mut index: u8) {
         // FIXME: This shouldn't be hardccoded... I should have some dynamic way to pick an index value
+        // FIXME: The number skipping is a hack because of the other code elsewhere that can modify the `index` and
+        // we need to avoid index collisions here...
         index += match kind {
-            crate::GLYCOSIDIC_BOND => 2,
-            crate::STEM_BOND | crate::PEPTIDE_BOND => 3,
-            crate::NTOC_BOND | crate::CTON_BOND => 4,
-            crate::CROSSLINK_BOND | crate::LAT_CROSSLINK_BOND => 5,
+            crate::GLYCOSIDIC_BOND => 10,
+            crate::STEM_BOND | crate::PEPTIDE_BOND => 20,
+            crate::NTOC_BOND | crate::CTON_BOND => 30,
+            crate::CROSSLINK_BOND => 40,
             _ => panic!(),
         };
 
@@ -127,7 +138,6 @@ impl SmilesResidue {
         };
 
         // FIXME: Really dumb and awful clone (in the form of `to_string()`)...
-        dbg!(&self, &acceptor, kind);
         let donor_re = &self.bond_sites[&BondSite::Donor(kind.to_string())];
         let acceptor_re = &acceptor.bond_sites[&BondSite::Acceptor(kind.to_string())];
 
@@ -550,32 +560,107 @@ impl From<LateralKdl> for RuleEntry {
 impl SmilesDatabase {
     // FIXME: Split this out into some sub-functions...
     fn muropeptide_to_smiles(&self, muropeptide: &Muropeptide) -> Option<Smiles> {
-        // FIXME: This needs to be removed, but I'll need elsewhere to decide when to return `None`!
-        if muropeptide.monomers.len() != 1 {
-            return None;
+        let mut monomers: Vec<_> = muropeptide
+            .monomers
+            .iter()
+            .map(|m| self.build_monomer(&muropeptide.polymer, m))
+            .collect::<Option<_>>()?;
+
+        assert_eq!(monomers.len() - 1, muropeptide.connections.len());
+
+        for i in 0..monomers.len() - 1 {
+            let connection = &muropeptide.connections[i];
+            let [left, right] = &mut monomers[i..=i + 1] else {
+                unreachable!();
+            };
+            match connection {
+                Connection::GlycosidicBond => {
+                    // FIXME: This is dreadful — that needs to be a struct with named fields...
+                    let (left_glycan, _) = left;
+                    let (right_glycan, _) = right;
+
+                    // SAFETY: If we made it this far, then the parser will have ensured that glycosidic bonds are only
+                    // between two non-empty glycan chains
+                    let donor = left_glycan.last_mut().unwrap();
+                    let acceptor = right_glycan.first_mut().unwrap();
+                    // FIXME: Yikes, bro, that index...
+                    donor.bond(GLYCOSIDIC_BOND, acceptor, 0);
+                }
+                Connection::Crosslink(crosslinks) => {
+                    // TODO: The parser doesn't allows multiply-crosslinked monomers yet
+                    assert_eq!(crosslinks.len(), 1);
+                    if let CrosslinkDescriptor::DonorAcceptor(l, r) = crosslinks[0] {
+                        // FIXME: This is dreadful — that needs to be a struct with named fields...
+                        let (_, left_stem) = left;
+                        let (_, right_stem) = right;
+
+                        // TODO: Currently I don't *think* my parser has any way for the end of a lateral chain to
+                        // donate a crosslink bond, so I'll only implement the lateral-chain logic for the acceptor for
+                        // now...
+                        let donor = &mut left_stem[l as usize - 1].residue;
+                        let acceptor = &mut right_stem[r as usize - 1];
+                        if let Some(LateralChain { peptide, .. }) = &mut acceptor.lateral_chain {
+                            donor.bond(CROSSLINK_BOND, peptide.last_mut().unwrap(), 0);
+                        } else {
+                            donor.bond(CROSSLINK_BOND, &mut acceptor.residue, 0);
+                        };
+                    } else {
+                        // TODO: The parser doesn't support different bonding directions yet
+                        todo!()
+                    }
+                }
+                // TODO: The parser doesn't yet support this, so don't bother trying to serialize it!
+                Connection::Both(_) => todo!(),
+            }
         }
 
-        let monomer = &muropeptide.monomers[0];
+        // FIXME: Also nasty and repetitive...
+        Some(
+            monomers
+                .into_iter()
+                .flat_map(|(glycan, peptide)| {
+                    glycan
+                        .into_iter()
+                        .map(|sr| sr.smiles)
+                        .chain(peptide.into_iter().flat_map(|aa| {
+                            iter::once(aa.residue.smiles).chain(
+                                aa.lateral_chain
+                                    .into_iter()
+                                    .flat_map(|lc| lc.peptide.into_iter().map(|sr| sr.smiles)),
+                            )
+                        }))
+                })
+                .join("."),
+        )
+    }
 
+    fn build_monomer(
+        &self,
+        polymer: &Polymer,
+        monomer: &Monomer,
+    ) -> Option<(Vec<SmilesResidue>, Vec<AminoAcid>)> {
         let lookup_residue = |id| {
-            let abbr = muropeptide.polymer.residue(id).unwrap().abbr();
-            self.residues.get(abbr).unwrap()
+            let residue = polymer.residue(id).unwrap();
+            if residue.offset_modifications().count() > 0 {
+                return None;
+            }
+            self.residues.get(residue.abbr())
         };
         // Get SMILES for glycan residues
         let mut glycan: Vec<_> = monomer
             .glycan
             .iter()
             .copied()
-            .map(|r| lookup_residue(r).smiles(Position::Other))
-            .collect();
+            .map(|r| lookup_residue(r).map(|sr| sr.smiles(Position::Other)))
+            .collect::<Option<_>>()?;
 
         bond_chain(GLYCOSIDIC_BOND, &mut glycan, 0);
 
         // Pick isomers for all of the residues
         let mut peptide: Vec<_> = iter::zip(1.., &monomer.peptide)
             .map(|(i, aa)| {
-                let residue = lookup_residue(aa.residue).smiles(Position::Stem(i));
-                let lateral_chain = aa.lateral_chain.as_ref().map(
+                let residue = lookup_residue(aa.residue)?.smiles(Position::Stem(i));
+                let lateral_chain = aa.lateral_chain.as_ref().and_then(
                     |&crate::LateralChain {
                          direction,
                          ref peptide,
@@ -583,17 +668,17 @@ impl SmilesDatabase {
                         let peptide = peptide
                             .iter()
                             .copied()
-                            .map(|r| lookup_residue(r).smiles(Position::Lateral))
-                            .collect();
-                        LateralChain { direction, peptide }
+                            .map(|r| lookup_residue(r).map(|sr| sr.smiles(Position::Lateral)))
+                            .collect::<Option<_>>()?;
+                        Some(LateralChain { direction, peptide })
                     },
                 );
-                AminoAcid {
+                Some(AminoAcid {
                     residue,
                     lateral_chain,
-                }
+                })
             })
-            .collect();
+            .collect::<Option<_>>()?;
 
         // Bond together stem residues
         for i in 0..peptide.len().saturating_sub(1) {
@@ -612,7 +697,7 @@ impl SmilesDatabase {
             else {
                 unreachable!()
             };
-            donor.bond(PEPTIDE_BOND, acceptor, 0);
+            donor.bond(PEPTIDE_BOND, acceptor, u8::try_from(i % 2).unwrap());
             if let Some(lateral_chain) = lateral_chain {
                 match lateral_chain.direction {
                     // FIXME: Really I should have a different enum for post-parsing that doesn't even have this
@@ -626,18 +711,18 @@ impl SmilesDatabase {
                             .peptide
                             .first_mut()
                             .unwrap()
-                            .bond(CTON_BOND, donor, 1);
+                            .bond(CTON_BOND, donor, 2);
                         // FIXME: Don't like the mutation here
-                        let lateral_chain = lateral_chain.peptide.iter_mut().rev();
-                        bond_chain(PEPTIDE_BOND, lateral_chain, 1);
+                        let lateral_chain2 = lateral_chain.peptide.iter_mut().rev();
+                        bond_chain(PEPTIDE_BOND, lateral_chain2, 2);
                     }
                     PeptideDirection::NToC => {
                         // FIXME: Awful copy-paste from above!
                         // FIXME: Suspicious .unwrap()
-                        donor.bond(NTOC_BOND, lateral_chain.peptide.first_mut().unwrap(), 1);
+                        donor.bond(NTOC_BOND, lateral_chain.peptide.first_mut().unwrap(), 2);
                         // FIXME: Don't like the mutation here
                         let lateral_chain = lateral_chain.peptide.iter_mut();
-                        bond_chain(PEPTIDE_BOND, lateral_chain, 1);
+                        bond_chain(PEPTIDE_BOND, lateral_chain, 2);
                     }
                 }
             }
@@ -654,20 +739,8 @@ impl SmilesDatabase {
             donor.bond(STEM_BOND, acceptor, 0);
         }
 
-        // FIXME: Also nasty and repetitive...
-        Some(
-            glycan
-                .into_iter()
-                .map(|sr| sr.smiles)
-                .chain(peptide.into_iter().flat_map(|aa| {
-                    iter::once(aa.residue.smiles).chain(
-                        aa.lateral_chain
-                            .into_iter()
-                            .flat_map(|lc| lc.peptide.into_iter().map(|sr| sr.smiles)),
-                    )
-                }))
-                .join("."),
-        )
+        // FIXME: Maybe that needs its own type...
+        Some((glycan, peptide))
     }
 }
 
@@ -801,11 +874,17 @@ mod tests {
             "gm-AQK[AA]AA",
             "gm-AQ[GG]K[AA]AA",
             "gm-AE[A]J[GG]A",
+            "gm-AEJA~gm-AEJ",
+            "gm-AEJA=gm-AEJ (4-3)",
+            "gm-AEJ=gm-AEJF (3-3)",
+            "gm-AQKA=gm-AQK[GGGGG]AA (4-3)",
+            "gm-AQK[GGGGG]AA",
         ];
         let smiles = muropeptides
             .map(|structure| {
                 let muropeptide = Muropeptide::new(&POLYMERIZER, structure).unwrap();
-                db.muropeptide_to_smiles(dbg!(&muropeptide)).unwrap()
+                let smiles = db.muropeptide_to_smiles(&muropeptide).unwrap();
+                format!("{structure}: {smiles}")
             })
             .join("\n");
         assert_snapshot!(smiles);

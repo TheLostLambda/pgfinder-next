@@ -61,7 +61,7 @@ SmilesDatabaseKdl {
                         ),
                     },
                     BondSitesKdl {
-                        bond: "Lat-Link",
+                        bond: "Link",
                         donor: Some(
                             "(\\(O\\))=O$",
                         ),
