@@ -45,9 +45,15 @@ impl<'a, 'p> Residue<'a, 'p> {
         self.name
     }
 
-    // FIXME: Should I have a version of this method that filters for named modifications?
     pub fn functional_groups(&self) -> impl Iterator<Item = (&FunctionalGroup<'p>, &GroupState)> {
         self.functional_groups.iter()
+    }
+
+    pub fn named_modifications(&self) -> impl Iterator<Item = ModificationId> {
+        self.functional_groups().filter_map(|(_, gs)| match gs {
+            GroupState::Modified(id) => Some(*id),
+            _ => None,
+        })
     }
 
     pub fn offset_modifications(&self) -> impl Iterator<Item = ModificationId> {
@@ -196,6 +202,26 @@ mod tests {
         let mut mods: Vec<_> = alanine.offset_modifications().collect();
         mods.sort_unstable();
         assert_eq!(mods, vec![ModificationId(0), ModificationId(1)]);
+    }
+
+    #[test]
+    fn named_modifications() {
+        let mut lysine = Residue::new(&POLYMER_DB, "K").unwrap();
+
+        // Populate some functional groups — including one with a named modification
+        lysine
+            .functional_groups
+            .insert(N_TERMINAL, GroupState::Acceptor(BondId(0)));
+        lysine
+            .functional_groups
+            .insert(C_TERMINAL, GroupState::Modified(ModificationId(0)));
+
+        // Add in an offset modification — ensuring it's not returned!
+        lysine.offset_modifications.insert(ModificationId(1));
+
+        let mut mods: Vec<_> = lysine.named_modifications().collect();
+        mods.sort_unstable();
+        assert_eq!(mods, vec![ModificationId(0)]);
     }
 
     #[test]
