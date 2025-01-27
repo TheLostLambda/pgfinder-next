@@ -649,7 +649,7 @@ impl From<LateralKdl> for RuleEntry {
 
 impl SmilesDatabase {
     // FIXME: Split this out into some sub-functions...
-    fn muropeptide_to_smiles(&self, muropeptide: &Muropeptide) -> Option<Smiles> {
+    pub fn muropeptide_to_smiles(&self, muropeptide: &Muropeptide) -> Option<Smiles> {
         let mut monomers: Vec<_> = muropeptide
             .monomers
             .iter()

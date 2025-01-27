@@ -14,6 +14,7 @@ use polychem::{
     AtomicDatabase, AverageMass, BondId, Charged, GroupState, Massive, ModificationInfo,
     MonoisotopicMass, Polymer, PolymerDatabase, Polymerizer, ResidueId, errors::PolychemError,
 };
+use smiles_database::SmilesDatabase;
 use smithereens::Dissociable;
 use thiserror::Error;
 
@@ -37,7 +38,17 @@ pub static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
     .unwrap()
 });
 
+// FIXME: This maybe shouldn't be here long term? Needs some thought...
 pub static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+
+// FIXME: This maybe shouldn't be here long term? Needs some thought...
+pub static SMILES_DB: Lazy<SmilesDatabase> = Lazy::new(|| {
+    SmilesDatabase::new(
+        "smiles_database.kdl",
+        include_str!("../data/smiles_database.kdl"),
+    )
+    .unwrap()
+});
 
 const AUTO_MODS: [&str; 1] = ["Red"];
 
