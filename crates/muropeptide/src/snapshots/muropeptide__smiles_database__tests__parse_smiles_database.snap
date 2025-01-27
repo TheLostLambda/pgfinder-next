@@ -21,6 +21,53 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ],
+                modifications: [
+                    ModificationKdl {
+                        abbr: "Ac",
+                        replace: Some(
+                            "\\)CO\\)\\[C@H",
+                        ),
+                        with: Some(
+                            ")COC(=O)C)[C@H",
+                        ),
+                        replacements: [],
+                    },
+                    ModificationKdl {
+                        abbr: "DeAc",
+                        replace: Some(
+                            "NC\\(=O\\)C",
+                        ),
+                        with: Some(
+                            "N",
+                        ),
+                        replacements: [],
+                    },
+                    ModificationKdl {
+                        abbr: "Poly",
+                        replace: Some(
+                            "\\)CO\\)\\[C@H",
+                        ),
+                        with: Some(
+                            ")COP(O)(O)=O)[C@H",
+                        ),
+                        replacements: [],
+                    },
+                    ModificationKdl {
+                        abbr: "Red",
+                        replace: None,
+                        with: None,
+                        replacements: [
+                            ReplaceKdl {
+                                replace: "1",
+                                with: "",
+                            },
+                            ReplaceKdl {
+                                replace: "\\[C@@H\\]O$",
+                                with: "CO",
+                            },
+                        ],
+                    },
+                ],
             },
             ResidueTypeKdl {
                 name: "AminoAcid",
@@ -91,6 +138,7 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ],
+                modifications: [],
             },
         ],
         residues: [
@@ -108,6 +156,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [],
             },
             ResidueKdl {
@@ -132,6 +181,33 @@ SmilesDatabaseKdl {
                         acceptor: None,
                     },
                 ],
+                modifications: [
+                    ModificationKdl {
+                        abbr: "Glyc",
+                        replace: Some(
+                            "=O\\)C",
+                        ),
+                        with: Some(
+                            "=O)CO",
+                        ),
+                        replacements: [],
+                    },
+                    ModificationKdl {
+                        abbr: "Anh",
+                        replace: None,
+                        with: None,
+                        replacements: [
+                            ReplaceKdl {
+                                replace: "$",
+                                with: "2",
+                            },
+                            ReplaceKdl {
+                                replace: "\\)CO\\)\\[C@H",
+                                with: ")C2)[C@H",
+                            },
+                        ],
+                    },
+                ],
                 template_values: [],
             },
             ResidueKdl {
@@ -141,6 +217,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -176,6 +253,7 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -190,6 +268,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -216,6 +295,18 @@ SmilesDatabaseKdl {
                             "(\\(O\\))=O\\)",
                         ),
                         acceptor: None,
+                    },
+                ],
+                modifications: [
+                    ModificationKdl {
+                        abbr: "Am",
+                        replace: Some(
+                            "O\\)=O\\)",
+                        ),
+                        with: Some(
+                            "N)=O)",
+                        ),
+                        replacements: [],
                     },
                 ],
                 template_values: [
@@ -256,6 +347,18 @@ SmilesDatabaseKdl {
                         acceptor: None,
                     },
                 ],
+                modifications: [
+                    ModificationKdl {
+                        abbr: "Am",
+                        replace: Some(
+                            "O\\)=O\\)",
+                        ),
+                        with: Some(
+                            "N)=O)",
+                        ),
+                        replacements: [],
+                    },
+                ],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -270,6 +373,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -289,6 +393,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [],
             },
             ResidueKdl {
@@ -298,6 +403,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -325,6 +431,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [],
             },
             ResidueKdl {
@@ -363,6 +470,18 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ],
+                modifications: [
+                    ModificationKdl {
+                        abbr: "Am",
+                        replace: Some(
+                            "O\\)=O\\)",
+                        ),
+                        with: Some(
+                            "N)=O)",
+                        ),
+                        replacements: [],
+                    },
+                ],
                 template_values: [],
             },
             ResidueKdl {
@@ -387,6 +506,7 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -401,6 +521,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -415,6 +536,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -450,6 +572,7 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -479,6 +602,7 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -506,6 +630,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [],
             },
             ResidueKdl {
@@ -546,6 +671,7 @@ SmilesDatabaseKdl {
                         ),
                     },
                 ],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -560,6 +686,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -574,6 +701,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -601,6 +729,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [],
             },
             ResidueKdl {
@@ -610,6 +739,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -624,6 +754,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -638,6 +769,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -652,6 +784,7 @@ SmilesDatabaseKdl {
                 stem: [],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [
                     TemplateValueKdl {
                         name: "sidechain",
@@ -694,6 +827,7 @@ SmilesDatabaseKdl {
                 ],
                 lateral: None,
                 bond_sites: [],
+                modifications: [],
                 template_values: [],
             },
         ],

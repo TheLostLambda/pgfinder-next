@@ -28,6 +28,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "B": ResidueDescription(
       isomers: [
@@ -55,6 +56,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "C": ResidueDescription(
       isomers: [
@@ -80,6 +82,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "D": ResidueDescription(
       isomers: [
@@ -106,6 +109,14 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("NToC"): "(\\(O\\))=O\\)",
         Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {
+        "Am": [
+          Modification(
+            replace: "O\\)=O\\)",
+            with: "N)=O)",
+          ),
+        ],
       },
     ),
     "E": ResidueDescription(
@@ -138,6 +149,14 @@ SmilesDatabase(
         Donor("NToC"): "(\\(O\\))=O\\)",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {
+        "Am": [
+          Modification(
+            replace: "O\\)=O\\)",
+            with: "N)=O)",
+          ),
+        ],
+      },
     ),
     "F": ResidueDescription(
       isomers: [
@@ -163,6 +182,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "G": ResidueDescription(
       isomers: [
@@ -181,6 +201,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "H": ResidueDescription(
       isomers: [
@@ -206,6 +227,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "I": ResidueDescription(
       isomers: [
@@ -231,6 +253,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "J": ResidueDescription(
       isomers: [
@@ -250,6 +273,14 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("NToC"): "(\\(O\\))=O\\)",
         Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {
+        "Am": [
+          Modification(
+            replace: "O\\)=O\\)",
+            with: "N)=O)",
+          ),
+        ],
       },
     ),
     "K": ResidueDescription(
@@ -277,6 +308,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "L": ResidueDescription(
       isomers: [
@@ -302,6 +334,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "M": ResidueDescription(
       isomers: [
@@ -327,6 +360,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "N": ResidueDescription(
       isomers: [
@@ -354,6 +388,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "O": ResidueDescription(
       isomers: [
@@ -380,6 +415,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "P": ResidueDescription(
       isomers: [
@@ -405,6 +441,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "Q": ResidueDescription(
       isomers: [
@@ -436,6 +473,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "R": ResidueDescription(
       isomers: [
@@ -461,6 +499,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "S": ResidueDescription(
       isomers: [
@@ -486,6 +525,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "T": ResidueDescription(
       isomers: [
@@ -511,6 +551,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "U": ResidueDescription(
       isomers: [
@@ -536,6 +577,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "V": ResidueDescription(
       isomers: [
@@ -561,6 +603,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "W": ResidueDescription(
       isomers: [
@@ -586,6 +629,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "Y": ResidueDescription(
       isomers: [
@@ -611,6 +655,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "Z": ResidueDescription(
       isomers: [
@@ -641,6 +686,7 @@ SmilesDatabase(
         Donor("Link"): "(\\(O\\))=O$",
         Donor("Pep"): "(\\(O\\))=O$",
       },
+      modifications: {},
     ),
     "g": ResidueDescription(
       isomers: [
@@ -653,6 +699,36 @@ SmilesDatabase(
       bond_sites: {
         Acceptor("Gly"): "^O()",
         Donor("Gly"): "(O)$",
+      },
+      modifications: {
+        "Ac": [
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")COC(=O)C)[C@H",
+          ),
+        ],
+        "DeAc": [
+          Modification(
+            replace: "NC\\(=O\\)C",
+            with: "N",
+          ),
+        ],
+        "Poly": [
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")COP(O)(O)=O)[C@H",
+          ),
+        ],
+        "Red": [
+          Modification(
+            replace: "1",
+            with: "",
+          ),
+          Modification(
+            replace: "\\[C@@H\\]O$",
+            with: "CO",
+          ),
+        ],
       },
     ),
     "m": ResidueDescription(
@@ -667,6 +743,52 @@ SmilesDatabase(
         Acceptor("Gly"): "^O()",
         Donor("Gly"): "(O)$",
         Donor("Stem"): "(\\(O\\))=O",
+      },
+      modifications: {
+        "Ac": [
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")COC(=O)C)[C@H",
+          ),
+        ],
+        "Anh": [
+          Modification(
+            replace: "$",
+            with: "2",
+          ),
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")C2)[C@H",
+          ),
+        ],
+        "DeAc": [
+          Modification(
+            replace: "NC\\(=O\\)C",
+            with: "N",
+          ),
+        ],
+        "Glyc": [
+          Modification(
+            replace: "=O\\)C",
+            with: "=O)CO",
+          ),
+        ],
+        "Poly": [
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")COP(O)(O)=O)[C@H",
+          ),
+        ],
+        "Red": [
+          Modification(
+            replace: "1",
+            with: "",
+          ),
+          Modification(
+            replace: "\\[C@@H\\]O$",
+            with: "CO",
+          ),
+        ],
       },
     ),
   },

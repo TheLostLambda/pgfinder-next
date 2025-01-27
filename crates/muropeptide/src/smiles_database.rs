@@ -5,7 +5,7 @@ use ahash::HashMap;
 use itertools::Itertools;
 use knuffel::Decode;
 use miette::{Result, miette};
-use polychem::Polymer;
+use polychem::{ModificationInfo, Polymer};
 use regex::Regex;
 
 use crate::{
@@ -41,7 +41,7 @@ impl SmilesDatabase {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct ResidueDescription {
     isomers: Isomers,
@@ -51,6 +51,7 @@ pub struct ResidueDescription {
     // storing references to a master list of rules somewhere?
     #[cfg_attr(test, serde(serialize_with = "ser_bond_sites"))]
     bond_sites: BondSites,
+    modifications: Modifications,
 }
 
 // FIXME: Nasty and shouldn't live in this part of the file...
@@ -70,6 +71,22 @@ struct SmilesResidue {
     // hack...
     smiles: Smiles,
     bond_sites: BondSites,
+}
+
+#[derive(Clone, Debug)]
+#[cfg_attr(test, derive(serde::Serialize))]
+struct Modification {
+    #[cfg_attr(test, serde(serialize_with = "ser_regex"))]
+    replace: Regex,
+    with: String,
+}
+
+// FIXME: Nasty and shouldn't live in this part of the file...
+// FIXME: Would this be cleaner using the `serde_with` crate?
+#[cfg(test)]
+fn ser_regex<S: serde::Serializer>(value: &Regex, ser: S) -> Result<S::Ok, S::Error> {
+    // Serializes `Regex` objects using their `Display` implementation
+    ser.serialize_str(value.as_str())
 }
 
 // FIXME: Vile copy-paste just to switch out the residue numbers (`UnbranchedAminoAcid`) for `SmilesResidue`...
@@ -182,6 +199,7 @@ struct ResidueTypeDescription {
     templates: Templates,
     isomer_rules: IsomerRules,
     bond_sites: BondSites,
+    modifications: Modifications,
 }
 
 // FIXME: This is the same as the Kdl schema version... Is it stupid to have this duplicated?
@@ -203,6 +221,7 @@ enum BondSite {
 
 type IsomerRules = HashMap<Position, IsomerName>;
 type Residues = HashMap<String, ResidueDescription>;
+type Modifications = HashMap<String, Vec<Modification>>;
 type Templates = Vec<(Placeholders, Isomer)>;
 type ResidueTypes = HashMap<String, ResidueTypeDescription>;
 type Placeholders = Vec<String>;
@@ -246,6 +265,8 @@ struct ResidueTypeKdl {
     lateral: Option<LateralKdl>,
     #[knuffel(children(name = "bond-sites"))]
     bond_sites: Vec<BondSitesKdl>,
+    #[knuffel(children(name = "modification"))]
+    modifications: Vec<ModificationKdl>,
 }
 
 #[derive(Debug, Decode)]
@@ -263,6 +284,8 @@ struct ResidueKdl {
     lateral: Option<LateralKdl>,
     #[knuffel(children(name = "bond-sites"))]
     bond_sites: Vec<BondSitesKdl>,
+    #[knuffel(children(name = "modification"))]
+    modifications: Vec<ModificationKdl>,
     // END DUPLICATION
     // FIXME: What the hell should I call these?
     #[knuffel(children)]
@@ -304,11 +327,32 @@ struct BondSitesKdl {
 }
 
 #[derive(Debug, Decode)]
+struct ModificationKdl {
+    #[knuffel(argument)]
+    abbr: String,
+    #[knuffel(property)]
+    replace: Option<String>,
+    #[knuffel(property)]
+    with: Option<String>,
+    #[knuffel(children(name = "replace"))]
+    replacements: Vec<ReplaceKdl>,
+}
+
+#[derive(Debug, Decode)]
 struct TemplateValueKdl {
     #[knuffel(node_name)]
     name: String,
     #[knuffel(argument)]
     smiles: String,
+}
+
+#[derive(Debug, Decode)]
+struct ReplaceKdl {
+    // FIXME: This is sorta duplicated from `ModificationKdl`?
+    #[knuffel(argument)]
+    replace: String,
+    #[knuffel(property)]
+    with: String,
 }
 
 // Contextual Validation Trait  ========================================================================================
@@ -369,10 +413,16 @@ impl From<ResidueTypeKdl> for ResidueTypeEntry {
             .into_iter()
             .flatten()
             .collect();
+        let modifications = value
+            .modifications
+            .into_iter()
+            .map(|m| ModificationEntry::try_from(m).unwrap())
+            .collect();
         (value.name, ResidueTypeDescription {
             templates,
             isomer_rules,
             bond_sites,
+            modifications,
         })
     }
 }
@@ -382,7 +432,7 @@ impl TryFrom<BondSitesKdl> for BondSitesEntries {
     // FIXME: This should probably be wrapped in a more general error type?
     type Error = regex::Error;
 
-    fn try_from(value: BondSitesKdl) -> std::result::Result<Self, Self::Error> {
+    fn try_from(value: BondSitesKdl) -> Result<Self, Self::Error> {
         let build_and_validate_re = |ref re_str: String| {
             let re = Regex::new(re_str);
             // NOTE: Needs exactly two "captures" — the implicit one representing the whole match, then the single capture
@@ -469,6 +519,7 @@ impl<'t> ValidateInto<'t, ResidueEntry> for ResidueKdl {
             stem,
             lateral,
             bond_sites,
+            modifications,
         } = self;
 
         // FIXME: Placeholder error type — replace with something informative!
@@ -512,6 +563,15 @@ impl<'t> ValidateInto<'t, ResidueEntry> for ResidueKdl {
         let mut bond_sites = residue_type.bond_sites.clone();
         bond_sites.extend(residue_bond_sites);
 
+        // FIXME: With this duplication, maybe I should also abstract out this pattern...
+        // Merge `modifications` from `residue_type`
+        // FIXME: `.unwrap()` is wrong...
+        let residue_modifications = modifications
+            .into_iter()
+            .map(|m| ModificationEntry::try_from(m).unwrap());
+        let mut modifications = residue_type.modifications.clone();
+        modifications.extend(residue_modifications);
+
         // And remove any those don't have a corresponding isomer
         isomer_rules.retain(|_, target| isomers.iter().any(|Isomer { name, .. }| name == target));
 
@@ -519,7 +579,37 @@ impl<'t> ValidateInto<'t, ResidueEntry> for ResidueKdl {
             isomers,
             isomer_rules,
             bond_sites,
+            modifications,
         }))
+    }
+}
+
+type ModificationEntry = (String, Vec<Modification>);
+impl TryFrom<ModificationKdl> for ModificationEntry {
+    type Error = regex::Error;
+
+    fn try_from(value: ModificationKdl) -> Result<Self, Self::Error> {
+        let modifications = if let ModificationKdl {
+            replace: Some(replace),
+            with: Some(with),
+            ..
+        } = value
+        {
+            let replace = Regex::new(&replace)?;
+            vec![Modification { replace, with }]
+        } else {
+            value
+                .replacements
+                .into_iter()
+                .map(|r| {
+                    let replace = Regex::new(&r.replace)?;
+                    let with = r.with;
+                    // FIXME: Probably a better way, but maybe I'll just need to wait for try blocks...
+                    Ok(Modification { replace, with })
+                })
+                .collect::<Result<_, _>>()?
+        };
+        Ok((value.abbr, modifications))
     }
 }
 
@@ -644,7 +734,30 @@ impl SmilesDatabase {
             if residue.offset_modifications().count() > 0 {
                 return None;
             }
-            self.residues.get(residue.abbr())
+
+            // FIXME: The fact this needs to be mutable is very upsetting
+            let mut residue_description = self.residues.get(residue.abbr())?.clone();
+
+            // FIXME: This is awful... I should really really have the isomer picked before applying the modifications,
+            // but this will have to do for now (even though it's a bunch of wasteful computation)... And after these
+            // modifications have been applied, there is no need to keep that field around in `ResidueDescription`!
+            for id in residue.named_modifications() {
+                let ModificationInfo::Named(modification, _) = polymer.modification(id).unwrap()
+                else {
+                    unreachable!()
+                };
+                let modifications = residue_description
+                    .modifications
+                    .get_mut(modification.abbr())?;
+                for Modification { replace, with } in modifications {
+                    // FIXME: This is the worst part of all of this...
+                    for Isomer { smiles, .. } in &mut residue_description.isomers {
+                        *smiles = replace.replace_all(smiles, with.as_str()).into_owned();
+                    }
+                }
+            }
+
+            Some(residue_description)
         };
         // Get SMILES for glycan residues
         let mut glycan: Vec<_> = monomer
@@ -799,7 +912,7 @@ mod tests {
         let db = SmilesDatabase::new("test_smiles_database.kdl", KDL).unwrap();
         assert_ron_snapshot!(db, {
             ".residues" => insta::sorted_redaction(),
-            ".**.isomer_rules, .**.bond_sites" => insta::sorted_redaction(),
+            ".**.isomer_rules, .**.bond_sites, .**.modifications" => insta::sorted_redaction(),
         });
     }
 
@@ -879,6 +992,25 @@ mod tests {
             "gm-AEJ=gm-AEJF (3-3)",
             "gm-AQKA=gm-AQK[GGGGG]AA (4-3)",
             "gm-AQK[GGGGG]AA",
+            "g(Ac)m(Anh)-AQK[SSA]A=gm-AQK[SSA]AA (4-3)",
+            "g",
+            "g(Ac)",
+            "g(DeAc)",
+            "g(Ac, DeAc)",
+            "g(Poly)",
+            "g(Poly, DeAc)",
+            "m(Ac)",
+            "m(DeAc)",
+            "m(Ac, DeAc)",
+            "m(Poly)",
+            "m(Poly, DeAc)",
+            "m(Glyc)",
+            "m(Poly, Glyc)",
+            "m(Anh)",
+            "m(Anh, DeAc)",
+            "D(Am)",
+            "E(Am)",
+            "J(Am)",
         ];
         let smiles = muropeptides
             .map(|structure| {

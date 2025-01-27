@@ -2,6 +2,17 @@ residues {
 	types {
 		Monosaccharide {
 			bond-sites "Gly" donor="(O)$" acceptor="^O()"
+
+			// FIXME: I should make this like `bond-sites`, where only a capture group is replaced — that way I can give less
+			// verbose `with=` strings...
+			modification "Ac" replace=r"\)CO\)\[C@H" with=")COC(=O)C)[C@H"
+			modification "DeAc" replace=r"NC\(=O\)C" with="N"
+			modification "Poly" replace=r"\)CO\)\[C@H" with=")COP(O)(O)=O)[C@H"
+			modification "Red" {
+				replace "1" with=""
+				// FIXME: With only two non-H substituents, the carbon is no longer chiral!
+				replace r"\[C@@H\]O$" with="CO"
+			}
 		}
 
 	    AminoAcid {
@@ -42,6 +53,14 @@ residues {
 		// The `O` is lost from the MurNAc's lactyl group to form the peptide bond — the captured regex group is the one lost
 		// and replaced with a link during bonding
 		bond-sites "Stem" donor=r"(\(O\))=O"
+
+		modification "Glyc" replace=r"=O\)C" with="=O)CO"
+		// NOTE: Sometimes you'll need to perform several small modifications — we avoid trying to match and replace large
+		// sections of the string so that this modification doesn't overwrite any others!
+		modification "Anh" {
+			replace "$" with="2"
+			replace r"\)CO\)\[C@H" with=")C2)[C@H"
+		}
 	}
 
 	AminoAcid "A" {
@@ -79,6 +98,8 @@ residues {
 		lateral use="D"
 
 		bond-sites "NToC" donor=r"(\(O\))=O\)"
+
+		modification "Am" replace=r"O\)=O\)" with="N)=O)"
 	}
 
 	AminoAcid "E" {
@@ -90,6 +111,8 @@ residues {
 		stem 2 use="D-iso"
 
 		bond-sites "NToC" donor=r"(\(O\))=O\)"
+
+		modification "Am" replace=r"O\)=O\)" with="N)=O)"
 	}
 
 	AminoAcid "F" {
@@ -121,6 +144,8 @@ residues {
 		bond-sites "NToC" donor=r"(\(O\))=O\)"
 		bond-sites "CToN" acceptor=r"\(N()\)"
 		bond-sites "Link" acceptor=r"\(N()\)"
+
+		modification "Am" replace=r"O\)=O\)" with="N)=O)"
 	}
 
 	AminoAcid "K" {
