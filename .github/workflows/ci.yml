@@ -56,7 +56,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@beta
         # TODO: Remove this when moving back to `stable`
         with:
-          components: rustfmt
+          components: rustfmt, clippy
 
       - run: just lint
 
