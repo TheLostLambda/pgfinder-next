@@ -9,7 +9,7 @@ ahash = "0.8.11"
 derive_more = { version = "1.0.0", features = ["full"] }
 getrandom = { version = "0.2.14", features = ["js"] }
 itertools = "0.13.0"
-knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
+knuffel = { git = "https://github.com/TheLostLambda/knus.git", branch = "tll-fork" }
 # miette = "7.2.0"
 miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"

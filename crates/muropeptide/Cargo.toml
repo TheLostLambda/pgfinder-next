@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 itertools = "0.13.0"
 # miette = "7.2.0"
-knuffel = { git = "https://github.com/TheLostLambda/knuffel.git" }
+knuffel = { git = "https://github.com/TheLostLambda/knus.git", branch = "tll-fork" }
 miette = { git = "https://github.com/TheLostLambda/miette" }
 nom = "7.1.3"
 nom-miette = { path = "../nom-miette" }
