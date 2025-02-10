@@ -308,10 +308,11 @@ struct StemKdl {
     // by `console`, added by `insta`. When that crate is included, since it provides:
     // `impl FromIterator<encode_unicode::utf8_char::Utf8Char> for Vec<u8>`, Rust gets confused and the `Decode` derive
     // macro of `knuffel` is broken. Rust can't choose between that impl and `impl<T> FromIterator<T> for Vec<T>`,
-    // which it should be using. That's why this is a u16 instead of a u8 — it dodges this particular instance of the
-    // issue without requiring me to make some likely very complex fixes in `knuffel`...
+    // which it should be using. That's why this is a u32 instead of a u8 — it dodges this particular instance of the
+    // issue without requiring me to make some likely very complex fixes in `knuffel`... Note you can't use u16 either,
+    // since Windows has a 16-bit unicode version too...
     #[knuffel(arguments)]
-    positions: Vec<u16>,
+    positions: Vec<u32>,
     #[knuffel(property(name = "use"))]
     use_isomer: IsomerName,
 }
