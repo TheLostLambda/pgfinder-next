@@ -304,8 +304,14 @@ struct IsomerKdl {
 
 #[derive(Debug, Decode)]
 struct StemKdl {
+    // FIXME: This is hiding a god-awful hack — on x86_64-pc-windows-msvc, `encoder_unicode` is added as a dependency
+    // by `console`, added by `insta`. When that crate is included, since it provides:
+    // `impl FromIterator<encode_unicode::utf8_char::Utf8Char> for Vec<u8>`, Rust gets confused and the `Decode` derive
+    // macro of `knuffel` is broken. Rust can't choose between that impl and `impl<T> FromIterator<T> for Vec<T>`,
+    // which it should be using. That's why this is a u16 instead of a u8 — it dodges this particular instance of the
+    // issue without requiring me to make some likely very complex fixes in `knuffel`...
     #[knuffel(arguments)]
-    positions: Vec<StemPosition>,
+    positions: Vec<u16>,
     #[knuffel(property(name = "use"))]
     use_isomer: IsomerName,
 }
@@ -418,12 +424,15 @@ impl From<ResidueTypeKdl> for ResidueTypeEntry {
             .into_iter()
             .map(|m| ModificationEntry::try_from(m).unwrap())
             .collect();
-        (value.name, ResidueTypeDescription {
-            templates,
-            isomer_rules,
-            bond_sites,
-            modifications,
-        })
+        (
+            value.name,
+            ResidueTypeDescription {
+                templates,
+                isomer_rules,
+                bond_sites,
+                modifications,
+            },
+        )
     }
 }
 
@@ -575,12 +584,15 @@ impl<'t> ValidateInto<'t, ResidueEntry> for ResidueKdl {
         // And remove any those don't have a corresponding isomer
         isomer_rules.retain(|_, target| isomers.iter().any(|Isomer { name, .. }| name == target));
 
-        Ok((abbr, ResidueDescription {
-            isomers,
-            isomer_rules,
-            bond_sites,
-            modifications,
-        }))
+        Ok((
+            abbr,
+            ResidueDescription {
+                isomers,
+                isomer_rules,
+                bond_sites,
+                modifications,
+            },
+        ))
     }
 }
 
@@ -634,7 +646,13 @@ impl From<StemKdl> for RuleEntries {
         value
             .positions
             .into_iter()
-            .map(|p| (Position::Stem(p), value.use_isomer.clone()))
+            // FIXME: See the horrific FIXME in `StemKdl`
+            .map(|p| {
+                (
+                    Position::Stem(p.try_into().unwrap()),
+                    value.use_isomer.clone(),
+                )
+            })
             .collect()
     }
 }

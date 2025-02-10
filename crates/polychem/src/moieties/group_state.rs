@@ -4,12 +4,16 @@ use crate::GroupState;
 
 impl Display for GroupState {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", match self {
-            Self::Free => "free",
-            Self::Modified(..) => "modified",
-            Self::Donor(..) => "a donor",
-            Self::Acceptor(..) => "an acceptor",
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Free => "free",
+                Self::Modified(..) => "modified",
+                Self::Donor(..) => "a donor",
+                Self::Acceptor(..) => "an acceptor",
+            }
+        )
     }
 }
 
@@ -27,12 +31,15 @@ mod tests {
             GroupState::Donor(BondId(0)),
             GroupState::Acceptor(BondId(0)),
         ];
-        assert_eq!(states.map(|gs| gs.to_string()), [
-            "free".to_owned(),
-            "modified".to_owned(),
-            "a donor".to_owned(),
-            "an acceptor".to_owned()
-        ]);
+        assert_eq!(
+            states.map(|gs| gs.to_string()),
+            [
+                "free".to_owned(),
+                "modified".to_owned(),
+                "a donor".to_owned(),
+                "an acceptor".to_owned()
+            ]
+        );
     }
 
     #[test]

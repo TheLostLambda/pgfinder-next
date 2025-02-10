@@ -192,11 +192,14 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
         };
 
         let polymer = polymer.into_inner();
-        Ok((rest, Muropeptide {
-            polymer,
-            monomers,
-            connections,
-        }))
+        Ok((
+            rest,
+            Muropeptide {
+                polymer,
+                monomers,
+                connections,
+            },
+        ))
     }
 }
 

@@ -287,10 +287,13 @@ impl From<IsotopeKdl> for IsotopeEntry {
             abundance,
         }: IsotopeKdl,
     ) -> Self {
-        (MassNumber(mass_number.0), Isotope {
-            relative_mass: Mass(relative_mass.0),
-            abundance: abundance.map(|a| Abundance(a.0)),
-        })
+        (
+            MassNumber(mass_number.0),
+            Isotope {
+                relative_mass: Mass(relative_mass.0),
+                abundance: abundance.map(|a| Abundance(a.0)),
+            },
+        )
     }
 }
 
@@ -305,11 +308,14 @@ impl From<ParticleKdl> for ParticleEntry {
             charge,
         }: ParticleKdl,
     ) -> Self {
-        (symbol.0, ParticleDescription {
-            name,
-            mass: Mass(mass.0),
-            charge: Charge(charge),
-        })
+        (
+            symbol.0,
+            ParticleDescription {
+                name,
+                mass: Mass(mass.0),
+                charge: Charge(charge),
+            },
+        )
     }
 }
 

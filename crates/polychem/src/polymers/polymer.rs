@@ -761,21 +761,17 @@ mod tests {
     fn new_residue() {
         let mut polymer = POLYMERIZER.new_polymer();
         let residues = STEM_RESIDUES.map(|abbr| polymer.new_residue(abbr).unwrap());
-        assert_eq!(residues, [
-            ResidueId(0),
-            ResidueId(1),
-            ResidueId(2),
-            ResidueId(3)
-        ]);
+        assert_eq!(
+            residues,
+            [ResidueId(0), ResidueId(1), ResidueId(2), ResidueId(3)]
+        );
         assert_polymer!(polymer, 515.24387164950, 515.51342919034656875);
 
         let more_residues = STEM_RESIDUES.map(|abbr| polymer.new_residue(abbr).unwrap());
-        assert_eq!(more_residues, [
-            ResidueId(4),
-            ResidueId(5),
-            ResidueId(6),
-            ResidueId(7)
-        ]);
+        assert_eq!(
+            more_residues,
+            [ResidueId(4), ResidueId(5), ResidueId(6), ResidueId(7)]
+        );
         assert_polymer!(polymer, 1030.48774329900, 1031.02685838069313750);
 
         let residue_refs = residues.map(|id| polymer.residue(id).unwrap());
@@ -954,12 +950,10 @@ mod tests {
 
         // Then actually build a full chain (3 bonds for 4 residues)
         let (polymer, residues, bonds) = bond_chain!("Pep", &STEM_RESIDUES).unwrap();
-        assert_eq!(residues, vec![
-            ResidueId(0),
-            ResidueId(1),
-            ResidueId(2),
-            ResidueId(3)
-        ]);
+        assert_eq!(
+            residues,
+            vec![ResidueId(0), ResidueId(1), ResidueId(2), ResidueId(3)]
+        );
         assert_eq!(bonds, vec![BondId(4), BondId(5), BondId(6)]);
         assert_polymer!(polymer, 461.21217759741, 461.46756989305707095);
         assert_ron_snapshot!(polymer, {
@@ -1201,11 +1195,10 @@ mod tests {
         let moved_triple_calcium = polymer
             .localize_modification(triple_calcium, murnac)
             .unwrap();
-        assert_eq!(moved_triple_calcium, vec![
-            ModificationId(4),
-            ModificationId(5),
-            ModificationId(6)
-        ]);
+        assert_eq!(
+            moved_triple_calcium,
+            vec![ModificationId(4), ModificationId(5), ModificationId(6)]
+        );
         assert_eq!(polymer.modification(triple_calcium), None);
         assert_polymer!(
             polymer,
@@ -1392,11 +1385,10 @@ mod tests {
         assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
 
         let modification_ids = polymer.modify_only_groups("Met", murnac, 3).unwrap();
-        assert_eq!(modification_ids, vec![
-            ModificationId(1),
-            ModificationId(2),
-            ModificationId(3)
-        ]);
+        assert_eq!(
+            modification_ids,
+            vec![ModificationId(1), ModificationId(2), ModificationId(3)]
+        );
         assert_polymer!(polymer, 335.15801676674, 335.35076401167994095);
         let hydroxyl_groups = [
             FunctionalGroup::new("Hydroxyl", "Reducing End"),
@@ -1419,12 +1411,15 @@ mod tests {
         assert_polymer!(polymer, 293.11106657336, 293.27091179713952985);
 
         let modification_ids = polymer.modify_only_groups("Ca", murnac, 4).unwrap();
-        assert_eq!(modification_ids, vec![
-            ModificationId(5),
-            ModificationId(6),
-            ModificationId(7),
-            ModificationId(8)
-        ]);
+        assert_eq!(
+            modification_ids,
+            vec![
+                ModificationId(5),
+                ModificationId(6),
+                ModificationId(7),
+                ModificationId(8)
+            ]
+        );
         assert_polymer!(
             polymer,
             448.927935519603480,
@@ -1438,10 +1433,10 @@ mod tests {
         let alanine = polymer.new_residue("A").unwrap();
         assert_polymer!(polymer, 89.04767846918, 89.09330602867854225);
         let modification_ids = polymer.modify_only_groups("Ca", alanine, 2).unwrap();
-        assert_eq!(modification_ids, vec![
-            ModificationId(10),
-            ModificationId(11)
-        ]);
+        assert_eq!(
+            modification_ids,
+            vec![ModificationId(10), ModificationId(11)]
+        );
         assert_polymer!(
             polymer,
             166.956112942301740,
@@ -1454,11 +1449,10 @@ mod tests {
         polymer.remove_residue(alanine);
         let murnac = polymer.new_residue("m").unwrap();
         let modification_ids = polymer.modify_only_groups("Met", murnac, 3).unwrap();
-        assert_eq!(modification_ids, vec![
-            ModificationId(13),
-            ModificationId(14),
-            ModificationId(15)
-        ]);
+        assert_eq!(
+            modification_ids,
+            vec![ModificationId(13), ModificationId(14), ModificationId(15)]
+        );
         let all_groups_occupied = polymer.modify_only_groups("Ca", murnac, 4);
         assert_miette_snapshot!(all_groups_occupied);
         let still_all_groups_occupied = polymer.modify_only_groups("Ca", murnac, 2);
@@ -1650,11 +1644,10 @@ mod tests {
             .offset_modifications()
             .collect();
         alanine_offsets.sort_unstable();
-        assert_eq!(alanine_offsets, vec![
-            ModificationId(1),
-            ModificationId(2),
-            ModificationId(5)
-        ]);
+        assert_eq!(
+            alanine_offsets,
+            vec![ModificationId(1), ModificationId(2), ModificationId(5)]
+        );
 
         let mut murnac_offsets: Vec<_> = polymer
             .residue(murnac)

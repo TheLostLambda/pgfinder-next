@@ -136,12 +136,15 @@ mod tests {
 
     #[test]
     fn names_and_abbrs() {
-        assert_eq!(RESIDUES.each_ref().map(|m| (m.abbr(), m.name())), [
-            ("A", "Alanine"),
-            ("m", "N-Acetylmuramic Acid"),
-            ("X", "Unknown Amino Acid"),
-            ("K2+", "Lysine 2+")
-        ]);
+        assert_eq!(
+            RESIDUES.each_ref().map(|m| (m.abbr(), m.name())),
+            [
+                ("A", "Alanine"),
+                ("m", "N-Acetylmuramic Acid"),
+                ("X", "Unknown Amino Acid"),
+                ("K2+", "Lysine 2+")
+            ]
+        );
     }
 
     static N_TERMINAL: FunctionalGroup = FunctionalGroup::new("Amino", "N-Terminal");
@@ -165,29 +168,32 @@ mod tests {
 
         let mut groups: Vec<_> = lysine.functional_groups().collect();
         groups.sort_unstable();
-        assert_eq!(groups, vec![
-            (
-                &FunctionalGroup {
-                    name: "Amino",
-                    location: "N-Terminal"
-                },
-                &GroupState::Donor(BondId(0))
-            ),
-            (
-                &FunctionalGroup {
-                    name: "Amino",
-                    location: "Sidechain"
-                },
-                &GroupState::Free
-            ),
-            (
-                &FunctionalGroup {
-                    name: "Carboxyl",
-                    location: "C-Terminal"
-                },
-                &GroupState::Modified(ModificationId(0))
-            ),
-        ]);
+        assert_eq!(
+            groups,
+            vec![
+                (
+                    &FunctionalGroup {
+                        name: "Amino",
+                        location: "N-Terminal"
+                    },
+                    &GroupState::Donor(BondId(0))
+                ),
+                (
+                    &FunctionalGroup {
+                        name: "Amino",
+                        location: "Sidechain"
+                    },
+                    &GroupState::Free
+                ),
+                (
+                    &FunctionalGroup {
+                        name: "Carboxyl",
+                        location: "C-Terminal"
+                    },
+                    &GroupState::Modified(ModificationId(0))
+                ),
+            ]
+        );
     }
 
     #[test]
@@ -244,51 +250,61 @@ mod tests {
 
     #[test]
     fn monoisotopic_mass() {
-        assert_eq!(RESIDUES.each_ref().map(Massive::monoisotopic_mass), [
-            MonoisotopicMass(dec!(89.04767846918)),
-            MonoisotopicMass(dec!(293.11106657336)),
-            MonoisotopicMass(dec!(0)),
-            MonoisotopicMass(dec!(146.104430568002)),
-        ]);
+        assert_eq!(
+            RESIDUES.each_ref().map(Massive::monoisotopic_mass),
+            [
+                MonoisotopicMass(dec!(89.04767846918)),
+                MonoisotopicMass(dec!(293.11106657336)),
+                MonoisotopicMass(dec!(0)),
+                MonoisotopicMass(dec!(146.104430568002)),
+            ]
+        );
     }
 
     #[test]
     fn average_mass() {
-        assert_eq!(RESIDUES.each_ref().map(Massive::average_mass), [
-            AverageMass(dec!(89.09330602867854225)),
-            AverageMass(dec!(293.27091179713952985)),
-            AverageMass(dec!(0)),
-            AverageMass(dec!(146.18647363385097400)),
-        ]);
+        assert_eq!(
+            RESIDUES.each_ref().map(Massive::average_mass),
+            [
+                AverageMass(dec!(89.09330602867854225)),
+                AverageMass(dec!(293.27091179713952985)),
+                AverageMass(dec!(0)),
+                AverageMass(dec!(146.18647363385097400)),
+            ]
+        );
     }
 
     #[test]
     fn charge() {
-        assert_eq!(RESIDUES.each_ref().map(Charged::charge), [
-            Charge(0),
-            Charge(0),
-            Charge(0),
-            Charge(2)
-        ]);
+        assert_eq!(
+            RESIDUES.each_ref().map(Charged::charge),
+            [Charge(0), Charge(0), Charge(0), Charge(2)]
+        );
     }
 
     #[test]
     fn monoisotopic_mz() {
-        assert_eq!(RESIDUES.each_ref().map(ChargedParticle::monoisotopic_mz), [
-            None,
-            None,
-            None,
-            Some(MonoisotopicMz(dec!(73.052215284001)))
-        ]);
+        assert_eq!(
+            RESIDUES.each_ref().map(ChargedParticle::monoisotopic_mz),
+            [
+                None,
+                None,
+                None,
+                Some(MonoisotopicMz(dec!(73.052215284001)))
+            ]
+        );
     }
 
     #[test]
     fn average_mz() {
-        assert_eq!(RESIDUES.each_ref().map(ChargedParticle::average_mz), [
-            None,
-            None,
-            None,
-            Some(AverageMz(dec!(73.09323681692548700)))
-        ]);
+        assert_eq!(
+            RESIDUES.each_ref().map(ChargedParticle::average_mz),
+            [
+                None,
+                None,
+                None,
+                Some(AverageMz(dec!(73.09323681692548700)))
+            ]
+        );
     }
 }
