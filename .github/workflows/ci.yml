@@ -17,7 +17,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        toolchain: [stable, beta, nightly]
+        # toolchain: [stable, beta, nightly]
+        toolchain: [nightly]
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
@@ -26,7 +27,10 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
 
-      - run: just test
+      - run: cargo test --workspace
+        env:
+          RUSTFLAGS: -Zmacro-backtrace
+      # - run: just test
       - run: just bench
 
   check_wasm_build:
@@ -36,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: extractions/setup-just@v2
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@beta
         with:
           target: wasm32-unknown-unknown
 
@@ -49,7 +53,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: extractions/setup-just@v2
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@beta
+        # TODO: Remove this when moving back to `stable`
+        with:
+          components: rustfmt, clippy
 
       - run: just lint
 

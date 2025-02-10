@@ -320,11 +320,14 @@ impl<'a: 'r, 'r> ValidateInto<'r, ResidueEntry<'a>> for ResidueKdl {
             };
         }
 
-        Ok((self.abbr, ResidueDescription {
-            name: self.name,
-            composition: self.composition.validate(ctx.0)?,
-            functional_groups: seen_groups.into_keys().collect(),
-        }))
+        Ok((
+            self.abbr,
+            ResidueDescription {
+                name: self.name,
+                composition: self.composition.validate(ctx.0)?,
+                functional_groups: seen_groups.into_keys().collect(),
+            },
+        ))
     }
 }
 
@@ -368,13 +371,16 @@ impl<'a: 't, 't> ValidateInto<'t, BondEntry<'a>> for BondKdl {
     type Context = (&'a AtomicDatabase, &'t Index<'t>);
 
     fn validate(self, ctx: Self::Context) -> ChemResult<BondEntry<'a>> {
-        Ok((self.abbr, BondDescription {
-            name: self.name,
-            from: self.from.validate(ctx.1)?,
-            to: self.to.validate(ctx.1)?,
-            lost: self.lost.validate(ctx.0)?,
-            gained: self.gained.validate(ctx.0)?,
-        }))
+        Ok((
+            self.abbr,
+            BondDescription {
+                name: self.name,
+                from: self.from.validate(ctx.1)?,
+                to: self.to.validate(ctx.1)?,
+                lost: self.lost.validate(ctx.0)?,
+                gained: self.gained.validate(ctx.0)?,
+            },
+        ))
     }
 }
 
@@ -439,12 +445,15 @@ impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
             }
         }
 
-        Ok((self.abbr, ModificationDescription {
-            name: self.name,
-            lost: self.lost.validate(ctx.0)?,
-            gained: self.gained.validate(ctx.0)?,
-            targets: targets_and_spans.into_iter().map(|(t, _)| t).collect(),
-        }))
+        Ok((
+            self.abbr,
+            ModificationDescription {
+                name: self.name,
+                lost: self.lost.validate(ctx.0)?,
+                gained: self.gained.validate(ctx.0)?,
+                targets: targets_and_spans.into_iter().map(|(t, _)| t).collect(),
+            },
+        ))
     }
 }
 

@@ -1,0 +1,795 @@
+---
+source: crates/muropeptide/src/smiles_database.rs
+expression: db
+---
+SmilesDatabase(
+  residues: {
+    "A": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](C)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](C)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "B": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CCN)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CCN)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Lateral: Some("D"),
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("CToN"): "CN()",
+        Acceptor("Link"): "CN()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "C": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CS)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CS)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "D": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CC(O)=O)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CC(O)=O)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Lateral: Some("D"),
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("NToC"): "(\\(O\\))=O\\)",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {
+        "Am": [
+          Modification(
+            replace: "O\\)=O\\)",
+            with: "N)=O)",
+          ),
+        ],
+      },
+    ),
+    "E": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CCC(O)=O)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CCC(O)=O)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D-iso"),
+          smiles: "N[C@@H](C(O)=O)CCC(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(2): Some("D-iso"),
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("NToC"): "(\\(O\\))=O\\)",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {
+        "Am": [
+          Modification(
+            replace: "O\\)=O\\)",
+            with: "N)=O)",
+          ),
+        ],
+      },
+    ),
+    "F": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](Cc1ccccc1)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](Cc1ccccc1)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "G": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: None,
+          smiles: "NCC(O)=O",
+        ),
+      ],
+      isomer_rules: {},
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "H": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](Cc1nc[nH]c1)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](Cc1nc[nH]c1)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "I": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H]([C@H](CC)C)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H]([C@@H](CC)C)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "J": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("meso"),
+          smiles: "N[C@@H](CCC[C@@H](N)C(O)=O)C(O)=O",
+        ),
+      ],
+      isomer_rules: {},
+      bond_sites: {
+        Acceptor("CToN"): "\\(N()\\)",
+        Acceptor("Link"): "\\(N()\\)",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("NToC"): "(\\(O\\))=O\\)",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {
+        "Am": [
+          Modification(
+            replace: "O\\)=O\\)",
+            with: "N)=O)",
+          ),
+        ],
+      },
+    ),
+    "K": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CCCCN)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CCCCN)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("CToN"): "CN()",
+        Acceptor("Link"): "CN()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "L": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CC(C)(C))C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CC(C)(C))C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "M": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CCSC)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CCSC)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "N": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CC(=O)N)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CC(=O)N)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Lateral: Some("D"),
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("CToN"): "\\(=O\\)N()",
+        Acceptor("Link"): "\\(=O\\)N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "O": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CCCN)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CCCN)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("CToN"): "CN()",
+        Acceptor("Link"): "CN()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "P": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N1[C@@H](CCC1)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N1[C@H](CCC1)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "Q": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CCC(=O)N)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CCC(=O)N)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D-iso"),
+          smiles: "N[C@@H](C(=O)N)CCC(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(2): Some("D-iso"),
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("CToN"): "\\(=O\\)N()",
+        Acceptor("Link"): "\\(=O\\)N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "R": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CCCNC(=N)N)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CCCNC(=N)N)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "S": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CO)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CO)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "T": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H]([C@@H](C)O)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H]([C@H](C)O)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "U": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](CCO)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](CCO)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "V": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](C(C)C)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](C(C)C)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "W": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](Cc1c2c(cccc2)nc1)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](Cc1c2c(cccc2)nc1)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "Y": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H](Cc1ccc(O)cc1)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H](Cc1ccc(O)cc1)C(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "Z": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("L"),
+          smiles: "N[C@@H]([C@H](O)CC(=O)O)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D"),
+          smiles: "N[C@H]([C@@H](O)CC(=O)O)C(O)=O",
+        ),
+        Isomer(
+          name: Some("D-iso"),
+          smiles: "N[C@@H](C(=O)O)[C@@H](O)CC(O)=O",
+        ),
+      ],
+      isomer_rules: {
+        Stem(2): Some("D-iso"),
+        Stem(4): Some("D"),
+        Stem(5): Some("D"),
+      },
+      bond_sites: {
+        Acceptor("Link"): "^N()",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {},
+    ),
+    "g": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("β-D"),
+          smiles: "O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]1O",
+        ),
+      ],
+      isomer_rules: {},
+      bond_sites: {
+        Acceptor("Gly"): "^O()",
+        Donor("Gly"): "(O)$",
+      },
+      modifications: {
+        "Ac": [
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")COC(=O)C)[C@H",
+          ),
+        ],
+        "DeAc": [
+          Modification(
+            replace: "NC\\(=O\\)C",
+            with: "N",
+          ),
+        ],
+        "Poly": [
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")COP(O)(O)=O)[C@H",
+          ),
+        ],
+        "Red": [
+          Modification(
+            replace: "1",
+            with: "",
+          ),
+          Modification(
+            replace: "\\[C@@H\\]O$",
+            with: "CO",
+          ),
+        ],
+      },
+    ),
+    "m": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("β-D"),
+          smiles: "O[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O",
+        ),
+      ],
+      isomer_rules: {},
+      bond_sites: {
+        Acceptor("Gly"): "^O()",
+        Donor("Gly"): "(O)$",
+        Donor("Stem"): "(\\(O\\))=O",
+      },
+      modifications: {
+        "Ac": [
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")COC(=O)C)[C@H",
+          ),
+        ],
+        "Anh": [
+          Modification(
+            replace: "$",
+            with: "2",
+          ),
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")C2)[C@H",
+          ),
+        ],
+        "DeAc": [
+          Modification(
+            replace: "NC\\(=O\\)C",
+            with: "N",
+          ),
+        ],
+        "Glyc": [
+          Modification(
+            replace: "=O\\)C",
+            with: "=O)CO",
+          ),
+        ],
+        "Poly": [
+          Modification(
+            replace: "\\)CO\\)\\[C@H",
+            with: ")COP(O)(O)=O)[C@H",
+          ),
+        ],
+        "Red": [
+          Modification(
+            replace: "1",
+            with: "",
+          ),
+          Modification(
+            replace: "\\[C@@H\\]O$",
+            with: "CO",
+          ),
+        ],
+      },
+    ),
+  },
+)

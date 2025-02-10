@@ -1,0 +1,243 @@
+residues {
+	types {
+		Monosaccharide {
+			bond-sites "Gly" donor="(O)$" acceptor="^O()"
+
+			// FIXME: I should make this like `bond-sites`, where only a capture group is replaced — that way I can give less
+			// verbose `with=` strings...
+			modification "Ac" replace=r"\)CO\)\[C@H" with=")COC(=O)C)[C@H"
+			modification "DeAc" replace=r"NC\(=O\)C" with="N"
+			modification "Poly" replace=r"\)CO\)\[C@H" with=")COP(O)(O)=O)[C@H"
+			modification "Red" {
+				replace "1" with=""
+				// FIXME: With only two non-H substituents, the carbon is no longer chiral!
+				replace r"\[C@@H\]O$" with="CO"
+			}
+		}
+
+	    AminoAcid {
+	    	// Template SMILES — the `sidechain` is inserted into this template (removing the `<>`)
+	    	isomer "L" "N[C@@H](<sidechain>)C(O)=O"
+	    	isomer "D" "N[C@H](<sidechain>)C(O)=O"
+
+	    	// Bonding site regex — the match is replaced by a link to the acceptor residue
+	    	// NOTE: I really wish I could write something like `N[C@@H](<sidechain>)C(=O)O` for my amino acids, and then have
+	    	// this rule just be something clean like `(O)$`, but that would ultimately generate something like `C(=O)1`,
+	    	// which seems reasonable, and seems to be accepted perfectly fine by most SMILES tools, but technically
+	    	// OpenSMILES demands that those "ring closure" `rnum`s come *before* any branches, so it must be `C1(=O)` or
+	    	// `C1=O` instead. Aggravating, dumb, stupid even, but I'll obey for the sake of the widest possible compatibility
+	        bond-sites "Pep" donor=r"(\(O\))=O$" acceptor="^N()"
+	        // FIXME: This remains super dumb and is the fault of known shortcomings in the polymer database KDL format...
+	        bond-sites "Link" donor=r"(\(O\))=O$" acceptor="^N()"
+	        // FIXME: This is a sign that things are starting to go wrong... I should be using the functional group
+	        // abstraction!
+	        bond-sites "Stem" acceptor="^N()"
+	        bond-sites "CToN" donor=r"(\(O\))=O$"
+	        bond-sites "NToC" acceptor="^N()"
+
+	        // Implicit stereoisomer selection rules — isomers are picked in order of definition unless a rule like
+	        // `stem` or `lateral` matches, then that `use=` isomer is picked
+	    	stem 4 5 use="D"
+	    }
+	}
+
+	Monosaccharide "g" {
+		// SMILES written starting at C4's OH, ending with C1's OH — this way, concatenating structures (removing one O)
+		// creates a 1-4 glycosidic linkage
+		isomer "β-D" "O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]1O"
+	}
+
+	Monosaccharide "m" {
+		isomer "β-D" "O[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O"
+
+		// The `O` is lost from the MurNAc's lactyl group to form the peptide bond — the captured regex group is the one lost
+		// and replaced with a link during bonding
+		bond-sites "Stem" donor=r"(\(O\))=O"
+
+		modification "Glyc" replace=r"=O\)C" with="=O)CO"
+		// NOTE: Sometimes you'll need to perform several small modifications — we avoid trying to match and replace large
+		// sections of the string so that this modification doesn't overwrite any others!
+		modification "Anh" {
+			replace "$" with="2"
+			replace r"\)CO\)\[C@H" with=")C2)[C@H"
+		}
+	}
+
+	AminoAcid "A" {
+		sidechain "C"
+	}
+
+	AminoAcid "B" {
+		sidechain "CCN"
+
+		// Type B2γ peptidoglycan from Fig 3 of https://doi.org/10.1099/00207713-48-2-403
+		lateral use="D"
+
+		// FIXME: Probably better if we take functional groups into account in the future — this is leading to a lot of
+		// repetition at the moment...
+		// FIXME: Maybe these could be changed to `acceptor "CN()"` for all bonds, or if there are several groups that need to
+		// be used for different bonds, then `acceptor "CN()" "CToN" "Link"` etc? Or really, I think this problem would be
+		// solved if I kept the current format, but instead of requiring exactly one bond name, I allowed 0+, so these would
+		// all be valid:
+		// 1) `bond-sites acceptor="CN()"`
+		// 2) `bond-sites "CToN" acceptor="CN()"`, and
+		// 3) `bond-sites "CToN" "Link" acceptor="CN()"`
+		// And so on...
+		bond-sites "CToN" acceptor="CN()"
+		bond-sites "Link" acceptor="CN()"
+	}
+
+	AminoAcid "C" {
+		sidechain "CS"
+	}
+
+	AminoAcid "D" {
+		sidechain "CC(O)=O"
+
+		// By Steph's request
+		lateral use="D"
+
+		bond-sites "NToC" donor=r"(\(O\))=O\)"
+
+		modification "Am" replace=r"O\)=O\)" with="N)=O)"
+	}
+
+	AminoAcid "E" {
+		sidechain "CCC(O)=O"
+
+		// Same a normal D isomer, but I've swapped the sidechain and `COOH` so bonds are made to the side-chain (which now
+		// comes last in the SMILES) — because of this swap, `@` must become `@@` to keep the overall same shape
+		isomer "D-iso" "N[C@@H](C(O)=O)CCC(O)=O"
+		stem 2 use="D-iso"
+
+		bond-sites "NToC" donor=r"(\(O\))=O\)"
+
+		modification "Am" replace=r"O\)=O\)" with="N)=O)"
+	}
+
+	AminoAcid "F" {
+		sidechain "Cc1ccccc1"
+	}
+
+	AminoAcid "G" {
+		// Here, `null` is just a nameless "isomer" — it's always picked since the lack of `sidechain` means that the L and D
+		// isomers aren't defined
+		isomer null "NCC(O)=O"
+	}
+
+	AminoAcid "H" {
+		sidechain "Cc1nc[nH]c1"
+	}
+
+	AminoAcid "I" {
+		// Chirality requires the central carbon to have 4 different substituents, this is our first amino acid with another
+		// chiral center in the sidechain (so far all other sidechain carbons have had 2+ hydrogens). Importantly, the
+		// chirality of the L/D-isoleucine sidechains is *different*, so we need to manually give both isomers.
+		isomer "L" "N[C@@H]([C@H](CC)C)C(O)=O"
+		isomer "D" "N[C@H]([C@@H](CC)C)C(O)=O"
+	}
+
+	AminoAcid "J" {
+		// No `sidechain`, so no L and D forms...
+		isomer "meso" "N[C@@H](CCC[C@@H](N)C(O)=O)C(O)=O"
+
+		bond-sites "NToC" donor=r"(\(O\))=O\)"
+		bond-sites "CToN" acceptor=r"\(N()\)"
+		bond-sites "Link" acceptor=r"\(N()\)"
+
+		modification "Am" replace=r"O\)=O\)" with="N)=O)"
+	}
+
+	AminoAcid "K" {
+		sidechain "CCCCN"
+
+		bond-sites "CToN" acceptor="CN()"
+		bond-sites "Link" acceptor="CN()"
+	}
+
+	AminoAcid "L" {
+		sidechain "CC(C)(C)"
+	}
+
+	AminoAcid "M" {
+		sidechain "CCSC"
+	}
+
+	AminoAcid "N" {
+		sidechain "CC(=O)N"
+
+		// By Steph's request
+		lateral use="D"
+
+		bond-sites "CToN" acceptor=r"\(=O\)N()"
+		bond-sites "Link" acceptor=r"\(=O\)N()"
+	}
+
+	AminoAcid "O" {
+		sidechain "CCCN"
+
+		bond-sites "CToN" acceptor="CN()"
+		bond-sites "Link" acceptor="CN()"
+	}
+
+	AminoAcid "P" {
+		// No `sidechain` since proline's sidechain loops back to the N-terminal — we'll need a different backbone
+		isomer "L" "N1[C@@H](CCC1)C(O)=O"
+		isomer "D" "N1[C@H](CCC1)C(O)=O"
+	}
+
+	AminoAcid "Q" {
+		sidechain "CCC(=O)N"
+
+		// Same a normal D isomer, but I've swapped the sidechain and `COOH` so bonds are made to the side-chain (which now
+		// comes last in the SMILES) — because of this swap, `@` must become `@@` to keep the overall same shape
+		isomer "D-iso" "N[C@@H](C(=O)N)CCC(O)=O"
+		stem 2 use="D-iso"
+
+		bond-sites "CToN" acceptor=r"\(=O\)N()"
+		bond-sites "Link" acceptor=r"\(=O\)N()"
+	}
+
+	AminoAcid "R" {
+		sidechain "CCCNC(=N)N"
+	}
+
+	AminoAcid "S" {
+		sidechain "CO"
+	}
+
+	AminoAcid "T" {
+		// The stereochemistry here is evil — D-Threonine, has a change in the chirality of its sidechain (when compared to
+		// L-Threonine). Because the sidechain changes, we just need to give both isomers from scratch and forget about the
+		// templates (so no `sidechain` here)!
+		isomer "L" "N[C@@H]([C@@H](C)O)C(O)=O"
+		isomer "D" "N[C@H]([C@H](C)O)C(O)=O"
+	}
+
+	AminoAcid "U" {
+		sidechain "CCO"
+	}
+
+	AminoAcid "V" {
+		sidechain "C(C)C"
+	}
+
+	AminoAcid "W" {
+		sidechain "Cc1c2c(cccc2)nc1"
+	}
+
+	AminoAcid "Y" {
+		sidechain "Cc1ccc(O)cc1"
+	}
+
+	AminoAcid "Z" {
+		// Worst one yet... Connected through the γ-carbon like D-isoglutamic acid
+		// (https://doi.org/10.1128/br.36.4.407-477.1972; Fig 5), but also like threonine where the L and D forms have
+		// different sidechains (chirality-wise): https://doi.org/10.1002/jlac.199419940618
+		isomer "L" "N[C@@H]([C@H](O)CC(=O)O)C(O)=O"
+		isomer "D" "N[C@H]([C@@H](O)CC(=O)O)C(O)=O"
+		isomer "D-iso" "N[C@@H](C(=O)O)[C@@H](O)CC(O)=O"
+		stem 2 use="D-iso"
+	}
+}
+

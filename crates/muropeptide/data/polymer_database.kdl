@@ -50,7 +50,7 @@ modifications {
     Poly "Wall Polymer Linkage" {
         targeting "Hydroxyl" at="6-Position"
         lost "H"
-        gained "PO3"
+        gained "H2PO3"
     }
     DeAc "De-N-Acetylation" {
         targeting "Acetyl" at="Secondary Amide" 

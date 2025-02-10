@@ -113,12 +113,15 @@ mod tests {
             NamedMod::new(&POLYMER_DB, "DeAc").unwrap(),
             NamedMod::new(&POLYMER_DB, "Ca").unwrap(),
         ];
-        assert_eq!(mods.map(|m| (m.abbr(), m.name())), [
-            ("Am", "Amidation"),
-            ("Ac", "O-Acetylation"),
-            ("DeAc", "De-N-Acetylation"),
-            ("Ca", "Calcium Adduct")
-        ]);
+        assert_eq!(
+            mods.map(|m| (m.abbr(), m.name())),
+            [
+                ("Am", "Amidation"),
+                ("Ac", "O-Acetylation"),
+                ("DeAc", "De-N-Acetylation"),
+                ("Ca", "Calcium Adduct")
+            ]
+        );
     }
 
     #[test]

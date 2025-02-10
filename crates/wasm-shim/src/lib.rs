@@ -1,4 +1,4 @@
-use muropeptide::{Muropeptide, POLYMERIZER};
+use muropeptide::{Muropeptide, POLYMERIZER, SMILES_DB};
 use polychem::{ChargedParticle, Massive};
 use rust_decimal::Decimal;
 use smithereens::Dissociable;
@@ -37,6 +37,12 @@ impl Peptidoglycan {
     pub fn monoisotopic_mass(&self) -> String {
         let mass = self.0.monoisotopic_mass();
         decimal_round_workaround(mass, 6)
+    }
+
+    #[must_use]
+    pub fn smiles(&self) -> String {
+        // FIXME: This API needs some work — this should probably be a method on `Muropeptide`?
+        SMILES_DB.muropeptide_to_smiles(&self.0).unwrap_or_default()
     }
 
     #[must_use]

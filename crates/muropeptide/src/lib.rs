@@ -1,5 +1,6 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
 mod parser;
+mod smiles_database;
 
 use std::fmt::{self, Display, Formatter};
 
@@ -13,8 +14,18 @@ use polychem::{
     AtomicDatabase, AverageMass, BondId, Charged, GroupState, Massive, ModificationInfo,
     MonoisotopicMass, Polymer, PolymerDatabase, Polymerizer, ResidueId, errors::PolychemError,
 };
+use smiles_database::SmilesDatabase;
 use smithereens::Dissociable;
 use thiserror::Error;
+
+// FIXME: Need to think about if these should really live in another KDL config?
+const PEPTIDE_BOND: &str = "Pep";
+const GLYCOSIDIC_BOND: &str = "Gly";
+const STEM_BOND: &str = "Stem";
+const NTOC_BOND: &str = "NToC";
+const CTON_BOND: &str = "CToN";
+const CROSSLINK_BOND: &str = "Link";
+const LAT_CROSSLINK_BOND: &str = "Lat-Link";
 
 // FIXME: These need more thought / are a temporary hack!
 static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
@@ -27,7 +38,17 @@ pub static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
     .unwrap()
 });
 
+// FIXME: This maybe shouldn't be here long term? Needs some thought...
 pub static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+
+// FIXME: This maybe shouldn't be here long term? Needs some thought...
+pub static SMILES_DB: Lazy<SmilesDatabase> = Lazy::new(|| {
+    SmilesDatabase::new(
+        "smiles_database.kdl",
+        include_str!("../data/smiles_database.kdl"),
+    )
+    .unwrap()
+});
 
 const AUTO_MODS: [&str; 1] = ["Red"];
 
