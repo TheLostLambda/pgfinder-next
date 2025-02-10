@@ -54,6 +54,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: extractions/setup-just@v2
       - uses: dtolnay/rust-toolchain@beta
+        # TODO: Remove this when moving back to `stable`
+        with:
+          components: rustfmt
 
       - run: just lint
 
