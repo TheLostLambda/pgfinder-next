@@ -27,7 +27,7 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
 
-      - run: cargo test --workspace -Z macro-backtrace
+      - run: RUSTFLAGS="-Zmacro-backtrace" cargo test --workspace
       # - run: just test
       - run: just bench
 
