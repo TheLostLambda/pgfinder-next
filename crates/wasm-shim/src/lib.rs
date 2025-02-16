@@ -75,6 +75,16 @@ pub struct Replicate {
 }
 
 #[wasm_bindgen]
+impl Replicate {
+    #[wasm_bindgen(constructor)]
+    #[must_use]
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn new(number: u32, csv: String) -> Self {
+        Self { number, csv }
+    }
+}
+
+#[wasm_bindgen]
 #[must_use]
 pub fn consolidate(replicates: Vec<Replicate>) -> String {
     // PERF: Could do this without the `collect()` — just pass on the iterator
