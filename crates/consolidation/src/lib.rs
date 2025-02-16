@@ -49,7 +49,7 @@ impl OutputColumns {
 // Public API ==========================================================================================================
 
 pub type ReplicateNumber = u32;
-pub struct Replicate<'a>(ReplicateNumber, &'a str);
+pub type Replicate = (ReplicateNumber, String);
 
 pub fn consolidate_replicates(replicates: &[Replicate]) -> String {
     // SAFETY: Overall this unwrap should be okay, since I also control PGFinder's outputs
@@ -68,11 +68,11 @@ struct ReplicateFrame(Vec<ReplicateNumber>, LazyFrame);
 // TODO: Use a fixed-point Decimal type instead of a float, so that we don't have nasty floating-point errors that show
 // up in all of the results...
 fn load_replicates(replicates: &[Replicate]) -> PolarsResult<ReplicateFrame> {
-    let replicate_numbers: Vec<_> = replicates.iter().map(|&Replicate(n, _)| n).collect();
+    let replicate_numbers: Vec<_> = replicates.iter().map(|&(n, _)| n).collect();
     let lazyframe = concat(
         replicates
             .iter()
-            .map(|&Replicate(replicate, ref csv)| {
+            .map(|&(replicate, ref csv)| {
                 Ok(CsvReader::new(Cursor::new(csv))
                     .finish()?
                     .lazy()
@@ -232,20 +232,25 @@ fn intensity_to_abundance(column: &str, total_column: &str) -> Expr {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::LazyLock;
+
     use insta::assert_snapshot;
 
     use super::*;
 
-    const REPLICATES: [Replicate; 3] = [
-        Replicate(1, include_str!("../tests/data/E. coli WT_01.csv")),
-        Replicate(2, include_str!("../tests/data/E. coli WT_02.csv")),
-        Replicate(3, include_str!("../tests/data/E. coli WT_03.csv")),
-    ];
+    static REPLICATES: LazyLock<[Replicate; 3]> = LazyLock::new(|| {
+        [
+            (1, include_str!("../tests/data/E. coli WT_01.csv")),
+            (2, include_str!("../tests/data/E. coli WT_02.csv")),
+            (3, include_str!("../tests/data/E. coli WT_03.csv")),
+        ]
+        .map(|(n, c)| (n, c.to_owned()))
+    });
 
     #[test]
     fn test_load_replicates() {
         assert_snapshot!(
-            load_replicates(&REPLICATES)
+            load_replicates(REPLICATES.as_ref())
                 .and_then(|ReplicateFrame(_, df)| into_csv(df))
                 .unwrap()
         );
@@ -254,7 +259,7 @@ mod tests {
     #[test]
     fn test_consolidate() {
         assert_snapshot!(
-            load_replicates(&REPLICATES)
+            load_replicates(REPLICATES.as_ref())
                 .map(consolidate)
                 .and_then(into_csv)
                 .unwrap()
@@ -263,6 +268,6 @@ mod tests {
 
     #[test]
     fn test_consolidate_replicates() {
-        assert_snapshot!(consolidate_replicates(&REPLICATES));
+        assert_snapshot!(consolidate_replicates(REPLICATES.as_ref()));
     }
 }

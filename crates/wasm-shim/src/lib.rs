@@ -1,3 +1,4 @@
+use consolidation::consolidate_replicates;
 use muropeptide::{Muropeptide, POLYMERIZER, SMILES_DB};
 use polychem::{ChargedParticle, Massive};
 use rust_decimal::Decimal;
@@ -65,6 +66,20 @@ impl Peptidoglycan {
         }
         csv
     }
+}
+
+#[wasm_bindgen]
+pub struct Replicate {
+    number: u32,
+    csv: String,
+}
+
+#[wasm_bindgen]
+#[must_use]
+pub fn consolidate(replicates: Vec<Replicate>) -> String {
+    // PERF: Could do this without the `collect()` — just pass on the iterator
+    let replicates: Vec<_> = replicates.into_iter().map(|r| (r.number, r.csv)).collect();
+    consolidate_replicates(&replicates)
 }
 
 // FIXME: Really this should be fixed in `rust_decimal`...
