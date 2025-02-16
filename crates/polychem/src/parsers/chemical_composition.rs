@@ -135,11 +135,11 @@ fn particle_symbol(i: &str) -> ParseResult<&str> {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use once_cell::sync::Lazy;
+    use std::sync::LazyLock;
 
     use super::*;
 
-    static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+    static DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
     #[test]
     fn test_element_symbol() {

@@ -82,8 +82,8 @@ impl Charged for AnyMod<'_, '_> {
 mod tests {
     use std::panic;
 
-    use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
+    use std::sync::LazyLock;
 
     use crate::{
         AtomicDatabase, AverageMz, ChargedParticle, MonoisotopicMz,
@@ -92,14 +92,14 @@ mod tests {
 
     use super::*;
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+    static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
-    static H2O: Lazy<ChemicalComposition> =
-        Lazy::new(|| ChemicalComposition::new(&ATOMIC_DB, "H2O").unwrap());
-    static CA: Lazy<ChemicalComposition> =
-        Lazy::new(|| ChemicalComposition::new(&ATOMIC_DB, "Ca-2e").unwrap());
+    static H2O: LazyLock<ChemicalComposition> =
+        LazyLock::new(|| ChemicalComposition::new(&ATOMIC_DB, "H2O").unwrap());
+    static CA: LazyLock<ChemicalComposition> =
+        LazyLock::new(|| ChemicalComposition::new(&ATOMIC_DB, "Ca-2e").unwrap());
 
-    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "test_polymer_database.kdl",

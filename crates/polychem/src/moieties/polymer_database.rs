@@ -593,14 +593,14 @@ mod tests {
     use indoc::indoc;
     use insta::{assert_debug_snapshot, assert_ron_snapshot, with_settings};
     use miette::{Diagnostic, Report};
-    use once_cell::sync::Lazy;
+    use std::sync::LazyLock;
     use thiserror::Error;
 
     use crate::testing_tools::assert_miette_snapshot;
 
     use super::*;
 
-    static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+    static DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
     const KDL: &str = include_str!("../../tests/data/polymer_database.kdl");
 
@@ -802,7 +802,7 @@ mod tests {
         assert_miette_snapshot!(residues);
     }
 
-    static RESIDUES: Lazy<Residues> = Lazy::new(|| {
+    static RESIDUES: LazyLock<Residues> = LazyLock::new(|| {
         let residues_kdl = indoc! {r#"
             types {
                 Monosaccharide {
@@ -825,8 +825,8 @@ mod tests {
         parse_residues(residues_kdl).unwrap()
     });
 
-    static RESIDUE_INDEX: Lazy<Index> =
-        Lazy::new(|| RESIDUES.values().flat_map(Targets::from).collect());
+    static RESIDUE_INDEX: LazyLock<Index> =
+        LazyLock::new(|| RESIDUES.values().flat_map(Targets::from).collect());
 
     fn parse_modifications(kdl: &str) -> Result<Modifications, ChemistryError> {
         let modifications: ModificationsKdl = knuffel::parse("test", kdl).unwrap();

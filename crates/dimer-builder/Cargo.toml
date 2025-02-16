@@ -5,8 +5,8 @@ edition = "2024"
 
 [dependencies]
 muropeptide = { path = "../muropeptide" }
-polars-core = "0.43.1"
-polars-lazy = "0.43.1"
+polars-core = "0.46.0"
+polars-lazy = "0.46.0"
 polychem = { path = "../polychem" }
 
 [lints]

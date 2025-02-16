@@ -46,14 +46,14 @@ impl Charged for Particle<'_> {
 #[cfg(test)]
 mod tests {
     use insta::assert_debug_snapshot;
-    use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
+    use std::sync::LazyLock;
 
     use crate::testing_tools::assert_miette_snapshot;
 
     use super::*;
 
-    static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+    static DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
     #[test]
     fn new_particle() {

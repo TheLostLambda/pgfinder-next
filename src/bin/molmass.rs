@@ -1,11 +1,10 @@
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
-use once_cell::sync::Lazy;
 use polychem::{AtomicDatabase, Charged, ChargedParticle, ChemicalComposition, Massive, Result};
 use rust_decimal::Decimal;
 use rustyline::DefaultEditor;
-use std::fmt::Write;
+use std::{fmt::Write, sync::LazyLock};
 
-static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+static DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
 fn main() {
     let mut rl = DefaultEditor::new().unwrap();

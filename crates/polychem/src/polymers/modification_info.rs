@@ -17,18 +17,17 @@ impl Display for ModificationInfo<'_, '_> {
 
 #[cfg(test)]
 mod tests {
-    use std::panic;
+    use std::{panic, sync::LazyLock};
 
     use super::*;
-    use once_cell::sync::Lazy;
 
     use crate::{
         AtomicDatabase, ChemicalComposition, Count, FunctionalGroup, Modification, NamedMod,
         OffsetKind, OffsetMod, PolymerDatabase, ResidueGroup, ResidueId,
     };
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+    static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "test_polymer_database.kdl",
@@ -37,14 +36,14 @@ mod tests {
         .unwrap()
     });
 
-    static NAMED: Lazy<ModificationInfo> = Lazy::new(|| {
+    static NAMED: LazyLock<ModificationInfo> = LazyLock::new(|| {
         let modification = NamedMod::new(&POLYMER_DB, "Am").unwrap();
         let residue_group =
             ResidueGroup(ResidueId(0), FunctionalGroup::new("Carboxyl", "Sidechain"));
         ModificationInfo::Named(modification, residue_group)
     });
 
-    static OFFSET: Lazy<ModificationInfo> = Lazy::new(|| {
+    static OFFSET: LazyLock<ModificationInfo> = LazyLock::new(|| {
         let modification = Modification::new(
             Count::new(2).unwrap(),
             OffsetMod::new(
@@ -56,7 +55,7 @@ mod tests {
         ModificationInfo::Offset(modification, residue)
     });
 
-    static UNLOCALIZED: Lazy<[ModificationInfo; 2]> = Lazy::new(|| {
+    static UNLOCALIZED: LazyLock<[ModificationInfo; 2]> = LazyLock::new(|| {
         let ModificationInfo::Named(named, ..) = NAMED.clone() else {
             unreachable!()
         };

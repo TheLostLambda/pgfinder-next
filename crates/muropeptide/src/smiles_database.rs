@@ -901,11 +901,11 @@ mod tests {
 
     use insta::{assert_debug_snapshot, assert_ron_snapshot, assert_snapshot};
     use itertools::Itertools;
-    use once_cell::sync::Lazy;
     use polychem::{AtomicDatabase, PolymerDatabase, Polymerizer};
+    use std::sync::LazyLock;
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+    static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "polymer_database.kdl",
@@ -914,7 +914,8 @@ mod tests {
         .unwrap()
     });
 
-    static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+    static POLYMERIZER: LazyLock<Polymerizer> =
+        LazyLock::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
     use super::*;
 

@@ -39,19 +39,19 @@ impl Charged for OffsetMod<'_> {
 
 #[cfg(test)]
 mod tests {
-    use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
+    use std::sync::LazyLock;
 
     use crate::{AtomicDatabase, AverageMz, ChargedParticle, MonoisotopicMz};
 
     use super::*;
 
-    static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+    static DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
-    static H2O: Lazy<ChemicalComposition> =
-        Lazy::new(|| ChemicalComposition::new(&DB, "H2O").unwrap());
-    static CA: Lazy<ChemicalComposition> =
-        Lazy::new(|| ChemicalComposition::new(&DB, "Ca-2e").unwrap());
+    static H2O: LazyLock<ChemicalComposition> =
+        LazyLock::new(|| ChemicalComposition::new(&DB, "H2O").unwrap());
+    static CA: LazyLock<ChemicalComposition> =
+        LazyLock::new(|| ChemicalComposition::new(&DB, "Ca-2e").unwrap());
 
     #[test]
     fn from_impls() {

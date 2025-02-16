@@ -7,8 +7,8 @@ use std::fmt::{self, Display, Formatter};
 use itertools::Itertools;
 use miette::Diagnostic;
 use nom_miette::{LabeledError, final_parser};
-use once_cell::sync::Lazy;
 use parser::{MuropeptideErrorKind, muropeptide};
+use std::sync::LazyLock;
 // FIXME: Blocks need separating and reordering!
 use polychem::{
     AtomicDatabase, AverageMass, BondId, Charged, GroupState, Massive, ModificationInfo,
@@ -28,8 +28,8 @@ const CROSSLINK_BOND: &str = "Link";
 const LAT_CROSSLINK_BOND: &str = "Lat-Link";
 
 // FIXME: These need more thought / are a temporary hack!
-static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-pub static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+pub static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
     PolymerDatabase::new(
         &ATOMIC_DB,
         "polymer_database.kdl",
@@ -39,10 +39,11 @@ pub static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
 });
 
 // FIXME: This maybe shouldn't be here long term? Needs some thought...
-pub static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+pub static POLYMERIZER: LazyLock<Polymerizer> =
+    LazyLock::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
 // FIXME: This maybe shouldn't be here long term? Needs some thought...
-pub static SMILES_DB: Lazy<SmilesDatabase> = Lazy::new(|| {
+pub static SMILES_DB: LazyLock<SmilesDatabase> = LazyLock::new(|| {
     SmilesDatabase::new(
         "smiles_database.kdl",
         include_str!("../data/smiles_database.kdl"),
