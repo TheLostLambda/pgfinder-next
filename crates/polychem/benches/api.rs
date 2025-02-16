@@ -1,8 +1,8 @@
 use divan::{AllocProfiler, black_box};
-use once_cell::sync::Lazy;
 use polychem::{
     AtomicDatabase, Charged, ChemicalComposition, Massive, PolymerDatabase, atoms::atomic_database,
 };
+use std::sync::LazyLock;
 
 #[global_allocator]
 static ALLOC: AllocProfiler = AllocProfiler::system();
@@ -17,13 +17,13 @@ const FORMULAS: [&str; 5] = [
     "C3H7[15N]O2",
 ];
 
-static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
-static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
     PolymerDatabase::new(&ATOMIC_DB, "test_polymer_database.kdl", POLYMER_KDL).unwrap()
 });
 
-static COMPOSITIONS: Lazy<Vec<ChemicalComposition>> = Lazy::new(|| {
+static COMPOSITIONS: LazyLock<Vec<ChemicalComposition>> = LazyLock::new(|| {
     FORMULAS
         .into_iter()
         .map(|formula| ChemicalComposition::new(&ATOMIC_DB, formula).unwrap())
@@ -31,9 +31,9 @@ static COMPOSITIONS: Lazy<Vec<ChemicalComposition>> = Lazy::new(|| {
 });
 
 fn main() {
-    Lazy::force(&ATOMIC_DB);
-    Lazy::force(&POLYMER_DB);
-    Lazy::force(&COMPOSITIONS);
+    LazyLock::force(&ATOMIC_DB);
+    LazyLock::force(&POLYMER_DB);
+    LazyLock::force(&COMPOSITIONS);
     divan::main();
 }
 

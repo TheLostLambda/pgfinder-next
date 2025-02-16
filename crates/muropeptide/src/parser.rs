@@ -604,15 +604,15 @@ impl From<ErrorKind> for MuropeptideErrorKind {
 
 #[cfg(test)]
 mod tests {
-    use once_cell::sync::Lazy;
     use polychem::{AtomicDatabase, Charged, Massive, PolymerDatabase, Polymerizer};
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
+    use std::sync::LazyLock;
 
     use super::*;
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+    static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "polymer_database.kdl",
@@ -621,7 +621,8 @@ mod tests {
         .unwrap()
     });
 
-    static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+    static POLYMERIZER: LazyLock<Polymerizer> =
+        LazyLock::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
     #[test]
     fn test_identifier() {

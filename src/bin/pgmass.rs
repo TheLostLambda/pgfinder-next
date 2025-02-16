@@ -1,13 +1,12 @@
 use miette::{Diagnostic, GraphicalReportHandler, GraphicalTheme};
 use muropeptide::{Muropeptide, Result};
-use once_cell::sync::Lazy;
 use polychem::{AtomicDatabase, Charged, ChargedParticle, Massive, PolymerDatabase, Polymerizer};
 use rustyline::DefaultEditor;
 use smithereens::Dissociable;
-use std::fmt::Write;
+use std::{fmt::Write, sync::LazyLock};
 
-static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
     PolymerDatabase::new(
         &ATOMIC_DB,
         "polymer_database.kdl",
@@ -16,7 +15,8 @@ static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
     .unwrap()
 });
 
-static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+static POLYMERIZER: LazyLock<Polymerizer> =
+    LazyLock::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
 // FIXME: This entire binary is just copy-pasted, but needs to be rewritten for PG!
 fn main() {

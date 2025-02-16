@@ -24,11 +24,10 @@ dead_code = "allow"
 [dependencies]
 # miette = { version = "7.2.0", features = ["fancy"] }
 miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
-once_cell = "1.19.0"
 polychem = { path = "crates/polychem/" }
 muropeptide = { path = "crates/muropeptide/" }
 smithereens = { path = "crates/smithereens/" }
-rustyline = "14.0.0"
+rustyline = "15.0.0"
 rust_decimal = "1.36.0"
 
 # FIXME: This is just a list of nice libraries, but should eventually be deleted!

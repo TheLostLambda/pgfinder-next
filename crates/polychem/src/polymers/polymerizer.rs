@@ -43,12 +43,12 @@ impl<'a, 'p> Polymerizer<'a, 'p> {
 
 #[cfg(test)]
 mod tests {
-    use once_cell::sync::Lazy;
+    use std::sync::LazyLock;
 
     use super::*;
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+    static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "test_polymer_database.kdl",

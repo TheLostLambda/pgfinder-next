@@ -94,15 +94,15 @@ impl<'a> ChemicalComposition<'a> {
 mod tests {
     use ahash::{AHasher, HashMap, HashMapExt, HashSet};
     use miette::IntoDiagnostic;
-    use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
     use std::io::Write;
+    use std::sync::LazyLock;
 
     use crate::testing_tools::assert_miette_snapshot;
 
     use super::*;
 
-    static DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+    static DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
     #[test]
     fn test_composition_errors() {

@@ -6,13 +6,13 @@ edition = "2024"
 # FIXME: Set up justfile and CI to check direct-minimal-versions
 [dependencies]
 ahash = "0.8.11"
-derive_more = { version = "1.0.0", features = ["full"] }
-getrandom = { version = "0.2.14", features = ["js"] }
-itertools = "0.13.0"
+derive_more = { version = "2.0.1", features = ["full"] }
+getrandom = { version = "0.2.7", features = ["js"] }
+itertools = "0.14.0"
 knuffel = { git = "https://github.com/TheLostLambda/knus.git", branch = "tll-fork" }
 # miette = "7.2.0"
 miette = { git = "https://github.com/TheLostLambda/miette" }
-nom = "7.1.3"
+nom = "7.0.0"
 nom-miette = { path = "../nom-miette" }
 rust_decimal = "1.36.0"
 serde = { version = "1.0.217", features = ["derive"] }
@@ -25,7 +25,6 @@ indoc = "2.0.5"
 insta = { version = "1.42.1", features = ["filters", "redactions", "ron"] }
 miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
 # miette = { version = "7.2.0", features = ["fancy"] }
-once_cell = "1.19.0"
 rust_decimal_macros = "1.34.2"
 
 [[bench]]

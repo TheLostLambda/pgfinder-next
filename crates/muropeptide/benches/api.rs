@@ -1,6 +1,6 @@
 use divan::AllocProfiler;
-use once_cell::sync::Lazy;
 use polychem::{AtomicDatabase, PolymerDatabase, Polymerizer, atoms::atomic_database};
+use std::sync::LazyLock;
 
 #[global_allocator]
 static ALLOC: AllocProfiler = AllocProfiler::system();
@@ -17,16 +17,18 @@ const MONOMERS: [&str; 6] = [
     "gmgmgmgmgm-AEJAAEJAAEJAAEJAAEJA",
 ];
 
-static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-static POLYMER_DB: Lazy<PolymerDatabase> =
-    Lazy::new(|| PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap());
+static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
+    PolymerDatabase::new(&ATOMIC_DB, "polymer_database.kdl", POLYMER_KDL).unwrap()
+});
 
-static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+static POLYMERIZER: LazyLock<Polymerizer> =
+    LazyLock::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
 fn main() {
-    Lazy::force(&ATOMIC_DB);
-    Lazy::force(&POLYMER_DB);
-    Lazy::force(&POLYMERIZER);
+    LazyLock::force(&ATOMIC_DB);
+    LazyLock::force(&POLYMER_DB);
+    LazyLock::force(&POLYMERIZER);
     divan::main();
 }
 

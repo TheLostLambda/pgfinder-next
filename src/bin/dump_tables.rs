@@ -1,12 +1,13 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
+
 use polychem::{
     AtomicDatabase, Massive, PolymerDatabase,
     moieties::polymer_database::{ModificationDescription, ResidueDescription},
 };
 use rust_decimal::Decimal;
 
-static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
     PolymerDatabase::new(
         &ATOMIC_DB,
         "polymer_database.kdl",

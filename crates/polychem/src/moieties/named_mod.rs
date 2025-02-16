@@ -66,8 +66,8 @@ impl Charged for NamedMod<'_, '_> {
 
 #[cfg(test)]
 mod tests {
-    use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
+    use std::sync::LazyLock;
 
     use crate::{
         AtomicDatabase, AverageMz, ChargedParticle, MonoisotopicMz,
@@ -76,9 +76,9 @@ mod tests {
 
     use super::*;
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
+    static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
 
-    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "test_polymer_database.kdl",

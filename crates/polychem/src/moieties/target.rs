@@ -244,13 +244,13 @@ mod tests {
     use miette::IntoDiagnostic;
     use std::io::Write;
 
-    use once_cell::sync::Lazy;
+    use std::sync::LazyLock;
 
     use crate::testing_tools::assert_miette_snapshot;
 
     use super::*;
 
-    static TARGET_LIST: Lazy<[(Target<&str>, &str); 3]> = Lazy::new(|| {
+    static TARGET_LIST: LazyLock<[(Target<&str>, &str); 3]> = LazyLock::new(|| {
         [
             (Target::new("Amino", None, None), "group"),
             (
@@ -427,7 +427,7 @@ mod tests {
         assert_eq!(values, vec![&"residue-group-location?"]);
     }
 
-    static RESIDUE_LIST: Lazy<[Target<&str>; 6]> = Lazy::new(|| {
+    static RESIDUE_LIST: LazyLock<[Target<&str>; 6]> = LazyLock::new(|| {
         [
             Target::new("Amino", Some("N-Terminal"), Some("Lysine")),
             Target::new("Amino", Some("Sidechain"), Some("Lysine")),

@@ -619,8 +619,8 @@ impl Charged for Polymer<'_, '_> {
 #[cfg(test)]
 mod tests {
     use insta::assert_ron_snapshot;
-    use once_cell::sync::Lazy;
     use rust_decimal_macros::dec;
+    use std::sync::LazyLock;
 
     use crate::{
         AverageMz, ChargedParticle, FunctionalGroup, ModificationId, MonoisotopicMz, OffsetKind,
@@ -631,8 +631,8 @@ mod tests {
 
     const STEM_RESIDUES: [&str; 4] = ["A", "E", "J", "A"];
 
-    static ATOMIC_DB: Lazy<AtomicDatabase> = Lazy::new(AtomicDatabase::default);
-    static POLYMER_DB: Lazy<PolymerDatabase> = Lazy::new(|| {
+    static ATOMIC_DB: LazyLock<AtomicDatabase> = LazyLock::new(AtomicDatabase::default);
+    static POLYMER_DB: LazyLock<PolymerDatabase> = LazyLock::new(|| {
         PolymerDatabase::new(
             &ATOMIC_DB,
             "test_polymer_database.kdl",
@@ -641,7 +641,8 @@ mod tests {
         .unwrap()
     });
 
-    static POLYMERIZER: Lazy<Polymerizer> = Lazy::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
+    static POLYMERIZER: LazyLock<Polymerizer> =
+        LazyLock::new(|| Polymerizer::new(&ATOMIC_DB, &POLYMER_DB));
 
     macro_rules! assert_polymer {
         ($polymer:expr, $mono_mass:literal, $avg_mass:literal) => {
