@@ -133,6 +133,11 @@ residues {
         functional-group "Amino" at="Sidechain"
         functional-group "Carboxyl" at="Sidechain"
     }
+    AminoAcid "mL" "Lanthionine" {
+        composition "C6H12N2O4S"
+        functional-group "Amino" at="Sidechain"
+        functional-group "Carboxyl" at="Sidechain"
+    }
     AminoAcid "K" "Lysine" {
         composition "C6H14N2O2"
         functional-group "Amino" at="Sidechain"

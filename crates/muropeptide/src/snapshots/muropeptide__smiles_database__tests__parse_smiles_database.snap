@@ -486,6 +486,56 @@ SmilesDatabaseKdl {
             },
             ResidueKdl {
                 kind: "AminoAcid",
+                abbr: "mL",
+                isomers: [
+                    IsomerKdl {
+                        name: Some(
+                            "meso",
+                        ),
+                        smiles: "N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O",
+                    },
+                ],
+                stem: [],
+                lateral: None,
+                bond_sites: [
+                    BondSitesKdl {
+                        bond: "NToC",
+                        donor: Some(
+                            "(\\(O\\))=O\\)",
+                        ),
+                        acceptor: None,
+                    },
+                    BondSitesKdl {
+                        bond: "CToN",
+                        donor: None,
+                        acceptor: Some(
+                            "\\(N()\\)",
+                        ),
+                    },
+                    BondSitesKdl {
+                        bond: "Link",
+                        donor: None,
+                        acceptor: Some(
+                            "\\(N()\\)",
+                        ),
+                    },
+                ],
+                modifications: [
+                    ModificationKdl {
+                        abbr: "Am",
+                        replace: Some(
+                            "O\\)=O\\)",
+                        ),
+                        with: Some(
+                            "N)=O)",
+                        ),
+                        replacements: [],
+                    },
+                ],
+                template_values: [],
+            },
+            ResidueKdl {
+                kind: "AminoAcid",
                 abbr: "K",
                 isomers: [],
                 stem: [],

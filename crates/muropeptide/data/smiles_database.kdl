@@ -148,6 +148,17 @@ residues {
 		modification "Am" replace=r"O\)=O\)" with="N)=O)"
 	}
 
+	AminoAcid "mL" {
+		// No `sidechain`, so no L and D forms...
+		isomer "meso" "N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O"
+
+		bond-sites "NToC" donor=r"(\(O\))=O\)"
+		bond-sites "CToN" acceptor=r"\(N()\)"
+		bond-sites "Link" acceptor=r"\(N()\)"
+
+		modification "Am" replace=r"O\)=O\)" with="N)=O)"
+	}
+
 	AminoAcid "K" {
 		sidechain "CCCCN"
 

@@ -191,3 +191,10 @@ m:
     Stem(4) -> β-D   (O[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O)
     Stem(5) -> β-D   (O[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O)
     Lateral -> β-D   (O[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O)
+mL:
+    Stem(1) -> meso  (N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O)
+    Stem(2) -> meso  (N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O)
+    Stem(3) -> meso  (N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O)
+    Stem(4) -> meso  (N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O)
+    Stem(5) -> meso  (N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O)
+    Lateral -> meso  (N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O)
