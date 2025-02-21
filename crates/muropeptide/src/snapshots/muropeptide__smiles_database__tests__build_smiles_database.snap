@@ -791,5 +791,33 @@ SmilesDatabase(
         ],
       },
     ),
+    "mL": ResidueDescription(
+      isomers: [
+        Isomer(
+          name: Some("meso"),
+          smiles: "N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O",
+        ),
+      ],
+      isomer_rules: {},
+      bond_sites: {
+        Acceptor("CToN"): "\\(N()\\)",
+        Acceptor("Link"): "\\(N()\\)",
+        Acceptor("NToC"): "^N()",
+        Acceptor("Pep"): "^N()",
+        Acceptor("Stem"): "^N()",
+        Donor("CToN"): "(\\(O\\))=O$",
+        Donor("Link"): "(\\(O\\))=O$",
+        Donor("NToC"): "(\\(O\\))=O\\)",
+        Donor("Pep"): "(\\(O\\))=O$",
+      },
+      modifications: {
+        "Am": [
+          Modification(
+            replace: "O\\)=O\\)",
+            with: "N)=O)",
+          ),
+        ],
+      },
+    ),
   },
 )

@@ -55,3 +55,4 @@ Z(D): N[C@H]([C@@H](O)CC(=O)O)C(O)=O
 Z(D-iso): N[C@@H](C(=O)O)[C@@H](O)CC(O)=O
 g(β-D): O[C@H]([C@H](O1)CO)[C@H](O)[C@@H](NC(=O)C)[C@@H]1O
 m(β-D): O[C@H]([C@H](O1)CO)[C@H](O[C@H](C)C(O)=O)[C@@H](NC(=O)C)[C@@H]1O
+mL(meso): N[C@@H](CSC[C@@H](N)C(O)=O)C(O)=O
