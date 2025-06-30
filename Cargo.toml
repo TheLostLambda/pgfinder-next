@@ -5,6 +5,7 @@ edition = "2024"
 
 [workspace]
 members = [ "crates/consolidation",
+  "crates/database-builder",
   "crates/dimer-builder",
   "crates/muropeptide",
   "crates/nom-miette",

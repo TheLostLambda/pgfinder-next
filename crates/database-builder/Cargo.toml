@@ -1,0 +1,13 @@
+[package]
+name = "database-builder"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+muropeptide = { path = "../muropeptide" }
+nom-miette = { path = "../nom-miette" }
+polars-core = "0.46.0"
+polars-lazy = "0.46.0"
+
+[lints]
+workspace = true

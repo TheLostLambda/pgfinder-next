@@ -1,5 +1,6 @@
 //! Responsible for parsing strings into meaningful `Muropeptide` structures
-mod parser;
+// FIXME: Hack so that Tia can access a version of `Muropeptide::new` that doesn't add `AUTO_MODS`
+pub mod parser;
 mod smiles_database;
 
 use std::fmt::{self, Display, Formatter};
