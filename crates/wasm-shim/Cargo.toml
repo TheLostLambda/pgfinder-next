@@ -7,14 +7,14 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = "0.2.92"
+wasm-bindgen = "0.2.100"
 getrandom = { version = "0.3.3", features = ["wasm_js"] }
 muropeptide = { path = "../muropeptide" }
 polychem = { path = "../polychem" }
 smithereens = { path = "../smithereens" }
 consolidation = { path = "../consolidation" }
 console_error_panic_hook = "0.1.7"
-rust_decimal = "1.36.0"
+rust_decimal = "1.37.2"
 
 [lints]
 workspace = true

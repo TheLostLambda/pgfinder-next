@@ -6,8 +6,8 @@ edition = "2024"
 [dependencies]
 muropeptide = { path = "../muropeptide" }
 nom-miette = { path = "../nom-miette" }
-polars-core = "0.46.0"
-polars-lazy = "0.46.0"
+polars-core = "0.49.1"
+polars-lazy = "0.49.1"
 
 [lints]
 workspace = true

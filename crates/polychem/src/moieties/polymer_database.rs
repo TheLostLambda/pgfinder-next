@@ -554,7 +554,7 @@ enum ChemistryErrorKind {
     ))]
     NonexistentTarget(Span, Target),
 
-    #[error("the target {2} overlaps with {} other target specifier{}", .1.len(), if .1.len() > 1 {"s"} else {""})]
+    #[error("the target {} overlaps with {} other target specifier{}", .2, .1.len(), if .1.len() > 1 {"s"} else {""})]
     #[diagnostic(help("double-check for typos, or remove the overlapping target specifier"))]
     OverlappingTargets(Span, Vec<Span>, Target),
 
