@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 muropeptide = { path = "../muropeptide" }
+polychem = { path = "../polychem" }
 nom-miette = { path = "../nom-miette" }
 
 [lints]

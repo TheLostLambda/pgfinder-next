@@ -72,4 +72,15 @@ mod tests {
 
         assert_eq!(database_builder.generate(), vec!["g-A", "g-E", "g-J"]);
     }
+
+    #[test]
+    fn get_muropeptide_mass() {
+        // NOTE: For Tia, to call methods that a trait provides, that trait needs to be in scope! Here we're importing
+        // the `Massive` trait (a rubbish name — sorry — suggestions very welcome) so that we can call the
+        // `.monoisotopic_mass()` method on our monomer!
+        use polychem::Massive;
+
+        let monomer = parse_muropeptide("gm-AEJA").unwrap();
+        assert_eq!(monomer.monoisotopic_mass().to_string(), "939.39205200801");
+    }
 }
