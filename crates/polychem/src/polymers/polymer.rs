@@ -1289,7 +1289,9 @@ mod tests {
     #[allow(clippy::cognitive_complexity)]
     fn modify_polymer() {
         let mut no_targets = POLYMERIZER.new_polymer();
-        STEM_RESIDUES.map(|abbr| no_targets.new_residue(abbr).unwrap());
+        for abbr in STEM_RESIDUES {
+            no_targets.new_residue(abbr).unwrap();
+        }
         assert_polymer!(no_targets, 515.24387164950, 515.51342919034656875);
 
         let modification_ids = no_targets.modify_polymer("Met").unwrap();
