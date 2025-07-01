@@ -170,7 +170,7 @@ impl SmilesResidue {
 impl ResidueDescription {
     fn isomer(&self, position: Position) -> &Isomer {
         // NOTE: Don't agree with this nursery lint making things clearer...
-        #[allow(clippy::option_if_let_else)]
+        #[expect(clippy::option_if_let_else)]
         if let Some(isomer_name) = self.isomer_rules.get(&position) {
             // SAFETY: The `.unwrap()` should be a-okay since we've already validated that all rules have a
             // corresponding isomer
@@ -404,7 +404,7 @@ type ResidueTypeEntry = (String, ResidueTypeDescription);
 // FIXME: Taking inspiration from how things like `nom` parsers are written, I should realy think about just turning
 // all of these `impl`s into top-level functions... Maybe that will be a bit clearer?
 // FIXME: This should *not* be allowed — it's just a hack for now...
-#[allow(clippy::fallible_impl_from)]
+#[expect(clippy::fallible_impl_from)]
 impl From<ResidueTypeKdl> for ResidueTypeEntry {
     fn from(value: ResidueTypeKdl) -> Self {
         let templates = value.isomers.into_iter().map(TemplateEntry::from).collect();
@@ -946,7 +946,7 @@ mod tests {
             .flat_map(|(residue, ResidueDescription { isomers, .. })| {
                 isomers.iter().map(move |Isomer { name, smiles }| {
                     // NOTE: Not convinced that lint makes things more readable, and `nursery` means I can ignore it
-                    #[allow(clippy::option_if_let_else)]
+                    #[expect(clippy::option_if_let_else)]
                     if let Some(isomer) = name {
                         format!("{residue}({isomer}): {smiles}")
                     } else {

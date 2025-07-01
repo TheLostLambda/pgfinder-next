@@ -84,7 +84,7 @@ fn element<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
-#[allow(clippy::doc_link_with_quotes)]
+#[expect(clippy::doc_link_with_quotes)]
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope<'a, 's>(db: &'a AtomicDatabase) -> impl FnMut(&'s str) -> ParseResult<'s, Element<'a>> {
     map_res(isotope_expr, |(mass_number, symbol)| {
@@ -108,7 +108,7 @@ fn element_symbol(i: &str) -> ParseResult<'_, &str> {
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
-#[allow(clippy::doc_link_with_quotes)]
+#[expect(clippy::doc_link_with_quotes)]
 /// Isotope = "[" , Count , Element , "]" ;
 fn isotope_expr(i: &str) -> ParseResult<'_, (MassNumber, &str)> {
     let opening_bracket = expect(char('['), PolychemErrorKind::ExpectedIsotopeStart);
@@ -316,7 +316,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_atomic_offset() {
         let mut atomic_offset = atomic_offset(&DB);
         macro_rules! assert_atomic_offset {
@@ -376,7 +376,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_chemical_composition() {
         let mut chemical_composition = chemical_composition::<PolychemErrorKind>(&DB);
         macro_rules! check_composition_snapshot {

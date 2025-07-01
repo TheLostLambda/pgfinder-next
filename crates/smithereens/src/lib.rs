@@ -140,7 +140,7 @@ impl NodeMapping {
 
     // NOTE: Keeping `id` as a ref, since it needs to be one for `binary_search()` and because it comes from
     // `bond_refs()` to begin with!
-    #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[expect(clippy::trivially_copy_pass_by_ref)]
     fn index(&self, id: &ResidueId) -> NodeId {
         // PERF: Linear search might be faster here for small lists!
         // SAFETY: Panics if the `id` isn't found

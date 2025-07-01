@@ -167,8 +167,6 @@ mod tests {
 
     #[test]
     // FIXME: Maybe split this up some?
-    // NOTE: This is just a test, so whilst this isn't great, it's acceptable to be a bit long...
-    #[allow(clippy::too_many_lines)]
     fn monoisotopic_mass() {
         // Masses checked against https://www.unimod.org/modifications_list.php
         let amidation = Modification::new(c(1), NamedMod::new(&POLYMER_DB, "Am").unwrap());
@@ -261,8 +259,6 @@ mod tests {
 
     #[test]
     // FIXME: Maybe split this up some?
-    // NOTE: This is just a test, so whilst this isn't great, it's acceptable to be a bit long...
-    #[allow(clippy::too_many_lines)]
     fn average_mass() {
         // Masses checked against https://www.unimod.org/modifications_list.php
         let amidation = Modification::new(c(1), NamedMod::new(&POLYMER_DB, "Am").unwrap());

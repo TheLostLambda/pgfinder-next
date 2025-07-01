@@ -20,6 +20,7 @@ struct Peptidoglycan(Muropeptide<'static, 'static>);
 #[wasm_bindgen]
 impl Peptidoglycan {
     #[wasm_bindgen(constructor)]
+    // NOTE: This is an `allow` and not `expect` since `#[wasm_bindgen]` seems to confuse clippy
     #[allow(clippy::use_self)]
     pub fn new(structure: &str) -> Result<Peptidoglycan, String> {
         // NOTE: This ensures the panic hook is set before any other shim code can be run!
@@ -78,6 +79,7 @@ pub struct Replicate {
 impl Replicate {
     #[wasm_bindgen(constructor)]
     #[must_use]
+    // NOTE: This is an `allow` and not `expect` since `#[wasm_bindgen]` seems to confuse clippy
     #[allow(clippy::missing_const_for_fn)]
     pub fn new(number: u32, csv: String) -> Self {
         Self { number, csv }

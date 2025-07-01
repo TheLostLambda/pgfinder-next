@@ -281,7 +281,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
         // NOTE: Without `.collect()`ing here, I'm holding on to a reference to `self.polymerizer_state` which prevents
         // me from calling `self.group_modification()` later, since that needs a unique mutable reference to the
         // `polymerizer_state` (to mark functional groups as modified)
-        #[allow(clippy::needless_collect)]
+        #[expect(clippy::needless_collect)]
         let residue_groups: Vec<_> = self
             .polymerizer_state
             .free_polymer_groups(targets)
@@ -788,7 +788,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn remove_residue() {
         let mut polymer = POLYMERIZER.new_polymer();
         let murnac = polymer.new_residue("m").unwrap();
@@ -1150,7 +1150,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
+    #[expect(clippy::cognitive_complexity, clippy::too_many_lines)]
     fn localize_modification() {
         let mut polymer = POLYMERIZER.new_polymer();
         let murnac = polymer.new_residue("m").unwrap();
@@ -1286,7 +1286,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn modify_polymer() {
         let mut no_targets = POLYMERIZER.new_polymer();
         for abbr in STEM_RESIDUES {
@@ -1381,7 +1381,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn modify_only_groups() {
         let mut polymer = POLYMERIZER.new_polymer();
         let murnac = polymer.new_residue("m").unwrap();
@@ -1596,7 +1596,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn offset_residue() {
         let mut polymer = POLYMERIZER.new_polymer();
         let alanine = polymer.new_residue("A").unwrap();

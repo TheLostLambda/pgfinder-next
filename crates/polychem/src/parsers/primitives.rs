@@ -34,9 +34,6 @@ pub fn lowercase<K: UserErrorKind>(i: &str) -> ParseResult<'_, char, K> {
 }
 
 /// Count = digit - "0" , { digit } ;
-// NOTE: The potential panic should actually be unreachable, since a parse-error will always be reported before
-// attempting to construct a zero `Count`
-#[allow(clippy::missing_panics_doc)]
 pub fn count<K: UserErrorKind>(i: &str) -> ParseResult<'_, Count, K> {
     let not_zero = expect(
         cut(not(char('0'))),
@@ -44,7 +41,10 @@ pub fn count<K: UserErrorKind>(i: &str) -> ParseResult<'_, Count, K> {
     );
     let digits = expect(u32, PolychemErrorKind::ExpectedDigit);
     // SAFETY: The parser ensures that only non-zero integers are read, so this `Count::new()` should never fail!
-    into(map(preceded(not_zero, digits), |c| Count::new(c).unwrap()))(i)
+    into(map(preceded(not_zero, digits), |c| {
+        #[expect(clippy::missing_panics_doc)]
+        Count::new(c).unwrap()
+    }))(i)
 }
 
 /// Offset Kind = "+" | "-" ;

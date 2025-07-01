@@ -39,7 +39,7 @@ use crate::{
 // FIXME: Very very incomplete!
 // FIXME: Needs proper testing!
 // FIXME: And disgustingly messy... Needs a major refactor... When you do, remove this allow!
-#[allow(clippy::too_many_lines)]
+#[expect(clippy::too_many_lines)]
 pub fn muropeptide<'z, 'a, 'p, 's>(
     polymerizer: &'z Polymerizer<'a, 'p>,
 ) -> impl FnMut(&'s str) -> ParseResult<'s, Muropeptide<'a, 'p>> {
@@ -142,7 +142,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                                             lateral_acceptor = true;
                                             // SAFETY: All `LateralChain`s carry non-empty vectors, so this call to
                                             // `.last()` should never fail!
-                                            #[allow(clippy::missing_panics_doc)]
+                                            #[expect(clippy::missing_panics_doc)]
                                             peptide.last().unwrap()
                                         } else {
                                             residue
@@ -371,7 +371,7 @@ fn unbranched_amino_acid<'c, 'a, 'p, 's>(
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
-#[allow(clippy::doc_link_with_quotes)]
+#[expect(clippy::doc_link_with_quotes)]
 /// Lateral Chain = "[" , Peptide Direction , { Unbranched Amino Acid }- , "]" ;
 fn lateral_chain<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
@@ -385,7 +385,7 @@ fn lateral_chain<'c, 'a, 'p, 's>(
 }
 
 // NOTE: These are not meant to be links, it's just EBNF
-#[allow(clippy::doc_link_with_quotes)]
+#[expect(clippy::doc_link_with_quotes)]
 /// Peptide Direction = [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ;
 fn peptide_direction(i: &str) -> ParseResult<'_, PeptideDirection> {
     map(opt(one_of("<>")), |c| match c {
@@ -510,7 +510,7 @@ fn crosslink_descriptor(i: &str) -> ParseResult<'_, CrosslinkDescriptor> {
 fn position(i: &str) -> ParseResult<'_, Position> {
     // SAFETY: If a 1, 2, 3, 4, or 5 is parsed, then calling `.to_digit()` will always return `Some(...)`, and casting
     // via `as u8` is also guaranteed not to overflow or truncate, since `5` is the largest parsable digit
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation)]
     let mut parser = map(one_of("12345"), |p| p.to_digit(10).unwrap() as u8);
     // FIXME: Add error handling / reporting!
     parser(i)
@@ -765,7 +765,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_crosslink_descriptors() {
         let da43 = CrosslinkDescriptor::DonorAcceptor(4, 3);
         let ad34 = CrosslinkDescriptor::AcceptorDonor(3, 4);
@@ -828,7 +828,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_connection() {
         let gly = || Connection::GlycosidicBond;
         let link = || Connection::Crosslink(Vec::new());
@@ -866,7 +866,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_named_modification() {
         let polymer = RefCell::new(POLYMERIZER.new_polymer());
 
@@ -937,7 +937,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_offset_modification() {
         use polychem::OffsetKind::{Add, Remove};
         let polymer = RefCell::new(POLYMERIZER.new_polymer());
@@ -1001,7 +1001,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_modifications() {
         let polymer = RefCell::new(POLYMERIZER.new_polymer());
 
@@ -1162,7 +1162,7 @@ mod tests {
     // FIXME: Add modification testing!
     // FIXME: Add lateral chain testing!
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_peptide() {
         let polymer = RefCell::new(POLYMERIZER.new_polymer());
 
@@ -1245,7 +1245,7 @@ mod tests {
 
     // FIXME: Add modification testing!
     #[test]
-    #[allow(clippy::cognitive_complexity)]
+    #[expect(clippy::cognitive_complexity)]
     fn test_glycan() {
         let polymer = RefCell::new(POLYMERIZER.new_polymer());
 
@@ -1327,8 +1327,8 @@ mod tests {
 
     // FIXME: Add modification testing!
     #[test]
-    #[allow(clippy::cognitive_complexity)]
-    #[allow(clippy::too_many_lines)]
+    #[expect(clippy::cognitive_complexity)]
+    #[expect(clippy::too_many_lines)]
     fn test_monomer() {
         let polymer = RefCell::new(POLYMERIZER.new_polymer());
 

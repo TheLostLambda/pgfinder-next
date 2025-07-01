@@ -627,7 +627,7 @@ mod tests {
     }
 
     // NOTE: I don't care about performance — this is test code
-    #[allow(clippy::result_large_err)]
+    #[expect(clippy::result_large_err)]
     fn parse_residues(kdl: &str) -> Result<Residues<'_>, ChemistryError> {
         let residues: ResiduesKdl = knuffel::parse("test", kdl).unwrap();
         residues.validate(&DB).map_err(|e| e.finalize("test", kdl))
@@ -834,7 +834,7 @@ mod tests {
         LazyLock::new(|| RESIDUES.values().flat_map(Targets::from).collect());
 
     // NOTE: I don't care about performance — this is test code
-    #[allow(clippy::result_large_err)]
+    #[expect(clippy::result_large_err)]
     fn parse_modifications(kdl: &str) -> Result<Modifications<'_>, ChemistryError> {
         let modifications: ModificationsKdl = knuffel::parse("test", kdl).unwrap();
         modifications
@@ -992,7 +992,7 @@ mod tests {
     }
 
     // NOTE: I don't care about performance — this is test code
-    #[allow(clippy::result_large_err)]
+    #[expect(clippy::result_large_err)]
     fn parse_bonds(kdl: &str) -> Result<Bonds<'_>, ChemistryError> {
         let bonds: BondsKdl = knuffel::parse("test", kdl).unwrap();
         bonds

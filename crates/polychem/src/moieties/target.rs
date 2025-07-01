@@ -144,10 +144,7 @@ impl<'p, V> Index<'p, V> {
                     .map(move |(&r, v)| item(group, location, r, v)),
             );
         }
-        // NOTE: Type inference seems to get confused by `iter::once` and `iter::empty` having different types in the
-        // `map_or_else` version. I suspect this is just because the `Box`s haven't been type-erased into trait-objects
-        // at that point, and the manual casting is certainly messier than this!
-        #[allow(clippy::option_if_let_else)]
+
         if let Some(v) = residues.get(&residue) {
             Box::new(iter::once(item(group, location, residue, v)))
         } else {

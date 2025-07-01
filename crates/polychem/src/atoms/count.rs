@@ -38,7 +38,7 @@ impl TryFrom<u32> for Count {
 
 // NOTE: Since this will only panic on 16-bit platforms, I couldn't test a `TryFrom` impl if I wanted to — I don't want
 // to add an entire error-handling code path that could never possibly be run.
-#[allow(clippy::fallible_impl_from)]
+#[expect(clippy::fallible_impl_from)]
 impl From<Count> for usize {
     fn from(value: Count) -> Self {
         const_assert!(usize::BITS >= Count::BITS);
