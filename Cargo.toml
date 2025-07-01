@@ -24,7 +24,7 @@ dead_code = "allow"
 
 [dependencies]
 # miette = { version = "7.2.0", features = ["fancy"] }
-miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
+miette = { git = "https://github.com/TheLostLambda/miette", branch = "tll-fork", features = ["fancy"] }
 polychem = { path = "crates/polychem/" }
 muropeptide = { path = "crates/muropeptide/" }
 smithereens = { path = "crates/smithereens/" }

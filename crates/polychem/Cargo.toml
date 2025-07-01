@@ -11,7 +11,7 @@ getrandom = { version = "0.2.7", features = ["js"] }
 itertools = "0.14.0"
 knuffel = { git = "https://github.com/TheLostLambda/knus.git", branch = "tll-fork" }
 # miette = "7.2.0"
-miette = { git = "https://github.com/TheLostLambda/miette" }
+miette = { git = "https://github.com/TheLostLambda/miette", branch = "tll-fork" }
 nom = "7.0.0"
 nom-miette = { path = "../nom-miette" }
 rust_decimal = "1.36.0"
@@ -23,7 +23,7 @@ thiserror = "1.0.59"
 divan = "0.1.14"
 indoc = "2.0.5"
 insta = { version = "1.42.1", features = ["filters", "redactions", "ron"] }
-miette = { git = "https://github.com/TheLostLambda/miette", features = ["fancy"] }
+miette = { git = "https://github.com/TheLostLambda/miette", branch = "tll-fork", features = ["fancy"] }
 # miette = { version = "7.2.0", features = ["fancy"] }
 rust_decimal_macros = "1.34.2"
 
