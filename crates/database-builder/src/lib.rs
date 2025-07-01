@@ -1,10 +1,3 @@
-// NOTE: For Tia — you'll need to import Polars like this for it to compile to WebAssembly
-// https://www.reddit.com/r/rust/comments/yb58hk/how_to_use_polars_with_wasm/
-// That's because, by default, `polars` will import some code that interacts with the operating
-// system / terminal, and those APIs aren't available on the web!
-// use polars_core::prelude::*;
-// use polars_lazy::prelude::*;
-
 #[derive(Clone, Debug, Default)]
 struct DatabaseBuilder {
     glycan_residues: Vec<char>,
