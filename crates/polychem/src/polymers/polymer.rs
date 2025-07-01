@@ -117,7 +117,7 @@ impl<'a, 'p> Polymer<'a, 'p> {
     // TODO: Add `remove_modification` and be sure to clear any groups the modification was attached to!
 
     #[must_use]
-    pub fn modification(&self, id: ModificationId) -> Option<&ModificationInfo> {
+    pub fn modification(&self, id: ModificationId) -> Option<&ModificationInfo<'_, '_>> {
         self.modifications.get(&id)
     }
 

@@ -623,7 +623,7 @@ mod tests {
         });
     }
 
-    fn parse_residues(kdl: &str) -> Result<Residues, ChemistryError> {
+    fn parse_residues(kdl: &str) -> Result<Residues<'_>, ChemistryError> {
         let residues: ResiduesKdl = knuffel::parse("test", kdl).unwrap();
         residues.validate(&DB).map_err(|e| e.finalize("test", kdl))
     }
@@ -828,7 +828,7 @@ mod tests {
     static RESIDUE_INDEX: LazyLock<Index> =
         LazyLock::new(|| RESIDUES.values().flat_map(Targets::from).collect());
 
-    fn parse_modifications(kdl: &str) -> Result<Modifications, ChemistryError> {
+    fn parse_modifications(kdl: &str) -> Result<Modifications<'_>, ChemistryError> {
         let modifications: ModificationsKdl = knuffel::parse("test", kdl).unwrap();
         modifications
             .validate((&DB, &RESIDUE_INDEX))
@@ -984,7 +984,7 @@ mod tests {
         assert_miette_snapshot!(modifications);
     }
 
-    fn parse_bonds(kdl: &str) -> Result<Bonds, ChemistryError> {
+    fn parse_bonds(kdl: &str) -> Result<Bonds<'_>, ChemistryError> {
         let bonds: BondsKdl = knuffel::parse("test", kdl).unwrap();
         bonds
             .validate((&DB, &RESIDUE_INDEX))

@@ -77,7 +77,7 @@ impl<'p, V> Index<'p, V> {
         }
     }
 
-    pub fn entry(&mut self, target: impl Into<Target<&'p str>>) -> Entry<Option<&'p str>, V> {
+    pub fn entry(&mut self, target: impl Into<Target<&'p str>>) -> Entry<'_, Option<&'p str>, V> {
         let Target {
             group,
             location,

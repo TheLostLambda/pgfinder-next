@@ -102,7 +102,7 @@ fn particle<'a, 's>(
 // ---------------------------------------------------------------------------------------------------------------------
 
 /// Element = uppercase , [ lowercase ] ;
-fn element_symbol(i: &str) -> ParseResult<&str> {
+fn element_symbol(i: &str) -> ParseResult<'_, &str> {
     let parser = recognize(pair(uppercase, opt(lowercase)));
     wrap_err(parser, PolychemErrorKind::ExpectedElementSymbol)(i)
 }
@@ -110,7 +110,7 @@ fn element_symbol(i: &str) -> ParseResult<&str> {
 // NOTE: These are not meant to be links, it's just EBNF
 #[allow(clippy::doc_link_with_quotes)]
 /// Isotope = "[" , Count , Element , "]" ;
-fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
+fn isotope_expr(i: &str) -> ParseResult<'_, (MassNumber, &str)> {
     let opening_bracket = expect(char('['), PolychemErrorKind::ExpectedIsotopeStart);
     let mass_number = map(
         wrap_err(count, PolychemErrorKind::ExpectedMassNumber),
@@ -125,7 +125,7 @@ fn isotope_expr(i: &str) -> ParseResult<(MassNumber, &str)> {
 }
 
 /// Particle = lowercase ;
-fn particle_symbol(i: &str) -> ParseResult<&str> {
+fn particle_symbol(i: &str) -> ParseResult<'_, &str> {
     let parser = recognize(lowercase);
     wrap_err(parser, PolychemErrorKind::ExpectedParticleSymbol)(i)
 }

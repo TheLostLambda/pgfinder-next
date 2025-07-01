@@ -387,7 +387,7 @@ fn lateral_chain<'c, 'a, 'p, 's>(
 // NOTE: These are not meant to be links, it's just EBNF
 #[allow(clippy::doc_link_with_quotes)]
 /// Peptide Direction = [ "<" (* C-to-N *) | ">" (* N-to-C *) ] ;
-fn peptide_direction(i: &str) -> ParseResult<PeptideDirection> {
+fn peptide_direction(i: &str) -> ParseResult<'_, PeptideDirection> {
     map(opt(one_of("<>")), |c| match c {
         Some('<') => PeptideDirection::CToN,
         Some('>') => PeptideDirection::NToC,
@@ -398,7 +398,7 @@ fn peptide_direction(i: &str) -> ParseResult<PeptideDirection> {
 // =
 
 /// Identifier = letter , { letter | digit | "_" } ;
-fn identifier(i: &str) -> ParseResult<&str> {
+fn identifier(i: &str) -> ParseResult<'_, &str> {
     // PERF: Could maybe avoid allocations by using `many0_count` instead, but needs benchmarking
     let parser = recognize(pair(alpha1, many0(alt((alphanumeric1, tag("_"))))));
     wrap_err(parser, MuropeptideErrorKind::ExpectedIdentifier)(i)
@@ -448,7 +448,7 @@ pub fn offset_modification<'c, 'a, 'p, 's>(
 ///   ;
 // FIXME: Not in love with carrying these empty Vecs around just to be populated later... Perhaps this should be a
 // different type?
-fn connection(i: &str) -> ParseResult<Connection> {
+fn connection(i: &str) -> ParseResult<'_, Connection> {
     // NOTE: The order here must start with the tags for `Both` — backtracking and trying the single-char parsers if
     // the two-char ones don't apply
     // PERF: There is probably a way to remove this backtracking and do things in a single-pass, but I don't know if
@@ -464,7 +464,7 @@ fn connection(i: &str) -> ParseResult<Connection> {
 }
 
 /// Multiplier = Count , "x" ;
-fn multiplier(i: &str) -> ParseResult<Count> {
+fn multiplier(i: &str) -> ParseResult<'_, Count> {
     let mut parser = terminated(count, char('x'));
     // FIXME: Add error handling / reporting!
     parser(i)
@@ -472,7 +472,7 @@ fn multiplier(i: &str) -> ParseResult<Count> {
 
 /// Crosslinks = "(" , Crosslink Descriptors ,
 ///   { { " " } , "," , { " " } , Crosslink Descriptors } , ")" ;
-fn crosslinks(i: &str) -> ParseResult<CrosslinkDescriptors> {
+fn crosslinks(i: &str) -> ParseResult<'_, CrosslinkDescriptors> {
     let separator = delimited(space0, char(','), space0);
     let mut parser = delimited(
         char('('),
@@ -485,7 +485,7 @@ fn crosslinks(i: &str) -> ParseResult<CrosslinkDescriptors> {
 
 /// Crosslink Descriptors = Crosslink Descriptor ,
 ///   { { " " } , "&" , { " " } , Crosslink Descriptor } ;
-fn crosslink_descriptors(i: &str) -> ParseResult<CrosslinkDescriptors> {
+fn crosslink_descriptors(i: &str) -> ParseResult<'_, CrosslinkDescriptors> {
     let separator = delimited(space0, char('&'), space0);
     let mut parser = separated_list1(separator, crosslink_descriptor);
     // FIXME: Add error handling / reporting!
@@ -496,7 +496,7 @@ fn crosslink_descriptors(i: &str) -> ParseResult<CrosslinkDescriptors> {
 ///   ( "-" (* Donor-Acceptor *)
 ///   | "=" (* Acceptor=Donor *)
 ///   ) , position ;
-fn crosslink_descriptor(i: &str) -> ParseResult<CrosslinkDescriptor> {
+fn crosslink_descriptor(i: &str) -> ParseResult<'_, CrosslinkDescriptor> {
     let mut parser = map(tuple((position, one_of("-="), position)), |(left, kind, right)| match kind {
         '-' => CrosslinkDescriptor::DonorAcceptor,
         '=' => CrosslinkDescriptor::AcceptorDonor,
@@ -507,7 +507,7 @@ fn crosslink_descriptor(i: &str) -> ParseResult<CrosslinkDescriptor> {
 }
 
 /// position = "1" | "2" | "3" | "4" | "5" ;
-fn position(i: &str) -> ParseResult<Position> {
+fn position(i: &str) -> ParseResult<'_, Position> {
     // SAFETY: If a 1, 2, 3, 4, or 5 is parsed, then calling `.to_digit()` will always return `Some(...)`, and casting
     // via `as u8` is also guaranteed not to overflow or truncate, since `5` is the largest parsable digit
     #[allow(clippy::cast_possible_truncation)]

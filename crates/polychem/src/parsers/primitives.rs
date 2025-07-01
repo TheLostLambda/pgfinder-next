@@ -17,7 +17,7 @@ use super::errors::{ParseResult, PolychemErrorKind, UserErrorKind};
 ///   | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
 ///   | "V" | "W" | "X" | "Y" | "Z"
 ///   ;
-pub fn uppercase<K: UserErrorKind>(i: &str) -> ParseResult<char, K> {
+pub fn uppercase<K: UserErrorKind>(i: &str) -> ParseResult<'_, char, K> {
     let parser = satisfy(|c| c.is_ascii_uppercase());
     into(expect(parser, PolychemErrorKind::ExpectedUppercase))(i)
 }
@@ -28,7 +28,7 @@ pub fn uppercase<K: UserErrorKind>(i: &str) -> ParseResult<char, K> {
 ///   | "o" | "p" | "q" | "r" | "s" | "t" | "u"
 ///   | "v" | "w" | "x" | "y" | "z"
 ///   ;
-pub fn lowercase<K: UserErrorKind>(i: &str) -> ParseResult<char, K> {
+pub fn lowercase<K: UserErrorKind>(i: &str) -> ParseResult<'_, char, K> {
     let parser = satisfy(|c| c.is_ascii_lowercase());
     into(expect(parser, PolychemErrorKind::ExpectedLowercase))(i)
 }
@@ -37,7 +37,7 @@ pub fn lowercase<K: UserErrorKind>(i: &str) -> ParseResult<char, K> {
 // NOTE: The potential panic should actually be unreachable, since a parse-error will always be reported before
 // attempting to construct a zero `Count`
 #[allow(clippy::missing_panics_doc)]
-pub fn count<K: UserErrorKind>(i: &str) -> ParseResult<Count, K> {
+pub fn count<K: UserErrorKind>(i: &str) -> ParseResult<'_, Count, K> {
     let not_zero = expect(
         cut(not(char('0'))),
         PolychemErrorKind::ExpectedNoLeadingZero,
@@ -48,7 +48,7 @@ pub fn count<K: UserErrorKind>(i: &str) -> ParseResult<Count, K> {
 }
 
 /// Offset Kind = "+" | "-" ;
-pub fn offset_kind<K: UserErrorKind>(i: &str) -> ParseResult<OffsetKind, K> {
+pub fn offset_kind<K: UserErrorKind>(i: &str) -> ParseResult<'_, OffsetKind, K> {
     map(one_of("+-"), |c| match c {
         '+' => OffsetKind::Add,
         '-' => OffsetKind::Remove,
