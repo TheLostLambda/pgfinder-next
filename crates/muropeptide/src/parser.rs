@@ -204,8 +204,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
 }
 
 /// Monomer = Glycan , [ "-" , Peptide ] | Peptide ;
-// FIXME: Make private again
-pub fn monomer<'c, 'a, 'p, 's>(
+fn monomer<'c, 'a, 'p, 's>(
     polymer: &'c RefCell<Polymer<'a, 'p>>,
 ) -> impl FnMut(&'s str) -> ParseResult<'s, Monomer> {
     let optional_peptide = opt(preceded(char('-'), cut(peptide(polymer))));
