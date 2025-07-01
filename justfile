@@ -4,10 +4,8 @@ watch:
 test:
   cargo nextest run --workspace
 
-# FIXME: The --workspace flag appears to be broken at the moment: https://github.com/mitsuhiko/insta/issues/396
 review:
-  cargo insta test --review
-  sh -c 'for crate in `ls crates`; do (cd "crates/$crate" && cargo insta test --review); done'
+  cargo insta test --workspace --review
 
 bench:
   cargo bench --workspace
