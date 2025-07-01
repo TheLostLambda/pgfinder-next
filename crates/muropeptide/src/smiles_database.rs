@@ -981,19 +981,7 @@ mod tests {
         assert_snapshot!(dump);
     }
 
-    #[ignore]
-    #[test]
-    fn bond_smiles() {
-        let db = SmilesDatabase::new("test_smiles_database.kdl", KDL).unwrap();
-        let mut m = db.residues["m"].smiles(Position::Other);
-        let mut l_ala = db.residues["A"].smiles(Position::Stem(1));
-        m.bond("Stem", &mut l_ala, 0);
-        dbg!(format!("{}.{}", m.smiles, l_ala.smiles));
-        panic!();
-    }
-
     // TODO: Actually write this properly!
-    // #[ignore]
     #[test]
     fn muropeptide_to_smiles() {
         let db = SmilesDatabase::new("test_smiles_database.kdl", KDL).unwrap();
