@@ -22,6 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: extractions/setup-just@v2
+      - uses: taiki-e/install-action@nextest
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}

@@ -2,7 +2,7 @@ watch:
   watchexec -e rs,toml,kdl just test
 
 test:
-  cargo test --workspace
+  cargo nextest run --workspace
 
 # FIXME: The --workspace flag appears to be broken at the moment: https://github.com/mitsuhiko/insta/issues/396
 review:
