@@ -7,7 +7,6 @@ edition = "2024"
 [dependencies]
 ahash = "0.8.11"
 derive_more = { version = "2.0.1", features = ["full"] }
-getrandom = { version = "0.2.7", features = ["js"] }
 itertools = "0.14.0"
 knuffel = { git = "https://github.com/TheLostLambda/knus.git", branch = "tll-fork" }
 # miette = "7.2.0"

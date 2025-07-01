@@ -22,7 +22,7 @@ ci-cov:
   cargo +nightly llvm-cov --workspace --branch --codecov --output-path codecov.json
 
 check-wasm:
-  sh -c 'for crate in `ls crates`; do (cd "crates/$crate" && cargo check --target wasm32-unknown-unknown); done'
+  cd crates/wasm-shim; RUSTFLAGS='--cfg getrandom_backend="wasm_js"' cargo check --target wasm32-unknown-unknown
 
 ebnf:
   ebnf2railroad grammar/peptidoglycan.ebnf -t PGLang --write-style
