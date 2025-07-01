@@ -139,6 +139,8 @@ impl<'a, 'p> Muropeptide<'a, 'p> {
 
     // FIXME: I hate this... Get rid of it.
     #[must_use]
+    // NOTE: I don't want to promise that this will always be `const` in the API yet...
+    #[allow(clippy::missing_const_for_fn)]
     pub fn oligomerization_state(&self) -> usize {
         self.monomers.len()
     }

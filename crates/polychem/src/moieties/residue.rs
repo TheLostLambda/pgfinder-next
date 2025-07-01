@@ -79,7 +79,7 @@ impl<'a, 'p> Residue<'a, 'p> {
     }
 
     // NOTE: This cannot be public API — it would let users invalidate `Polymer`s mapping of `ModificationId`s
-    pub(crate) fn offset_modifications_mut(&mut self) -> &mut HashSet<ModificationId> {
+    pub(crate) const fn offset_modifications_mut(&mut self) -> &mut HashSet<ModificationId> {
         &mut self.offset_modifications
     }
 }

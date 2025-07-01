@@ -712,7 +712,7 @@ impl SmilesDatabase {
                             donor.bond(CROSSLINK_BOND, peptide.last_mut().unwrap(), 0);
                         } else {
                             donor.bond(CROSSLINK_BOND, &mut acceptor.residue, 0);
-                        };
+                        }
                     } else {
                         // TODO: The parser doesn't support different bonding directions yet
                         todo!()

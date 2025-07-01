@@ -142,6 +142,7 @@ pub fn muropeptide<'z, 'a, 'p, 's>(
                                             lateral_acceptor = true;
                                             // SAFETY: All `LateralChain`s carry non-empty vectors, so this call to
                                             // `.last()` should never fail!
+                                            #[allow(clippy::missing_panics_doc)]
                                             peptide.last().unwrap()
                                         } else {
                                             residue

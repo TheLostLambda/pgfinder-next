@@ -216,7 +216,7 @@ type NullOr<T> = Option<T>;
 
 // Contextual Validation Trait  ========================================================================================
 
-type ChemResult<T> = Result<T, ChemistryErrorKind>;
+type ChemResult<T> = Result<T, Box<ChemistryErrorKind>>;
 
 trait ValidateInto<'c, T> {
     type Context: 'c;
@@ -276,7 +276,8 @@ impl ValidateInto<'_, ResidueTypes> for Vec<ResidueTypeKdl> {
                         first_defined_at,
                         residue_type.span,
                         residue_name,
-                    ));
+                    )
+                    .into());
                 }
                 Entry::Vacant(e) => e.insert((residue_type.span, residue_type.functional_groups)),
             };
@@ -314,7 +315,8 @@ impl<'a: 'r, 'r> ValidateInto<'r, ResidueEntry<'a>> for ResidueKdl {
                         group_span,
                         functional_group.name,
                         functional_group.location,
-                    ));
+                    )
+                    .into());
                 }
                 Entry::Vacant(e) => e.insert(group_span),
             };
@@ -348,7 +350,7 @@ impl<'a> ValidateInto<'a, ChemicalComposition<'a>> for ChemicalCompositionKdl {
 
     fn validate(self, ctx: Self::Context) -> ChemResult<ChemicalComposition<'a>> {
         ChemicalComposition::new(ctx, &self)
-            .map_err(|e| ChemistryErrorKind::Composition(*self.span(), *e))
+            .map_err(|e| ChemistryErrorKind::Composition(*self.span(), *e).into())
     }
 }
 
@@ -395,7 +397,7 @@ impl<'t> ValidateInto<'t, Target> for TargetKdl {
         if ctx.contains_target(&target) {
             Ok(target)
         } else {
-            Err(ChemistryErrorKind::NonexistentTarget(self.span, target))
+            Err(ChemistryErrorKind::NonexistentTarget(self.span, target).into())
         }
     }
 }
@@ -441,7 +443,8 @@ impl<'a: 't, 't> ValidateInto<'t, ModificationEntry<'a>> for ModificationKdl {
                     *span,
                     overlapping_targets,
                     target.clone(),
-                ));
+                )
+                .into());
             }
         }
 
@@ -623,6 +626,8 @@ mod tests {
         });
     }
 
+    // NOTE: I don't care about performance — this is test code
+    #[allow(clippy::result_large_err)]
     fn parse_residues(kdl: &str) -> Result<Residues<'_>, ChemistryError> {
         let residues: ResiduesKdl = knuffel::parse("test", kdl).unwrap();
         residues.validate(&DB).map_err(|e| e.finalize("test", kdl))
@@ -828,6 +833,8 @@ mod tests {
     static RESIDUE_INDEX: LazyLock<Index> =
         LazyLock::new(|| RESIDUES.values().flat_map(Targets::from).collect());
 
+    // NOTE: I don't care about performance — this is test code
+    #[allow(clippy::result_large_err)]
     fn parse_modifications(kdl: &str) -> Result<Modifications<'_>, ChemistryError> {
         let modifications: ModificationsKdl = knuffel::parse("test", kdl).unwrap();
         modifications
@@ -984,6 +991,8 @@ mod tests {
         assert_miette_snapshot!(modifications);
     }
 
+    // NOTE: I don't care about performance — this is test code
+    #[allow(clippy::result_large_err)]
     fn parse_bonds(kdl: &str) -> Result<Bonds<'_>, ChemistryError> {
         let bonds: BondsKdl = knuffel::parse("test", kdl).unwrap();
         bonds

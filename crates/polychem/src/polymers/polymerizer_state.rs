@@ -41,6 +41,8 @@ impl<'a, 'p> PolymerizerState<'a, 'p> {
     }
 
     #[must_use]
+    // NOTE: I don't want to promise that this will always be `const` in the API yet...
+    #[allow(clippy::missing_const_for_fn)]
     pub fn next_id(&mut self) -> Id {
         let current_id = self.next_id;
         self.next_id += 1;
