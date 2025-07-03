@@ -19,10 +19,12 @@ impl DatabaseBuilder {
 
     // NOTE: Probably output DataFrame or CSV text?
     fn generate(&self) -> Vec<String> {
-        let mut result = Vec::new();
-        for glycan in &self.glycan_residues {
+        let mut result= Vec::new();
+        for &glycan in &self.glycan_residues {
+            let sugar_string = glycan.to_string();
             for stem in &self.stem_residues {
-                result.push(format!("{glycan}-{stem}"));
+                let pep_str: String = stem.iter().collect();
+                result.push(format!("{}-{}", sugar_string, pep_str));
             }
         }
         result
@@ -68,9 +70,9 @@ mod tests {
         assert_eq!(database_builder.glycan_residues, vec!['g']);
 
         database_builder.add_stem_residues(&['A', 'E', 'J']);
-        assert_eq!(database_builder.stem_residues, vec!['A', 'E', 'J']);
+        assert_eq!(database_builder.stem_residues, vec![ vec!['A', 'E', 'J']]);
 
-        assert_eq!(database_builder.generate(), vec!["g-A", "g-E", "g-J"]);
+        assert_eq!(database_builder.generate(), vec!["g-AEJ"]);
     }
 
     #[test]
