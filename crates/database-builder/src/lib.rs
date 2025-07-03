@@ -1,7 +1,7 @@
 #[derive(Clone, Debug, Default)]
-struct DatabaseBuilder {
+pub struct DatabaseBuilder {
     glycan_residues: Vec<char>,
-    stem_residues: Vec<char>,
+    stem_residues: Vec<Vec<char>>,
 }
 
 impl DatabaseBuilder {
@@ -14,7 +14,7 @@ impl DatabaseBuilder {
     }
 
     fn add_stem_residues(&mut self, residues: &[char]) {
-        self.stem_residues.extend(residues);
+        self.stem_residues.push(residues.to_vec());
     }
 
     // NOTE: Probably output DataFrame or CSV text?
