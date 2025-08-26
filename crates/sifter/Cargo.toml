@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+mzdata = "0.58.0"
+polars = { version = "0.50.0", default-features = false }
+# FIXME: https://github.com/pola-rs/polars/issues/24208
+planus = "=1.1.1"
 
 [lints]
 workspace = true
