@@ -176,7 +176,7 @@ impl ResidueDescription {
             // corresponding isomer
             self.isomers
                 .iter()
-                .find(|Isomer { name, .. }| (name == isomer_name))
+                .find(|Isomer { name, .. }| name == isomer_name)
                 .unwrap()
         } else {
             &self.isomers[0]
