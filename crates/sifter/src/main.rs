@@ -4,6 +4,15 @@ use mzdata::{prelude::*, spectrum::SpectrumDescription};
 
 // REMEMBER: I'm prototyping! Code will be re-written afterwards!
 
+const MZML: &str = "tests/data/WT.mzML.gz";
+
+fn main() {
+    println!("Reading {MZML}...");
+    mz_read_path(MZML).unwrap();
+}
+
+// =====================================================================================================================
+
 #[derive(Debug)]
 struct Ms2Scan {
     index: usize,
@@ -43,10 +52,11 @@ fn fetch_ms2_precursor(spectrum: impl SpectrumLike) -> Option<Ms2Scan> {
 }
 
 // FIXME: I should use the writing functionality of this crate to generate some smaller test files!!!
-fn mz_read_path() -> io::Result<()> {
+// FIXME: Replace &str path with a `impl Read + Seek`?
+fn mz_read_path(path: &str) -> io::Result<()> {
     // FIXME: `mz_read!` should probably add that `.as_ref()` itself...
     let ms2_scans: Vec<_> = mzdata::mz_read!(
-        "tests/data/WT.mzML.gz".as_ref(),
+        path.as_ref(),
         reader => {
             reader.filter_map(fetch_ms2_precursor).collect()
     })?;
@@ -56,9 +66,4 @@ fn mz_read_path() -> io::Result<()> {
     dbg!(&ms2_scans[start_index..start_index + length]);
 
     Ok(())
-}
-
-fn main() {
-    println!("Starting file read...");
-    mz_read_path().unwrap();
 }
