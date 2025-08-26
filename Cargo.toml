@@ -4,12 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace]
-members = [ "crates/consolidation",
+members = [
+  "crates/consolidation",
   "crates/database-builder",
   "crates/dimer-builder",
   "crates/muropeptide",
   "crates/nom-miette",
   "crates/polychem",
+  "crates/sifter",
   "crates/smithereens",
   "crates/wasm-shim",
 ]
