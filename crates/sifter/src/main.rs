@@ -1,17 +1,44 @@
-use std::io;
+use std::{fs::File, io};
 
 use mzdata::{prelude::*, spectrum::SpectrumDescription};
+use polars::prelude::*;
 
 // REMEMBER: I'm prototyping! Code will be re-written afterwards!
 
 const MZML: &str = "tests/data/WT.mzML.gz";
+const PGF_OUTPUT: &str = "tests/data/WT.csv";
+
+struct InputColumns;
+impl InputColumns {
+    const ALL: [&str; 3] = [Self::STRUCTURE, Self::RT, Self::THEO];
+    const STRUCTURE: &str = "Structure";
+    const RT: &str = "Consolidated RT (min)";
+    const THEO: &str = "Consolidated Theo (Da)";
+}
 
 fn main() {
     println!("Reading {MZML}...");
     mz_read_path(MZML).unwrap();
+    println!("Reading {PGF_OUTPUT}...");
+    read_pgfinder_output(PGF_OUTPUT);
 }
 
 // =====================================================================================================================
+
+// FIXME: Replace &str path with a `impl Read + Seek`?
+fn read_pgfinder_output(path: &str) {
+    let df = CsvReader::new(File::open(path).unwrap())
+        .finish()
+        // FIXME: Handle this properly!
+        .unwrap();
+    dbg!(
+        df.lazy()
+            .select(InputColumns::ALL.map(col))
+            .drop_nulls(None)
+            .collect()
+            .unwrap()
+    );
+}
 
 #[derive(Debug)]
 struct Ms2Scan {

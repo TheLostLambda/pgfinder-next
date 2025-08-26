@@ -5,9 +5,19 @@ edition = "2024"
 
 [dependencies]
 mzdata = "0.58.0"
-polars = { version = "0.50.0", default-features = false }
 # FIXME: https://github.com/pola-rs/polars/issues/24208
 planus = "=1.1.1"
+
+# FIXME: Need to file an issue complaining that they broke WASM support (again...)
+[dependencies.polars]
+version = "0.46.0"
+default-features = false
+features = [
+  "csv",
+  "lazy",
+  # FIXME: Remove this before release! Only used for debugging during development!
+  "fmt_no_tty",
+]
 
 [lints]
 workspace = true
