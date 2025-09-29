@@ -1,5 +1,5 @@
 watch:
-  watchexec -e rs,toml,kdl just test lint
+  watchexec -e rs,toml,kdl just check-wasm test lint 
 
 test:
   cargo nextest run --workspace
