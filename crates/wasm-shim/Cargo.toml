@@ -13,7 +13,7 @@ muropeptide = { path = "../muropeptide" }
 polychem = { path = "../polychem" }
 smithereens = { path = "../smithereens" }
 consolidation = { path = "../consolidation" }
-sifter= { path = "../sifter" }
+sifter = { path = "../sifter" }
 console_error_panic_hook = "0.1.7"
 rust_decimal = "1.37.2"
 
