@@ -23,5 +23,4 @@ features = [
 workspace = true
 
 [dev-dependencies]
-# TODO: Move back to a crates.io release once my changes are out!
-assert_float_eq = { git = "https://github.com/Alexhuszagh/assert_float_eq.git" }
+assert_float_eq = "1.2.0"
