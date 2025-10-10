@@ -1,6 +1,7 @@
-use std::{cmp::Ordering, io::Cursor};
+use std::{cmp::Ordering, io::Cursor, ops::RangeBounds};
 
 use derive_more::{From, Into};
+use mzdata::mzpeaks::Tolerance;
 use polars::{error::PolarsResult, frame::DataFrame, io::SerReader, prelude::CsvReader};
 
 fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
@@ -16,6 +17,13 @@ fn ppm_window(mz: f64, ppm: f64) -> (f64, f64) {
 // PERF: Try out `f32` and see if that saves enough space to speed things up!
 #[derive(Copy, Clone, From, Into)]
 struct Mz(f64);
+
+impl Mz {
+    fn ppm_window(self, ppm: f64) -> impl RangeBounds<Self> {
+        let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(self.0);
+        Self(min_mz)..=Self(max_mz)
+    }
+}
 
 impl Ord for Mz {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -42,6 +50,8 @@ impl Eq for Mz {}
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Bound;
+
     use assert_float_eq::assert_float_absolute_eq;
     use polars::prelude::DataType;
 
@@ -75,6 +85,20 @@ mod tests {
         assert_eq!(b.cmp(&a), Ordering::Less);
         assert_eq!(a.cmp(&a), Ordering::Equal);
         assert_eq!(b.cmp(&b), Ordering::Equal);
+    }
+
+    #[test]
+    fn mz_ppm_window() {
+        let window = Mz::from(941.407_703).ppm_window(7.5);
+        let Bound::Included(&Mz(start)) = window.start_bound() else {
+            panic!("expected a `.start_bound()` matching `Bound::Included(&Mz(_))`");
+        };
+        let Bound::Included(&Mz(end)) = window.end_bound() else {
+            panic!("expected an `.end_bound()` matching `Bound::Included(&Mz(_))`");
+        };
+        assert_float_absolute_eq!(start, 941.400_642);
+        assert_float_absolute_eq!(end, 941.414_764);
+        assert!(window.contains(&Mz(941.407_703)));
     }
 
     #[test]
