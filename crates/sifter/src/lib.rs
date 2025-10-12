@@ -1,8 +1,18 @@
-use std::{cmp::Ordering, collections::BTreeSet, io::Cursor, ops::RangeInclusive};
+use std::{
+    cmp::Ordering,
+    collections::{BTreeMap, BTreeSet},
+    io::Cursor,
+    ops::RangeInclusive,
+};
 
 use derive_more::{From, Into};
-use mzdata::mzpeaks::Tolerance;
+use mzdata::{
+    mzpeaks::{CentroidPeak, MZPeakSetType, Tolerance},
+    prelude::{IonProperties, SpectrumLike},
+    spectrum::MultiLayerSpectrum,
+};
 use polars::{error::PolarsResult, frame::DataFrame, io::SerReader, prelude::CsvReader};
+use rayon::prelude::*;
 
 fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
     let csv_reader = Cursor::new(csv);
@@ -68,12 +78,77 @@ impl ScanKey {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 struct Peaks(BTreeSet<Mz>);
+
+impl From<&MZPeakSetType<CentroidPeak>> for Peaks {
+    fn from(peak_set: &MZPeakSetType<CentroidPeak>) -> Self {
+        Self(peak_set.iter().map(|peak| peak.mz.into()).collect())
+    }
+}
+
+// FIXME: Use a better error type from `thiserror`
+type Result<T> = std::result::Result<T, &'static str>;
 
 impl Peaks {
     fn filter_peaks(&self, mz: f64, ppm: f64) -> impl Iterator<Item = f64> {
         self.0.range(Mz::ppm_window(mz, ppm)).map(|mz| mz.0)
+    }
+}
+
+type Minutes = TotalFloat;
+
+// PERF: Shrinking this `start_time` to a `f32` won't shrink the size of this struct. If I want to avoid any packing
+// anywhere, then I should move `start_time` back to `ScanInfo`, then shrink all of those fields to 4 bytes. But I'll
+// need to benchmark if *increasing* the key size, whilst *decreasing* the overall K + V size actually helps
+// performance. It's possible that smaller keys are faster anyways!
+#[derive(Clone, Eq, PartialEq, Debug)]
+struct ScanValue {
+    start_time: Minutes,
+    peaks: Peaks,
+}
+
+impl ScanValue {
+    fn new(start_time: f64, peaks: Peaks) -> Self {
+        Self {
+            start_time: Minutes::from(start_time),
+            peaks,
+        }
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
+
+impl Ms2Index {
+    pub fn from_spectra(
+        spectra: impl IntoParallelIterator<Item = MultiLayerSpectrum>,
+    ) -> Result<Self> {
+        spectra
+            .into_par_iter()
+            .filter(|spectrum| spectrum.ms_level() == 2)
+            .map(|mut spectrum| {
+                let precursor = spectrum
+                    .precursor()
+                    .ok_or("MS2 spectrum was missing precursor ion information")?
+                    .mz();
+                // NOTE: This is assuming that the mzML file we've been given represents a full MS run — if this file
+                // is a slice of a larger run, then the scan `.id()` will differ from this!
+                let scan_number = spectrum.index() + 1;
+                let start_time = spectrum.start_time();
+
+                let peaks = spectrum
+                    .try_build_centroids()
+                    .map_err(|_| "failed to find centroided peak data")?
+                    .into();
+
+                Ok((
+                    ScanKey::new(precursor, scan_number),
+                    ScanValue::new(start_time, peaks),
+                ))
+            })
+            .collect::<Result<_>>()
+            .map(Ms2Index)
     }
 }
 
@@ -85,11 +160,14 @@ mod tests {
     };
 
     use assert_float_eq::assert_float_absolute_eq;
+    use insta::assert_debug_snapshot;
+    use mzdata::{MzMLReader, io::DetailLevel};
     use polars::prelude::DataType;
 
     use super::*;
 
     const MASS_DATABASE_CSV: &str = include_str!("../tests/data/Exchange.csv");
+    const MZML: &[u8] = include_bytes!("../tests/data/WT (6.7–7.3 min).mzML");
 
     #[test]
     fn test_load_mass_database() {
@@ -103,6 +181,15 @@ mod tests {
             &[DataType::String, DataType::Float64]
         );
         assert_eq!(mass_database.height(), 21);
+    }
+
+    #[test]
+    fn ms2_index_from() {
+        let mzml =
+            MzMLReader::with_buffer_capacity_and_detail_level(MZML, 10_000, DetailLevel::Lazy);
+        let spectra: Vec<_> = mzml.collect();
+        let from_spectra = Ms2Index::from_spectra(spectra).unwrap();
+        assert_debug_snapshot!(from_spectra);
     }
 
     #[test]
