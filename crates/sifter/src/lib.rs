@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, io::Cursor, ops::RangeBounds};
+use std::{cmp::Ordering, io::Cursor, ops::RangeInclusive};
 
 use derive_more::{From, Into};
 use mzdata::mzpeaks::Tolerance;
@@ -14,7 +14,7 @@ fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
 struct Mz(f64);
 
 impl Mz {
-    fn ppm_window(mz: f64, ppm: f64) -> impl RangeBounds<Self> {
+    fn ppm_window(mz: f64, ppm: f64) -> RangeInclusive<Self> {
         let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(mz);
         Self(min_mz)..=Self(max_mz)
     }
@@ -43,9 +43,34 @@ impl PartialEq for Mz {
 
 impl Eq for Mz {}
 
+// PERF: After getting some benchmarks in place, try cutting the size of this struct in half (f64 → f32) — the 64 bits
+// definitely isn't needed precision-wise, so if it helps performance, it's probably worth the small amount of type
+// casting! Don't forget about padding! All fields must shrink to the same size.
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
+struct ScanKey {
+    precursor: Mz,
+    scan_number: usize,
+}
+
+impl ScanKey {
+    // MISSING: It's not public API, so `const` is unnecessary here
+    #[expect(clippy::missing_const_for_fn)]
+    fn new(precursor: f64, scan_number: usize) -> Self {
+        Self {
+            precursor: Mz(precursor),
+            scan_number,
+        }
+    }
+
+    fn ppm_window(mz: f64, ppm: f64) -> RangeInclusive<Self> {
+        let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(mz);
+        Self::new(min_mz, 0)..=Self::new(max_mz, usize::MAX)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::ops::Bound;
+    use std::ops::{Bound, RangeBounds};
 
     use assert_float_eq::assert_float_absolute_eq;
     use polars::prelude::DataType;
@@ -94,5 +119,29 @@ mod tests {
         assert_float_absolute_eq!(start, 941.400_642);
         assert_float_absolute_eq!(end, 941.414_764);
         assert!(window.contains(&Mz(941.407_703)));
+    }
+
+    #[test]
+    fn scan_key_ppm_window() {
+        let window = ScanKey::ppm_window(471.711_128, 10.0);
+        let Bound::Included(&ScanKey {
+            precursor: Mz(start_mz),
+            scan_number: start_scan,
+        }) = window.start_bound()
+        else {
+            panic!("expected a `.start_bound()` matching `Bound::Included(&Mz(_))`");
+        };
+        let Bound::Included(&ScanKey {
+            precursor: Mz(end_mz),
+            scan_number: end_scan,
+        }) = window.end_bound()
+        else {
+            panic!("expected an `.end_bound()` matching `Bound::Included(&Mz(_))`");
+        };
+        assert_float_absolute_eq!(start_mz, 471.706_411);
+        assert_eq!(start_scan, 0);
+        assert_float_absolute_eq!(end_mz, 471.715_845);
+        assert_eq!(end_scan, usize::MAX);
+        assert!(window.contains(&ScanKey::new(471.711_128, 42)));
     }
 }
