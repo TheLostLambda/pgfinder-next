@@ -14,8 +14,8 @@ fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
 struct Mz(f64);
 
 impl Mz {
-    fn ppm_window(self, ppm: f64) -> impl RangeBounds<Self> {
-        let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(self.0);
+    fn ppm_window(mz: f64, ppm: f64) -> impl RangeBounds<Self> {
+        let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(mz);
         Self(min_mz)..=Self(max_mz)
     }
 }
@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn mz_ppm_window() {
-        let window = Mz::from(941.407_703).ppm_window(7.5);
+        let window = Mz::ppm_window(941.407_703, 7.5);
         let Bound::Included(&Mz(start)) = window.start_bound() else {
             panic!("expected a `.start_bound()` matching `Bound::Included(&Mz(_))`");
         };
