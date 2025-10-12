@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, io::Cursor, ops::RangeInclusive};
+use std::{cmp::Ordering, collections::BTreeSet, io::Cursor, ops::RangeInclusive};
 
 use derive_more::{From, Into};
 use mzdata::mzpeaks::Tolerance;
@@ -68,9 +68,21 @@ impl ScanKey {
     }
 }
 
+#[derive(Debug)]
+struct Peaks(BTreeSet<Mz>);
+
+impl Peaks {
+    fn filter_peaks(&self, mz: f64, ppm: f64) -> impl Iterator<Item = f64> {
+        self.0.range(Mz::ppm_window(mz, ppm)).map(|mz| mz.0)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::ops::{Bound, RangeBounds};
+    use std::{
+        collections::BTreeSet,
+        ops::{Bound, RangeBounds},
+    };
 
     use assert_float_eq::assert_float_absolute_eq;
     use polars::prelude::DataType;
@@ -143,5 +155,34 @@ mod tests {
         assert_float_absolute_eq!(end_mz, 471.715_845);
         assert_eq!(end_scan, usize::MAX);
         assert!(window.contains(&ScanKey::new(471.711_128, 42)));
+    }
+
+    #[test]
+    fn peaks_filter_peaks() {
+        let query = 942.412_793_603_516;
+        let peaks = Peaks(BTreeSet::from(
+            [
+                942.413_696_289_063,
+                942.4121,
+                942.413_452_148_438,
+                942.4121,
+                942.4119,
+                942.413_513_183_594,
+            ]
+            .map(Mz),
+        ));
+        let filter_peaks = |ppm| -> Vec<_> { peaks.filter_peaks(query, ppm).collect() };
+        assert_eq!(filter_peaks(0.0), vec![]);
+        assert_eq!(filter_peaks(0.75), vec![942.4121, 942.413_452_148_438]);
+        assert_eq!(
+            filter_peaks(10.0),
+            vec![
+                942.4119,
+                942.4121,
+                942.413_452_148_438,
+                942.413_513_183_594,
+                942.413_696_289_063
+            ]
+        );
     }
 }
