@@ -9,11 +9,6 @@ fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
     CsvReader::new(csv_reader).finish()
 }
 
-fn ppm_window(mz: f64, ppm: f64) -> (f64, f64) {
-    let half_window = mz * ppm / 1_000_000.;
-    (mz - half_window, mz + half_window)
-}
-
 // PERF: Try out `f32` and see if that saves enough space to speed things up!
 #[derive(Copy, Clone, From, Into)]
 struct Mz(f64);
@@ -99,20 +94,5 @@ mod tests {
         assert_float_absolute_eq!(start, 941.400_642);
         assert_float_absolute_eq!(end, 941.414_764);
         assert!(window.contains(&Mz(941.407_703)));
-    }
-
-    #[test]
-    fn test_ppm_window() {
-        let (min, max) = ppm_window(941.407_703, 1.0);
-        assert_float_absolute_eq!(min, 941.406_762);
-        assert_float_absolute_eq!(max, 941.408_644);
-
-        let (min, max) = ppm_window(941.407_703, 7.5);
-        assert_float_absolute_eq!(min, 941.400_642);
-        assert_float_absolute_eq!(max, 941.414_764);
-
-        let (min, max) = ppm_window(471.711_128, 10.0);
-        assert_float_absolute_eq!(min, 471.706_411);
-        assert_float_absolute_eq!(max, 471.715_845);
     }
 }
