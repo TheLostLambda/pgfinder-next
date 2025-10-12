@@ -59,13 +59,8 @@ fn fetch_ms2_precursor(spectrum: impl SpectrumLike) -> Option<Ms2Scan> {
     } = spectrum.description();
 
     (*ms_level == 2).then(|| {
-        let precursor_ions = precursor
-            .as_ref()
-            .expect("MS2 scan was missing precursor ion information")
-            .ions
-            .as_slice();
         assert_eq!(
-            precursor_ions.len(),
+            precursor.len(),
             1,
             "multiple precursor ions are not yet supported"
         );
@@ -73,7 +68,7 @@ fn fetch_ms2_precursor(spectrum: impl SpectrumLike) -> Option<Ms2Scan> {
         Ms2Scan {
             index: index + 1,
             start_time: acquisition.start_time(),
-            precursor_mz: precursor_ions[0].mz,
+            precursor_mz: precursor[0].mz(),
         }
     })
 }

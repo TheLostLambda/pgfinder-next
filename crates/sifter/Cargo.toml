@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 derive_more = "2.0.1"
-mzdata = "0.58.0"
+mzdata = "0.60.3"
 # FIXME: https://github.com/pola-rs/polars/issues/24208
 planus = "=1.1.1"
 
