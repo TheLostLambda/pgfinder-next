@@ -1,12 +1,16 @@
 use std::{
+    borrow::Cow,
     cmp::Ordering,
     collections::{BTreeMap, BTreeSet},
-    io::Cursor,
+    io::{Cursor, Read},
     ops::RangeInclusive,
 };
 
 use derive_more::{From, Into};
+use flate2::read::GzDecoder;
 use mzdata::{
+    MzMLReader,
+    io::DetailLevel,
     mzpeaks::{CentroidPeak, MZPeakSetType, Tolerance},
     prelude::{IonProperties, SpectrumLike},
     spectrum::MultiLayerSpectrum,
@@ -121,6 +125,19 @@ impl ScanValue {
 pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
 
 impl Ms2Index {
+    pub fn from_bytes(bytes: impl AsRef<[u8]>) -> Result<Self> {
+        let bytes = Self::maybe_decode_bytes(bytes.as_ref())?;
+
+        let mzml = MzMLReader::with_buffer_capacity_and_detail_level(
+            bytes.as_ref(),
+            10_000,
+            DetailLevel::Lazy,
+        );
+        let spectra: Vec<_> = mzml.collect();
+
+        Self::from_spectra(spectra)
+    }
+
     pub fn from_spectra(
         spectra: impl IntoParallelIterator<Item = MultiLayerSpectrum>,
     ) -> Result<Self> {
@@ -150,6 +167,21 @@ impl Ms2Index {
             .collect::<Result<_>>()
             .map(Ms2Index)
     }
+
+    fn maybe_decode_bytes(bytes: &[u8]) -> Result<Cow<'_, [u8]>> {
+        let mut gz_decoder = GzDecoder::new(bytes);
+        if gz_decoder.header().is_some() {
+            // NOTE: Our decompressed data should be *at least* as big as the compressed data, so we can use the size
+            // of the compressed data to allocate some initial capacity
+            let mut decoded_bytes = Vec::with_capacity(bytes.len());
+            gz_decoder
+                .read_to_end(&mut decoded_bytes)
+                .map_err(|_| "failed to decompress bytes")?;
+            Ok(Cow::Owned(decoded_bytes))
+        } else {
+            Ok(Cow::Borrowed(bytes))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -168,6 +200,7 @@ mod tests {
 
     const MASS_DATABASE_CSV: &str = include_str!("../tests/data/Exchange.csv");
     const MZML: &[u8] = include_bytes!("../tests/data/WT (6.7–7.3 min).mzML");
+    const MZML_GZ: &[u8] = include_bytes!("../tests/data/WT (6.7–7.3 min).mzML.gz");
 
     #[test]
     fn test_load_mass_database() {
@@ -188,8 +221,13 @@ mod tests {
         let mzml =
             MzMLReader::with_buffer_capacity_and_detail_level(MZML, 10_000, DetailLevel::Lazy);
         let spectra: Vec<_> = mzml.collect();
-        let from_spectra = Ms2Index::from_spectra(spectra).unwrap();
-        assert_debug_snapshot!(from_spectra);
+        let ms2_index = Ms2Index::from_spectra(spectra).unwrap();
+        assert_debug_snapshot!(ms2_index);
+
+        let from_bytes = Ms2Index::from_bytes(MZML).unwrap();
+        assert_eq!(from_bytes, ms2_index);
+        let from_gzipped_bytes = Ms2Index::from_bytes(MZML_GZ).unwrap();
+        assert_eq!(from_gzipped_bytes, ms2_index);
     }
 
     #[test]
