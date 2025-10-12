@@ -10,7 +10,7 @@ fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
 }
 
 // PERF: Try out `f32` and see if that saves enough space to speed things up!
-#[derive(Copy, Clone, From, Into)]
+#[derive(Copy, Clone, Debug, From, Into)]
 struct Mz(f64);
 
 impl Mz {
