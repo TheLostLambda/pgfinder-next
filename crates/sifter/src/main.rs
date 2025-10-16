@@ -1,91 +1,35 @@
-use std::{fs::File, io};
+use std::io::Cursor;
 
-use mzdata::{prelude::*, spectrum::SpectrumDescription};
-use polars::prelude::*;
-
-// REMEMBER: I'm prototyping! Code will be re-written afterwards!
-
-const MZML: &str = "tests/data/WT.mzML.gz";
-const PGF_OUTPUT: &str = "tests/data/WT.csv";
-
-struct InputColumns;
-impl InputColumns {
-    const ALL: [&str; 3] = [Self::STRUCTURE, Self::RT, Self::THEO];
-    const STRUCTURE: &str = "Structure";
-    const RT: &str = "Consolidated RT (min)";
-    const THEO: &str = "Consolidated Theo (Da)";
-}
+use polars::{error::PolarsResult, frame::DataFrame, io::SerReader, prelude::CsvReader};
 
 fn main() {
-    println!("Reading {MZML}...");
-    mz_read_path(MZML).unwrap();
-    println!("Reading {PGF_OUTPUT}...");
-    read_pgfinder_output(PGF_OUTPUT);
+    todo!()
 }
 
-// =====================================================================================================================
-
-// FIXME: Replace &str path with a `impl Read + Seek`?
-fn read_pgfinder_output(path: &str) {
-    let df = CsvReader::new(File::open(path).unwrap())
-        .finish()
-        // FIXME: Handle this properly!
-        .unwrap();
-    dbg!(
-        df.lazy()
-            .select(InputColumns::ALL.map(col))
-            .drop_nulls(None)
-            .collect()
-            .unwrap()
-    );
+fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
+    let csv_reader = Cursor::new(csv);
+    CsvReader::new(csv_reader).finish()
 }
 
-#[derive(Debug)]
-struct Ms2Scan {
-    index: usize,
-    start_time: f64,
-    precursor_mz: f64,
-}
+#[cfg(test)]
+mod tests {
+    use polars::prelude::DataType;
 
-// NOTE: It's a private function, and there's less boilerplate when taking by value
-#[expect(clippy::needless_pass_by_value)]
-fn fetch_ms2_precursor(spectrum: impl SpectrumLike) -> Option<Ms2Scan> {
-    let SpectrumDescription {
-        index,
-        ms_level,
-        acquisition,
-        precursor,
-        ..
-    } = spectrum.description();
+    use super::*;
 
-    (*ms_level == 2).then(|| {
+    const MASS_DATABASE_CSV: &str = include_str!("../tests/data/Exchange.csv");
+
+    #[test]
+    fn test_load_mass_database() {
+        let mass_database = load_mass_database(MASS_DATABASE_CSV).unwrap();
         assert_eq!(
-            precursor.len(),
-            1,
-            "multiple precursor ions are not yet supported"
+            mass_database.get_column_names(),
+            &["Structure", "Monoisotopic Mass"]
         );
-
-        Ms2Scan {
-            index: index + 1,
-            start_time: acquisition.start_time(),
-            precursor_mz: precursor[0].mz(),
-        }
-    })
-}
-
-// FIXME: I should use the writing functionality of this crate to generate some smaller test files!!!
-// FIXME: Replace &str path with a `impl Read + Seek`?
-fn mz_read_path(path: &str) -> io::Result<()> {
-    // FIXME: `mz_read!` should probably add that `.as_ref()` itself...
-    let ms2_scans: Vec<_> = mzdata::mz_read!(
-        path.as_ref(),
-        reader => {
-            reader.filter_map(fetch_ms2_precursor).collect()
-    })?;
-
-    let start_index = 2280;
-    let length = 5;
-    dbg!(&ms2_scans[start_index..start_index + length]);
-
-    Ok(())
+        assert_eq!(
+            mass_database.dtypes(),
+            &[DataType::String, DataType::Float64]
+        );
+        assert_eq!(mass_database.height(), 21);
+    }
 }
