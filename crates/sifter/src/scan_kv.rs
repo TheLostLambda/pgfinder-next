@@ -18,8 +18,8 @@ use crate::{
 // casting! Don't forget about padding! All fields must shrink to the same size.
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct ScanKey {
-    precursor: Mz,
-    scan_number: usize,
+    pub precursor: Mz,
+    pub scan_number: usize,
 }
 
 // PERF: Shrinking this `start_time` to a `f32` won't shrink the size of this struct. If I want to avoid any packing
@@ -28,8 +28,8 @@ pub struct ScanKey {
 // performance. It's possible that smaller keys are faster anyways!
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct ScanValue {
-    start_time: Minutes,
-    peaks: Peaks,
+    pub start_time: Minutes,
+    pub peaks: Peaks,
 }
 
 impl ScanKey {

@@ -13,7 +13,8 @@ use rayon::prelude::*;
 
 // Local Crate Imports
 use crate::{
-    Ms2Index, Result,
+    FoundPrecursor, Ms2Index, NamedIon, Result,
+    ppm_window::PpmWindow,
     scan_kv::{ScanKey, ScanValue},
 };
 
@@ -66,6 +67,33 @@ impl Ms2Index {
             .collect::<Result<_>>()
             .map(Ms2Index)
     }
+
+    // PERF: Add a `par_find_precursors()` that takes and returns a parallel iterator (if benchmarks justify it)
+    pub fn find_precursors<'p, 'n: 'p>(
+        &self,
+        precursors: impl IntoIterator<Item = &'p NamedIon<'n>>,
+        ppm_tolerance: impl Into<f64>,
+    ) -> impl Iterator<Item = FoundPrecursor<'p, 'n>> {
+        let ppm_tolerance = ppm_tolerance.into();
+        precursors.into_iter().flat_map(move |theoretical| {
+            self.filter_scans(theoretical.mz(), ppm_tolerance).map(
+                |(
+                    &ScanKey {
+                        precursor,
+                        scan_number,
+                    },
+                    &ScanValue { start_time, .. },
+                )| {
+                    FoundPrecursor::new(
+                        theoretical,
+                        precursor.into(),
+                        scan_number,
+                        start_time.into(),
+                    )
+                },
+            )
+        })
+    }
 }
 
 // Private Methods =====================================================================================================
@@ -85,6 +113,15 @@ impl Ms2Index {
         } else {
             Ok(Cow::Borrowed(bytes))
         }
+    }
+
+    fn filter_scans(
+        &self,
+        precursor_mz: f64,
+        ppm_tolerance: f64,
+    ) -> impl Iterator<Item = (&ScanKey, &ScanValue)> {
+        self.0
+            .range(ScanKey::ppm_window(precursor_mz, ppm_tolerance))
     }
 }
 
@@ -112,5 +149,16 @@ mod tests {
         assert_eq!(from_bytes, ms2_index);
         let from_gzipped_bytes = Ms2Index::from_bytes(MZML_GZ).unwrap();
         assert_eq!(from_gzipped_bytes, ms2_index);
+    }
+
+    #[test]
+    fn ms2_index_find_precursors() {
+        let ms2_index = Ms2Index::from_bytes(MZML).unwrap();
+        let monomer_ions = [
+            NamedIon::new("g(r)m-AEJA(+p)", 942.414_979),
+            NamedIon::new("g(r)m-AEJA(+2p)", 471.711_127_5),
+        ];
+        let found_precursors: Vec<_> = ms2_index.find_precursors(&monomer_ions, 10).collect();
+        assert_debug_snapshot!(found_precursors);
     }
 }

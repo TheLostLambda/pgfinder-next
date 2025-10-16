@@ -1,0 +1,105 @@
+---
+source: crates/sifter/src/ms2_index.rs
+expression: found_precursors
+---
+[
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        observed_mz: 942.4119,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        observed_mz: 942.4121,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        observed_mz: 942.4121,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        observed_mz: 942.413452148438,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        observed_mz: 942.413513183594,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        observed_mz: 942.413696289063,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        observed_mz: 471.7097,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        observed_mz: 471.710021972656,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        observed_mz: 471.710479736328,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        observed_mz: 471.710479736328,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundPrecursor {
+        theoretical: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        observed_mz: 471.710571289063,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+]
