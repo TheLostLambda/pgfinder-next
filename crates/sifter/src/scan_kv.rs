@@ -8,6 +8,7 @@ use mzdata::mzpeaks::Tolerance;
 use crate::{
     ordered_floats::{Minutes, Mz},
     peaks::Peaks,
+    ppm_window::PpmWindow,
 };
 
 // Public API ==========================================================================================================
@@ -38,11 +39,6 @@ impl ScanKey {
             scan_number,
         }
     }
-
-    pub fn ppm_window(mz: f64, ppm: f64) -> RangeInclusive<Self> {
-        let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(mz);
-        Self::new(min_mz, 0)..=Self::new(max_mz, usize::MAX)
-    }
 }
 
 impl ScanValue {
@@ -51,6 +47,13 @@ impl ScanValue {
             start_time: Minutes::from(start_time),
             peaks,
         }
+    }
+}
+
+impl PpmWindow for ScanKey {
+    fn ppm_window(mz: f64, ppm: f64) -> RangeInclusive<Self> {
+        let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(mz);
+        Self::new(min_mz, 0)..=Self::new(max_mz, usize::MAX)
     }
 }
 
