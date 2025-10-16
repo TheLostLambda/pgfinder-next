@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+derive_more = { version = "2.0.1", features = ["full"] }
 flate2 = { version = "1.1.4", features = ["zlib-rs"], default-features = false }
 mzdata = { version = "0.60.3", features = ["mzml", "zlib-ng-compat"], default-features = false }
 ordered-float = { version = "5.1.0", default-features = false }
