@@ -1,6 +1,6 @@
 ---
-source: crates/sifter/src/lib.rs
-expression: from_spectra
+source: crates/sifter/src/ms2_index.rs
+expression: ms2_index
 ---
 Ms2Index(
     {
