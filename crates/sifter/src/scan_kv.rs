@@ -6,8 +6,8 @@ use mzdata::mzpeaks::Tolerance;
 
 // Local Crate Imports
 use crate::{
+    ordered_floats::{Minutes, Mz},
     peaks::Peaks,
-    total_float::{Minutes, Mz},
 };
 
 // Public API ==========================================================================================================

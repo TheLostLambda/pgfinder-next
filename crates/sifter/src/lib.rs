@@ -1,7 +1,8 @@
 mod ms2_index;
+mod ordered_floats;
 mod peaks;
+mod ppm_window;
 mod scan_kv;
-mod total_float;
 
 use std::{collections::BTreeMap, io::Cursor};
 

@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use mzdata::mzpeaks::{CentroidPeak, MZPeakSetType};
 
 // Local Crate Imports
-use crate::total_float::Mz;
+use crate::{ordered_floats::Mz, ppm_window::PpmWindow};
 
 // Public API ==========================================================================================================
 
