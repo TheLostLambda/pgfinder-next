@@ -1,78 +1,32 @@
 mod peaks;
+mod scan_kv;
 mod total_float;
 
 use std::{
     borrow::Cow,
     collections::BTreeMap,
     io::{Cursor, Read},
-    ops::RangeInclusive,
 };
 
 use flate2::read::GzDecoder;
 use mzdata::{
     MzMLReader,
     io::DetailLevel,
-    mzpeaks::Tolerance,
     prelude::{IonProperties, SpectrumLike},
     spectrum::MultiLayerSpectrum,
 };
 use polars::{error::PolarsResult, frame::DataFrame, io::SerReader, prelude::CsvReader};
 use rayon::prelude::*;
 
-use crate::{
-    peaks::Peaks,
-    total_float::{Minutes, Mz},
-};
+use crate::scan_kv::{ScanKey, ScanValue};
 
 fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
     let csv_reader = Cursor::new(csv);
     CsvReader::new(csv_reader).finish()
 }
 
-// PERF: After getting some benchmarks in place, try cutting the size of this struct in half (f64 → f32) — the 64 bits
-// definitely isn't needed precision-wise, so if it helps performance, it's probably worth the small amount of type
-// casting! Don't forget about padding! All fields must shrink to the same size.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
-struct ScanKey {
-    precursor: Mz,
-    scan_number: usize,
-}
-
-impl ScanKey {
-    fn new(precursor: f64, scan_number: usize) -> Self {
-        Self {
-            precursor: Mz::from(precursor),
-            scan_number,
-        }
-    }
-
-    fn ppm_window(mz: f64, ppm: f64) -> RangeInclusive<Self> {
-        let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(mz);
-        Self::new(min_mz, 0)..=Self::new(max_mz, usize::MAX)
-    }
-}
-
 // FIXME: Use a better error type from `thiserror`
 type Result<T> = std::result::Result<T, &'static str>;
-
-// PERF: Shrinking this `start_time` to a `f32` won't shrink the size of this struct. If I want to avoid any packing
-// anywhere, then I should move `start_time` back to `ScanInfo`, then shrink all of those fields to 4 bytes. But I'll
-// need to benchmark if *increasing* the key size, whilst *decreasing* the overall K + V size actually helps
-// performance. It's possible that smaller keys are faster anyways!
-#[derive(Clone, Eq, PartialEq, Debug)]
-struct ScanValue {
-    start_time: Minutes,
-    peaks: Peaks,
-}
-
-impl ScanValue {
-    fn new(start_time: f64, peaks: Peaks) -> Self {
-        Self {
-            start_time: Minutes::from(start_time),
-            peaks,
-        }
-    }
-}
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
@@ -139,9 +93,6 @@ impl Ms2Index {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::{Bound, RangeBounds};
-
-    use assert_float_eq::assert_float_absolute_eq;
     use insta::assert_debug_snapshot;
     use mzdata::{MzMLReader, io::DetailLevel};
     use polars::prelude::DataType;
@@ -178,29 +129,5 @@ mod tests {
         assert_eq!(from_bytes, ms2_index);
         let from_gzipped_bytes = Ms2Index::from_bytes(MZML_GZ).unwrap();
         assert_eq!(from_gzipped_bytes, ms2_index);
-    }
-
-    #[test]
-    fn scan_key_ppm_window() {
-        let window = ScanKey::ppm_window(471.711_128, 10.0);
-        let Bound::Included(&ScanKey {
-            precursor: start_mz,
-            scan_number: start_scan,
-        }) = window.start_bound()
-        else {
-            panic!("expected a `.start_bound()` matching `Bound::Included(&Mz(_))`");
-        };
-        let Bound::Included(&ScanKey {
-            precursor: end_mz,
-            scan_number: end_scan,
-        }) = window.end_bound()
-        else {
-            panic!("expected an `.end_bound()` matching `Bound::Included(&Mz(_))`");
-        };
-        assert_float_absolute_eq!(start_mz.into(), 471.706_411);
-        assert_eq!(start_scan, 0);
-        assert_float_absolute_eq!(end_mz.into(), 471.715_845);
-        assert_eq!(end_scan, usize::MAX);
-        assert!(window.contains(&ScanKey::new(471.711_128, 42)));
     }
 }
