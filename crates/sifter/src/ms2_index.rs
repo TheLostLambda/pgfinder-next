@@ -133,7 +133,7 @@ mod tests {
     const MZML_GZ: &[u8] = include_bytes!("../tests/data/WT (6.7–7.3 min).mzML.gz");
 
     #[test]
-    fn ms2_index_from() {
+    fn from() {
         let mzml =
             MzMLReader::with_buffer_capacity_and_detail_level(MZML, 10_000, DetailLevel::Lazy);
         let spectra: Vec<_> = mzml.collect();
@@ -147,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn ms2_index_find_precursors() {
+    fn find_precursors() {
         let ms2_index = Ms2Index::from_bytes(MZML).unwrap();
         let monomer_ions = [
             NamedIon::new("g(r)m-AEJA(+p)", 942.414_979),
