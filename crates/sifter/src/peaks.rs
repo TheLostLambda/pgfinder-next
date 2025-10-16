@@ -19,8 +19,8 @@ impl From<&MZPeakSetType<CentroidPeak>> for Peaks {
 }
 
 impl Peaks {
-    pub fn filter_peaks(&self, mz: f64, ppm: f64) -> impl Iterator<Item = f64> {
-        self.0.range(Mz::ppm_window(mz, ppm)).map(|&mz| mz.into())
+    pub fn find_peaks(&self, mz: f64, ppm: f64) -> impl Iterator<Item = Mz> {
+        self.0.range(Mz::ppm_window(mz, ppm)).copied()
     }
 }
 
@@ -44,12 +44,12 @@ mod tests {
             ]
             .map(Mz::from),
         ));
-        let filter_peaks = |ppm| -> Vec<_> { peaks.filter_peaks(query, ppm).collect() };
-        assert_eq!(filter_peaks(0.0), vec![]);
-        assert_eq!(filter_peaks(0.75), vec![942.4121, 942.413_452_148_438]);
+        let filter_peaks = |ppm| -> Vec<_> { peaks.find_peaks(query, ppm).collect() };
+        assert_eq!(filter_peaks(0.0), [] as [Mz; 0]);
+        assert_eq!(filter_peaks(0.75), [942.4121, 942.413_452_148_438]);
         assert_eq!(
             filter_peaks(10.0),
-            vec![
+            [
                 942.4119,
                 942.4121,
                 942.413_452_148_438,
