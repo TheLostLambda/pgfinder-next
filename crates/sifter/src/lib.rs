@@ -6,11 +6,16 @@ mod peaks;
 mod ppm_window;
 mod scan_kv;
 
+// Standard Library Imports
 use std::{borrow::Cow, collections::BTreeMap};
 
+// External Crate Imports
 use derive_more::Constructor;
 
+// Local Crate Imports
 use crate::scan_kv::{ScanKey, ScanValue};
+
+// Public API ==========================================================================================================
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
