@@ -22,17 +22,17 @@ use crate::scan_kv::{ScanKey, ScanValue};
 pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Constructor)]
-pub struct FoundPrecursor<'n> {
-    theoretical: NamedIon<'n>,
+pub struct FoundPrecursor<'p, 'n> {
+    theoretical: &'p NamedIon<'n>,
     observed_mz: f64,
     scan_number: usize,
     start_time: f64,
 }
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Constructor)]
-pub struct FoundFragment<'n> {
-    theoretical_precursor: NamedIon<'n>,
-    theoretical_fragment: NamedIon<'n>,
+pub struct FoundFragment<'p, 'f, 'n> {
+    theoretical_precursor: &'p NamedIon<'n>,
+    theoretical_fragment: &'f NamedIon<'n>,
     observed_precursor_mz: f64,
     observed_fragment_mz: f64,
     scan_number: usize,

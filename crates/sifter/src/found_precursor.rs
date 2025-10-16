@@ -3,9 +3,9 @@ use crate::FoundPrecursor;
 
 // Public API ==========================================================================================================
 
-impl FoundPrecursor<'_> {
+impl<'p> FoundPrecursor<'p, '_> {
     #[must_use]
-    pub fn theoretical_name(&self) -> &str {
+    pub fn theoretical_name(&self) -> &'p str {
         self.theoretical.name()
     }
 
@@ -48,7 +48,8 @@ mod tests {
 
     #[test]
     fn found_precursor_getters() {
-        let ff = FoundPrecursor::new(NamedIon::new("gm-AEJA", 942.41), 942.4121, 44, 12.345);
+        let theoretical = NamedIon::new("gm-AEJA", 942.41);
+        let ff = FoundPrecursor::new(&theoretical, 942.4121, 44, 12.345);
 
         assert_eq!(ff.theoretical_name(), "gm-AEJA");
         assert_float_absolute_eq!(ff.theoretical_mz(), 942.41);

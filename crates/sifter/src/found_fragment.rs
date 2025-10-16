@@ -3,14 +3,14 @@ use crate::FoundFragment;
 
 // Public API ==========================================================================================================
 
-impl FoundFragment<'_> {
+impl<'p, 'f> FoundFragment<'p, 'f, '_> {
     #[must_use]
-    pub fn theoretical_precursor_name(&self) -> &str {
+    pub fn theoretical_precursor_name(&self) -> &'p str {
         self.theoretical_precursor.name()
     }
 
     #[must_use]
-    pub fn theoretical_fragment_name(&self) -> &str {
+    pub fn theoretical_fragment_name(&self) -> &'f str {
         self.theoretical_fragment.name()
     }
 
@@ -65,9 +65,11 @@ mod tests {
 
     #[test]
     fn found_fragment_getters() {
+        let theoretical_precursor = NamedIon::new("gm-AEJA", 942.41);
+        let theoretical_fragment = NamedIon::new("J", 173.09);
         let ff = FoundFragment::new(
-            NamedIon::new("gm-AEJA", 942.41),
-            NamedIon::new("J", 173.09),
+            &theoretical_precursor,
+            &theoretical_fragment,
             942.4121,
             173.0923,
             44,
