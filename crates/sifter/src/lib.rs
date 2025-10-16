@@ -1,8 +1,9 @@
+mod peaks;
 mod total_float;
 
 use std::{
     borrow::Cow,
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeMap,
     io::{Cursor, Read},
     ops::RangeInclusive,
 };
@@ -11,14 +12,17 @@ use flate2::read::GzDecoder;
 use mzdata::{
     MzMLReader,
     io::DetailLevel,
-    mzpeaks::{CentroidPeak, MZPeakSetType, Tolerance},
+    mzpeaks::Tolerance,
     prelude::{IonProperties, SpectrumLike},
     spectrum::MultiLayerSpectrum,
 };
 use polars::{error::PolarsResult, frame::DataFrame, io::SerReader, prelude::CsvReader};
 use rayon::prelude::*;
 
-use crate::total_float::{Minutes, Mz};
+use crate::{
+    peaks::Peaks,
+    total_float::{Minutes, Mz},
+};
 
 fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
     let csv_reader = Cursor::new(csv);
@@ -48,23 +52,8 @@ impl ScanKey {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Debug)]
-struct Peaks(BTreeSet<Mz>);
-
-impl From<&MZPeakSetType<CentroidPeak>> for Peaks {
-    fn from(peak_set: &MZPeakSetType<CentroidPeak>) -> Self {
-        Self(peak_set.iter().map(|peak| peak.mz.into()).collect())
-    }
-}
-
 // FIXME: Use a better error type from `thiserror`
 type Result<T> = std::result::Result<T, &'static str>;
-
-impl Peaks {
-    fn filter_peaks(&self, mz: f64, ppm: f64) -> impl Iterator<Item = f64> {
-        self.0.range(Mz::ppm_window(mz, ppm)).map(|&mz| mz.into())
-    }
-}
 
 // PERF: Shrinking this `start_time` to a `f32` won't shrink the size of this struct. If I want to avoid any packing
 // anywhere, then I should move `start_time` back to `ScanInfo`, then shrink all of those fields to 4 bytes. But I'll
@@ -150,10 +139,7 @@ impl Ms2Index {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        collections::BTreeSet,
-        ops::{Bound, RangeBounds},
-    };
+    use std::ops::{Bound, RangeBounds};
 
     use assert_float_eq::assert_float_absolute_eq;
     use insta::assert_debug_snapshot;
@@ -216,34 +202,5 @@ mod tests {
         assert_float_absolute_eq!(end_mz.into(), 471.715_845);
         assert_eq!(end_scan, usize::MAX);
         assert!(window.contains(&ScanKey::new(471.711_128, 42)));
-    }
-
-    #[test]
-    fn peaks_filter_peaks() {
-        let query = 942.412_793_603_516;
-        let peaks = Peaks(BTreeSet::from(
-            [
-                942.413_696_289_063,
-                942.4121,
-                942.413_452_148_438,
-                942.4121,
-                942.4119,
-                942.413_513_183_594,
-            ]
-            .map(Mz::from),
-        ));
-        let filter_peaks = |ppm| -> Vec<_> { peaks.filter_peaks(query, ppm).collect() };
-        assert_eq!(filter_peaks(0.0), vec![]);
-        assert_eq!(filter_peaks(0.75), vec![942.4121, 942.413_452_148_438]);
-        assert_eq!(
-            filter_peaks(10.0),
-            vec![
-                942.4119,
-                942.4121,
-                942.413_452_148_438,
-                942.413_513_183_594,
-                942.413_696_289_063
-            ]
-        );
     }
 }
