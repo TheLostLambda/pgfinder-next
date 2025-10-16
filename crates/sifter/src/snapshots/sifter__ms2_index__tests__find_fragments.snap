@@ -1,0 +1,1966 @@
+---
+source: crates/sifter/src/ms2_index.rs
+expression: found_fragments
+---
+[
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 739.3347778320313,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 739.3351440429688,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 739.33447265625,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 739.3346557617188,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 739.3345947265625,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 739.3345947265625,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 650.2857055664063,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 650.286865234375,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 650.28369140625,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 650.2868041992188,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 650.2879028320313,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 650.2874755859375,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 478.2034606933594,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 478.2015686035156,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 478.203369140625,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 478.2023010253906,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 478.2005920410156,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 478.2011413574219,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 462.2185974121094,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 462.2193298339844,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 462.2187194824219,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 462.21893310546875,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 462.2190246582031,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 462.2184143066406,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 391.18194580078125,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 391.18206787109375,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 391.1820068359375,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 391.181884765625,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 391.1819152832031,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 391.1819763183594,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 373.1710205078125,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 373.1712341308594,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 373.1712646484375,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 373.1711120605469,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 373.171142578125,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 373.1712646484375,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 349.1602783203125,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 349.1601867675781,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 349.1600341796875,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 349.16015625,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 349.16015625,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 349.1599426269531,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 302.1342468261719,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 302.1343078613281,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 302.1341857910156,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 302.13427734375,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 302.1341552734375,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 302.1342468261719,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 278.1230773925781,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 278.1235046386719,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 278.1235656738281,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 278.122802734375,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 278.122802734375,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 278.1230773925781,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 262.13934326171875,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 262.1393737792969,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 262.1393127441406,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 262.1393127441406,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 262.1392517089844,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 262.1392517089844,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 204.0867462158203,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 204.0862579345703,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 204.0867462158203,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 204.08641052246094,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 204.08668518066406,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 204.08657836914063,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 942.4119,
+        observed_fragment_mz: 173.091796875,
+        scan_number: 20,
+        start_time: 6.75356956834793,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 173.09182739257813,
+        scan_number: 9,
+        start_time: 6.72545445477168,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 942.4121,
+        observed_fragment_mz: 173.09182739257813,
+        scan_number: 14,
+        start_time: 6.73894003744125,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 942.413452148438,
+        observed_fragment_mz: 173.09181213378906,
+        scan_number: 237,
+        start_time: 7.28326105391184,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 942.413513183594,
+        observed_fragment_mz: 173.09178161621094,
+        scan_number: 242,
+        start_time: 7.29676093772252,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+p)",
+            mz: 942.414979,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 942.413696289063,
+        observed_fragment_mz: 173.09176635742188,
+        scan_number: 232,
+        start_time: 7.26976640338898,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 739.3355712890625,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 739.3356323242188,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 739.3348999023438,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 739.3343505859375,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJA",
+            mz: 739.335606,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 739.3359985351563,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 650.2860717773438,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 650.2891235351563,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 650.2869262695313,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 650.2855834960938,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AEJ",
+            mz: 650.287928,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 650.2862548828125,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 478.2032165527344,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 478.20172119140625,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 478.2018127441406,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 478.2023010253906,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-AE",
+            mz: 478.203135,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 478.2023010253906,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 462.2183837890625,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 462.2207336425781,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 462.22021484375,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 462.21990966796875,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJA",
+            mz: 462.219454,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 462.22003173828125,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 391.18206787109375,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 391.1819152832031,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 391.1819763183594,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 391.1820068359375,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJA",
+            mz: 391.18234,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 391.1819152832031,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 373.1713562011719,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 373.1714172363281,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 373.17132568359375,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 373.1711120605469,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AEJ",
+            mz: 373.171776,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 373.1718444824219,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 349.1600341796875,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 349.16033935546875,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 349.1600341796875,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 349.16021728515625,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)-A",
+            mz: 349.160542,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 349.160400390625,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 302.13427734375,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 302.1341552734375,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 302.1341552734375,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 302.13433837890625,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "EJ",
+            mz: 302.134662,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 302.1343078613281,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 278.1229553222656,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 278.1229553222656,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 278.1235656738281,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 278.1226806640625,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "m(r)",
+            mz: 278.123428,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 278.1234130859375,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 262.1392822265625,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 262.1394348144531,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 262.1392517089844,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 262.13934326171875,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "JA",
+            mz: 262.139747,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 262.1394348144531,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 204.08628845214844,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 204.0863494873047,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 204.08619689941406,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 204.08628845214844,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "g",
+            mz: 204.086649,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 204.08636474609375,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AE",
+            mz: 201.086983,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 201.08657836914063,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "AE",
+            mz: 201.086983,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 201.08700561523438,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 173.09185791015625,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 173.0918426513672,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 173.09173583984375,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 173.09182739257813,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "J",
+            mz: 173.092069,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 173.0918731689453,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "E",
+            mz: 130.04987,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 130.04954528808594,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "A",
+            mz: 90.054955,
+        },
+        observed_precursor_mz: 471.7097,
+        observed_fragment_mz: 90.0546646118164,
+        scan_number: 8,
+        start_time: 6.72430873826345,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "A",
+            mz: 90.054955,
+        },
+        observed_precursor_mz: 471.710021972656,
+        observed_fragment_mz: 90.05480194091797,
+        scan_number: 3,
+        start_time: 6.71082395429611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "A",
+            mz: 90.054955,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 90.05477142333984,
+        scan_number: 224,
+        start_time: 7.2523106189092,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "A",
+            mz: 90.054955,
+        },
+        observed_precursor_mz: 471.710479736328,
+        observed_fragment_mz: 90.05472564697266,
+        scan_number: 230,
+        start_time: 7.26747548694611,
+    },
+    FoundFragment {
+        theoretical_precursor: NamedIon {
+            name: "g(r)m-AEJA(+2p)",
+            mz: 471.7111275,
+        },
+        theoretical_fragment: NamedIon {
+            name: "A",
+            mz: 90.054955,
+        },
+        observed_precursor_mz: 471.710571289063,
+        observed_fragment_mz: 90.05476379394531,
+        scan_number: 219,
+        start_time: 7.23880543823242,
+    },
+]

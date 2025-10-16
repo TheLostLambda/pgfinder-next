@@ -13,7 +13,7 @@ use rayon::prelude::*;
 
 // Local Crate Imports
 use crate::{
-    FoundPrecursor, Ms2Index, NamedIon, Result,
+    FoundFragment, FoundPrecursor, Ms2Index, NamedIon, Result,
     ppm_window::PpmWindow,
     scan_kv::{ScanKey, ScanValue},
 };
@@ -89,6 +89,54 @@ impl Ms2Index {
             )
         })
     }
+
+    // PERF: Add a `par_find_fragments()` that takes and returns a parallel iterator (if benchmarks justify it)
+    pub fn find_fragments<'f, 'p, 'n: 'f + 'p>(
+        &self,
+        fragments: impl IntoIterator<
+            Item = &'p (
+                NamedIon<'n>,
+                impl IntoIterator<Item = &'f NamedIon<'n>> + Copy + 'p,
+            ),
+        >,
+        ppm_tolerance: impl Into<f64>,
+    ) -> impl Iterator<Item = FoundFragment<'p, 'f, 'n>> {
+        let ppm_tolerance = ppm_tolerance.into();
+        fragments
+            .into_iter()
+            .flat_map(move |(theoretical_precursor, theoretical_fragments)| {
+                theoretical_fragments
+                    .into_iter()
+                    .flat_map(move |theoretical_fragment| {
+                        self.filter_scans(theoretical_precursor.mz(), ppm_tolerance)
+                            .flat_map(
+                                move |(
+                                    &ScanKey {
+                                        precursor,
+                                        scan_number,
+                                    },
+                                    &ScanValue {
+                                        start_time,
+                                        ref peaks,
+                                    },
+                                )| {
+                                    peaks
+                                        .find_peaks(theoretical_fragment.mz(), ppm_tolerance)
+                                        .map(move |fragment_mz| {
+                                            FoundFragment::new(
+                                                theoretical_precursor,
+                                                theoretical_fragment,
+                                                precursor,
+                                                fragment_mz,
+                                                scan_number,
+                                                start_time,
+                                            )
+                                        })
+                                },
+                            )
+                    })
+            })
+    }
 }
 
 // Private Methods =====================================================================================================
@@ -153,7 +201,45 @@ mod tests {
             NamedIon::new("g(r)m-AEJA(+p)", 942.414_979),
             NamedIon::new("g(r)m-AEJA(+2p)", 471.711_127_5),
         ];
+
         let found_precursors: Vec<_> = ms2_index.find_precursors(&monomer_ions, 10).collect();
         assert_debug_snapshot!(found_precursors);
+    }
+
+    #[test]
+    fn find_fragments() {
+        let ms2_index = Ms2Index::from_bytes(MZML).unwrap();
+        let monomer_fragments = [
+            ("gm(r)-AEJA", 942.414_979),
+            ("gm(r)-AEJ", 853.367_300),
+            ("m(r)-AEJA", 739.335_606),
+            ("gm(r)-AE", 681.282_508),
+            ("m(r)-AEJ", 650.287_928),
+            ("gm(r)-A", 552.239_915),
+            ("gm(r)", 481.202_801),
+            ("m(r)-AE", 478.203_135),
+            ("AEJA", 462.219_454),
+            ("EJA", 391.182_340),
+            ("AEJ", 373.171_776),
+            ("m(r)-A", 349.160_542),
+            ("EJ", 302.134_662),
+            ("m(r)", 278.123_428),
+            ("JA", 262.139_747),
+            ("g", 204.086_649),
+            ("AE", 201.086_983),
+            ("J", 173.092_069),
+            ("E", 130.049_870),
+            ("A", 90.054_955),
+            ("A", 72.044_390),
+        ]
+        .map(|(name, mz)| NamedIon::new(name, mz));
+        let monomer_fragments = [
+            NamedIon::new("g(r)m-AEJA(+p)", 942.414_979),
+            NamedIon::new("g(r)m-AEJA(+2p)", 471.711_127_5),
+        ]
+        .map(|named_ion| (named_ion, &monomer_fragments));
+
+        let found_fragments: Vec<_> = ms2_index.find_fragments(&monomer_fragments, 10).collect();
+        assert_debug_snapshot!(found_fragments);
     }
 }
