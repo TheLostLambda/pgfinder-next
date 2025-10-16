@@ -1,4 +1,5 @@
 mod found_fragment;
+mod found_precursor;
 mod ms2_index;
 mod named_ion;
 mod ordered_floats;
@@ -19,6 +20,14 @@ use crate::scan_kv::{ScanKey, ScanValue};
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
+
+#[derive(Clone, PartialEq, PartialOrd, Debug, Constructor)]
+pub struct FoundPrecursor<'n> {
+    theoretical: NamedIon<'n>,
+    observed_mz: f64,
+    scan_number: usize,
+    start_time: f64,
+}
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Constructor)]
 pub struct FoundFragment<'n> {
