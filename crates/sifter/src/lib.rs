@@ -1,12 +1,12 @@
+mod total_float;
+
 use std::{
     borrow::Cow,
-    cmp::Ordering,
     collections::{BTreeMap, BTreeSet},
     io::{Cursor, Read},
     ops::RangeInclusive,
 };
 
-use derive_more::{From, Into};
 use flate2::read::GzDecoder;
 use mzdata::{
     MzMLReader,
@@ -18,45 +18,11 @@ use mzdata::{
 use polars::{error::PolarsResult, frame::DataFrame, io::SerReader, prelude::CsvReader};
 use rayon::prelude::*;
 
+use crate::total_float::{Minutes, Mz};
+
 fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
     let csv_reader = Cursor::new(csv);
     CsvReader::new(csv_reader).finish()
-}
-
-// PERF: Try out `f32` and see if that saves enough space to speed things up!
-#[derive(Copy, Clone, Debug, From, Into)]
-struct TotalFloat(f64);
-
-impl Ord for TotalFloat {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.0.total_cmp(&other.0)
-    }
-}
-
-impl PartialOrd for TotalFloat {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for TotalFloat {
-    fn eq(&self, other: &Self) -> bool {
-        // NOTE: We must use the `.cmp()` from `Ord` here — the results of `.total_cmp()` do *not* match the default
-        // implementations of `PartialEq` for floats. The `.total_cmp()` method treats `-0` and `0` as different, but
-        // the default `PartialEq` for floats does not!
-        self.cmp(other) == Ordering::Equal
-    }
-}
-
-impl Eq for TotalFloat {}
-
-type Mz = TotalFloat;
-
-impl Mz {
-    fn ppm_window(mz: f64, ppm: f64) -> RangeInclusive<Self> {
-        let (min_mz, max_mz) = Tolerance::PPM(ppm).bounds(mz);
-        Self(min_mz)..=Self(max_mz)
-    }
 }
 
 // PERF: After getting some benchmarks in place, try cutting the size of this struct in half (f64 → f32) — the 64 bits
@@ -96,11 +62,9 @@ type Result<T> = std::result::Result<T, &'static str>;
 
 impl Peaks {
     fn filter_peaks(&self, mz: f64, ppm: f64) -> impl Iterator<Item = f64> {
-        self.0.range(Mz::ppm_window(mz, ppm)).map(|mz| mz.0)
+        self.0.range(Mz::ppm_window(mz, ppm)).map(|&mz| mz.into())
     }
 }
-
-type Minutes = TotalFloat;
 
 // PERF: Shrinking this `start_time` to a `f32` won't shrink the size of this struct. If I want to avoid any packing
 // anywhere, then I should move `start_time` back to `ScanInfo`, then shrink all of those fields to 4 bytes. But I'll
@@ -231,53 +195,25 @@ mod tests {
     }
 
     #[test]
-    fn mz_traits() {
-        // Test `From` and `Into` impls
-        let a: Mz = (941.407_703).into();
-        let b = Mz::from(471.711_128);
-        assert_float_absolute_eq!(a.into(), 941.407_703);
-        assert_float_absolute_eq!(b.into(), 471.711_128);
-        // Test `Copy` and `Ord` impl
-        assert_eq!(a.cmp(&b), Ordering::Greater);
-        assert_eq!(b.cmp(&a), Ordering::Less);
-        assert_eq!(a.cmp(&a), Ordering::Equal);
-        assert_eq!(b.cmp(&b), Ordering::Equal);
-    }
-
-    #[test]
-    fn mz_ppm_window() {
-        let window = Mz::ppm_window(941.407_703, 7.5);
-        let Bound::Included(&TotalFloat(start)) = window.start_bound() else {
-            panic!("expected a `.start_bound()` matching `Bound::Included(&Mz(_))`");
-        };
-        let Bound::Included(&TotalFloat(end)) = window.end_bound() else {
-            panic!("expected an `.end_bound()` matching `Bound::Included(&Mz(_))`");
-        };
-        assert_float_absolute_eq!(start, 941.400_642);
-        assert_float_absolute_eq!(end, 941.414_764);
-        assert!(window.contains(&Mz::from(941.407_703)));
-    }
-
-    #[test]
     fn scan_key_ppm_window() {
         let window = ScanKey::ppm_window(471.711_128, 10.0);
         let Bound::Included(&ScanKey {
-            precursor: TotalFloat(start_mz),
+            precursor: start_mz,
             scan_number: start_scan,
         }) = window.start_bound()
         else {
             panic!("expected a `.start_bound()` matching `Bound::Included(&Mz(_))`");
         };
         let Bound::Included(&ScanKey {
-            precursor: TotalFloat(end_mz),
+            precursor: end_mz,
             scan_number: end_scan,
         }) = window.end_bound()
         else {
             panic!("expected an `.end_bound()` matching `Bound::Included(&Mz(_))`");
         };
-        assert_float_absolute_eq!(start_mz, 471.706_411);
+        assert_float_absolute_eq!(start_mz.into(), 471.706_411);
         assert_eq!(start_scan, 0);
-        assert_float_absolute_eq!(end_mz, 471.715_845);
+        assert_float_absolute_eq!(end_mz.into(), 471.715_845);
         assert_eq!(end_scan, usize::MAX);
         assert!(window.contains(&ScanKey::new(471.711_128, 42)));
     }
