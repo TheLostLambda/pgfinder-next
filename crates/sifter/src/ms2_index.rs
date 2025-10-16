@@ -1,5 +1,5 @@
 // Standard Library Imports
-use std::{borrow::Cow, collections::BTreeMap, io::Read};
+use std::{borrow::Cow, io::Read};
 
 // External Crate Imports
 use flate2::read::GzDecoder;
@@ -13,14 +13,11 @@ use rayon::prelude::*;
 
 // Local Crate Imports
 use crate::{
-    Result,
+    Ms2Index, Result,
     scan_kv::{ScanKey, ScanValue},
 };
 
 // Public API ==========================================================================================================
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
 
 impl Ms2Index {
     pub fn from_bytes(bytes: impl AsRef<[u8]>) -> Result<Self> {

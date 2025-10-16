@@ -3,9 +3,14 @@ mod peaks;
 mod scan_kv;
 mod total_float;
 
-use std::io::Cursor;
+use std::{collections::BTreeMap, io::Cursor};
 
 use polars::{error::PolarsResult, frame::DataFrame, io::SerReader, prelude::CsvReader};
+
+use crate::scan_kv::{ScanKey, ScanValue};
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
 
 fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
     let csv_reader = Cursor::new(csv);
