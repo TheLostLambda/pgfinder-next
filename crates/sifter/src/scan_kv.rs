@@ -15,7 +15,7 @@ use crate::{
 // PERF: After getting some benchmarks in place, try cutting the size of this struct in half (f64 → f32) — the 64 bits
 // definitely isn't needed precision-wise, so if it helps performance, it's probably worth the small amount of type
 // casting! Don't forget about padding! All fields must shrink to the same size.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct ScanKey {
     precursor: Mz,
     scan_number: usize,
@@ -25,7 +25,7 @@ pub struct ScanKey {
 // anywhere, then I should move `start_time` back to `ScanInfo`, then shrink all of those fields to 4 bytes. But I'll
 // need to benchmark if *increasing* the key size, whilst *decreasing* the overall K + V size actually helps
 // performance. It's possible that smaller keys are faster anyways!
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct ScanValue {
     start_time: Minutes,
     peaks: Peaks,

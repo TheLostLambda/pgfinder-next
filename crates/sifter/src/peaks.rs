@@ -9,7 +9,7 @@ use crate::{ordered_floats::Mz, ppm_window::PpmWindow};
 
 // Public API ==========================================================================================================
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Peaks(BTreeSet<Mz>);
 
 impl From<&MZPeakSetType<CentroidPeak>> for Peaks {

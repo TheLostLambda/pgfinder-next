@@ -10,7 +10,7 @@ use polars::{error::PolarsResult, frame::DataFrame, io::SerReader, prelude::CsvR
 
 use crate::scan_kv::{ScanKey, ScanValue};
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Ms2Index(BTreeMap<ScanKey, ScanValue>);
 
 fn load_mass_database(csv: &str) -> PolarsResult<DataFrame> {
