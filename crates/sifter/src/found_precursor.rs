@@ -14,11 +14,9 @@ impl<'p> FoundPrecursor<'p, '_> {
         self.theoretical.mz()
     }
 
-    // MISSING: I don't want to promise that this method is `const` in my API...
-    #[expect(clippy::missing_const_for_fn)]
     #[must_use]
     pub fn observed_mz(&self) -> f64 {
-        self.observed_mz
+        self.observed_mz.into()
     }
 
     // MISSING: I don't want to promise that this method is `const` in my API...
@@ -28,11 +26,9 @@ impl<'p> FoundPrecursor<'p, '_> {
         self.scan_number
     }
 
-    // MISSING: I don't want to promise that this method is `const` in my API...
-    #[expect(clippy::missing_const_for_fn)]
     #[must_use]
     pub fn start_time(&self) -> f64 {
-        self.start_time
+        self.start_time.into()
     }
 }
 
@@ -42,14 +38,17 @@ impl<'p> FoundPrecursor<'p, '_> {
 mod tests {
     use assert_float_eq::assert_float_absolute_eq;
 
-    use crate::NamedIon;
+    use crate::{
+        NamedIon,
+        ordered_floats::{Minutes, Mz},
+    };
 
     use super::*;
 
     #[test]
     fn found_precursor_getters() {
         let theoretical = NamedIon::new("gm-AEJA", 942.41);
-        let ff = FoundPrecursor::new(&theoretical, 942.4121, 44, 12.345);
+        let ff = FoundPrecursor::new(&theoretical, Mz::from(942.4121), 44, Minutes::from(12.345));
 
         assert_eq!(ff.theoretical_name(), "gm-AEJA");
         assert_float_absolute_eq!(ff.theoretical_mz(), 942.41);

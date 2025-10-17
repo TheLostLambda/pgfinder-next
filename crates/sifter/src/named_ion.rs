@@ -2,12 +2,12 @@
 use std::borrow::Cow;
 
 // Local Crate Imports
-use crate::NamedIon;
+use crate::{NamedIon, ordered_floats::Mz};
 
 // Public API ==========================================================================================================
 
 impl<'n> NamedIon<'n> {
-    pub fn new(name: impl Into<Cow<'n, str>>, mz: impl Into<f64>) -> Self {
+    pub fn new(name: impl Into<Cow<'n, str>>, mz: impl Into<Mz>) -> Self {
         Self {
             name: name.into(),
             mz: mz.into(),
@@ -19,12 +19,9 @@ impl<'n> NamedIon<'n> {
         self.name.as_ref()
     }
 
-    // MISSING: I don't want to promise that this method is `const` in my API — especially when no other part of
-    // `NamedIon` is...
-    #[expect(clippy::missing_const_for_fn)]
     #[must_use]
     pub fn mz(&self) -> f64 {
-        self.mz
+        self.mz.into()
     }
 }
 

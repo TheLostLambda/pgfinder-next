@@ -24,18 +24,14 @@ impl<'p, 'f> FoundFragment<'p, 'f, '_> {
         self.theoretical_fragment.mz()
     }
 
-    // MISSING: I don't want to promise that this method is `const` in my API...
-    #[expect(clippy::missing_const_for_fn)]
     #[must_use]
     pub fn observed_precursor_mz(&self) -> f64 {
-        self.observed_precursor_mz
+        self.observed_precursor_mz.into()
     }
 
-    // MISSING: I don't want to promise that this method is `const` in my API...
-    #[expect(clippy::missing_const_for_fn)]
     #[must_use]
     pub fn observed_fragment_mz(&self) -> f64 {
-        self.observed_fragment_mz
+        self.observed_fragment_mz.into()
     }
 
     // MISSING: I don't want to promise that this method is `const` in my API...
@@ -45,11 +41,9 @@ impl<'p, 'f> FoundFragment<'p, 'f, '_> {
         self.scan_number
     }
 
-    // MISSING: I don't want to promise that this method is `const` in my API...
-    #[expect(clippy::missing_const_for_fn)]
     #[must_use]
     pub fn start_time(&self) -> f64 {
-        self.start_time
+        self.start_time.into()
     }
 }
 
@@ -59,7 +53,10 @@ impl<'p, 'f> FoundFragment<'p, 'f, '_> {
 mod tests {
     use assert_float_eq::assert_float_absolute_eq;
 
-    use crate::NamedIon;
+    use crate::{
+        NamedIon,
+        ordered_floats::{Minutes, Mz},
+    };
 
     use super::*;
 
@@ -70,10 +67,10 @@ mod tests {
         let ff = FoundFragment::new(
             &theoretical_precursor,
             &theoretical_fragment,
-            942.4121,
-            173.0923,
+            Mz::from(942.4121),
+            Mz::from(173.0923),
             44,
-            12.345,
+            Minutes::from(12.345),
         );
 
         assert_eq!(ff.theoretical_precursor_name(), "gm-AEJA");

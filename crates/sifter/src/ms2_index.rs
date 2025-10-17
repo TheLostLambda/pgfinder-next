@@ -84,12 +84,7 @@ impl Ms2Index {
                     },
                     &ScanValue { start_time, .. },
                 )| {
-                    FoundPrecursor::new(
-                        theoretical,
-                        precursor.into(),
-                        scan_number,
-                        start_time.into(),
-                    )
+                    FoundPrecursor::new(theoretical, precursor, scan_number, start_time)
                 },
             )
         })
