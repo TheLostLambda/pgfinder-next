@@ -18,7 +18,7 @@ regex = "1.11.1"
 
 [dev-dependencies]
 divan = "0.1.21"
-insta = { version = "1.43.1", features = ["redactions", "ron"] }
+insta = { version = "1.43.2", features = ["redactions", "ron"] }
 # miette = { version = "7.2.0", features = ["fancy"] }
 miette = { git = "https://github.com/TheLostLambda/miette", branch = "tll-fork", features = ["fancy"] }
 rust_decimal = "1.37.2"
